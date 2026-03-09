@@ -1,0 +1,6 @@
+.env
+auth.yaml
+cache/
+__pycache__/
+*.pyc
+.streamlit/secrets.toml

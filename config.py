@@ -1,0 +1,180 @@
+# TheSportsDB league IDs for all 54 UEFA first-tier leagues.
+# (Liechtenstein excluded — no domestic league; clubs play in Swiss system)
+#
+# season_type:
+#   "winter" – season spans two calendar years (Aug–May), e.g. "2025-2026"
+#   "summer" – season runs within one calendar year (Apr–Nov), e.g. "2025"
+
+LEAGUES = {
+    # ── Top 5 (pinned) ───────────────────────────────────────────────────────
+    "English Premier League":       {"id": 4328, "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "season_type": "winter",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_away_gf"]},
+    "Italian Serie A":              {"id": 4332, "country": "Italy",       "flag": "🇮🇹", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf"]},
+    "Spanish La Liga":              {"id": 4335, "country": "Spain",       "flag": "🇪🇸", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf"]},
+    "German Bundesliga":            {"id": 4331, "country": "Germany",     "flag": "🇩🇪", "season_type": "winter",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_away_gf"]},
+    "French Ligue 1":               {"id": 4334, "country": "France",      "flag": "🇫🇷", "season_type": "winter",
+                                     "tiebreakers": ["gd", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gf"]},
+    # ── Rest (alphabetical) ──────────────────────────────────────────────────
+    "Albanian Superliga":           {"id": 4617, "country": "Albania",     "flag": "🇦🇱", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Andorran Primera Divisió":     {"id": 4618, "country": "Andorra",     "flag": "🇦🇩", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Armenian Premier League":      {"id": 4619, "country": "Armenia",     "flag": "🇦🇲", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Austrian Bundesliga":          {"id": 4621, "country": "Austria",     "flag": "🇦🇹", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Azerbaijani Premier League":   {"id": 4693, "country": "Azerbaijan",  "flag": "🇦🇿", "season_type": "winter",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd"]},
+    "Belarus Vyscha Liga":          {"id": 4622, "country": "Belarus",     "flag": "🇧🇾", "season_type": "summer",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Belgian Pro League":           {"id": 4338, "country": "Belgium",     "flag": "🇧🇪", "season_type": "winter",
+                                     "tiebreakers": ["gd", "gf", "away_gf"]},
+    "Bosnian Premier Liga":         {"id": 4624, "country": "Bosnia",      "flag": "🇧🇦", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_away_gf", "h2h_gf", "gd", "gf"]},
+    "Bulgarian First League":       {"id": 4626, "country": "Bulgaria",    "flag": "🇧🇬", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"]},
+    "Croatian First League":        {"id": 4629, "country": "Croatia",     "flag": "🇭🇷", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Czech First League":           {"id": 4631, "country": "Czech Rep.",  "flag": "🇨🇿", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Cypriot First Division":       {"id": 4630, "country": "Cyprus",      "flag": "🇨🇾", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"]},
+    "Danish Superliga":             {"id": 4340, "country": "Denmark",     "flag": "🇩🇰", "season_type": "winter",
+                                     "tiebreakers": ["gd", "gf", "away_gf"]},
+    "Dutch Eredivisie":             {"id": 4337, "country": "Netherlands", "flag": "🇳🇱", "season_type": "winter",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd"]},
+    "Estonian Meistriliiga":        {"id": 4634, "country": "Estonia",     "flag": "🇪🇪", "season_type": "summer",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf"]},
+    "Faroe Islands Premier League": {"id": 4635, "country": "Faroe Isl.",  "flag": "🇫🇴", "season_type": "summer",
+                                     "tiebreakers": ["gd", "gf"]},
+    "Finnish Veikkausliiga":        {"id": 4636, "country": "Finland",     "flag": "🇫🇮", "season_type": "summer",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd"]},
+    "Georgian Erovnuli Liga":       {"id": 4638, "country": "Georgia",     "flag": "🇬🇪", "season_type": "summer",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"]},
+    "Gibraltar National League":    {"id": 4964, "country": "Gibraltar",   "flag": "🇬🇮", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"]},
+    "Greek Super League":           {"id": 4336, "country": "Greece",      "flag": "🇬🇷", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf"]},
+    "Hungarian NB I":               {"id": 4690, "country": "Hungary",     "flag": "🇭🇺", "season_type": "winter",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd"]},
+    "Icelandic Úrvalsdeild":        {"id": 4642, "country": "Iceland",     "flag": "🇮🇸", "season_type": "summer",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_gf"]},
+    "Irish Premier Division":       {"id": 4643, "country": "Ireland",     "flag": "🇮🇪", "season_type": "summer",
+                                     "tiebreakers": ["gd", "gf"]},
+    "Israeli Premier League":       {"id": 4644, "country": "Israel",      "flag": "🇮🇱", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"]},
+    "Kazakhstan Premier League":    {"id": 4649, "country": "Kazakhstan",  "flag": "🇰🇿", "season_type": "summer",
+                                     "tiebreakers": ["gd", "gf", "away_gf", "h2h_pts", "h2h_gd", "h2h_gf"]},
+    "Kosovan Superleague":          {"id": 4968, "country": "Kosovo",      "flag": "🇽🇰", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf"]},
+    "Latvian Higher League":        {"id": 4650, "country": "Latvia",      "flag": "🇱🇻", "season_type": "summer",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Lithuanian A Lyga":            {"id": 4651, "country": "Lithuania",   "flag": "🇱🇹", "season_type": "summer",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Luxembourgish National Div":   {"id": 4694, "country": "Luxembourg",  "flag": "🇱🇺", "season_type": "winter",
+                                     "tiebreakers": ["gd", "h2h_pts", "h2h_gd", "h2h_gf", "gf"]},
+    "Macedonian First League":      {"id": 4652, "country": "N. Macedonia","flag": "🇲🇰", "season_type": "winter",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_gf"]},
+    "Maltese Premier League":       {"id": 4653, "country": "Malta",       "flag": "🇲🇹", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Moldovan National Division":   {"id": 4655, "country": "Moldova",     "flag": "🇲🇩", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Montenegrin First League":     {"id": 4656, "country": "Montenegro",  "flag": "🇲🇪", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Northern Irish Premiership":   {"id": 4659, "country": "N. Ireland",  "flag": "🇬🇧", "season_type": "winter",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd"]},
+    "Norwegian Eliteserien":        {"id": 4358, "country": "Norway",      "flag": "🇳🇴", "season_type": "summer",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_gf"]},
+    "Polish Ekstraklasa":           {"id": 4422, "country": "Poland",      "flag": "🇵🇱", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf"]},
+    "Portuguese Primeira Liga":     {"id": 4344, "country": "Portugal",    "flag": "🇵🇹", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf"]},
+    "Romanian Liga I":              {"id": 4691, "country": "Romania",     "flag": "🇷🇴", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Russian Premier League":       {"id": 4355, "country": "Russia",      "flag": "🇷🇺", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "San Marino Campionato":        {"id": 4667, "country": "San Marino",  "flag": "🇸🇲", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Scottish Premiership":         {"id": 4330, "country": "Scotland",    "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "season_type": "winter",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd"]},
+    "Serbian Super Liga":           {"id": 4671, "country": "Serbia",      "flag": "🇷🇸", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"]},
+    "Slovak First League":          {"id": 4672, "country": "Slovakia",    "flag": "🇸🇰", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"]},
+    "Slovenian 1. SNL":             {"id": 4692, "country": "Slovenia",    "flag": "🇸🇮", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Swedish Allsvenskan":          {"id": 4347, "country": "Sweden",      "flag": "🇸🇪", "season_type": "summer",
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd"]},
+    "Swiss Super League":           {"id": 4675, "country": "Switzerland", "flag": "🇨🇭", "season_type": "winter",
+                                     "tiebreakers": ["gd", "gf", "h2h_gd", "h2h_gf"]},
+    "Turkish Super Lig":            {"id": 4339, "country": "Turkey",      "flag": "🇹🇷", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Ukrainian Premier League":     {"id": 4354, "country": "Ukraine",     "flag": "🇺🇦", "season_type": "winter",
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+    "Welsh Premier League":         {"id": 4472, "country": "Wales",       "flag": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "season_type": "winter", "split_round": 22,
+                                     "tiebreakers": ["gd", "gf", "h2h_gd", "h2h_gf"]},
+}
+
+
+def get_current_season(season_type: str) -> str:
+    """
+    Return the TheSportsDB season string currently active.
+
+    Winter leagues (Aug–May):  Jan–Jun → "{year-1}-{year}"  | Jul–Dec → "{year}-{year+1}"
+    Summer leagues (Apr–Nov):  Jan–Mar → str(year-1)        | Apr–Dec → str(year)
+    """
+    from datetime import datetime
+    now = datetime.now()
+    year = now.year
+    if season_type == "summer":
+        return str(year)
+    return f"{year - 1}-{year}" if now.month < 7 else f"{year}-{year + 1}"
+
+
+# ---------------------------------------------------------------------------
+# UEFA European Competitions (2025-2026)
+# IDs sourced from TheSportsDB — verify at thesportsdb.com if data is missing.
+#   n_direct  = teams advancing directly to R16 from league phase
+#   n_playoff = additional teams entering knockout play-offs
+# ---------------------------------------------------------------------------
+EUROPEAN_COMPETITIONS = {
+    "Champions League": {
+        "id": 4480, "flag": "🏆",
+        "n_direct": 8, "n_playoff": 16,
+        "league_phase_rounds": 8,
+        "has_league_phase": True,
+        "qualifying_rounds": {400, 1128, 128, 125},
+    },
+    "Europa League": {
+        "id": 4481, "flag": "🥈",
+        "n_direct": 8, "n_playoff": 16,
+        "league_phase_rounds": 8,
+        "has_league_phase": True,
+        "qualifying_rounds": {400, 1128, 128, 125},
+    },
+    "Conference League": {
+        "id": 5071, "flag": "🏅",
+        "n_direct": 8, "n_playoff": 16,
+        "league_phase_rounds": 8,
+        "has_league_phase": True,
+        "qualifying_rounds": {400, 1128, 128, 125},
+    },
+}
+
+# Default API key — the public demo key (limited to 5 standings rows / 15 fixtures).
+# Subscribe at thesportsdb.com (Single Developer $9/mo) for full data.
+# Set env var THESPORTSDB_API_KEY or enter in the sidebar.
+DEFAULT_API_KEY = "3"
+
+# Simulation defaults
+DEFAULT_N_SIMULATIONS = 10_000
+DEFAULT_HOME_ADVANTAGE = 1.20
+DEFAULT_BASE_GOALS = 1.35
+
+# Cache TTL in seconds
+CACHE_TTL_STANDINGS = 7_200     # 2 hours
+CACHE_TTL_FIXTURES = 3_600      # 1 hour
+CACHE_TTL_META = 86_400         # 24 hours
