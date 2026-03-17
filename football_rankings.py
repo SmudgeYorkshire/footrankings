@@ -331,7 +331,7 @@ def main_content():
     st.divider()
 
     tab_table, tab_proj, tab_manual, tab_fixtures, tab_results, tab_format = st.tabs(
-        ["📊 Current Table", "🎯 Predictions", "🔮 Manual Predictions", "📅 Fixtures", "📋 Results", "📋 Format"]
+        ["📊 Current Table", "🎯 Predictions", "🔮 Manual Predictions", "📅 Fixtures", "📋 Results", "🗂️ Format"]
     )
 
     # ── Current Table ────────────────────────────────────────────────────────
