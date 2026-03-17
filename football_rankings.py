@@ -911,8 +911,10 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             "playoff":           "🔀",
         }
         raw_zones = cfg.get("zones") or _zones_from_standings(standings) or {}
+        _zone_notes = cfg.get("zone_notes", {})
         if raw_zones:
             zone_rows = []
+            notes_to_show = []
             for label, positions in sorted(raw_zones.items(), key=lambda x: min(x[1])):
                 label_lower = label.lower()
                 icon = next((v for k, v in _ZONE_ICONS.items() if k in label_lower), "📌")
@@ -921,13 +923,25 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     str(pos_sorted[0]) if len(pos_sorted) == 1
                     else f"{pos_sorted[0]}–{pos_sorted[-1]}"
                 )
-                zone_rows.append({"Pos.": pos_str, "Zone": f"{icon}  {label}"})
+                note = next((v for k, v in _zone_notes.items() if k in label_lower), None)
+                has_note = "ℹ️" if note else ""
+                zone_rows.append({"Pos.": pos_str, "Zone": f"{icon}  {label}", "": has_note})
+                if note:
+                    notes_to_show.append((f"{icon}  {label}", note))
             zone_df = pd.DataFrame(zone_rows)
             st.dataframe(zone_df, use_container_width=False, hide_index=True,
                          column_config={
                              "Pos.": st.column_config.TextColumn("Pos.", width=70),
                              "Zone": st.column_config.TextColumn("Zone", width=300),
+                             "":     st.column_config.TextColumn("",     width=30),
                          })
+            for zone_label, note_text in notes_to_show:
+                st.markdown(
+                    f"<div style='background:#1e2a3a;border-left:3px solid #4a9eda;"
+                    f"padding:10px 14px;border-radius:4px;margin:6px 0;color:white'>"
+                    f"<b>{zone_label}</b><br><small>{note_text}</small></div>",
+                    unsafe_allow_html=True
+                )
         else:
             st.caption("Zone information will appear here once the season begins.")
 
