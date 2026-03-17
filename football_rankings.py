@@ -330,8 +330,8 @@ def main_content():
 
     st.divider()
 
-    tab_table, tab_proj, tab_manual, tab_fixtures, tab_results = st.tabs(
-        ["📊 Current Table", "🎯 Predictions", "🔮 Manual Predictions", "📅 Fixtures", "📋 Results"]
+    tab_table, tab_proj, tab_manual, tab_fixtures, tab_results, tab_format = st.tabs(
+        ["📊 Current Table", "🎯 Predictions", "🔮 Manual Predictions", "📅 Fixtures", "📋 Results", "📋 Format"]
     )
 
     # ── Current Table ────────────────────────────────────────────────────────
@@ -785,6 +785,141 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     subset=["Home", "Away"], **{"font-weight": "bold"})
                 st.dataframe(_fix_df, column_config=_fix_col_cfg,
                              use_container_width=False, hide_index=True)
+
+    # ── Format ───────────────────────────────────────────────────────────────
+    with tab_format:
+        _TB_LABELS_FMT = {
+            "gd":           "Goal difference",
+            "gf":           "Goals scored",
+            "away_gf":      "Away goals scored",
+            "h2h_pts":      "Head-to-head points",
+            "h2h_gd":       "Head-to-head goal difference",
+            "h2h_gf":       "Head-to-head goals scored",
+            "h2h_away_gf":  "Head-to-head away goals scored",
+        }
+
+        # ── Season overview ──────────────────────────────────────────────────
+        st.markdown("### 📅 Season Overview")
+        all_dates = sorted([
+            f.get("dateEvent") for f in (played_fixtures + remaining_fixtures)
+            if f.get("dateEvent")
+        ])
+        season_start = all_dates[0]  if all_dates else "—"
+        season_end   = all_dates[-1] if all_dates else "—"
+        next_dates   = sorted([f.get("dateEvent") for f in remaining_fixtures if f.get("dateEvent")])
+        next_match   = next_dates[0] if next_dates else "Season complete"
+
+        ov1, ov2, ov3, ov4, ov5, ov6 = st.columns(6)
+        ov1.metric("Teams",            len(standings))
+        ov2.metric("Total rounds",     total_rounds)
+        ov3.metric("Rounds played",    played_rounds)
+        ov4.metric("Rounds remaining", remaining_rounds)
+        ov5.metric("Season start",     season_start)
+        ov6.metric("Next / end date",  next_match)
+
+        st.divider()
+
+        # ── Competition format + Tiebreakers (side by side) ──────────────────
+        fmt_col, tb_col = st.columns([3, 2])
+
+        with fmt_col:
+            st.markdown("### 🏟️ Competition Format")
+            _sr    = cfg.get("split_round")
+            _nchmp = cfg.get("n_champ")
+            _nmid  = cfg.get("n_mid")
+            _pf    = cfg.get("pts_factor", 1.0)
+            _ntms  = len(standings) or _nchmp
+
+            if not _sr:
+                st.success("**Standard round-robin**")
+                st.markdown(
+                    f"All {_ntms} teams play each other home and away in a single table. "
+                    "No post-season split or playoff groups."
+                )
+            else:
+                _pts_label = {
+                    1.0: "✅ Points carried over in full",
+                    0.5: "⚠️ Points halved (rounded down) at split",
+                    0.0: "🔄 Points reset to zero at split",
+                }.get(_pf, f"pts × {_pf}")
+
+                if _pf == 0.5:
+                    st.warning("**Split-season format** — points halved at split")
+                elif _pf == 0.0:
+                    st.warning("**Split-season format** — points reset at split")
+                else:
+                    st.info("**Split-season format** — points carried over")
+
+                st.markdown(f"**Regular season:** rounds 1 – {_sr}")
+                st.markdown("After the regular season, teams split into groups:")
+
+                n_relg = (_ntms - (_nchmp or 0) - (_nmid or 0)) if _ntms and _nchmp else None
+                group_cols = st.columns(3 if _nmid else 2)
+                with group_cols[0]:
+                    st.markdown(
+                        f"<div style='background:#1a472a;padding:12px;border-radius:8px;"
+                        f"text-align:center'><b>🏆 Championship</b><br>Top {_nchmp} teams<br>"
+                        f"<small>{_pts_label}</small></div>",
+                        unsafe_allow_html=True
+                    )
+                if _nmid:
+                    with group_cols[1]:
+                        st.markdown(
+                            f"<div style='background:#1a3a5c;padding:12px;border-radius:8px;"
+                            f"text-align:center'><b>🔵 Middle Group</b><br>{_nmid} teams<br>"
+                            f"<small>{_pts_label}</small></div>",
+                            unsafe_allow_html=True
+                        )
+                with group_cols[-1]:
+                    if n_relg and n_relg > 0:
+                        st.markdown(
+                            f"<div style='background:#4a1a1a;padding:12px;border-radius:8px;"
+                            f"text-align:center'><b>⚠️ Relegation</b><br>Bottom {n_relg} teams<br>"
+                            f"<small>{_pts_label}</small></div>",
+                            unsafe_allow_html=True
+                        )
+
+        with tb_col:
+            st.markdown("### ⚖️ Tiebreakers")
+            st.markdown("*Applied in order when clubs are level on points:*")
+            for i, rule in enumerate(cfg.get("tiebreakers", ["gd", "gf"]), 1):
+                st.markdown(f"**{i}.** {_TB_LABELS_FMT.get(rule, rule)}")
+
+        st.divider()
+
+        # ── League positions ─────────────────────────────────────────────────
+        st.markdown("### 🎯 League Positions")
+        _ZONE_ICONS = {
+            "champions league":  "🏆",
+            "champions":         "🏆",
+            "europa league":     "🥈",
+            "europa":            "🥈",
+            "conference league": "🏅",
+            "conference":        "🏅",
+            "relegation":        "⬇️",
+            "promotion":         "⬆️",
+            "playoff":           "🔀",
+        }
+        raw_zones = cfg.get("zones") or _zones_from_standings(standings) or {}
+        if raw_zones:
+            zone_rows = []
+            for label, positions in sorted(raw_zones.items(), key=lambda x: min(x[1])):
+                label_lower = label.lower()
+                icon = next((v for k, v in _ZONE_ICONS.items() if k in label_lower), "📌")
+                pos_sorted = sorted(positions)
+                pos_str = (
+                    str(pos_sorted[0]) if len(pos_sorted) == 1
+                    else f"{pos_sorted[0]}–{pos_sorted[-1]}"
+                )
+                zone_rows.append({"Pos.": pos_str, "Zone": f"{icon}  {label}"})
+            zone_df = pd.DataFrame(zone_rows)
+            st.dataframe(zone_df, use_container_width=False, hide_index=True,
+                         column_config={
+                             "Pos.": st.column_config.TextColumn("Pos.", width=70),
+                             "Zone": st.column_config.TextColumn("Zone", width=300),
+                         })
+        else:
+            st.caption("Zone information will appear here once the season begins.")
 
 
 main_content()
