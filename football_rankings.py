@@ -829,8 +829,15 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
 
             if not _sr:
                 st.success("**Standard round-robin**")
+                _times = round(total_rounds / (_ntms - 1)) if _ntms and _ntms > 1 and total_rounds else None
+                _times_txt = {
+                    2: "home and away once each (twice in total)",
+                    3: "three times each",
+                    4: "home and away twice each (four times in total)",
+                    6: "six times each",
+                }.get(_times, f"{_times} times each" if _times else "home and away")
                 st.markdown(
-                    f"All {_ntms} teams play each other home and away in a single table. "
+                    f"All {_ntms} teams play each other {_times_txt} in a single table. "
                     "No post-season split or playoff groups."
                 )
             else:
@@ -847,7 +854,13 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                 else:
                     st.info("**Split-season format** — points carried over")
 
-                st.markdown(f"**Regular season:** rounds 1 – {_sr}")
+                _times_reg = round(_sr / (_ntms - 1)) if _ntms and _ntms > 1 and _sr else None
+                _times_reg_txt = {
+                    2: "home and away once each",
+                    3: "three times each",
+                    4: "home and away twice each",
+                }.get(_times_reg, f"{_times_reg} times each" if _times_reg else "")
+                st.markdown(f"**Regular season:** rounds 1 – {_sr}  ({_ntms} teams play each other {_times_reg_txt})")
                 st.markdown("After the regular season, teams split into groups:")
 
                 n_relg = (_ntms - (_nchmp or 0) - (_nmid or 0)) if _ntms and _nchmp else None
