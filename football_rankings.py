@@ -806,16 +806,13 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
         ])
         season_start = all_dates[0]  if all_dates else "—"
         season_end   = all_dates[-1] if all_dates else "—"
-        next_dates   = sorted([f.get("dateEvent") for f in remaining_fixtures if f.get("dateEvent")])
-        next_match   = next_dates[0] if next_dates else "Season complete"
-
         ov1, ov2, ov3, ov4, ov5, ov6 = st.columns(6)
         ov1.metric("Teams",            len(standings))
         ov2.metric("Total rounds",     total_rounds)
         ov3.metric("Rounds played",    played_rounds)
         ov4.metric("Rounds remaining", remaining_rounds)
         ov5.metric("Season start",     season_start)
-        ov6.metric("Next / end date",  next_match)
+        ov6.metric("Season end",       season_end)
 
         st.divider()
 
