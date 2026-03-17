@@ -415,8 +415,10 @@ def main_content():
             "h2h_pts":      "Head-to-head points",
             "h2h_gd":       "Head-to-head goal difference",
             "h2h_gf":       "Head-to-head goals scored",
-            "h2h_away_gf":  "Head-to-head away goals scored",
-            "playoffs":     "Play-offs",
+            "h2h_away_gf":          "Head-to-head away goals scored",
+            "playoffs":             "Play-offs",
+            "playoffs_title_or_rel3": "Play-off (for championship or third relegation place)",
+            "draw":                 "Draw",
         }
 
         if split_info:
@@ -796,8 +798,10 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             "h2h_pts":      "Head-to-head points",
             "h2h_gd":       "Head-to-head goal difference",
             "h2h_gf":       "Head-to-head goals scored",
-            "h2h_away_gf":  "Head-to-head away goals scored",
-            "playoffs":     "Play-offs",
+            "h2h_away_gf":          "Head-to-head away goals scored",
+            "playoffs":             "Play-offs",
+            "playoffs_title_or_rel3": "Play-off (for championship or third relegation place)",
+            "draw":                 "Draw",
         }
 
         # ── Season overview ──────────────────────────────────────────────────
