@@ -16,6 +16,7 @@ from pathlib import Path
 from config import EUROPEAN_COMPETITIONS, LEAGUES
 from data_fetcher import SportsDBClient
 from simulator import fixture_odds
+from entrants_2026_27 import ENTRANTS as ENTRANTS_2026_27, STAGE_ORDER
 
 _API_KEY = os.getenv("THESPORTSDB_API_KEY", "3")
 
@@ -248,14 +249,28 @@ st.divider()
 # ---------------------------------------------------------------------------
 # Tabs — vary by whether competition has a league phase
 # ---------------------------------------------------------------------------
+_show_entrants = (season == "2026-2027") and (comp_name in ENTRANTS_2026_27)
+
 if has_lp:
-    tab_league, tab_lp_results, tab_knockout, tab_bracket, tab_qual = st.tabs(
-        ["📊 Standings", "📋 League Stage", "⚔️ Knockout", "🏆 Bracket", "🔍 Qualifying"]
-    )
+    if _show_entrants:
+        tab_league, tab_lp_results, tab_knockout, tab_bracket, tab_qual, tab_entrants = st.tabs(
+            ["📊 Standings", "📋 League Stage", "⚔️ Knockout", "🏆 Bracket", "🔍 Qualifying", "📋 Entrants"]
+        )
+    else:
+        tab_league, tab_lp_results, tab_knockout, tab_bracket, tab_qual = st.tabs(
+            ["📊 Standings", "📋 League Stage", "⚔️ Knockout", "🏆 Bracket", "🔍 Qualifying"]
+        )
+        tab_entrants = None
 else:
-    tab_knockout, tab_bracket, tab_qual = st.tabs(
-        ["⚔️ Knockout", "🏆 Bracket", "🔍 Qualifying"]
-    )
+    if _show_entrants:
+        tab_knockout, tab_bracket, tab_qual, tab_entrants = st.tabs(
+            ["⚔️ Knockout", "🏆 Bracket", "🔍 Qualifying", "📋 Entrants"]
+        )
+    else:
+        tab_knockout, tab_bracket, tab_qual = st.tabs(
+            ["⚔️ Knockout", "🏆 Bracket", "🔍 Qualifying"]
+        )
+        tab_entrants = None
     tab_league = None
     tab_lp_results = None
 
@@ -537,3 +552,66 @@ with tab_qual:
                 subset=["Home", "Away"], **{"font-weight": "bold"})
             st.dataframe(_q_styled, column_config=_q_cfg,
                          use_container_width=False, hide_index=True)
+
+
+# ---------------------------------------------------------------------------
+# Tab — 2026-27 Entrants
+# ---------------------------------------------------------------------------
+if tab_entrants is not None:
+    with tab_entrants:
+        comp_entrants = ENTRANTS_2026_27.get(comp_name, {})
+        if not comp_entrants:
+            st.info("No entrant data available.")
+        else:
+            st.caption(
+                "🟢 Confirmed — domestic season complete  "
+                "🟡 Provisional — season still running  "
+                "⬜ TBD — club not yet determined"
+            )
+
+            _STATUS_BG = {
+                "confirmed":   "#1a3a1a",
+                "provisional": "#3a3010",
+                "tbd":         "#2a2a2a",
+            }
+            _STATUS_LABEL = {
+                "confirmed":   "✅ Confirmed",
+                "provisional": "⏳ Provisional",
+                "tbd":         "— TBD",
+            }
+
+            # Iterate stages in chronological order
+            for stage in STAGE_ORDER:
+                if stage not in comp_entrants:
+                    continue
+                paths = comp_entrants[stage]
+                with st.expander(f"**{stage}**", expanded=(stage == "League Phase")):
+                    for path_label, clubs in paths.items():
+                        if len(paths) > 1:
+                            st.markdown(f"*{path_label}*")
+                        rows_html = ""
+                        for e in clubs:
+                            bg   = _STATUS_BG.get(e["status"], "#2a2a2a")
+                            name = e["club"] if e["club"] else f"<span style='color:#888'>{e['route']}</span>"
+                            label = _STATUS_LABEL.get(e["status"], "")
+                            rows_html += (
+                                f"<tr style='background:{bg}'>"
+                                f"<td style='padding:4px 8px;font-size:15px'>{e['flag']}</td>"
+                                f"<td style='padding:4px 8px;font-weight:bold;color:white'>{name}</td>"
+                                f"<td style='padding:4px 8px;color:#aaa'>{e['country']}</td>"
+                                f"<td style='padding:4px 8px;color:#888;font-size:12px'>{e['route']}</td>"
+                                f"<td style='padding:4px 8px;color:#aaa;font-size:12px'>{label}</td>"
+                                f"</tr>"
+                            )
+                        st.markdown(
+                            f"<table style='width:100%;border-collapse:collapse;font-family:sans-serif'>"
+                            f"<thead><tr style='background:#1a1a2e'>"
+                            f"<th style='padding:4px 8px;color:#888;text-align:left'></th>"
+                            f"<th style='padding:4px 8px;color:#888;text-align:left'>Club</th>"
+                            f"<th style='padding:4px 8px;color:#888;text-align:left'>Country</th>"
+                            f"<th style='padding:4px 8px;color:#888;text-align:left'>Route</th>"
+                            f"<th style='padding:4px 8px;color:#888;text-align:left'>Status</th>"
+                            f"</tr></thead><tbody>{rows_html}</tbody></table>",
+                            unsafe_allow_html=True,
+                        )
+                        st.markdown("")
