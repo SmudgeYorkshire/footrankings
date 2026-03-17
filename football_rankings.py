@@ -806,20 +806,16 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
         ])
         season_start = all_dates[0]  if all_dates else "—"
         season_end   = all_dates[-1] if all_dates else "—"
-        ov1, ov2, ov3, ov4, ov5, ov6 = st.columns(6)
-        ov1.metric("Teams",            len(standings))
-        ov2.metric("Total rounds",     total_rounds)
-        ov3.metric("Rounds played",    played_rounds)
-        ov4.metric("Rounds remaining", remaining_rounds)
-        ov5.metric("Season start",     season_start)
-        ov6.metric("Season end",       season_end)
+        ov1, ov2, ov3, ov4 = st.columns(4)
+        ov1.metric("Teams",        len(standings))
+        ov2.metric("Total rounds", total_rounds)
+        ov3.metric("Season start", season_start)
+        ov4.metric("Season end",   season_end)
 
         st.divider()
 
-        # ── Competition format + Tiebreakers (side by side) ──────────────────
-        fmt_col, tb_col = st.columns([3, 2])
-
-        with fmt_col:
+        # ── Competition format ────────────────────────────────────────────────
+        if True:
             st.markdown("### 🏟️ Competition Format")
             _sr    = cfg.get("split_round")
             _nchmp = cfg.get("n_champ")
@@ -889,12 +885,6 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                             unsafe_allow_html=True
                         )
 
-        with tb_col:
-            st.markdown("### ⚖️ Tiebreakers")
-            st.markdown("*Applied in order when clubs are level on points:*")
-            for i, rule in enumerate(cfg.get("tiebreakers", ["gd", "gf"]), 1):
-                st.markdown(f"**{i}.** {_TB_LABELS_FMT.get(rule, rule)}")
-
         st.divider()
 
         # ── League positions ─────────────────────────────────────────────────
@@ -944,6 +934,14 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                 )
         else:
             st.caption("Zone information will appear here once the season begins.")
+
+        st.divider()
+
+        # ── Tiebreakers ───────────────────────────────────────────────────────
+        st.markdown("### ⚖️ Tiebreakers")
+        st.markdown("*Applied in order when clubs are level on points:*")
+        for i, rule in enumerate(cfg.get("tiebreakers", ["gd", "gf"]), 1):
+            st.markdown(f"**{i}.** {_TB_LABELS_FMT.get(rule, rule)}")
 
 
 main_content()
