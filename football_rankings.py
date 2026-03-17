@@ -810,7 +810,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
         season_end   = all_dates[-1] if all_dates else "—"
         ov1, ov2, ov3, ov4 = st.columns(4)
         ov1.metric("Teams",        len(standings))
-        ov2.metric("Total rounds", total_rounds)
+        ov2.metric("Rounds", total_rounds)
         ov3.metric("Season start", season_start)
         ov4.metric("Season end",   season_end)
 
