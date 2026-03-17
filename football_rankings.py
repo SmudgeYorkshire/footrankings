@@ -820,7 +820,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             except Exception:
                 return d
         season_start = _fmt_date(all_dates[0])  if all_dates else "—"
-        season_end   = _fmt_date(all_dates[-1]) if all_dates else "—"
+        season_end   = cfg.get("season_end") or (_fmt_date(all_dates[-1]) if all_dates else "—")
         _ov_items = [
             ("Teams",        str(len(standings))),
             ("Rounds",       str(total_rounds)),
