@@ -16,7 +16,7 @@ from pathlib import Path
 from config import EUROPEAN_COMPETITIONS, LEAGUES
 from data_fetcher import SportsDBClient
 from simulator import fixture_odds
-from entrants_2026_27 import ENTRANTS as ENTRANTS_2026_27, STAGE_ORDER
+from entrants_2026_27 import ENTRANTS as ENTRANTS_2026_27, STAGE_ORDER, QUALIFYING_DATES
 
 _API_KEY = os.getenv("THESPORTSDB_API_KEY", "3")
 
@@ -519,7 +519,86 @@ with tab_bracket:
 # Tab — Qualifying Results
 # ---------------------------------------------------------------------------
 with tab_qual:
-    if not qual_all:
+    # ── 2026-27: show static schedule + confirmed entrants ──────────────────
+    if season == "2026-2027":
+        _comp_entrants = ENTRANTS_2026_27.get(comp_name, {})
+        _comp_dates    = QUALIFYING_DATES.get(comp_name, {})
+        _QUAL_STAGES   = ["First Qualifying Round", "Second Qualifying Round",
+                          "Third Qualifying Round", "Play-off Round"]
+        _STATUS_BG = {
+            "confirmed":   "#1a3a1a",
+            "provisional": "#3a3010",
+            "tbd":         "#2a2a2a",
+        }
+        _STATUS_LABEL = {
+            "confirmed":   "✅ Confirmed",
+            "provisional": "⏳ Provisional",
+            "tbd":         "— TBD",
+        }
+        st.caption(
+            "🟢 Confirmed — domestic season complete  "
+            "🟡 Provisional — season still running  "
+            "⬜ TBD — club not yet determined  ·  "
+            "Draws and individual matchups not yet made"
+        )
+        for stage in _QUAL_STAGES:
+            if stage not in _comp_entrants:
+                continue
+            dates = _comp_dates.get(stage, {})
+            leg1  = dates.get("leg1", "TBD")
+            leg2  = dates.get("leg2", "TBD")
+            date_str = f"1st leg: **{leg1}** &nbsp;·&nbsp; 2nd leg: **{leg2}**"
+            st.markdown(f"### {stage}")
+            st.markdown(date_str, unsafe_allow_html=True)
+            paths = _comp_entrants[stage]
+            for path_label, clubs in paths.items():
+                if len(paths) > 1:
+                    st.markdown(f"*{path_label}*")
+                confirmed_clubs = [e for e in clubs if e["status"] != "tbd"]
+                tbd_clubs       = [e for e in clubs if e["status"] == "tbd"]
+                # Confirmed / provisional table
+                if confirmed_clubs:
+                    rows_html = ""
+                    for e in confirmed_clubs:
+                        bg    = _STATUS_BG[e["status"]]
+                        label = _STATUS_LABEL[e["status"]]
+                        rows_html += (
+                            f"<tr style='background:{bg}'>"
+                            f"<td style='padding:4px 8px;font-size:15px'>{e['flag']}</td>"
+                            f"<td style='padding:4px 8px;font-weight:bold;color:white'>{e['club']}</td>"
+                            f"<td style='padding:4px 8px;color:#aaa'>{e['country']}</td>"
+                            f"<td style='padding:4px 8px;color:#888;font-size:12px'>{e['route']}</td>"
+                            f"<td style='padding:4px 8px;color:#aaa;font-size:12px'>{label}</td>"
+                            f"</tr>"
+                        )
+                    st.markdown(
+                        f"<table style='width:100%;border-collapse:collapse;"
+                        f"font-family:sans-serif;margin-bottom:6px'>"
+                        f"<thead><tr style='background:#1a1a2e'>"
+                        f"<th style='padding:4px 8px;color:#888;text-align:left'></th>"
+                        f"<th style='padding:4px 8px;color:#888;text-align:left'>Club</th>"
+                        f"<th style='padding:4px 8px;color:#888;text-align:left'>Country</th>"
+                        f"<th style='padding:4px 8px;color:#888;text-align:left'>Route</th>"
+                        f"<th style='padding:4px 8px;color:#888;text-align:left'>Status</th>"
+                        f"</tr></thead><tbody>{rows_html}</tbody></table>",
+                        unsafe_allow_html=True,
+                    )
+                # TBD slots — compact text list
+                if tbd_clubs:
+                    tbd_items = " · ".join(
+                        f"{e['flag']} {e['country']} ({e['route']})" for e in tbd_clubs
+                    )
+                    st.markdown(
+                        f"<div style='background:#1e1e1e;border-left:3px solid #555;"
+                        f"padding:8px 12px;border-radius:4px;color:#888;"
+                        f"font-size:12px;margin-bottom:10px'>"
+                        f"<b style='color:#666'>TBD slots:</b> {tbd_items}</div>",
+                        unsafe_allow_html=True,
+                    )
+            st.divider()
+
+    # ── Live seasons: fetch from API as before ───────────────────────────────
+    elif not qual_all:
         st.info("No qualifying data available.")
     else:
         _q_cfg = {

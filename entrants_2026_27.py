@@ -433,6 +433,32 @@ STAGE_ORDER = [
     "League Phase",
 ]
 
+# Qualifying round dates per competition
+# CL plays 1-2 days earlier than EL/UECL at every stage
+QUALIFYING_DATES = {
+    "Champions League": {
+        "First Qualifying Round":  {"leg1": "7/8 Jul 2026",    "leg2": "14/15 Jul 2026"},
+        "Second Qualifying Round": {"leg1": "21/22 Jul 2026",  "leg2": "28/29 Jul 2026"},
+        "Third Qualifying Round":  {"leg1": "4/5 Aug 2026",    "leg2": "11 Aug 2026"},
+        "Play-off Round":          {"leg1": "18/19 Aug 2026",  "leg2": "25/26 Aug 2026"},
+        "League Phase":            {"leg1": "15/16 Sep 2026",  "leg2": None},
+    },
+    "Europa League": {
+        "First Qualifying Round":  {"leg1": "9 Jul 2026",      "leg2": "16 Jul 2026"},
+        "Second Qualifying Round": {"leg1": "23 Jul 2026",     "leg2": "30 Jul 2026"},
+        "Third Qualifying Round":  {"leg1": "6 Aug 2026",      "leg2": "13 Aug 2026"},
+        "Play-off Round":          {"leg1": "20 Aug 2026",     "leg2": "27 Aug 2026"},
+        "League Phase":            {"leg1": "15/16 Oct 2026",  "leg2": None},
+    },
+    "Conference League": {
+        "First Qualifying Round":  {"leg1": "9 Jul 2026",      "leg2": "16 Jul 2026"},
+        "Second Qualifying Round": {"leg1": "23 Jul 2026",     "leg2": "30 Jul 2026"},
+        "Third Qualifying Round":  {"leg1": "6 Aug 2026",      "leg2": "13 Aug 2026"},
+        "Play-off Round":          {"leg1": "20 Aug 2026",     "leg2": "27 Aug 2026"},
+        "League Phase":            {"leg1": "15/16 Oct 2026",  "leg2": None},
+    },
+}
+
 ENTRANTS = {
     "Champions League": _CL,
     "Europa League":    _EL,
