@@ -9,10 +9,16 @@ of standings rows for the same league:
 
 This module detects that phase, identifies which conference each team belongs
 to, and provides helpers to filter fixtures by conference.
+
+pts_factor values:
+  1.0 – points carried over fully (most leagues)
+  0.5 – points halved going into playoff (Belgium, Austria, Romania, Serbia)
+  0.0 – points reset to zero (Malta Apertura/Clausura)
 """
 
 
-def get_split_info(standings: list[dict], split_round: int) -> dict | None:
+def get_split_info(standings: list[dict], split_round: int,
+                   n_champ: int = None, pts_factor: float = 1.0) -> dict | None:
     """
     Returns None if still in regular season (no conference data yet).
 
@@ -22,6 +28,7 @@ def get_split_info(standings: list[dict], split_round: int) -> dict | None:
         pre_split     – list of end-of-regular-season rows (sorted by rank)
         champ_current – current Championship conference rows (sorted by rank)
         relg_current  – current Relegation conference rows (sorted by rank)
+        pts_factor    – float: 1.0 full / 0.5 halved / 0.0 reset
     """
     split_rows   = [r for r in standings if int(r.get("intPlayed") or 0) == split_round]
     current_rows = [r for r in standings if int(r.get("intPlayed") or 0) >  split_round]
@@ -29,6 +36,7 @@ def get_split_info(standings: list[dict], split_round: int) -> dict | None:
     if not split_rows or not current_rows:
         return None  # Regular season still running
 
+    # Try to identify conferences from TheSportsDB strDescription
     champ_teams = {
         r["strTeam"] for r in split_rows
         if "championship" in (r.get("strDescription") or "").lower()
@@ -37,6 +45,12 @@ def get_split_info(standings: list[dict], split_round: int) -> dict | None:
         r["strTeam"] for r in split_rows
         if "relegation" in (r.get("strDescription") or "").lower()
     }
+
+    # Fallback: use n_champ rank split when strDescription not available
+    if (not champ_teams or not relg_teams) and n_champ:
+        sorted_split = sorted(split_rows, key=lambda r: int(r.get("intRank") or 99))
+        champ_teams = {r["strTeam"] for r in sorted_split[:n_champ]}
+        relg_teams  = {r["strTeam"] for r in sorted_split[n_champ:]}
 
     if not champ_teams or not relg_teams:
         return None  # Cannot identify conferences
@@ -50,6 +64,7 @@ def get_split_info(standings: list[dict], split_round: int) -> dict | None:
         "pre_split":     _sort(split_rows),
         "champ_current": _sort([r for r in current_rows if r["strTeam"] in champ_teams]),
         "relg_current":  _sort([r for r in current_rows if r["strTeam"] in relg_teams]),
+        "pts_factor":    pts_factor,
     }
 
 

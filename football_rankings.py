@@ -302,7 +302,9 @@ def main_content():
 
     ratings_df = load_ratings(league_id, standings)
     split_round = cfg.get("split_round")
-    split_info = get_split_info(standings, split_round) if split_round else None
+    n_champ     = cfg.get("n_champ")
+    pts_factor  = cfg.get("pts_factor", 1.0)
+    split_info = get_split_info(standings, split_round, n_champ=n_champ, pts_factor=pts_factor) if split_round else None
     badge_lookup = {row["strTeam"]: row["strBadge"] for row in standings if row.get("strBadge")}
 
     # League header
@@ -417,9 +419,18 @@ def main_content():
         }
 
         if split_info:
-            st.markdown("### Championship Conference")
+            _pf = split_info.get("pts_factor", 1.0)
+            if _pf == 0.0:
+                _pts_note = "⚠️ Points reset to zero at split"
+            elif _pf == 0.5:
+                _pts_note = "⚠️ Points halved (rounded down) at split"
+            else:
+                _pts_note = "Points carried over in full"
+            st.markdown("### 🏆 Championship Conference")
+            st.caption(_pts_note)
             _render_table(_table_rows(split_info["champ_current"]))
-            st.markdown("### Relegation Conference")
+            st.markdown("### ⚠️ Relegation Conference")
+            st.caption(_pts_note)
             _render_table(_table_rows(split_info["relg_current"]))
             with st.expander("Regular Season Final Table"):
                 _render_table(_table_rows(split_info["pre_split"]))
