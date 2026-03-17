@@ -819,11 +819,24 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                 return d
         season_start = _fmt_date(all_dates[0])  if all_dates else "—"
         season_end   = _fmt_date(all_dates[-1]) if all_dates else "—"
-        ov1, ov2, ov3, ov4 = st.columns(4)
-        ov1.metric("Teams",        len(standings))
-        ov2.metric("Rounds", total_rounds)
-        ov3.metric("Season start", season_start)
-        ov4.metric("Season end",   season_end)
+        _ov_items = [
+            ("Teams",        str(len(standings))),
+            ("Rounds",       str(total_rounds)),
+            ("Season start", season_start),
+            ("Season end",   season_end),
+        ]
+        _ov_cells = "".join(
+            f"<div style='margin-right:28px'>"
+            f"<div style='font-size:11px;color:#888;margin-bottom:2px'>{lbl}</div>"
+            f"<div style='font-size:18px;font-weight:600;color:white'>{val}</div>"
+            f"</div>"
+            for lbl, val in _ov_items
+        )
+        st.markdown(
+            f"<div style='display:flex;flex-wrap:wrap;align-items:flex-end;"
+            f"gap:4px 0;padding:10px 0 6px'>{_ov_cells}</div>",
+            unsafe_allow_html=True,
+        )
 
         st.divider()
 
