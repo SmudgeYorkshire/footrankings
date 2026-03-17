@@ -570,7 +570,7 @@ with tab_qual:
             "projected":   "🔮 Projected",
             "tbd":         "— TBD",
         }
-        _albania_top4 = _fetch_albania_top4(api_key)
+        _albania_top4 = _fetch_albania_top4(_API_KEY)
         st.caption(
             "🟢 Confirmed — domestic season complete  "
             "🟡 Provisional — season still running  "
