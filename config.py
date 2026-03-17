@@ -14,7 +14,7 @@ LEAGUES = {
     "Spanish La Liga":              {"id": 4335, "country": "Spain",       "flag": "🇪🇸", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "fair_play"]},
     "German Bundesliga":            {"id": 4331, "country": "Germany",     "flag": "🇩🇪", "season_type": "winter",
-                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_away_gf"],
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_away_gf", "away_gf", "playoffs"],
                                      "zone_notes": {"relegation playoff": "16th plays two-legged play-off against 3rd-placed team from 2. Bundesliga. Higher-ranked team plays second leg at home."}},
     "French Ligue 1":               {"id": 4334, "country": "France",      "flag": "🇫🇷", "season_type": "winter",
                                      "tiebreakers": ["gd", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gf"],
