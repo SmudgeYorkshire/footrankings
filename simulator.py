@@ -425,3 +425,116 @@ def simulate_season(
 def _build_dataframe(probs: np.ndarray, teams: list[str]) -> pd.DataFrame:
     n = len(teams)
     return pd.DataFrame(probs, index=teams, columns=[str(i + 1) for i in range(n)])
+
+
+def simulate_final_four(
+    teams_4: list[str],
+    ratings: pd.DataFrame,
+    n_sim: int = 10_000,
+) -> pd.DataFrame:
+    """
+    Simulate a Final Four tournament (Albanian Superliga format).
+
+    Format
+    ------
+    - 2 seeded teams (1st, 2nd by league rank) and 2 unseeded (3rd, 4th).
+    - Draw decides semi-final pairings: Seed1 vs Unseeded? / Seed2 vs other.
+    - Semi-final tie after 90 min → higher-ranked team advances.
+    - Final tie → extra time (30 min), then 50/50 penalties.
+
+    Parameters
+    ----------
+    teams_4 : [1st, 2nd, 3rd, 4th] by current projected league rank
+    ratings : DataFrame with opta_rating or attack/defense columns
+    n_sim   : number of tournament simulations
+
+    Returns
+    -------
+    DataFrame with columns [Team, SF Win %, Final %, Title %]
+    ordered highest title % first.
+    """
+    if len(teams_4) < 4:
+        return pd.DataFrame()
+
+    if "opta_rating" in ratings.columns and "attack" not in ratings.columns:
+        ratings = _opta_to_attack_defense(ratings)
+
+    rat_lookup, l_avg = _build_rat_lookup(ratings, DEFAULT_BASE_GOALS)
+    default_r = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+
+    def get_lams(ta: str, tb: str) -> tuple[float, float]:
+        a_att, a_def = rat_lookup.get(ta, default_r)
+        b_att, b_def = rat_lookup.get(tb, default_r)
+        return a_att * max(b_def, 0.01) / l_avg, b_att * max(a_def, 0.01) / l_avg
+
+    rng = np.random.default_rng()
+    s1, s2, u1, u2 = teams_4[0], teams_4[1], teams_4[2], teams_4[3]
+
+    sf_wins    = {t: 0 for t in teams_4}
+    final_apps = {t: 0 for t in teams_4}
+    titles     = {t: 0 for t in teams_4}
+
+    # Draw: True = (s1 vs u1, s2 vs u2); False = (s1 vs u2, s2 vs u1)
+    draw_a = rng.integers(0, 2, n_sim).astype(bool)
+
+    for opp_for_s1, opp_for_s2, n in [
+        (u1, u2, int(draw_a.sum())),
+        (u2, u1, int((~draw_a).sum())),
+    ]:
+        if n == 0:
+            continue
+
+        # ── Semi-finals: tie → higher-ranked (seeded) team wins ─────────────
+        lam_s1h, lam_s1a = get_lams(s1, opp_for_s1)
+        g_s1  = rng.poisson(lam_s1h, n)
+        g_op1 = rng.poisson(lam_s1a, n)
+        # tie → s1 wins (higher rank)
+        sf1_s1_wins = g_s1 >= g_op1
+
+        lam_s2h, lam_s2a = get_lams(s2, opp_for_s2)
+        g_s2  = rng.poisson(lam_s2h, n)
+        g_op2 = rng.poisson(lam_s2a, n)
+        sf2_s2_wins = g_s2 >= g_op2
+
+        sf_wins[s1]        += int(sf1_s1_wins.sum())
+        sf_wins[opp_for_s1]+= int((~sf1_s1_wins).sum())
+        sf_wins[s2]        += int(sf2_s2_wins.sum())
+        sf_wins[opp_for_s2]+= int((~sf2_s2_wins).sum())
+
+        # ── Final participants ───────────────────────────────────────────────
+        fin_a = np.where(sf1_s1_wins, s1, opp_for_s1)   # object array
+        fin_b = np.where(sf2_s2_wins, s2, opp_for_s2)
+
+        for t in teams_4:
+            final_apps[t] += int((fin_a == t).sum()) + int((fin_b == t).sum())
+
+        # ── Final: group by unique matchup, simulate each ───────────────────
+        unique_pairs = set(zip(fin_a.tolist(), fin_b.tolist()))
+        for (ta, tb) in unique_pairs:
+            mask   = (fin_a == ta) & (fin_b == tb)
+            n_m    = int(mask.sum())
+            if n_m == 0:
+                continue
+            la, lb = get_lams(ta, tb)
+            ga = rng.poisson(la, n_m)
+            gb = rng.poisson(lb, n_m)
+            # Extra time (30 min ≈ 1/3 of 90 min)
+            tied = ga == gb
+            if tied.any():
+                ga = np.where(tied, ga + rng.poisson(la * 0.333, n_m), ga)
+                gb = np.where(tied, gb + rng.poisson(lb * 0.333, n_m), gb)
+                # Penalties
+                still = ga == gb
+                coin  = rng.integers(0, 2, n_m).astype(bool)
+                ga    = np.where(still, ga + coin.astype(int), ga)
+                gb    = np.where(still, gb + (~coin).astype(int), gb)
+            titles[ta] += int((ga > gb).sum())
+            titles[tb] += int((gb > ga).sum())
+
+    df = pd.DataFrame({
+        "Team":       teams_4,
+        "SF Win %":   [round(sf_wins[t]    / n_sim * 100, 1) for t in teams_4],
+        "Final %":    [round(final_apps[t] / n_sim / 2 * 100, 1) for t in teams_4],
+        "Title %":    [round(titles[t]     / n_sim * 100, 1) for t in teams_4],
+    }).sort_values("Title %", ascending=False).reset_index(drop=True)
+    return df

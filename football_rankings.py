@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 
 from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
 from data_fetcher import SportsDBClient
-from simulator import simulate_season, fixture_odds
+from simulator import simulate_season, fixture_odds, simulate_final_four
 from ratings_manager import load_ratings, build_lookup
 from _split_season import get_split_info, conference_fixtures
 
@@ -509,6 +509,58 @@ def main_content():
                 exp_pts = _compute_expected_pts(standings, remaining_fixtures, ratings_df, home_advantage)
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts)
                 render_zone_table(st.session_state["sim_results"], standings, cfg.get("zones"))
+
+                # ── Final Four simulation (e.g. Albanian Superliga) ──────────
+                if cfg.get("final_four"):
+                    probs_df = st.session_state["sim_results"]
+                    # Top-4 probability = sum of P(pos 1..4) for each team
+                    top4_cols = [c for c in probs_df.columns if c in [str(i) for i in range(1, 5)]]
+                    top4_prob = probs_df[top4_cols].sum(axis=1).sort_values(ascending=False)
+                    teams_4   = list(top4_prob.index[:4])
+
+                    ff_key = ("ff", league_id, season, n_sim)
+                    if st.session_state.get("ff_key") != ff_key:
+                        with st.spinner("Simulating Final Four…"):
+                            ff_df = simulate_final_four(teams_4, ratings_df, n_sim)
+                        st.session_state["ff_results"] = ff_df
+                        st.session_state["ff_key"]     = ff_key
+
+                    if "ff_results" in st.session_state and not st.session_state["ff_results"].empty:
+                        ff_df = st.session_state["ff_results"]
+                        st.divider()
+                        st.markdown("### 🏆 Final Four — Title Probabilities")
+                        st.caption(
+                            "Draw pairings: Seed 1 & Seed 2 (1st/2nd) cannot meet in the semi-finals. "
+                            "Semi-final tie → higher-ranked team advances. Final tie → extra time + penalties."
+                        )
+                        seed_label = {teams_4[0]: "🥇 Seed 1", teams_4[1]: "🥈 Seed 2",
+                                      teams_4[2]: "Unseeded", teams_4[3]: "Unseeded"}
+                        rows_html = ""
+                        for _, row in ff_df.iterrows():
+                            team  = row["Team"]
+                            badge = badge_lookup.get(team, "")
+                            seed  = seed_label.get(team, "")
+                            img   = f"<img src='{badge}' style='height:20px;vertical-align:middle;margin-right:6px'>" if badge else ""
+                            rows_html += (
+                                f"<tr>"
+                                f"<td style='padding:6px 10px'>{img}<b>{team}</b></td>"
+                                f"<td style='padding:6px 10px;color:#aaa;font-size:12px'>{seed}</td>"
+                                f"<td style='padding:6px 10px;text-align:right'>{row['SF Win %']}%</td>"
+                                f"<td style='padding:6px 10px;text-align:right'>{row['Final %']}%</td>"
+                                f"<td style='padding:6px 10px;text-align:right;font-weight:bold'>{row['Title %']}%</td>"
+                                f"</tr>"
+                            )
+                        st.markdown(
+                            "<table style='width:100%;border-collapse:collapse;font-family:sans-serif'>"
+                            "<thead><tr style='border-bottom:1px solid #444'>"
+                            "<th style='padding:6px 10px;text-align:left'>Team</th>"
+                            "<th style='padding:6px 10px;text-align:left;color:#888;font-size:12px'>Seed</th>"
+                            "<th style='padding:6px 10px;text-align:right;color:#888'>SF Win %</th>"
+                            "<th style='padding:6px 10px;text-align:right;color:#888'>Final %</th>"
+                            "<th style='padding:6px 10px;text-align:right;color:#888'>Title %</th>"
+                            f"</tr></thead><tbody>{rows_html}</tbody></table>",
+                            unsafe_allow_html=True,
+                        )
 
     # ── Manual Projections ────────────────────────────────────────────────────
     with tab_manual:

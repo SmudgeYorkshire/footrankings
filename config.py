@@ -27,7 +27,17 @@ LEAGUES = {
     # ── Rest (alphabetical) ──────────────────────────────────────────────────
     "Albanian Superliga":           {"id": 4617, "country": "Albania",     "flag": "🇦🇱", "season_type": "winter",
                                      "season_end": "24 May 2026",
-                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"],
+                                     "final_four": True,
+                                     "zones": {
+                                         "Final Four": [1, 2, 3, 4],
+                                         "Relegation Play-off": [8],
+                                         "Relegation": [9, 10],
+                                     },
+                                     "zone_notes": {
+                                         "Final Four": "Top 4 teams play a knock-out Final Four to determine the champion. Draw is conducted with two seeded teams (1st, 2nd) and two unseeded (3rd, 4th). Seeded teams cannot meet in the semi-finals. If level after 90 minutes in a semi-final, the higher-ranked team advances. The final is decided by extra time and penalties if necessary.",
+                                         "Relegation Play-off": "8th-ranked team plays a two-legged play-off against the Kategoria e Parë play-off winner.",
+                                     }},
     "Andorran Primera Divisió":     {"id": 4618, "country": "Andorra",     "flag": "🇦🇩", "season_type": "winter",
                                      "season_end": "17 May 2026",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"]},
