@@ -8,7 +8,7 @@
 LEAGUES = {
     # ── Top 5 (pinned) ───────────────────────────────────────────────────────
     "English Premier League":       {"id": 4328, "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "season_type": "winter",
-                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_away_gf"]},
+                                     "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_away_gf", "playoffs"]},
     "Italian Serie A":              {"id": 4332, "country": "Italy",       "flag": "🇮🇹", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf"]},
     "Spanish La Liga":              {"id": 4335, "country": "Spain",       "flag": "🇪🇸", "season_type": "winter",

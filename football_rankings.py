@@ -416,6 +416,7 @@ def main_content():
             "h2h_gd":       "Head-to-head goal difference",
             "h2h_gf":       "Head-to-head goals scored",
             "h2h_away_gf":  "Head-to-head away goals scored",
+            "playoffs":     "Play-offs",
         }
 
         if split_info:
@@ -796,6 +797,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             "h2h_gd":       "Head-to-head goal difference",
             "h2h_gf":       "Head-to-head goals scored",
             "h2h_away_gf":  "Head-to-head away goals scored",
+            "playoffs":     "Play-offs",
         }
 
         # ── Season overview ──────────────────────────────────────────────────
