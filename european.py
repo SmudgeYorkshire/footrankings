@@ -18,6 +18,39 @@ from data_fetcher import SportsDBClient
 from simulator import fixture_odds
 from entrants_2026_27 import ENTRANTS as ENTRANTS_2026_27, STAGE_ORDER, QUALIFYING_DATES
 
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def _fetch_albania_top4(api_key: str) -> list[str]:
+    """Return Albania 2025-26 top-4 team names ordered by current rank."""
+    client = SportsDBClient(api_key)
+    standings = client.get_standings(LEAGUES["Albanian Superliga"]["id"], "2025-2026")
+    if not standings:
+        return []
+    return [
+        r["strTeam"]
+        for r in sorted(standings, key=lambda r: int(r.get("intRank", 99)))[:4]
+    ]
+
+
+def _resolve_dynamic(entries: list[dict], albania_top4: list[str]) -> list[dict]:
+    """Replace dynamic placeholder entries with projected club names."""
+    out = []
+    ff_234_done = False
+    for e in entries:
+        dyn = e.get("dynamic")
+        if dyn == "albania_ff_1":
+            club = albania_top4[0] if albania_top4 else None
+            out.append({**e, "club": club, "status": "projected" if club else "tbd"})
+        elif dyn == "albania_ff_234" and not ff_234_done:
+            ff_234_done = True
+            for i, slot_route in enumerate(["Final Four 2nd (proj.)", "Final Four 3rd (proj.)", "Final Four 4th (proj.)"], 1):
+                club = albania_top4[i] if len(albania_top4) > i else None
+                out.append({**e, "club": club, "route": slot_route,
+                             "status": "projected" if club else "tbd"})
+        else:
+            out.append(e)
+    return out
+
 _API_KEY = os.getenv("THESPORTSDB_API_KEY", "3")
 
 from datetime import datetime, timezone
@@ -528,16 +561,20 @@ with tab_qual:
         _STATUS_BG = {
             "confirmed":   "#1a3a1a",
             "provisional": "#3a3010",
+            "projected":   "#1a2a3a",
             "tbd":         "#2a2a2a",
         }
         _STATUS_LABEL = {
             "confirmed":   "✅ Confirmed",
             "provisional": "⏳ Provisional",
+            "projected":   "🔮 Projected",
             "tbd":         "— TBD",
         }
+        _albania_top4 = _fetch_albania_top4(api_key)
         st.caption(
             "🟢 Confirmed — domestic season complete  "
             "🟡 Provisional — season still running  "
+            "🔮 Projected — based on current standings  "
             "⬜ TBD — club not yet determined  ·  "
             "Draws and individual matchups not yet made"
         )
@@ -552,10 +589,11 @@ with tab_qual:
             st.markdown(date_str, unsafe_allow_html=True)
             paths = _comp_entrants[stage]
             for path_label, clubs in paths.items():
+                resolved = _resolve_dynamic(clubs, _albania_top4)
                 if len(paths) > 1:
                     st.markdown(f"*{path_label}*")
-                confirmed_clubs = [e for e in clubs if e["status"] != "tbd"]
-                tbd_clubs       = [e for e in clubs if e["status"] == "tbd"]
+                confirmed_clubs = [e for e in resolved if e["status"] != "tbd"]
+                tbd_clubs       = [e for e in resolved if e["status"] == "tbd"]
                 # Confirmed / provisional table
                 if confirmed_clubs:
                     rows_html = ""
