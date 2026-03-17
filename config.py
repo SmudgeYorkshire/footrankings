@@ -17,7 +17,7 @@ LEAGUES = {
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_away_gf", "away_gf", "playoffs"],
                                      "zone_notes": {"relegation playoff": "16th plays two-legged play-off against 3rd-placed team from 2. Bundesliga. Higher-ranked team plays second leg at home."}},
     "French Ligue 1":               {"id": 4334, "country": "France",      "flag": "🇫🇷", "season_type": "winter",
-                                     "tiebreakers": ["gd", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gf"],
+                                     "tiebreakers": ["gd", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gf", "away_gf", "fair_play"],
                                      "zone_notes": {"relegation playoff": "16th plays two-legged play-off against 3rd-placed team from Ligue 2. Away goals do not apply; extra time and penalties if level after two legs."}},
     # ── Rest (alphabetical) ──────────────────────────────────────────────────
     "Albanian Superliga":           {"id": 4617, "country": "Albania",     "flag": "🇦🇱", "season_type": "winter",
