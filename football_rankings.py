@@ -409,17 +409,25 @@ def main_content():
                              hide_index=True, height=len(rows) * 35 + 38)
 
         _TB_LABELS = {
-            "gd":           "Goal difference",
-            "gf":           "Goals scored",
-            "away_gf":      "Away goals scored",
-            "h2h_pts":      "Head-to-head points",
-            "h2h_gd":       "Head-to-head goal difference",
-            "h2h_gf":       "Head-to-head goals scored",
-            "h2h_away_gf":          "Head-to-head away goals scored",
-            "playoffs":             "Play-offs",
+            "gd":                     "Goal difference",
+            "gf":                     "Goals scored",
+            "away_gf":                "Away goals scored",
+            "away_wins":              "Away matches won",
+            "wins":                   "Matches won",
+            "less_losses":            "Fewer losses",
+            "h2h_pts":                "Head-to-head points",
+            "h2h_gd":                 "Head-to-head goal difference",
+            "h2h_gf":                 "Head-to-head goals scored",
+            "h2h_away_gf":            "Head-to-head away goals scored",
+            "h2h_wins":               "Head-to-head matches won",
+            "disciplinary":           "Disciplinary points (fewest)",
+            "less_red_cards":         "Fewer red cards",
+            "less_yellow_cards":      "Fewer yellow cards",
+            "playoffs":               "Play-offs",
+            "playoffs_champion":      "Play-off (for championship only)",
             "playoffs_title_or_rel3": "Play-off (for championship or third relegation place)",
-            "draw":                 "Draw",
-            "fair_play":            "Fair-play points",
+            "draw":                   "Draw",
+            "fair_play":              "Fair-play points",
         }
 
         if split_info:
@@ -845,17 +853,25 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
     # ── Format ───────────────────────────────────────────────────────────────
     with tab_format:
         _TB_LABELS_FMT = {
-            "gd":           "Goal difference",
-            "gf":           "Goals scored",
-            "away_gf":      "Away goals scored",
-            "h2h_pts":      "Head-to-head points",
-            "h2h_gd":       "Head-to-head goal difference",
-            "h2h_gf":       "Head-to-head goals scored",
-            "h2h_away_gf":          "Head-to-head away goals scored",
-            "playoffs":             "Play-offs",
+            "gd":                     "Goal difference",
+            "gf":                     "Goals scored",
+            "away_gf":                "Away goals scored",
+            "away_wins":              "Away matches won",
+            "wins":                   "Matches won",
+            "less_losses":            "Fewer losses",
+            "h2h_pts":                "Head-to-head points",
+            "h2h_gd":                 "Head-to-head goal difference",
+            "h2h_gf":                 "Head-to-head goals scored",
+            "h2h_away_gf":            "Head-to-head away goals scored",
+            "h2h_wins":               "Head-to-head matches won",
+            "disciplinary":           "Disciplinary points (fewest)",
+            "less_red_cards":         "Fewer red cards",
+            "less_yellow_cards":      "Fewer yellow cards",
+            "playoffs":               "Play-offs",
+            "playoffs_champion":      "Play-off (for championship only)",
             "playoffs_title_or_rel3": "Play-off (for championship or third relegation place)",
-            "draw":                 "Draw",
-            "fair_play":            "Fair-play points",
+            "draw":                   "Draw",
+            "fair_play":              "Fair-play points",
         }
 
         # ── Season overview ──────────────────────────────────────────────────

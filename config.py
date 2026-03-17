@@ -27,7 +27,7 @@ LEAGUES = {
     # ── Rest (alphabetical) ──────────────────────────────────────────────────
     "Albanian Superliga":           {"id": 4617, "country": "Albania",     "flag": "🇦🇱", "season_type": "winter",
                                      "season_end": "24 May 2026",
-                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"],
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "draw"],
                                      "final_four": True,
                                      "zones": {
                                          "Final Four": [1, 2, 3, 4],
