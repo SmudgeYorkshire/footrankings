@@ -855,7 +855,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                 with group_cols[0]:
                     st.markdown(
                         f"<div style='background:#1a472a;padding:12px;border-radius:8px;"
-                        f"text-align:center'><b>🏆 Championship</b><br>Top {_nchmp} teams<br>"
+                        f"text-align:center;color:white'><b>🏆 Championship</b><br>Top {_nchmp} teams<br>"
                         f"<small>{_pts_label}</small></div>",
                         unsafe_allow_html=True
                     )
@@ -863,7 +863,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     with group_cols[1]:
                         st.markdown(
                             f"<div style='background:#1a3a5c;padding:12px;border-radius:8px;"
-                            f"text-align:center'><b>🔵 Middle Group</b><br>{_nmid} teams<br>"
+                            f"text-align:center;color:white'><b>🔵 Middle Group</b><br>{_nmid} teams<br>"
                             f"<small>{_pts_label}</small></div>",
                             unsafe_allow_html=True
                         )
@@ -871,7 +871,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     if n_relg and n_relg > 0:
                         st.markdown(
                             f"<div style='background:#4a1a1a;padding:12px;border-radius:8px;"
-                            f"text-align:center'><b>⚠️ Relegation</b><br>Bottom {n_relg} teams<br>"
+                            f"text-align:center;color:white'><b>⚠️ Relegation</b><br>Bottom {n_relg} teams<br>"
                             f"<small>{_pts_label}</small></div>",
                             unsafe_allow_html=True
                         )
