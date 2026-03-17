@@ -828,14 +828,14 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             ("Season end",   season_end),
         ]
         _ov_cells = "".join(
-            f"<div style='flex:1;min-width:80px'>"
+            f"<div style='margin-right:40px'>"
             f"<div style='font-size:12px;color:#888;margin-bottom:3px'>{lbl}</div>"
             f"<div style='font-size:22px;font-weight:600;color:inherit'>{val}</div>"
             f"</div>"
             for lbl, val in _ov_items
         )
         st.markdown(
-            f"<div style='display:flex;align-items:flex-end;width:100%;"
+            f"<div style='display:inline-flex;align-items:flex-end;"
             f"padding:10px 0 6px'>{_ov_cells}</div>",
             unsafe_allow_html=True,
         )
