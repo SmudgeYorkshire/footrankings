@@ -17,6 +17,7 @@ from config import EUROPEAN_COMPETITIONS, LEAGUES
 from data_fetcher import SportsDBClient
 from simulator import fixture_odds
 from entrants_2026_27 import ENTRANTS as ENTRANTS_2026_27, STAGE_ORDER, QUALIFYING_DATES
+from club_coefficients import get_coeff
 
 
 @st.cache_data(ttl=3_600, show_spinner=False)
@@ -594,18 +595,26 @@ with tab_qual:
                     st.markdown(f"*{path_label}*")
                 confirmed_clubs = [e for e in resolved if e["status"] != "tbd"]
                 tbd_clubs       = [e for e in resolved if e["status"] == "tbd"]
+                # Sort confirmed clubs by coefficient descending
+                confirmed_clubs.sort(
+                    key=lambda e: get_coeff(e.get("club"), e.get("country", "")),
+                    reverse=True
+                )
                 # Confirmed / provisional table
                 if confirmed_clubs:
                     rows_html = ""
                     for e in confirmed_clubs:
                         bg    = _STATUS_BG[e["status"]]
                         label = _STATUS_LABEL[e["status"]]
+                        coeff = get_coeff(e.get("club"), e.get("country", ""))
+                        coeff_str = f"{coeff:.3f}" if coeff else "—"
                         rows_html += (
                             f"<tr style='background:{bg}'>"
                             f"<td style='padding:4px 8px;font-size:15px'>{e['flag']}</td>"
                             f"<td style='padding:4px 8px;font-weight:bold;color:white'>{e['club']}</td>"
                             f"<td style='padding:4px 8px;color:#aaa'>{e['country']}</td>"
                             f"<td style='padding:4px 8px;color:#888;font-size:12px'>{e['route']}</td>"
+                            f"<td style='padding:4px 8px;color:#f0c040;font-size:12px;font-weight:600'>{coeff_str}</td>"
                             f"<td style='padding:4px 8px;color:#aaa;font-size:12px'>{label}</td>"
                             f"</tr>"
                         )
@@ -617,6 +626,7 @@ with tab_qual:
                         f"<th style='padding:4px 8px;color:#888;text-align:left'>Club</th>"
                         f"<th style='padding:4px 8px;color:#888;text-align:left'>Country</th>"
                         f"<th style='padding:4px 8px;color:#888;text-align:left'>Route</th>"
+                        f"<th style='padding:4px 8px;color:#888;text-align:left'>Coeff.</th>"
                         f"<th style='padding:4px 8px;color:#888;text-align:left'>Status</th>"
                         f"</tr></thead><tbody>{rows_html}</tbody></table>",
                         unsafe_allow_html=True,
@@ -706,17 +716,28 @@ if tab_entrants is not None:
                     for path_label, clubs in paths.items():
                         if len(paths) > 1:
                             st.markdown(f"*{path_label}*")
+                        # Sort known clubs by coefficient desc; TBD slots at the end
+                        known  = [e for e in clubs if e.get("club")]
+                        tbds   = [e for e in clubs if not e.get("club")]
+                        known.sort(
+                            key=lambda e: get_coeff(e["club"], e.get("country", "")),
+                            reverse=True
+                        )
+                        sorted_clubs = known + tbds
                         rows_html = ""
-                        for e in clubs:
-                            bg   = _STATUS_BG.get(e["status"], "#2a2a2a")
-                            name = e["club"] if e["club"] else f"<span style='color:#888'>{e['route']}</span>"
+                        for e in sorted_clubs:
+                            bg    = _STATUS_BG.get(e["status"], "#2a2a2a")
+                            name  = e["club"] if e["club"] else f"<span style='color:#888'>{e['route']}</span>"
                             label = _STATUS_LABEL.get(e["status"], "")
+                            coeff = get_coeff(e.get("club"), e.get("country", "")) if e.get("club") else None
+                            coeff_str = f"{coeff:.3f}" if coeff else "—"
                             rows_html += (
                                 f"<tr style='background:{bg}'>"
                                 f"<td style='padding:4px 8px;font-size:15px'>{e['flag']}</td>"
                                 f"<td style='padding:4px 8px;font-weight:bold;color:white'>{name}</td>"
                                 f"<td style='padding:4px 8px;color:#aaa'>{e['country']}</td>"
                                 f"<td style='padding:4px 8px;color:#888;font-size:12px'>{e['route']}</td>"
+                                f"<td style='padding:4px 8px;color:#f0c040;font-size:12px;font-weight:600'>{coeff_str}</td>"
                                 f"<td style='padding:4px 8px;color:#aaa;font-size:12px'>{label}</td>"
                                 f"</tr>"
                             )
@@ -727,6 +748,7 @@ if tab_entrants is not None:
                             f"<th style='padding:4px 8px;color:#888;text-align:left'>Club</th>"
                             f"<th style='padding:4px 8px;color:#888;text-align:left'>Country</th>"
                             f"<th style='padding:4px 8px;color:#888;text-align:left'>Route</th>"
+                            f"<th style='padding:4px 8px;color:#888;text-align:left'>Coeff.</th>"
                             f"<th style='padding:4px 8px;color:#888;text-align:left'>Status</th>"
                             f"</tr></thead><tbody>{rows_html}</tbody></table>",
                             unsafe_allow_html=True,
