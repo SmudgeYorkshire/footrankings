@@ -860,30 +860,21 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                 st.markdown("After the regular season, teams split into groups:")
 
                 n_relg = (_ntms - (_nchmp or 0) - (_nmid or 0)) if _ntms and _nchmp else None
-                group_cols = st.columns(3 if _nmid else 2)
-                with group_cols[0]:
+                boxes = [
+                    ("#1a472a", "🏆 Championship", f"Top {_nchmp} teams", _pts_label),
+                ]
+                if _nmid:
+                    boxes.append(("#1a3a5c", "🔵 Middle Group", f"{_nmid} teams", _pts_label))
+                if n_relg and n_relg > 0:
+                    boxes.append(("#4a1a1a", "⚠️ Relegation", f"Bottom {n_relg} teams", _pts_label))
+                for bg, title, sub, note in boxes:
                     st.markdown(
-                        f"<div style='background:#1a472a;padding:12px;border-radius:8px;"
-                        f"text-align:center;color:white'><b>🏆 Championship</b><br>Top {_nchmp} teams<br>"
-                        f"<small>{_pts_label}</small></div>",
+                        f"<div class='format-group-box' style='background:{bg};padding:14px 18px;"
+                        f"border-radius:8px;color:white;margin-bottom:8px'>"
+                        f"<b>{title}</b> &nbsp;·&nbsp; {sub}<br>"
+                        f"<small style='opacity:0.85'>{note}</small></div>",
                         unsafe_allow_html=True
                     )
-                if _nmid:
-                    with group_cols[1]:
-                        st.markdown(
-                            f"<div style='background:#1a3a5c;padding:12px;border-radius:8px;"
-                            f"text-align:center;color:white'><b>🔵 Middle Group</b><br>{_nmid} teams<br>"
-                            f"<small>{_pts_label}</small></div>",
-                            unsafe_allow_html=True
-                        )
-                with group_cols[-1]:
-                    if n_relg and n_relg > 0:
-                        st.markdown(
-                            f"<div style='background:#4a1a1a;padding:12px;border-radius:8px;"
-                            f"text-align:center;color:white'><b>⚠️ Relegation</b><br>Bottom {n_relg} teams<br>"
-                            f"<small>{_pts_label}</small></div>",
-                            unsafe_allow_html=True
-                        )
 
         st.divider()
 

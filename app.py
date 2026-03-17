@@ -18,9 +18,35 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* Compact data tables — reduces row height via font-size */
-[data-testid="stDataFrame"] {
-    font-size: 13px;
+/* Compact data tables */
+[data-testid="stDataFrame"] { font-size: 13px; }
+
+/* ── Mobile optimisations ───────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+    /* Hide Streamlit sidebar toggle padding / extra space */
+    .block-container { padding: 0.5rem 0.75rem 2rem !important; }
+
+    /* Make metric cards stack nicely */
+    [data-testid="stMetric"] { min-width: 120px; }
+
+    /* Make dataframes scroll horizontally instead of overflowing */
+    [data-testid="stDataFrame"] { overflow-x: auto !important; font-size: 11px; }
+
+    /* Full-width tables on mobile */
+    [data-testid="stDataFrame"] > div { width: 100% !important; }
+
+    /* Tabs: smaller font so all tabs fit on one line */
+    [data-testid="stTabs"] button { font-size: 11px !important; padding: 4px 6px !important; }
+
+    /* Sidebar narrower on mobile */
+    [data-testid="stSidebar"] { min-width: 200px !important; }
+
+    /* League header image smaller on mobile */
+    [data-testid="stImage"] img { max-width: 48px !important; }
+
+    /* Format tab group boxes — full width on mobile */
+    .format-group-box { width: 100% !important; margin-bottom: 8px; }
 }
 </style>
 """, unsafe_allow_html=True)
