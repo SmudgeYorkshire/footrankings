@@ -810,8 +810,15 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             f.get("dateEvent") for f in (played_fixtures + remaining_fixtures)
             if f.get("dateEvent")
         ])
-        season_start = all_dates[0]  if all_dates else "—"
-        season_end   = all_dates[-1] if all_dates else "—"
+        def _fmt_date(d):
+            try:
+                import datetime
+                dt = datetime.datetime.strptime(d, "%Y-%m-%d")
+                return f"{dt.day} {dt.strftime('%B')} {dt.year}"
+            except Exception:
+                return d
+        season_start = _fmt_date(all_dates[0])  if all_dates else "—"
+        season_end   = _fmt_date(all_dates[-1]) if all_dates else "—"
         ov1, ov2, ov3, ov4 = st.columns(4)
         ov1.metric("Teams",        len(standings))
         ov2.metric("Rounds", total_rounds)
