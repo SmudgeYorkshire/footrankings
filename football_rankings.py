@@ -419,6 +419,7 @@ def main_content():
             "playoffs":             "Play-offs",
             "playoffs_title_or_rel3": "Play-off (for championship or third relegation place)",
             "draw":                 "Draw",
+            "fair_play":            "Fair-play points",
         }
 
         if split_info:
@@ -802,6 +803,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             "playoffs":             "Play-offs",
             "playoffs_title_or_rel3": "Play-off (for championship or third relegation place)",
             "draw":                 "Draw",
+            "fair_play":            "Fair-play points",
         }
 
         # ── Season overview ──────────────────────────────────────────────────

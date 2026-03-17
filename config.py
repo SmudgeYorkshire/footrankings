@@ -12,7 +12,7 @@ LEAGUES = {
     "Italian Serie A":              {"id": 4332, "country": "Italy",       "flag": "🇮🇹", "season_type": "winter",
                                      "tiebreakers": ["playoffs_title_or_rel3", "h2h_pts", "h2h_gd", "gd", "gf", "draw"]},
     "Spanish La Liga":              {"id": 4335, "country": "Spain",       "flag": "🇪🇸", "season_type": "winter",
-                                     "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf"]},
+                                     "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "fair_play"]},
     "German Bundesliga":            {"id": 4331, "country": "Germany",     "flag": "🇩🇪", "season_type": "winter",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_away_gf"],
                                      "zone_notes": {"relegation playoff": "16th plays two-legged play-off against 3rd-placed team from 2. Bundesliga. Higher-ranked team plays second leg at home."}},
