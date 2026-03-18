@@ -253,19 +253,15 @@ def _status_style_pred(val):
     return ""
 
 
-def _most_likely_status(team: str, probs: pd.DataFrame,
-                        euro_spots: dict, zones: dict = None) -> str:
-    """Return European spot or relegation zone for the team's most-likely finishing position."""
-    if team not in probs.index:
-        return ""
-    best_pos = int(probs.loc[team].idxmax())
+def _status_for_pos(pos: int, euro_spots: dict, zones: dict = None) -> str:
+    """Return the status label for a predicted finishing position."""
     if euro_spots:
-        label = euro_spots.get(best_pos, "")
+        label = euro_spots.get(pos, "")
         if label:
             return label
     if zones:
         for zone_label, positions in zones.items():
-            if best_pos in positions:
+            if pos in positions:
                 return zone_label
     return ""
 
@@ -282,10 +278,10 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
     df.insert(0, "Badge", [badge_lookup.get(t, "") for t in teams])
     if expected_pts:
         df["xPts"] = [round(expected_pts.get(t, 0), 1) for t in teams]
-    if european_spots or zones:
-        df["Status"] = [_most_likely_status(t, probs, european_spots or {}, zones) for t in teams]
     df.index = range(1, len(df) + 1)
     df.index.name = "Pos"
+    if european_spots or zones:
+        df["Status"] = [_status_for_pos(pos, european_spots or {}, zones) for pos in df.index]
     non_pos = {"Badge", "Team", "xPts", "Status"}
     pos_cols = [c for c in df.columns if c not in non_pos]
     styled = (
