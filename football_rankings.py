@@ -389,6 +389,10 @@ def main_content():
                 gd   = int(row.get("intGoalDifference", 0))
                 form = row.get("strForm", "") or ""
                 pos  = int(row.get("intRank", 0))
+                euro = _euro_label(pos)
+                api_status = _clean_desc((row.get("strDescription") or "").strip())
+                # Use short euro label when available; fall back to API text for relegation/other
+                status = euro if euro else api_status
                 rows.append({
                     "Pos":    pos,
                     "Badge":  row.get("strBadge") or "",
@@ -402,8 +406,7 @@ def main_content():
                     "GD":     f"+{gd}" if gd > 0 else str(gd),
                     "Pts":    int(row.get("intPoints", 0)),
                     "Form":   _fmt_form(form),
-                    "Status": _clean_desc((row.get("strDescription") or "").strip()),
-                    "Europe": _euro_label(pos),
+                    "Status": status,
                 })
             return rows
 
@@ -425,7 +428,6 @@ def main_content():
 
         def _render_table(rows):
             df = pd.DataFrame(rows)
-            has_europe = _euro_spots and df["Europe"].any()
             # Convert numeric cols to strings so TextColumn respects text-align: center
             for c in ["Pos", "P", "W", "D", "L", "GF", "GA", "Pts"]:
                 df[c] = df[c].astype(str)
@@ -436,9 +438,8 @@ def main_content():
                 .set_properties(subset=["Team", "Pts"], **{"font-weight": "bold"})
                 .set_properties(subset=num_cols, **{"text-align": "center"})
                 .map(_status_style, subset=["Status"])
+                .map(_europe_style, subset=["Status"])
             )
-            if has_europe:
-                style_obj = style_obj.map(_europe_style, subset=["Europe"])
             col_cfg = {
                 "Pos":    st.column_config.TextColumn("Pos",  width=32),
                 "Badge":  st.column_config.ImageColumn("",    width=32),
@@ -452,20 +453,8 @@ def main_content():
                 "GD":     st.column_config.TextColumn("GD",   width=35),
                 "Pts":    st.column_config.TextColumn("Pts",  width=32),
                 "Form":   st.column_config.TextColumn("Form", width=130),
-                "Status": st.column_config.TextColumn("Status", width=220),
-                "Europe": st.column_config.TextColumn("Europe", width=110),
+                "Status": st.column_config.TextColumn("Status", width=130),
             }
-            if not has_europe:
-                col_cfg.pop("Europe")
-                if "Europe" in df.columns:
-                    df = df.drop(columns=["Europe"])
-                    style_obj = (
-                        df.style
-                        .hide(axis="index")
-                        .set_properties(subset=["Team", "Pts"], **{"font-weight": "bold"})
-                        .set_properties(subset=num_cols, **{"text-align": "center"})
-                        .map(_status_style, subset=["Status"])
-                    )
             tbl_col, _ = st.columns([5, 1])
             with tbl_col:
                 st.dataframe(style_obj, column_config=col_cfg, use_container_width=True,
