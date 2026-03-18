@@ -241,21 +241,11 @@ def _euro_style_cell(val):
 
 
 def _most_likely_euro(team: str, probs: pd.DataFrame, euro_spots: dict) -> str:
-    """Return the European spot with the highest summed probability for a team."""
+    """Return the European spot for the team's single most-likely finishing position."""
     if not euro_spots or team not in probs.index:
         return ""
-    # Group positions by spot label
-    spot_prob: dict[str, float] = {}
-    for pos, label in euro_spots.items():
-        if not label:
-            continue
-        col = str(pos)
-        if col in probs.columns:
-            spot_prob[label] = spot_prob.get(label, 0.0) + float(probs.loc[team, col])
-    if not spot_prob:
-        return ""
-    best = max(spot_prob, key=spot_prob.__getitem__)
-    return best if spot_prob[best] >= 0.005 else ""
+    best_pos = int(probs.loc[team].idxmax())
+    return euro_spots.get(best_pos, "")
 
 
 def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
