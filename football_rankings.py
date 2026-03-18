@@ -318,6 +318,8 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
                  height=len(probs) * 35 + 42)
 
 
+_UCL_VIEW = "🏆 2026/27 UEFA Champions League"
+
 # ---------------------------------------------------------------------------
 # Sidebar — league selector and simulation settings
 # ---------------------------------------------------------------------------
@@ -360,7 +362,6 @@ with st.sidebar:
 
 n_sim = DEFAULT_N_SIMULATIONS
 home_advantage = DEFAULT_HOME_ADVANTAGE
-_UCL_VIEW = "🏆 2026/27 UEFA Champions League"
 
 
 # ---------------------------------------------------------------------------
