@@ -318,8 +318,6 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
                  height=len(probs) * 35 + 42)
 
 
-_UCL_VIEW = "🏆 2026/27 UEFA Champions League"
-
 # ---------------------------------------------------------------------------
 # Sidebar — league selector and simulation settings
 # ---------------------------------------------------------------------------
@@ -332,17 +330,12 @@ with st.sidebar:
     st.divider()
     league_name = st.selectbox(
         "European Leagues",
-        options=[_UCL_VIEW] + list(LEAGUES.keys()),
+        options=list(LEAGUES.keys()),
         format_func=lambda n: n,
     )
-    if league_name in LEAGUES:
-        cfg = LEAGUES[league_name]
-        league_id = cfg["id"]
-        season = get_current_season(cfg["season_type"])
-    else:
-        cfg = {}
-        league_id = None
-        season = None
+    cfg = LEAGUES[league_name]
+    league_id = cfg["id"]
+    season = get_current_season(cfg["season_type"])
     st.divider()
     st.markdown(
         """
@@ -365,41 +358,6 @@ home_advantage = DEFAULT_HOME_ADVANTAGE
 
 
 # ---------------------------------------------------------------------------
-# UCL QR1 qualifier coefficients (UEFA 5-year, 2025/26 cycle)
-# ---------------------------------------------------------------------------
-_UCL_QR1_COEFFS: dict[str, float] = {
-    "Slovenian 1. SNL":             21.000,
-    "Moldovan National Division":   20.000,
-    "Irish Premier Division":       19.375,
-    "Finnish Veikkausliiga":        14.000,
-    "Kosovan Superleague":          13.625,
-    "Gibraltar National League":    13.500,
-    "Bosnian Premier Liga":         13.125,
-    "Icelandic Úrvalsdeild":        11.750,
-    "Kazakhstan Premier League":    11.000,
-    "Latvian Higher League":        10.500,
-    "Faroe Islands Premier League": 10.500,
-    "Estonian Meistriliiga":        10.000,
-    "Northern Irish Premiership":    9.000,
-    "Welsh Premier League":          9.000,
-    "Maltese Premier League":        8.500,
-    "Andorran Primera Divisió":      7.500,
-    "Bulgarian First League":        7.000,
-    "Armenian Premier League":       7.000,
-    "Albanian Superliga":            6.500,
-    "Luxembourgish National Div":    6.500,
-    "Azerbaijani Premier League":    6.000,
-    "Lithuanian A Lyga":             6.000,
-    "Montenegrin First League":      6.000,
-    "Romanian Liga I":               5.050,
-    "Georgian Erovnuli Liga":        5.000,
-    "San Marino Campionato":         2.500,
-    "Macedonian First League":       1.551,
-    "Belarus Vyscha Liga":           1.325,
-}
-
-
-# ---------------------------------------------------------------------------
 # Data fetching — 60-second cache for live feel
 # ---------------------------------------------------------------------------
 @st.cache_data(ttl=60, show_spinner=False)
@@ -411,87 +369,11 @@ def fetch_all(lid, ssn, key):
     return standings, played, remaining, info
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
-def fetch_leader(lid, ssn, key):
-    """Return the current league leader row (position 1 in standings)."""
-    c = SportsDBClient(api_key=key)
-    standings = c.get_standings(lid, ssn)
-    if standings:
-        return min(standings, key=lambda r: int(r.get("intRank") or 99))
-    return None
-
-
-# ---------------------------------------------------------------------------
-# 2026/27 UCL qualifying rounds view
-# ---------------------------------------------------------------------------
-def _render_ucl_qualifying():
-    from datetime import datetime
-    st.markdown("## 🏆 2026/27 UEFA Champions League")
-    st.markdown("### First Qualifying Round")
-    st.caption("1st leg: 7/8 Jul 2026 · 2nd leg: 14/15 Jul 2026")
-    rows = []
-    with st.spinner("Loading…"):
-        for lname, coeff in sorted(_UCL_QR1_COEFFS.items(), key=lambda x: x[1], reverse=True):
-            lcfg = LEAGUES.get(lname)
-            if not lcfg:
-                continue
-            is_summer = lcfg["season_type"] == "summer"
-            # Summer: fetch confirmed 2025 champion; Winter: fetch current projected leader
-            ssn    = "2025" if is_summer else get_current_season("winter")
-            leader = fetch_leader(lcfg["id"], ssn, _API_KEY)
-            # Determine confirmed vs projected
-            if is_summer:
-                status = "✅ Confirmed"
-            else:
-                season_end_str = lcfg.get("season_end", "")
-                try:
-                    confirmed = datetime.now() > datetime.strptime(season_end_str, "%d %B %Y")
-                except (ValueError, TypeError):
-                    confirmed = False
-                status = "✅ Confirmed" if confirmed else "🔮 Projected"
-            route = "Final Four winner" if lcfg.get("final_four") else "League 1st"
-            rows.append({
-                "Badge":   leader.get("strBadge", "") if leader else "",
-                "Club":    leader.get("strTeam", "—") if leader else "—",
-                "Country": f"{lcfg.get('flag', '')} {lcfg.get('country', '')}",
-                "Route":   route,
-                "Coeff.":  coeff,
-                "Status":  status,
-            })
-    df_ucl = pd.DataFrame(rows)
-    df_ucl.index = range(1, len(df_ucl) + 1)
-    df_ucl.index.name = "#"
-
-    def _status_style_ucl(val):
-        s = str(val)
-        if "Confirmed" in s: return "color: #34a853; font-weight: bold"
-        if "Projected" in s: return "color: #f9ab00; font-weight: bold"
-        return ""
-
-    styled = df_ucl.style.map(_status_style_ucl, subset=["Status"])
-    st.dataframe(
-        styled,
-        column_config={
-            "Badge":   st.column_config.ImageColumn("",        width="small"),
-            "Club":    st.column_config.TextColumn("Club",     width=180),
-            "Country": st.column_config.TextColumn("Country",  width=130),
-            "Route":   st.column_config.TextColumn("Route",    width=130),
-            "Coeff.":  st.column_config.NumberColumn("Coeff.", format="%.3f", width=70),
-            "Status":  st.column_config.TextColumn("Status",   width=120),
-        },
-        use_container_width=False,
-        height=len(rows) * 35 + 42,
-    )
-
-
 # ---------------------------------------------------------------------------
 # Main content — auto-refreshes every 60 seconds
 # ---------------------------------------------------------------------------
 @st.fragment(run_every=60)
 def main_content():
-    if league_name == _UCL_VIEW:
-        _render_ucl_qualifying()
-        return
     with st.spinner("Loading…"):
         try:
             standings, played_fixtures, remaining_fixtures, league_info = fetch_all(

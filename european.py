@@ -13,11 +13,52 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-from config import EUROPEAN_COMPETITIONS, LEAGUES
+from config import EUROPEAN_COMPETITIONS, LEAGUES, get_current_season
 from data_fetcher import SportsDBClient
 from simulator import fixture_odds
 from entrants_2026_27 import ENTRANTS as ENTRANTS_2026_27, STAGE_ORDER, QUALIFYING_DATES
 from club_coefficients import get_coeff
+
+
+# Country name (as used in entrants_2026_27.py) → LEAGUES key
+_UCL_QR1_COUNTRY_TO_LEAGUE: dict[str, str] = {
+    "Slovenia":      "Slovenian 1. SNL",
+    "Moldova":       "Moldovan National Division",
+    "Ireland":       "Irish Premier Division",
+    "Kosovo":        "Kosovan Superleague",
+    "Gibraltar":     "Gibraltar National League",
+    "Bosnia-Herz.":  "Bosnian Premier Liga",
+    "N. Ireland":    "Northern Irish Premiership",
+    "Wales":         "Welsh Premier League",
+    "Malta":         "Maltese Premier League",
+    "Andorra":       "Andorran Primera Divisió",
+    "Bulgaria":      "Bulgarian First League",
+    "Armenia":       "Armenian Premier League",
+    "Albania":       "Albanian Superliga",
+    "Luxembourg":    "Luxembourgish National Div",
+    "Azerbaijan":    "Azerbaijani Premier League",
+    "Montenegro":    "Montenegrin First League",
+    "Romania":       "Romanian Liga I",
+    "N. Macedonia":  "Macedonian First League",
+    "San Marino":    "San Marino Campionato",
+}
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def _fetch_ucl_qr1_projections(api_key: str) -> dict[str, str]:
+    """Return {country: projected_champion} for winter UCL QR1 leagues."""
+    client = SportsDBClient(api_key)
+    result = {}
+    for country, league_name in _UCL_QR1_COUNTRY_TO_LEAGUE.items():
+        lcfg = LEAGUES.get(league_name)
+        if not lcfg:
+            continue
+        ssn = get_current_season(lcfg["season_type"])
+        standings = client.get_standings(lcfg["id"], ssn)
+        if standings:
+            leader = min(standings, key=lambda r: int(r.get("intRank") or 99))
+            result[country] = leader.get("strTeam")
+    return result
 
 
 @st.cache_data(ttl=3_600, show_spinner=False)
@@ -33,7 +74,8 @@ def _fetch_albania_top4(api_key: str) -> list[str]:
     ]
 
 
-def _resolve_dynamic(entries: list[dict], albania_top4: list[str]) -> list[dict]:
+def _resolve_dynamic(entries: list[dict], albania_top4: list[str],
+                     ucl_qr1_proj: dict = None) -> list[dict]:
     """Replace dynamic placeholder entries with projected club names."""
     out = []
     ff_234_done = False
@@ -48,6 +90,11 @@ def _resolve_dynamic(entries: list[dict], albania_top4: list[str]) -> list[dict]
                 club = albania_top4[i] if len(albania_top4) > i else None
                 out.append({**e, "club": club, "route": slot_route,
                              "status": "projected" if club else "tbd"})
+        elif (ucl_qr1_proj and e.get("status") == "tbd"
+              and e.get("route", "") == "League 1st"
+              and e.get("country") in ucl_qr1_proj):
+            club = ucl_qr1_proj[e["country"]]
+            out.append({**e, "club": club, "status": "projected" if club else "tbd"})
         else:
             out.append(e)
     return out
@@ -571,7 +618,8 @@ with tab_qual:
             "projected":   "🔮 Projected",
             "tbd":         "— TBD",
         }
-        _albania_top4 = _fetch_albania_top4(_API_KEY)
+        _albania_top4   = _fetch_albania_top4(_API_KEY)
+        _ucl_qr1_proj   = _fetch_ucl_qr1_projections(_API_KEY) if comp_name == "Champions League" else {}
         st.caption(
             "🟢 Confirmed — domestic season complete  "
             "🟡 Provisional — season still running  "
@@ -590,7 +638,7 @@ with tab_qual:
             st.markdown(date_str, unsafe_allow_html=True)
             paths = _comp_entrants[stage]
             for path_label, clubs in paths.items():
-                resolved = _resolve_dynamic(clubs, _albania_top4)
+                resolved = _resolve_dynamic(clubs, _albania_top4, _ucl_qr1_proj)
                 if len(paths) > 1:
                     st.markdown(f"*{path_label}*")
                 confirmed_clubs = [e for e in resolved if e["status"] != "tbd"]
