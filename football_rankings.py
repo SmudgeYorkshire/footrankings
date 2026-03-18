@@ -409,13 +409,13 @@ def main_content():
         def _euro_label(pos: int) -> str:
             return _euro_spots.get(pos, "")
 
-        def _table_rows(source_rows):
+        def _table_rows(source_rows, show_euro=True):
             rows = []
             for row in sorted(source_rows, key=lambda r: int(r.get("intRank", 99))):
                 gd   = int(row.get("intGoalDifference", 0))
                 form = row.get("strForm", "") or ""
                 pos  = int(row.get("intRank", 0))
-                euro = _euro_label(pos)
+                euro = _euro_label(pos) if show_euro else ""
                 api_status = _clean_desc((row.get("strDescription") or "").strip())
                 # Use short euro label when available; fall back to API text for relegation/other
                 status = euro if euro else api_status
@@ -518,14 +518,15 @@ def main_content():
                 _pts_note = "Points carried over in full"
             st.markdown("### 🏆 Championship Conference")
             st.caption(_pts_note)
-            _render_table(_table_rows(split_info["champ_current"]))
+            _render_table(_table_rows(split_info["champ_current"], show_euro=True))
             st.markdown("### ⚠️ Relegation Conference")
             st.caption(_pts_note)
-            _render_table(_table_rows(split_info["relg_current"]))
+            _render_table(_table_rows(split_info["relg_current"], show_euro=False))
             with st.expander("Regular Season Final Table"):
-                _render_table(_table_rows(split_info["pre_split"]))
+                _render_table(_table_rows(split_info["pre_split"], show_euro=False))
         else:
-            _render_table(_table_rows(standings))
+            _is_split = bool(cfg.get("n_champ") or cfg.get("final_four"))
+            _render_table(_table_rows(standings, show_euro=not _is_split))
 
             # ── Projected groups (regular season still running) ──────────────
             _nc = cfg.get("n_champ") or (4 if cfg.get("final_four") else None)
@@ -540,7 +541,7 @@ def main_content():
                 if cfg.get("final_four"):
                     st.markdown("### 📊 Projected Final Four")
                     st.caption("Top 4 by current table position — subject to change")
-                    _render_table(_table_rows(_sorted_st[:4]))
+                    _render_table(_table_rows(_sorted_st[:4], show_euro=False))
                 else:
                     st.markdown("### 📊 Projected Groups")
                     st.caption("Based on current standings — regular season still running, groups not yet confirmed")
@@ -548,14 +549,14 @@ def main_content():
                     st.markdown("#### 🏆 Championship Group")
                     if _pf_note:
                         st.caption(_pf_note)
-                    _render_table(_table_rows(_sorted_st[:_nc]))
+                    _render_table(_table_rows(_sorted_st[:_nc], show_euro=False))
 
                     if _nm:
                         st.markdown("#### 🔵 Middle Group")
-                        _render_table(_table_rows(_sorted_st[_nc:_nc + _nm]))
+                        _render_table(_table_rows(_sorted_st[_nc:_nc + _nm], show_euro=False))
 
                     st.markdown("#### ⚠️ Relegation Group")
-                    _render_table(_table_rows(_sorted_st[_nc + _nm:]))
+                    _render_table(_table_rows(_sorted_st[_nc + _nm:], show_euro=False))
 
         tbs = cfg.get("tiebreakers", ["gd", "gf"])[:6]
         tb_text = "; ".join(f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(tbs))
