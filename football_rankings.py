@@ -197,7 +197,34 @@ def _apply_predictions(standings: list[dict], pred_fixtures: list[dict]) -> list
     return list(updated.values())
 
 
-def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None, expected_pts: dict = None):
+def _euro_style_cell(val):
+    s = str(val).upper()
+    if "UCL"  in s: return "color: #1a73e8; font-weight: bold"
+    if "UEL"  in s: return "color: #f9ab00; font-weight: bold"
+    if "UECL" in s: return "color: #34a853; font-weight: bold"
+    return ""
+
+
+def _most_likely_euro(team: str, probs: pd.DataFrame, euro_spots: dict) -> str:
+    """Return the European spot with the highest summed probability for a team."""
+    if not euro_spots or team not in probs.index:
+        return ""
+    # Group positions by spot label
+    spot_prob: dict[str, float] = {}
+    for pos, label in euro_spots.items():
+        if not label:
+            continue
+        col = str(pos)
+        if col in probs.columns:
+            spot_prob[label] = spot_prob.get(label, 0.0) + float(probs.loc[team, col])
+    if not spot_prob:
+        return ""
+    best = max(spot_prob, key=spot_prob.__getitem__)
+    return best if spot_prob[best] >= 0.005 else ""
+
+
+def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
+                      expected_pts: dict = None, european_spots: dict = None):
     """Color-coded finish-probability table, sorted by P(finish 1st) descending."""
     probs = probs.sort_values(probs.columns[0], ascending=False)
     df = (probs * 100).round(1)
@@ -207,9 +234,12 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None, expected_p
     df.insert(0, "Badge", [badge_lookup.get(t, "") for t in teams])
     if expected_pts:
         df["xPts"] = [round(expected_pts.get(t, 0), 1) for t in teams]
+    if european_spots:
+        df["Europe"] = [_most_likely_euro(t, probs, european_spots) for t in teams]
     df.index = range(1, len(df) + 1)
     df.index.name = "Pos"
-    pos_cols = [c for c in df.columns if c not in ("Badge", "Team", "xPts")]
+    non_pos = {"Badge", "Team", "xPts", "Europe"}
+    pos_cols = [c for c in df.columns if c not in non_pos]
     styled = (
         df.style
         .apply(_green_col, axis=0, subset=pos_cols)
@@ -218,10 +248,13 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None, expected_p
     )
     if expected_pts:
         styled = styled.format("{:.1f}", subset=["xPts"])
+    if european_spots and "Europe" in df.columns:
+        styled = styled.map(_euro_style_cell, subset=["Europe"])
     col_cfg = {
-        "Badge": st.column_config.ImageColumn("", width="small"),
-        "Team":  st.column_config.TextColumn("Team"),
-        "xPts":  st.column_config.NumberColumn("xPts", format="%.1f", width="small"),
+        "Badge":  st.column_config.ImageColumn("", width="small"),
+        "Team":   st.column_config.TextColumn("Team"),
+        "xPts":   st.column_config.NumberColumn("xPts", format="%.1f", width="small"),
+        "Europe": st.column_config.TextColumn("Europe", width=110),
     }
     st.markdown("#### Season finish probabilities")
     st.dataframe(styled, column_config=col_cfg, use_container_width=True,
@@ -330,6 +363,9 @@ def main_content():
 
     st.divider()
 
+    # European spots lookup — shared across all tabs
+    _euro_spots: dict[int, str] = cfg.get("european_spots", {})
+
     tab_table, tab_proj, tab_manual, tab_fixtures, tab_results, tab_format = st.tabs(
         ["📊 Current Table", "🎯 Predictions", "🔮 Manual Predictions", "📅 Fixtures", "📋 Results", "🗂️ Format"]
     )
@@ -344,13 +380,17 @@ def main_content():
                 return "".join(sq[:-1]) + " │ " + sq[-1]
             return "".join(sq)
 
+        def _euro_label(pos: int) -> str:
+            return _euro_spots.get(pos, "")
+
         def _table_rows(source_rows):
             rows = []
             for row in sorted(source_rows, key=lambda r: int(r.get("intRank", 99))):
                 gd   = int(row.get("intGoalDifference", 0))
                 form = row.get("strForm", "") or ""
+                pos  = int(row.get("intRank", 0))
                 rows.append({
-                    "Pos":    int(row.get("intRank", 0)),
+                    "Pos":    pos,
                     "Badge":  row.get("strBadge") or "",
                     "Team":   row.get("strTeam", ""),
                     "P":      int(row.get("intPlayed", 0)),
@@ -363,6 +403,7 @@ def main_content():
                     "Pts":    int(row.get("intPoints", 0)),
                     "Form":   _fmt_form(form),
                     "Status": _clean_desc((row.get("strDescription") or "").strip()),
+                    "Europe": _euro_label(pos),
                 })
             return rows
 
@@ -375,19 +416,29 @@ def main_content():
             if "championship"     in s: return "color: #2e7d32; font-weight: bold"
             return ""
 
+        def _europe_style(val):
+            s = str(val).upper()
+            if "UCL"  in s: return "color: #1a73e8; font-weight: bold"
+            if "UEL"  in s: return "color: #f9ab00; font-weight: bold"
+            if "UECL" in s: return "color: #34a853; font-weight: bold"
+            return ""
+
         def _render_table(rows):
             df = pd.DataFrame(rows)
+            has_europe = _euro_spots and df["Europe"].any()
             # Convert numeric cols to strings so TextColumn respects text-align: center
             for c in ["Pos", "P", "W", "D", "L", "GF", "GA", "Pts"]:
                 df[c] = df[c].astype(str)
             num_cols = ["Pos", "P", "W", "D", "L", "GF", "GA", "GD", "Pts"]
-            styled = (
+            style_obj = (
                 df.style
                 .hide(axis="index")
                 .set_properties(subset=["Team", "Pts"], **{"font-weight": "bold"})
                 .set_properties(subset=num_cols, **{"text-align": "center"})
                 .map(_status_style, subset=["Status"])
             )
+            if has_europe:
+                style_obj = style_obj.map(_europe_style, subset=["Europe"])
             col_cfg = {
                 "Pos":    st.column_config.TextColumn("Pos",  width=32),
                 "Badge":  st.column_config.ImageColumn("",    width=32),
@@ -402,10 +453,22 @@ def main_content():
                 "Pts":    st.column_config.TextColumn("Pts",  width=32),
                 "Form":   st.column_config.TextColumn("Form", width=130),
                 "Status": st.column_config.TextColumn("Status", width=220),
+                "Europe": st.column_config.TextColumn("Europe", width=110),
             }
+            if not has_europe:
+                col_cfg.pop("Europe")
+                if "Europe" in df.columns:
+                    df = df.drop(columns=["Europe"])
+                    style_obj = (
+                        df.style
+                        .hide(axis="index")
+                        .set_properties(subset=["Team", "Pts"], **{"font-weight": "bold"})
+                        .set_properties(subset=num_cols, **{"text-align": "center"})
+                        .map(_status_style, subset=["Status"])
+                    )
             tbl_col, _ = st.columns([5, 1])
             with tbl_col:
-                st.dataframe(styled, column_config=col_cfg, use_container_width=True,
+                st.dataframe(style_obj, column_config=col_cfg, use_container_width=True,
                              hide_index=True, height=len(rows) * 35 + 38)
 
         _TB_LABELS = {
@@ -521,11 +584,11 @@ def main_content():
                 relg_exp_pts  = _compute_expected_pts(split_info["relg_current"],  relg_fix,  ratings_df, home_advantage)
                 st.markdown("### Championship Conference")
                 if not probs_champ.empty:
-                    render_prob_table(probs_champ, badge_lookup, champ_exp_pts)
+                    render_prob_table(probs_champ, badge_lookup, champ_exp_pts, _euro_spots)
                     render_zone_table(probs_champ, split_info["champ_current"], cfg.get("zones"))
                 st.markdown("### Relegation Conference")
                 if not probs_relg.empty:
-                    render_prob_table(probs_relg, badge_lookup, relg_exp_pts)
+                    render_prob_table(probs_relg, badge_lookup, relg_exp_pts, _euro_spots)
                     render_zone_table(probs_relg, split_info["relg_current"], cfg.get("zones"))
         else:
             sim_key = (league_id, season, n_sim, home_advantage)
@@ -545,7 +608,7 @@ def main_content():
 
             if "sim_results" in st.session_state and not st.session_state["sim_results"].empty:
                 exp_pts = _compute_expected_pts(standings, remaining_fixtures, ratings_df, home_advantage)
-                render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts)
+                render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts, _euro_spots)
                 render_zone_table(st.session_state["sim_results"], standings, cfg.get("zones"))
 
                 # ── Projected groups by probability (pre-split leagues) ───────
