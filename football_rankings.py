@@ -77,7 +77,7 @@ def _clean_desc(desc: str) -> str:
         return desc[len("Promotion - "):]
     dl = desc.lower()
     if "relegation play-off" in dl or "relegation playoff" in dl:
-        return "Relegation Play-off"
+        return "Relegation - PO"
     if dl.startswith("relegation"):
         return "Relegation"
     # Strip "League Name (Round Type)" pattern — e.g. "Jupiler Pro League (Relegation round)"
