@@ -449,6 +449,36 @@ def main_content():
         else:
             _render_table(_table_rows(standings))
 
+            # ── Projected groups (regular season still running) ──────────────
+            _nc = cfg.get("n_champ") or (4 if cfg.get("final_four") else None)
+            if _nc:
+                _nm       = cfg.get("n_mid") or 0
+                _pf       = cfg.get("pts_factor", 1.0)
+                _sorted_st = sorted(standings, key=lambda r: int(r.get("intRank", 99)))
+                _pf_note  = {0.0: "⚠️ Points reset to zero at split",
+                             0.5: "⚠️ Points halved (rounded down) at split"}.get(_pf, "")
+
+                st.divider()
+                if cfg.get("final_four"):
+                    st.markdown("### 📊 Projected Final Four")
+                    st.caption("Top 4 by current table position — subject to change")
+                    _render_table(_table_rows(_sorted_st[:4]))
+                else:
+                    st.markdown("### 📊 Projected Groups")
+                    st.caption("Based on current standings — regular season still running, groups not yet confirmed")
+
+                    st.markdown("#### 🏆 Championship Group")
+                    if _pf_note:
+                        st.caption(_pf_note)
+                    _render_table(_table_rows(_sorted_st[:_nc]))
+
+                    if _nm:
+                        st.markdown("#### 🔵 Middle Group")
+                        _render_table(_table_rows(_sorted_st[_nc:_nc + _nm]))
+
+                    st.markdown("#### ⚠️ Relegation Group")
+                    _render_table(_table_rows(_sorted_st[_nc + _nm:]))
+
         tbs = cfg.get("tiebreakers", ["gd", "gf"])[:6]
         tb_text = "; ".join(f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(tbs))
         st.caption(f"Tiebreakers: {tb_text}")
@@ -517,6 +547,58 @@ def main_content():
                 exp_pts = _compute_expected_pts(standings, remaining_fixtures, ratings_df, home_advantage)
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts)
                 render_zone_table(st.session_state["sim_results"], standings, cfg.get("zones"))
+
+                # ── Projected groups by probability (pre-split leagues) ───────
+                _nc = cfg.get("n_champ") or (4 if cfg.get("final_four") else None)
+                if _nc:
+                    _nm      = cfg.get("n_mid") or 0
+                    probs_df = st.session_state["sim_results"]
+                    n_total  = len(standings)
+
+                    def _group_prob_table(p_series, col_label):
+                        rows = [{"Badge": badge_lookup.get(t, ""), "Team": t,
+                                 col_label: f"{p:.1%}"}
+                                for t, p in p_series.sort_values(ascending=False).items()]
+                        _df = pd.DataFrame(rows)
+                        _styled = _df.style.hide(axis="index").set_properties(
+                            subset=["Team"], **{"font-weight": "bold"})
+                        _c, _ = st.columns([4, 2])
+                        with _c:
+                            st.dataframe(_styled, column_config={
+                                "Badge": st.column_config.ImageColumn("", width=32),
+                                "Team":  st.column_config.TextColumn("Team", width=170),
+                                col_label: st.column_config.TextColumn(col_label, width=130),
+                            }, use_container_width=True, hide_index=True,
+                                height=len(rows) * 35 + 38)
+
+                    champ_cols = [str(i) for i in range(1, _nc + 1) if str(i) in probs_df.columns]
+                    p_champ    = probs_df[champ_cols].sum(axis=1) if champ_cols else None
+                    relg_cols  = [str(i) for i in range(_nc + _nm + 1, n_total + 1) if str(i) in probs_df.columns]
+                    p_relg     = probs_df[relg_cols].sum(axis=1) if relg_cols else None
+
+                    st.divider()
+                    if cfg.get("final_four"):
+                        st.markdown("### 📊 Projected Final Four — by probability")
+                        st.caption("All teams ranked by their chance of finishing in the top 4")
+                        if p_champ is not None:
+                            _group_prob_table(p_champ, "P(Top 4)")
+                    else:
+                        st.markdown("### 📊 Projected Groups — by probability")
+                        st.caption("Teams ranked by chance of finishing in each group")
+                        if p_champ is not None:
+                            st.markdown("#### 🏆 Championship Group")
+                            _group_prob_table(p_champ, "P(Champ. Group)")
+
+                        if _nm:
+                            mid_cols = [str(i) for i in range(_nc + 1, _nc + _nm + 1) if str(i) in probs_df.columns]
+                            p_mid = probs_df[mid_cols].sum(axis=1) if mid_cols else None
+                            if p_mid is not None:
+                                st.markdown("#### 🔵 Middle Group")
+                                _group_prob_table(p_mid, "P(Middle Group)")
+
+                        if p_relg is not None:
+                            st.markdown("#### ⚠️ Relegation Group")
+                            _group_prob_table(p_relg, "P(Relg. Group)")
 
                 # ── Final Four simulation (e.g. Albanian Superliga) ──────────
                 if cfg.get("final_four"):
