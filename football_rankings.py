@@ -328,15 +328,19 @@ with st.sidebar:
         st.caption(f"👤  {st.session_state.get('name', '')}")
         _auth.logout("Logout", location="sidebar")
     st.divider()
-    view_mode = st.radio("View", ["📊 League", "🌍 Qualifiers"], horizontal=True, label_visibility="collapsed")
     league_name = st.selectbox(
         "European Leagues",
-        options=list(LEAGUES.keys()),
+        options=[_UCL_VIEW] + list(LEAGUES.keys()),
         format_func=lambda n: n,
     )
-    cfg = LEAGUES[league_name]
-    league_id = cfg["id"]
-    season = get_current_season(cfg["season_type"])
+    if league_name in LEAGUES:
+        cfg = LEAGUES[league_name]
+        league_id = cfg["id"]
+        season = get_current_season(cfg["season_type"])
+    else:
+        cfg = {}
+        league_id = None
+        season = None
     st.divider()
     st.markdown(
         """
@@ -356,6 +360,7 @@ with st.sidebar:
 
 n_sim = DEFAULT_N_SIMULATIONS
 home_advantage = DEFAULT_HOME_ADVANTAGE
+_UCL_VIEW = "🏆 2026/27 UEFA Champions League"
 
 
 # ---------------------------------------------------------------------------
@@ -416,37 +421,62 @@ def fetch_leader(lid, ssn, key):
 
 
 # ---------------------------------------------------------------------------
-# Qualifiers view — UCL QR1 predicted participants
+# 2026/27 UCL qualifying rounds view
 # ---------------------------------------------------------------------------
-def _render_qualifiers():
-    st.markdown("## 🏆 2025/26 UEFA Champions League — QR1")
-    st.caption("Predicted champion (current league leader) for each of the 28 qualifying nations, sorted by UEFA coefficient.")
+def _render_ucl_qualifying():
+    from datetime import datetime
+    st.markdown("## 🏆 2026/27 UEFA Champions League")
+    st.markdown("### First Qualifying Round")
+    st.caption("1st leg: 7/8 Jul 2026 · 2nd leg: 14/15 Jul 2026")
     rows = []
-    with st.spinner("Fetching league leaders…"):
+    with st.spinner("Loading…"):
         for lname, coeff in sorted(_UCL_QR1_COEFFS.items(), key=lambda x: x[1], reverse=True):
             lcfg = LEAGUES.get(lname)
             if not lcfg:
                 continue
-            ssn    = get_current_season(lcfg["season_type"])
+            is_summer = lcfg["season_type"] == "summer"
+            # Summer: fetch confirmed 2025 champion; Winter: fetch current projected leader
+            ssn    = "2025" if is_summer else get_current_season("winter")
             leader = fetch_leader(lcfg["id"], ssn, _API_KEY)
+            # Determine confirmed vs projected
+            if is_summer:
+                status = "✅ Confirmed"
+            else:
+                season_end_str = lcfg.get("season_end", "")
+                try:
+                    confirmed = datetime.now() > datetime.strptime(season_end_str, "%d %B %Y")
+                except (ValueError, TypeError):
+                    confirmed = False
+                status = "✅ Confirmed" if confirmed else "🔮 Projected"
+            route = "Final Four winner" if lcfg.get("final_four") else "League 1st"
             rows.append({
-                "Badge":  leader.get("strBadge", "") if leader else "",
-                "Team":   leader.get("strTeam", "—") if leader else "—",
-                "Flag":   lcfg.get("flag", ""),
-                "League": lname,
-                "coeff":  coeff,
+                "Badge":   leader.get("strBadge", "") if leader else "",
+                "Club":    leader.get("strTeam", "—") if leader else "—",
+                "Country": f"{lcfg.get('flag', '')} {lcfg.get('country', '')}",
+                "Route":   route,
+                "Coeff.":  coeff,
+                "Status":  status,
             })
-    df_q = pd.DataFrame(rows)
-    df_q.index = range(1, len(df_q) + 1)
-    df_q.index.name = "#"
+    df_ucl = pd.DataFrame(rows)
+    df_ucl.index = range(1, len(df_ucl) + 1)
+    df_ucl.index.name = "#"
+
+    def _status_style_ucl(val):
+        s = str(val)
+        if "Confirmed" in s: return "color: #34a853; font-weight: bold"
+        if "Projected" in s: return "color: #f9ab00; font-weight: bold"
+        return ""
+
+    styled = df_ucl.style.map(_status_style_ucl, subset=["Status"])
     st.dataframe(
-        df_q,
+        styled,
         column_config={
-            "Badge":  st.column_config.ImageColumn("", width="small"),
-            "Flag":   st.column_config.TextColumn("", width=30),
-            "Team":   st.column_config.TextColumn("Team", width=200),
-            "League": st.column_config.TextColumn("League"),
-            "coeff":  st.column_config.NumberColumn("coeff", format="%.3f", width=80),
+            "Badge":   st.column_config.ImageColumn("",        width="small"),
+            "Club":    st.column_config.TextColumn("Club",     width=180),
+            "Country": st.column_config.TextColumn("Country",  width=130),
+            "Route":   st.column_config.TextColumn("Route",    width=130),
+            "Coeff.":  st.column_config.NumberColumn("Coeff.", format="%.3f", width=70),
+            "Status":  st.column_config.TextColumn("Status",   width=120),
         },
         use_container_width=False,
         height=len(rows) * 35 + 42,
@@ -458,8 +488,8 @@ def _render_qualifiers():
 # ---------------------------------------------------------------------------
 @st.fragment(run_every=60)
 def main_content():
-    if view_mode == "🌍 Qualifiers":
-        _render_qualifiers()
+    if league_name == _UCL_VIEW:
+        _render_ucl_qualifying()
         return
     with st.spinner("Loading…"):
         try:
