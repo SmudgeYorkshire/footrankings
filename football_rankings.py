@@ -269,8 +269,12 @@ def _status_for_pos(pos: int, euro_spots: dict, zones: dict = None) -> str:
 def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
                       expected_pts: dict = None, european_spots: dict = None,
                       title: str = "Season finish probabilities", zones: dict = None):
-    """Color-coded finish-probability table, sorted by P(finish 1st) descending."""
-    probs = probs.sort_values(probs.columns[0], ascending=False)
+    """Color-coded finish-probability table, sorted by xPts descending."""
+    if expected_pts:
+        sorted_teams = sorted(probs.index, key=lambda t: expected_pts.get(t, 0), reverse=True)
+        probs = probs.loc[sorted_teams]
+    else:
+        probs = probs.sort_values(probs.columns[0], ascending=False)
     df = (probs * 100).round(1)
     badge_lookup = badge_lookup or {}
     teams = list(probs.index)
