@@ -135,10 +135,17 @@ def render_zone_table(probs: pd.DataFrame, standings: list[dict] = None, zone_ov
         row = {"Team": team}
         for zone_name, pos_strs in zones.items():
             cols = [p for p in pos_strs if p in probs.columns]
-            row[zone_name] = f"{probs.loc[team, cols].sum():.1%}" if cols else "—"
+            row[zone_name] = round(probs.loc[team, cols].sum() * 100, 1) if cols else None
         rows.append(row)
     zone_df = pd.DataFrame(rows)
-    st.dataframe(zone_df, use_container_width=True, hide_index=True,
+    # Sort by first zone column descending by default
+    first_zone = next(iter(zones), None)
+    if first_zone and first_zone in zone_df.columns:
+        zone_df = zone_df.sort_values(first_zone, ascending=False).reset_index(drop=True)
+    col_cfg = {"Team": st.column_config.TextColumn("Team")}
+    for zn in zones:
+        col_cfg[zn] = st.column_config.NumberColumn(zn, format="%.1f%%")
+    st.dataframe(zone_df, column_config=col_cfg, use_container_width=True, hide_index=True,
                  height=len(zone_df) * 35 + 42)
 
 
