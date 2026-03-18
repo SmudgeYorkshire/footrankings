@@ -72,7 +72,7 @@ def render_heatmap(probs: pd.DataFrame):
 
 
 def _clean_desc(desc: str) -> str:
-    """Normalise strDescription: strip tier names, shorten relegation labels."""
+    """Normalise strDescription: strip tier/league name prefixes, shorten relegation labels."""
     if desc.startswith("Promotion - "):
         return desc[len("Promotion - "):]
     dl = desc.lower()
@@ -80,6 +80,12 @@ def _clean_desc(desc: str) -> str:
         return "Relegation Play-off"
     if dl.startswith("relegation"):
         return "Relegation"
+    # Strip "League Name (Round Type)" pattern — e.g. "Jupiler Pro League (Relegation round)"
+    if " (" in desc and desc.endswith(")"):
+        inner = desc[desc.rfind(" (") + 2:-1]
+        if "relegation" in inner.lower():
+            return "Relegation"
+        return ""   # championship/conference round — let euro_spots or zones handle it
     return desc
 
 
@@ -240,17 +246,33 @@ def _euro_style_cell(val):
     return ""
 
 
-def _most_likely_euro(team: str, probs: pd.DataFrame, euro_spots: dict) -> str:
-    """Return the European spot for the team's single most-likely finishing position."""
-    if not euro_spots or team not in probs.index:
+def _status_style_pred(val):
+    """Red for relegation labels in the predicted-standings Status column."""
+    s = str(val).lower()
+    if "relega" in s: return "color: #ea4335; font-weight: bold"
+    return ""
+
+
+def _most_likely_status(team: str, probs: pd.DataFrame,
+                        euro_spots: dict, zones: dict = None) -> str:
+    """Return European spot or relegation zone for the team's most-likely finishing position."""
+    if team not in probs.index:
         return ""
     best_pos = int(probs.loc[team].idxmax())
-    return euro_spots.get(best_pos, "")
+    if euro_spots:
+        label = euro_spots.get(best_pos, "")
+        if label:
+            return label
+    if zones:
+        for zone_label, positions in zones.items():
+            if best_pos in positions:
+                return zone_label
+    return ""
 
 
 def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
                       expected_pts: dict = None, european_spots: dict = None,
-                      title: str = "Season finish probabilities"):
+                      title: str = "Season finish probabilities", zones: dict = None):
     """Color-coded finish-probability table, sorted by P(finish 1st) descending."""
     probs = probs.sort_values(probs.columns[0], ascending=False)
     df = (probs * 100).round(1)
@@ -260,11 +282,11 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
     df.insert(0, "Badge", [badge_lookup.get(t, "") for t in teams])
     if expected_pts:
         df["xPts"] = [round(expected_pts.get(t, 0), 1) for t in teams]
-    if european_spots:
-        df["Europe"] = [_most_likely_euro(t, probs, european_spots) for t in teams]
+    if european_spots or zones:
+        df["Status"] = [_most_likely_status(t, probs, european_spots or {}, zones) for t in teams]
     df.index = range(1, len(df) + 1)
     df.index.name = "Pos"
-    non_pos = {"Badge", "Team", "xPts", "Europe"}
+    non_pos = {"Badge", "Team", "xPts", "Status"}
     pos_cols = [c for c in df.columns if c not in non_pos]
     styled = (
         df.style
@@ -274,13 +296,15 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
     )
     if expected_pts:
         styled = styled.format("{:.1f}", subset=["xPts"])
-    if european_spots and "Europe" in df.columns:
-        styled = styled.map(_euro_style_cell, subset=["Europe"])
+    if "Status" in df.columns:
+        styled = (styled
+                  .map(_euro_style_cell,  subset=["Status"])
+                  .map(_status_style_pred, subset=["Status"]))
     col_cfg = {
         "Badge":  st.column_config.ImageColumn("", width="small"),
         "Team":   st.column_config.TextColumn("Team"),
         "xPts":   st.column_config.NumberColumn("xPts", format="%.1f", width="small"),
-        "Europe": st.column_config.TextColumn("Europe", width=110),
+        "Status": st.column_config.TextColumn("Status", width=110),
     }
     st.markdown(f"#### {title}")
     st.dataframe(styled, column_config=col_cfg, use_container_width=True,
@@ -600,11 +624,14 @@ def main_content():
                 relg_exp_pts  = _compute_expected_pts(split_info["relg_current"],  relg_fix,  ratings_df, home_advantage)
                 st.markdown("### Championship Conference")
                 if not probs_champ.empty:
-                    render_prob_table(probs_champ, badge_lookup, champ_exp_pts, _euro_spots)
+                    render_prob_table(probs_champ, badge_lookup, champ_exp_pts, _euro_spots,
+                                      zones=cfg.get("zones"))
                     render_zone_table(probs_champ, split_info["champ_current"], cfg.get("zones"))
                 st.markdown("### Relegation Conference")
                 if not probs_relg.empty:
-                    render_prob_table(probs_relg, badge_lookup, relg_exp_pts, _euro_spots)
+                    _relg_zones = cfg.get("zones") or _zones_from_standings(split_info["relg_current"])
+                    render_prob_table(probs_relg, badge_lookup, relg_exp_pts, _euro_spots,
+                                      zones=_relg_zones)
                     render_zone_table(probs_relg, split_info["relg_current"], cfg.get("zones"))
         else:
             sim_key = (league_id, season, n_sim, home_advantage)
@@ -624,7 +651,9 @@ def main_content():
 
             if "sim_results" in st.session_state and not st.session_state["sim_results"].empty:
                 exp_pts = _compute_expected_pts(standings, remaining_fixtures, ratings_df, home_advantage)
-                render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts, _euro_spots)
+                _main_zones = cfg.get("zones") or _zones_from_standings(standings)
+                render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts, _euro_spots,
+                                  zones=_main_zones)
                 render_zone_table(st.session_state["sim_results"], standings, cfg.get("zones"))
 
                 # ── Projected groups by probability (pre-split leagues) ───────
@@ -711,6 +740,7 @@ def main_content():
                                 st.session_state["po_sims"][_po_c] = _po_probs
                             render_prob_table(st.session_state["po_sims"][_po_c], badge_lookup,
                                               european_spots=_euro_spots,
+                                              zones=cfg.get("zones"),
                                               title="Championship play-off finish probabilities")
 
                         if _nm:
@@ -756,7 +786,9 @@ def main_content():
                                         tiebreakers=cfg.get("tiebreakers"),
                                     )
                                 st.session_state["po_sims"][_po_r] = _po_probs
+                            _po_relg_zones = cfg.get("zones") or _zones_from_standings(list(_st_lookup.values()))
                             render_prob_table(st.session_state["po_sims"][_po_r], badge_lookup,
+                                              zones=_po_relg_zones,
                                               title="Relegation play-out finish probabilities")
 
                 # ── Final Four simulation (e.g. Albanian Superliga) ──────────
@@ -1012,7 +1044,9 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     manual_exp_pts = _compute_expected_pts(
                         updated_st, unpredicted_fix, ratings_df, home_advantage
                     )
-                    render_prob_table(cached["probs"], badge_lookup, manual_exp_pts, _euro_spots)
+                    _manual_zones = cfg.get("zones") or _zones_from_standings(updated_st)
+                    render_prob_table(cached["probs"], badge_lookup, manual_exp_pts, _euro_spots,
+                                      zones=_manual_zones)
                     render_zone_table(cached["probs"], updated_st, cfg.get("zones"))
             else:
                 st.info("Enter predictions above then press **▶ Run simulations**.")
