@@ -72,9 +72,14 @@ def render_heatmap(probs: pd.DataFrame):
 
 
 def _clean_desc(desc: str) -> str:
-    """Strip 'Promotion - ' prefix; keep 'Relegation - X' intact so the destination shows in red."""
+    """Normalise strDescription: strip tier names, shorten relegation labels."""
     if desc.startswith("Promotion - "):
         return desc[len("Promotion - "):]
+    dl = desc.lower()
+    if "relegation play-off" in dl or "relegation playoff" in dl:
+        return "Relegation Play-off"
+    if dl.startswith("relegation"):
+        return "Relegation"
     return desc
 
 
