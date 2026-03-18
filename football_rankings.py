@@ -321,6 +321,7 @@ with st.sidebar:
         st.caption(f"👤  {st.session_state.get('name', '')}")
         _auth.logout("Logout", location="sidebar")
     st.divider()
+    view_mode = st.radio("View", ["📊 League", "🌍 Qualifiers"], horizontal=True, label_visibility="collapsed")
     league_name = st.selectbox(
         "European Leagues",
         options=list(LEAGUES.keys()),
@@ -351,6 +352,41 @@ home_advantage = DEFAULT_HOME_ADVANTAGE
 
 
 # ---------------------------------------------------------------------------
+# UCL QR1 qualifier coefficients (UEFA 5-year, 2025/26 cycle)
+# ---------------------------------------------------------------------------
+_UCL_QR1_COEFFS: dict[str, float] = {
+    "Slovenian 1. SNL":             21.000,
+    "Moldovan National Division":   20.000,
+    "Irish Premier Division":       19.375,
+    "Finnish Veikkausliiga":        14.000,
+    "Kosovan Superleague":          13.625,
+    "Gibraltar National League":    13.500,
+    "Bosnian Premier Liga":         13.125,
+    "Icelandic Úrvalsdeild":        11.750,
+    "Kazakhstan Premier League":    11.000,
+    "Latvian Higher League":        10.500,
+    "Faroe Islands Premier League": 10.500,
+    "Estonian Meistriliiga":        10.000,
+    "Northern Irish Premiership":    9.000,
+    "Welsh Premier League":          9.000,
+    "Maltese Premier League":        8.500,
+    "Andorran Primera Divisió":      7.500,
+    "Bulgarian First League":        7.000,
+    "Armenian Premier League":       7.000,
+    "Albanian Superliga":            6.500,
+    "Luxembourgish National Div":    6.500,
+    "Azerbaijani Premier League":    6.000,
+    "Lithuanian A Lyga":             6.000,
+    "Montenegrin First League":      6.000,
+    "Romanian Liga I":               5.050,
+    "Georgian Erovnuli Liga":        5.000,
+    "San Marino Campionato":         2.500,
+    "Macedonian First League":       1.551,
+    "Belarus Vyscha Liga":           1.325,
+}
+
+
+# ---------------------------------------------------------------------------
 # Data fetching — 60-second cache for live feel
 # ---------------------------------------------------------------------------
 @st.cache_data(ttl=60, show_spinner=False)
@@ -362,11 +398,62 @@ def fetch_all(lid, ssn, key):
     return standings, played, remaining, info
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def fetch_leader(lid, ssn, key):
+    """Return the current league leader row (position 1 in standings)."""
+    c = SportsDBClient(api_key=key)
+    standings = c.get_standings(lid, ssn)
+    if standings:
+        return min(standings, key=lambda r: int(r.get("intRank") or 99))
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Qualifiers view — UCL QR1 predicted participants
+# ---------------------------------------------------------------------------
+def _render_qualifiers():
+    st.markdown("## 🏆 2025/26 UEFA Champions League — QR1")
+    st.caption("Predicted champion (current league leader) for each of the 28 qualifying nations, sorted by UEFA coefficient.")
+    rows = []
+    with st.spinner("Fetching league leaders…"):
+        for lname, coeff in sorted(_UCL_QR1_COEFFS.items(), key=lambda x: x[1], reverse=True):
+            lcfg = LEAGUES.get(lname)
+            if not lcfg:
+                continue
+            ssn    = get_current_season(lcfg["season_type"])
+            leader = fetch_leader(lcfg["id"], ssn, _API_KEY)
+            rows.append({
+                "Badge":  leader.get("strBadge", "") if leader else "",
+                "Team":   leader.get("strTeam", "—") if leader else "—",
+                "Flag":   lcfg.get("flag", ""),
+                "League": lname,
+                "coeff":  coeff,
+            })
+    df_q = pd.DataFrame(rows)
+    df_q.index = range(1, len(df_q) + 1)
+    df_q.index.name = "#"
+    st.dataframe(
+        df_q,
+        column_config={
+            "Badge":  st.column_config.ImageColumn("", width="small"),
+            "Flag":   st.column_config.TextColumn("", width=30),
+            "Team":   st.column_config.TextColumn("Team", width=200),
+            "League": st.column_config.TextColumn("League"),
+            "coeff":  st.column_config.NumberColumn("coeff", format="%.3f", width=80),
+        },
+        use_container_width=False,
+        height=len(rows) * 35 + 42,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Main content — auto-refreshes every 60 seconds
 # ---------------------------------------------------------------------------
 @st.fragment(run_every=60)
 def main_content():
+    if view_mode == "🌍 Qualifiers":
+        _render_qualifiers()
+        return
     with st.spinner("Loading…"):
         try:
             standings, played_fixtures, remaining_fixtures, league_info = fetch_all(
