@@ -534,9 +534,11 @@ def main_content():
                 form = row.get("strForm", "") or ""
                 pos  = int(row.get("intRank", 0))
                 euro = _euro_label(pos) if show_euro else ""
+                _zones_cfg = cfg.get("zones", {})
+                zone_lbl = next((lbl for lbl, ps in _zones_cfg.items() if pos in ps), "")
                 api_status = _clean_desc((row.get("strDescription") or "").strip())
-                # Use short euro label when available; fall back to API text for relegation/other
-                status = euro if euro else api_status
+                # Priority: euro label → zones config → API description
+                status = euro if euro else zone_lbl if zone_lbl else api_status
                 rows.append({
                     "Pos":    pos,
                     "Badge":  row.get("strBadge") or "",
@@ -560,6 +562,7 @@ def main_content():
             if "champions league" in s: return "color: #1a73e8; font-weight: bold"
             if "europa league"    in s: return "color: #f9ab00; font-weight: bold"
             if "conference"       in s: return "color: #34a853; font-weight: bold"
+            if "final four"       in s: return "color: #2e7d32; font-weight: bold"
             if "championship"     in s: return "color: #2e7d32; font-weight: bold"
             return ""
 
@@ -659,7 +662,7 @@ def main_content():
                 if cfg.get("final_four"):
                     st.markdown("### 📊 Projected Final Four")
                     st.caption("Top 4 by current table position — subject to change")
-                    _render_table(_table_rows(_sorted_st[:4], show_euro=False))
+                    _render_table(_table_rows(_sorted_st[:4], show_euro=True))
                 else:
                     st.markdown("### 📊 Projected Groups")
                     st.caption("Based on current standings — regular season still running, groups not yet confirmed")
