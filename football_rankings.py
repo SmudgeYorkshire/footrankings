@@ -197,6 +197,36 @@ def _apply_predictions(standings: list[dict], pred_fixtures: list[dict]) -> list
     return list(updated.values())
 
 
+def _playoff_standings(teams: list, standings_lookup: dict, pts_factor: float) -> list:
+    """Mock standings for a play-off group: points adjusted by pts_factor, goals zeroed."""
+    rows = []
+    for i, team in enumerate(teams, 1):
+        orig = standings_lookup.get(team, {})
+        pts  = int(orig.get("intPoints", 0) or 0)
+        rows.append({
+            "strTeam":           team,
+            "intPoints":         int(pts * pts_factor),
+            "intPlayed":         0,
+            "intWin":            0,
+            "intDraw":           0,
+            "intLoss":           0,
+            "intGoalsFor":       0,
+            "intGoalsAgainst":   0,
+            "intGoalDifference": 0,
+            "intRank":           i,
+            "strBadge":          orig.get("strBadge", ""),
+        })
+    return rows
+
+
+def _roundrobin_fixtures(teams: list) -> list:
+    """Generate home+away round-robin fixtures for a list of teams."""
+    return [
+        {"strHomeTeam": h, "strAwayTeam": a}
+        for h in teams for a in teams if h != a
+    ]
+
+
 def _euro_style_cell(val):
     s = str(val).upper()
     if "UCL"  in s: return "color: #1a73e8; font-weight: bold"
@@ -224,7 +254,8 @@ def _most_likely_euro(team: str, probs: pd.DataFrame, euro_spots: dict) -> str:
 
 
 def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
-                      expected_pts: dict = None, european_spots: dict = None):
+                      expected_pts: dict = None, european_spots: dict = None,
+                      title: str = "Season finish probabilities"):
     """Color-coded finish-probability table, sorted by P(finish 1st) descending."""
     probs = probs.sort_values(probs.columns[0], ascending=False)
     df = (probs * 100).round(1)
@@ -256,7 +287,7 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
         "xPts":   st.column_config.NumberColumn("xPts", format="%.1f", width="small"),
         "Europe": st.column_config.TextColumn("Europe", width=110),
     }
-    st.markdown("#### Season finish probabilities")
+    st.markdown(f"#### {title}")
     st.dataframe(styled, column_config=col_cfg, use_container_width=True,
                  height=len(probs) * 35 + 42)
 
@@ -656,26 +687,81 @@ def main_content():
                             top4 = list(p_champ.sort_values(ascending=False).index[:4])
                             _proj_group_table(top4, champ_pos)
                     else:
-                        st.markdown("### 📊 Projected Groups")
-                        st.caption("Predicted group members · columns show P(finishing that regular-season position)")
+                        st.markdown("### 📊 Projected Play-offs / Play-outs")
+                        _pts_note = {0.0: "points reset to 0", 0.5: "points halved"}.get(_pf, "points carried over")
+                        _st_lookup = {r["strTeam"]: r for r in standings}
+                        _zone_notes = cfg.get("zone_notes", {})
+                        _po_sim_key = ("playoff", league_id, season, n_sim, home_advantage)
+                        if st.session_state.get("po_sim_key") != _po_sim_key:
+                            st.session_state["po_sims"] = {}
+                            st.session_state["po_sim_key"] = _po_sim_key
+
                         if p_champ is not None:
-                            st.markdown("#### 🏆 Championship Group")
+                            st.markdown("#### 🏆 Championship Play-off")
+                            _champ_fmt = _zone_notes.get("championship",
+                                f"Top {_nc} teams advance to a round-robin play-off; {_pts_note} at the split.")
+                            st.caption(_champ_fmt)
                             top_champ = list(p_champ.sort_values(ascending=False).index[:_nc])
-                            _proj_group_table(top_champ, champ_pos)
+                            _po_c = tuple(top_champ)
+                            if _po_c not in st.session_state.get("po_sims", {}):
+                                with st.spinner("Simulating championship play-off…"):
+                                    _po_probs = simulate_season(
+                                        standings=_playoff_standings(top_champ, _st_lookup, _pf),
+                                        remaining_fixtures=_roundrobin_fixtures(top_champ),
+                                        ratings=ratings_df, n_sim=n_sim,
+                                        home_advantage=home_advantage,
+                                        tiebreakers=cfg.get("tiebreakers"),
+                                    )
+                                st.session_state["po_sims"][_po_c] = _po_probs
+                            render_prob_table(st.session_state["po_sims"][_po_c], badge_lookup,
+                                              european_spots=_euro_spots,
+                                              title="Championship play-off finish probabilities")
 
                         if _nm:
                             mid_pos = [str(i) for i in range(_nc + 1, _nc + _nm + 1) if str(i) in probs_df.columns]
                             p_mid   = probs_df[mid_pos].sum(axis=1) if mid_pos else None
                             if p_mid is not None:
                                 st.markdown("#### 🔵 Middle Group")
+                                _mid_fmt = _zone_notes.get("middle", _zone_notes.get("europa",
+                                    f"{_nm} teams advance to a round-robin group; {_pts_note} at the split."))
+                                st.caption(_mid_fmt)
                                 top_mid = list(p_mid.sort_values(ascending=False).index[:_nm])
-                                _proj_group_table(top_mid, mid_pos)
+                                _po_m = tuple(top_mid)
+                                if _po_m not in st.session_state.get("po_sims", {}):
+                                    with st.spinner("Simulating middle group…"):
+                                        _po_probs = simulate_season(
+                                            standings=_playoff_standings(top_mid, _st_lookup, _pf),
+                                            remaining_fixtures=_roundrobin_fixtures(top_mid),
+                                            ratings=ratings_df, n_sim=n_sim,
+                                            home_advantage=home_advantage,
+                                            tiebreakers=cfg.get("tiebreakers"),
+                                        )
+                                    st.session_state["po_sims"][_po_m] = _po_probs
+                                render_prob_table(st.session_state["po_sims"][_po_m], badge_lookup,
+                                                  title="Middle group finish probabilities")
 
                         if p_relg is not None:
                             n_relg = n_total - _nc - _nm
-                            st.markdown("#### ⚠️ Relegation Group")
+                            st.markdown("#### ⚠️ Relegation Play-out")
+                            _relg_parts = [v for k, v in _zone_notes.items()
+                                           if k in ("relegation", "europa", "middle")]
+                            _relg_fmt = "  ".join(_relg_parts) if _relg_parts else \
+                                f"Bottom {n_relg} teams advance to a round-robin play-out; {_pts_note} at the split."
+                            st.caption(_relg_fmt)
                             top_relg = list(p_relg.sort_values(ascending=False).index[:n_relg])
-                            _proj_group_table(top_relg, relg_pos)
+                            _po_r = tuple(top_relg)
+                            if _po_r not in st.session_state.get("po_sims", {}):
+                                with st.spinner("Simulating relegation play-out…"):
+                                    _po_probs = simulate_season(
+                                        standings=_playoff_standings(top_relg, _st_lookup, _pf),
+                                        remaining_fixtures=_roundrobin_fixtures(top_relg),
+                                        ratings=ratings_df, n_sim=n_sim,
+                                        home_advantage=home_advantage,
+                                        tiebreakers=cfg.get("tiebreakers"),
+                                    )
+                                st.session_state["po_sims"][_po_r] = _po_probs
+                            render_prob_table(st.session_state["po_sims"][_po_r], badge_lookup,
+                                              title="Relegation play-out finish probabilities")
 
                 # ── Final Four simulation (e.g. Albanian Superliga) ──────────
                 if cfg.get("final_four"):
@@ -930,7 +1016,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     manual_exp_pts = _compute_expected_pts(
                         updated_st, unpredicted_fix, ratings_df, home_advantage
                     )
-                    render_prob_table(cached["probs"], badge_lookup, manual_exp_pts)
+                    render_prob_table(cached["probs"], badge_lookup, manual_exp_pts, _euro_spots)
                     render_zone_table(cached["probs"], updated_st, cfg.get("zones"))
             else:
                 st.info("Enter predictions above then press **▶ Run simulations**.")
