@@ -555,50 +555,75 @@ def main_content():
                     probs_df = st.session_state["sim_results"]
                     n_total  = len(standings)
 
-                    def _group_prob_table(p_series, col_label):
-                        rows = [{"Badge": badge_lookup.get(t, ""), "Team": t,
-                                 col_label: f"{p:.1%}"}
-                                for t, p in p_series.sort_values(ascending=False).items()]
+                    def _proj_group_table(teams_list, pos_str_list):
+                        """Show the predicted group members with per-position probabilities."""
+                        pos_labels = [f"#{p}" for p in pos_str_list]
+                        rows = []
+                        for team in teams_list:
+                            if team not in probs_df.index:
+                                continue
+                            row = {"Badge": badge_lookup.get(team, ""), "Team": team}
+                            for ps, lbl in zip(pos_str_list, pos_labels):
+                                row[lbl] = float(probs_df.loc[team, ps]) * 100 if ps in probs_df.columns else 0.0
+                            rows.append(row)
+                        if not rows:
+                            return
                         _df = pd.DataFrame(rows)
-                        _styled = _df.style.hide(axis="index").set_properties(
-                            subset=["Team"], **{"font-weight": "bold"})
-                        _c, _ = st.columns([4, 2])
+                        _styled = (
+                            _df.style
+                            .hide(axis="index")
+                            .apply(_green_col, axis=0, subset=pos_labels)
+                            .format("{:.1f}%", subset=pos_labels)
+                            .set_properties(subset=["Team"], **{"font-weight": "bold"})
+                        )
+                        _col_cfg = {
+                            "Badge": st.column_config.ImageColumn("", width=32),
+                            "Team":  st.column_config.TextColumn("Team", width=170),
+                        }
+                        for lbl in pos_labels:
+                            _col_cfg[lbl] = st.column_config.TextColumn(lbl, width=52)
+                        _c, _ = st.columns([5, 1])
                         with _c:
-                            st.dataframe(_styled, column_config={
-                                "Badge": st.column_config.ImageColumn("", width=32),
-                                "Team":  st.column_config.TextColumn("Team", width=170),
-                                col_label: st.column_config.TextColumn(col_label, width=130),
-                            }, use_container_width=True, hide_index=True,
-                                height=len(rows) * 35 + 38)
+                            st.dataframe(_styled, column_config=_col_cfg,
+                                         use_container_width=True, hide_index=True,
+                                         height=len(rows) * 35 + 38)
 
-                    champ_cols = [str(i) for i in range(1, _nc + 1) if str(i) in probs_df.columns]
-                    p_champ    = probs_df[champ_cols].sum(axis=1) if champ_cols else None
-                    relg_cols  = [str(i) for i in range(_nc + _nm + 1, n_total + 1) if str(i) in probs_df.columns]
-                    p_relg     = probs_df[relg_cols].sum(axis=1) if relg_cols else None
+                    # Build group membership by summing P(positions in range)
+                    champ_pos = [str(i) for i in range(1, _nc + 1) if str(i) in probs_df.columns]
+                    p_champ   = probs_df[champ_pos].sum(axis=1) if champ_pos else None
+                    relg_start = _nc + _nm + 1
+                    relg_pos   = [str(i) for i in range(relg_start, n_total + 1) if str(i) in probs_df.columns]
+                    p_relg     = probs_df[relg_pos].sum(axis=1) if relg_pos else None
 
                     st.divider()
                     if cfg.get("final_four"):
-                        st.markdown("### 📊 Projected Final Four — by probability")
-                        st.caption("All teams ranked by their chance of finishing in the top 4")
+                        # Show top-4 predicted teams, ranked by P(top 4), with pos 1-4 breakdown
+                        st.markdown("### 📊 Projected Final Four")
+                        st.caption("4 most likely qualifiers · columns show P(finishing that regular-season position)")
                         if p_champ is not None:
-                            _group_prob_table(p_champ, "P(Top 4)")
+                            top4 = list(p_champ.sort_values(ascending=False).index[:4])
+                            _proj_group_table(top4, champ_pos)
                     else:
-                        st.markdown("### 📊 Projected Groups — by probability")
-                        st.caption("Teams ranked by chance of finishing in each group")
+                        st.markdown("### 📊 Projected Groups")
+                        st.caption("Predicted group members · columns show P(finishing that regular-season position)")
                         if p_champ is not None:
                             st.markdown("#### 🏆 Championship Group")
-                            _group_prob_table(p_champ, "P(Champ. Group)")
+                            top_champ = list(p_champ.sort_values(ascending=False).index[:_nc])
+                            _proj_group_table(top_champ, champ_pos)
 
                         if _nm:
-                            mid_cols = [str(i) for i in range(_nc + 1, _nc + _nm + 1) if str(i) in probs_df.columns]
-                            p_mid = probs_df[mid_cols].sum(axis=1) if mid_cols else None
+                            mid_pos = [str(i) for i in range(_nc + 1, _nc + _nm + 1) if str(i) in probs_df.columns]
+                            p_mid   = probs_df[mid_pos].sum(axis=1) if mid_pos else None
                             if p_mid is not None:
                                 st.markdown("#### 🔵 Middle Group")
-                                _group_prob_table(p_mid, "P(Middle Group)")
+                                top_mid = list(p_mid.sort_values(ascending=False).index[:_nm])
+                                _proj_group_table(top_mid, mid_pos)
 
                         if p_relg is not None:
+                            n_relg = n_total - _nc - _nm
                             st.markdown("#### ⚠️ Relegation Group")
-                            _group_prob_table(p_relg, "P(Relg. Group)")
+                            top_relg = list(p_relg.sort_values(ascending=False).index[:n_relg])
+                            _proj_group_table(top_relg, relg_pos)
 
                 # ── Final Four simulation (e.g. Albanian Superliga) ──────────
                 if cfg.get("final_four"):
