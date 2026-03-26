@@ -602,12 +602,14 @@ CLUB_ALIASES: dict[str, str] = {
     # Bosnia
     "Zrinjski": "Zrinjski Mostar",
     "Borac": "FK Borac Banja Luka",
+    "Borac Banja Luka": "FK Borac Banja Luka",
     "Sarajevo": "FK Sarajevo",
     # Montenegro
     "Buducnost": "Buducnost Podgorica",
     "Sutjeska": "Sutjeska Niksic",
     # North Macedonia
     "Shkendija": "Shkendija Tetovo",
+    "Vardar": "Vardar Skopje",
     "Shkupi": "FK Shkupi",
     # Slovenia
     "Olimpija": "Olimpija Ljubljana",
@@ -662,6 +664,7 @@ NATION_COEFFICIENTS: dict[str, float] = {
     "Slovakia": 4.475,
     "Bosnia": 2.743,
     "Bosnia-Herzegovina": 2.743,
+    "Bosnia-Herz.": 2.743,
     "Iceland": 3.304,
     "Israel": 5.500,
     "Lithuania": 1.550,
@@ -673,6 +676,7 @@ NATION_COEFFICIENTS: dict[str, float] = {
     "Georgia": 1.200,
     "Armenia": 3.012,
     "North Macedonia": 1.551,
+    "N. Macedonia": 1.551,
     "Kosovo": 2.797,
     "Moldova": 2.925,
     "Belarus": 1.325,
@@ -696,20 +700,140 @@ NATION_COEFFICIENTS: dict[str, float] = {
 }
 
 
+# Points earned in 2025/26 season — PRIMARY tiebreaker when total coefficients are equal.
+# Source: https://kassiesa.net/uefa/data/method5/trank2026.html  (5th yearly column)
+CLUB_TIEBREAK_2526: dict[str, float] = {
+    "Real Madrid": 27.00, "Bayern München": 29.25, "Internazionale": 19.75,
+    "Liverpool": 25.00, "Manchester City": 22.75, "Paris Saint-Germain": 26.50,
+    "FC Barcelona": 24.50, "Bayer Leverkusen": 19.75, "Borussia Dortmund": 16.00,
+    "Atlético Madrid": 21.25, "AS Roma": 17.25, "Benfica": 12.25,
+    "Sporting CP Lisbon": 26.50, "Eintracht Frankfurt": 9.00, "FC Porto": 20.00,
+    "Club Brugge": 14.50, "PSV Eindhoven": 12.00, "Feyenoord": 4.00,
+    "Real Betis": 18.25, "Bodø/Glimt": 17.00, "Olympiakos Piraeus": 15.75,
+    "AZ Alkmaar": 10.88, "Glasgow Rangers": 3.00, "Ajax": 10.00,
+    "Fenerbahçe": 10.50, "Sporting Braga": 17.75, "FC København": 12.00,
+    "Shakhtar Donetsk": 14.25, "Ferencváros": 17.25, "Viktoria Plzen": 13.75,
+    "FC Midtjylland": 21.50, "PAOK Thessaloniki": 11.00,
+    "Red Star Belgrade": 12.50, "Dinamo Zagreb": 7.50, "FC Salzburg": 4.00,
+    "Celtic": 9.00, "Slavia Praha": 9.00, "Qarabag FK": 13.75,
+    "Sparta Praha": 12.75, "Slovan Bratislava": 4.00, "Maccabi Tel-Aviv": 3.00,
+    "Rapid Wien": 2.50, "Young Boys": 6.00, "Ludogorets Razgrad": 7.75,
+    "Sturm Graz": 5.00, "FCSB": 5.00, "Partizan Belgrade": 2.00,
+    "Omonia Nicosia": 6.88, "Sheriff Tiraspol": 2.00, "Shamrock Rovers": 3.00,
+    "Olimpija Ljubljana": 2.50, "NK Rijeka": 8.62, "Dynamo Kyiv": 4.00,
+    "CFR Cluj": 2.50, "Maccabi Haifa": 2.00, "KuPS Kuopio": 6.50,
+    "HJK Helsinki": 1.50, "Hapoel Beer-Sheva": 1.50, "FC Drita": 6.62,
+    "Lincoln Red Imps": 5.00, "FK Borac Banja Luka": 1.00, "RFS Riga": 2.50,
+    "FK Astana": 2.00, "Breidablik": 4.00, "Zalgiris Vilnius": 1.50,
+    "Shkendija Tetovo": 5.38, "Universitatea Craiova": 5.00,
+    "Riga FC": 2.50, "KI Klaksvik": 2.00, "Spartak Trnava": 2.00,
+    "Hajduk Split": 2.00, "NK Maribor": 1.50, "Flora Tallinn": 1.00,
+    "Linfield Belfast": 2.50, "Austria Wien": 2.00, "Larne FC": 2.00,
+    "Petrocub Hîncesti": 1.50, "The New Saints": 1.50, "FC Vaduz": 2.00,
+    "F91 Dudelange": 1.00, "Milsami Orhei": 2.00, "Levadia Tallinn": 2.00,
+    "Paide Linnameeskond": 1.50, "Inter Club d'Escaldes": 1.50,
+    "Buducnost Podgorica": 1.50, "Partizani Tirana": 1.00, "HB Torshavn": 1.50,
+    "Vllaznia Shkodër": 1.50, "La Fiorita": 1.00,
+}
+
+# Points earned in 2024/25 season — SECONDARY tiebreaker (used only if also tied on 25/26).
+# Source: https://kassiesa.net/uefa/data/method5/trank2026.html  (4th yearly column)
+CLUB_TIEBREAK_2425: dict[str, float] = {
+    "Real Madrid": 24.50, "Bayern München": 27.25, "Internazionale": 40.25,
+    "Liverpool": 29.50, "Manchester City": 14.75, "Paris Saint-Germain": 33.50,
+    "Arsenal": 34.00, "FC Barcelona": 36.25, "Bayer Leverkusen": 23.25,
+    "Borussia Dortmund": 27.75, "Chelsea": 23.25, "Atlético Madrid": 26.50,
+    "AS Roma": 14.50, "Benfica": 18.75, "Atalanta": 19.00,
+    "Sporting CP Lisbon": 14.50, "Eintracht Frankfurt": 23.00,
+    "Tottenham Hotspur": 24.75, "FC Porto": 9.75, "Manchester United": 32.50,
+    "Club Brugge": 15.75, "Juventus": 19.00, "Fiorentina": 9.75,
+    "PSV Eindhoven": 21.25, "Feyenoord": 18.00, "Real Betis": 19.25,
+    "Aston Villa": 22.75, "Lille OSC": 10.75, "AC Milan": 19.00,
+    "Olympique Lyon": 22.00, "Bodø/Glimt": 21.00, "Napoli": 12.00,
+    "Olympiakos Piraeus": 18.50, "RB Leipzig": 8.00, "AZ Alkmaar": 12.50,
+    "Glasgow Rangers": 19.25, "Villarreal": 7.00, "Lazio": 26.00,
+    "Ajax": 13.25, "Fenerbahçe": 11.25, "Real Sociedad": 14.00,
+    "AS Monaco": 15.00, "Sporting Braga": 7.00, "FC København": 7.38,
+    "Olympique Marseille": 12.00, "Galatasaray": 17.75,
+    "Shakhtar Donetsk": 11.00, "Ferencváros": 10.00, "Viktoria Plzen": 13.25,
+    "FC Midtjylland": 9.25, "PAOK Thessaloniki": 7.75,
+    "Union Saint-Gilloise": 12.00, "Red Star Belgrade": 10.00,
+    "Dinamo Zagreb": 14.00, "FC Salzburg": 8.00, "Celtic": 16.00,
+    "Slavia Praha": 4.00, "Qarabag FK": 3.00, "AA Gent": 7.00,
+    "Sparta Praha": 9.00, "Slovan Bratislava": 6.00, "FC Basel": 4.00,
+    "Legia Warsaw": 4.00, "Maccabi Tel-Aviv": 4.00, "Anderlecht": 2.50,
+    "Rapid Wien": 18.25, "Young Boys": 6.00, "Panathinaikos": 13.25,
+    "Ludogorets Razgrad": 4.00, "Sturm Graz": 10.00, "FCSB": 14.50,
+    "Raków Czestochowa": 14.25, "Partizan Belgrade": 2.50, "Molde FK": 7.75,
+    "AEK Athens": 15.00, "Omonia Nicosia": 5.38, "FC Lugano": 2.00,
+    "AEK Larnaca": 12.75, "Shamrock Rovers": 9.88, "Sheriff Tiraspol": 2.00,
+    "Olimpija Ljubljana": 8.38, "NK Rijeka": 2.50, "Dynamo Kyiv": 3.00,
+    "CFR Cluj": 2.50, "Maccabi Haifa": 1.50, "Besiktas": 2.50,
+    "Malmö FF": 3.00, "KuPS Kuopio": 1.50, "HJK Helsinki": 3.00,
+    "Hapoel Beer-Sheva": 2.00, "FC Drita": 2.50, "Lincoln Red Imps": 2.50,
+    "Zrinjski Mostar": 5.25, "FK Borac Banja Luka": 8.12, "RFS Riga": 4.00,
+    "Servette FC Genève": 2.50, "FK Astana": 4.00, "Breidablik": 1.50,
+    "Zalgiris Vilnius": 1.50, "Vikingur Reykjavik": 2.00,
+    "Shkendija Tetovo": 1.00, "Universitatea Craiova": 1.50,
+    "Riga FC": 1.50, "KI Klaksvik": 2.50, "Spartak Trnava": 2.00,
+    "BK Häcken": 3.00, "FC Ballkani": 2.00, "Hajduk Split": 2.00,
+    "Pyunik Yerevan": 1.50, "NK Maribor": 2.50, "Flora Tallinn": 2.00,
+    "Brøndby IF": 2.50, "Linfield Belfast": 1.00, "Austria Wien": 1.50,
+    "Larne FC": 2.50, "Petrocub Hîncesti": 2.50, "The New Saints": 2.50,
+    "Hamrun Spartans": 2.50, "FC Vaduz": 1.50, "F91 Dudelange": 1.50,
+    "Tobol Kustanai": 1.50, "St. Patrick's Athletic": 2.00,
+    "Milsami Orhei": 1.50, "Levadia Tallinn": 1.50, "Paide Linnameeskond": 2.00,
+    "Inter Club d'Escaldes": 1.50, "Buducnost Podgorica": 1.50,
+    "Partizani Tirana": 1.50, "NK Osijek": 2.00, "Differdange 03": 2.50,
+    "Dinamo Minsk": 1.50, "Vllaznia Shkodër": 1.00, "FK Panevezys": 2.50,
+    "Dinamo Batumi": 1.50, "Víkingur": 2.00, "Kauno Zalgiris": 2.00,
+    "Sutjeska Niksic": 1.50, "La Fiorita": 1.50, "DAC Dunajska Streda": 1.50,
+    "Decic Tuzi": 1.50, "Torpedo Zhodino": 1.50, "Dila Gori": 1.50,
+    "FK Sarajevo": 1.50, "Atlètic Club d'Escaldes": 1.50,
+    "St Joseph's FC": 1.50, "Urartu FC": 1.00, "Dinamo Tbilisi": 1.00,
+    "FCB Magpies": 1.00, "Tre Penne": 1.00,
+}
+
+
+def _resolve_canonical(club: str | None) -> str | None:
+    """Return the canonical kassiesa.net club name via alias or case-insensitive match."""
+    if not club:
+        return None
+    if club in CLUB_COEFFICIENTS:
+        return club
+    canonical = CLUB_ALIASES.get(club)
+    if canonical:
+        return canonical
+    club_lower = club.lower()
+    for k in CLUB_COEFFICIENTS:
+        if club_lower == k.lower():
+            return k
+    return None
+
+
 def get_coeff(club: str | None, country: str) -> float:
-    """Return UEFA coefficient for a club, falling back to the nation coefficient."""
-    if club:
-        # Direct match
-        if club in CLUB_COEFFICIENTS:
-            return CLUB_COEFFICIENTS[club]
-        # Alias match
-        canonical = CLUB_ALIASES.get(club)
-        if canonical and canonical in CLUB_COEFFICIENTS:
-            return CLUB_COEFFICIENTS[canonical]
-        # Case-insensitive partial match
-        club_lower = club.lower()
-        for k, v in CLUB_COEFFICIENTS.items():
-            if club_lower == k.lower():
-                return v
-    # Fall back to nation
-    return NATION_COEFFICIENTS.get(country, 0.0)
+    """Return UEFA coefficient for a club.
+
+    Always returns max(club_coefficient, nation_coefficient) — clubs inherit
+    their nation's coefficient if it is higher than their individual one.
+    """
+    nation_coeff = NATION_COEFFICIENTS.get(country, 0.0)
+    canonical = _resolve_canonical(club)
+    if canonical and canonical in CLUB_COEFFICIENTS:
+        return max(CLUB_COEFFICIENTS[canonical], nation_coeff)
+    return nation_coeff
+
+
+def get_tiebreak(club: str | None, country: str = "") -> tuple[float, float]:
+    """Return (25/26 pts, 24/25 pts) for sorting tied clubs.
+
+    Primary tiebreaker is 25/26 season points; secondary is 24/25.
+    Falls back to (0.0, 0.0) if the club is not in the tiebreak tables.
+    """
+    canonical = _resolve_canonical(club)
+    if canonical:
+        return (
+            CLUB_TIEBREAK_2526.get(canonical, 0.0),
+            CLUB_TIEBREAK_2425.get(canonical, 0.0),
+        )
+    return (0.0, 0.0)

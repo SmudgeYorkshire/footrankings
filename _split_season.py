@@ -18,20 +18,43 @@ pts_factor values:
 
 
 def get_split_info(standings: list[dict], split_round: int,
-                   n_champ: int = None, pts_factor: float = 1.0) -> dict | None:
+                   n_champ: int = None, n_mid: int = 0,
+                   pts_factor: float = 1.0,
+                   presplit: list[dict] = None) -> dict | None:
     """
     Returns None if still in regular season (no conference data yet).
 
     Returns a dict with:
         champ_teams   – set of team names in the Championship conference
+        mid_teams     – set of team names in the Middle conference (may be empty)
         relg_teams    – set of team names in the Relegation conference
         pre_split     – list of end-of-regular-season rows (sorted by rank)
         champ_current – current Championship conference rows (sorted by rank)
+        mid_current   – current Middle conference rows (may be empty)
         relg_current  – current Relegation conference rows (sorted by rank)
         pts_factor    – float: 1.0 full / 0.5 halved / 0.0 reset
+
+    presplit: optional saved snapshot of standings at exactly split_round; used
+    as split_rows when TheSportsDB stops returning the pre-split rows after the
+    split has started.
     """
     split_rows   = [r for r in standings if int(r.get("intPlayed") or 0) == split_round]
     current_rows = [r for r in standings if int(r.get("intPlayed") or 0) >  split_round]
+
+    # Fallback A: TheSportsDB dropped the pre-split rows — use the saved snapshot
+    if not split_rows and presplit:
+        split_rows = list(presplit)
+
+    # Fallback B: no snapshot either, but we know n_champ and have current rows
+    # Derive group membership purely from current league rankings
+    if not split_rows and current_rows and n_champ:
+        split_rows = sorted(current_rows, key=lambda r: int(r.get("intRank") or 99))
+
+    # Fallback C: regular season finished, split rounds not yet started
+    # All teams sit at exactly split_round; use split_rows as a proxy for current_rows
+    # so the split groups are shown (with 0 games played in split phase)
+    if split_rows and not current_rows:
+        current_rows = list(split_rows)
 
     if not split_rows or not current_rows:
         return None  # Regular season still running
@@ -45,25 +68,73 @@ def get_split_info(standings: list[dict], split_round: int,
         r["strTeam"] for r in split_rows
         if "relegation" in (r.get("strDescription") or "").lower()
     }
+    # Middle group: anything described as europa/play-off/conference/middle
+    # that isn't championship or relegation
+    _mid_keywords = ("europa", "play-off", "playoff", "conference", "middle")
+    mid_teams = {
+        r["strTeam"] for r in split_rows
+        if any(kw in (r.get("strDescription") or "").lower() for kw in _mid_keywords)
+        and r["strTeam"] not in champ_teams
+        and r["strTeam"] not in relg_teams
+    }
 
-    # Fallback: use n_champ rank split when strDescription not available
-    if (not champ_teams or not relg_teams) and n_champ:
+    # Fallback 1: use n_champ (+ n_mid) rank split when strDescription not available
+    # Only reliable when split_rows contains ALL teams (no team has advanced yet)
+    _split_team_set   = {r["strTeam"] for r in split_rows}
+    _current_team_set = {r["strTeam"] for r in current_rows}
+    _all_teams_in_split = not (_current_team_set - _split_team_set)
+    if (not champ_teams or not relg_teams) and n_champ and _all_teams_in_split:
         sorted_split = sorted(split_rows, key=lambda r: int(r.get("intRank") or 99))
         champ_teams = {r["strTeam"] for r in sorted_split[:n_champ]}
-        relg_teams  = {r["strTeam"] for r in sorted_split[n_champ:]}
+        if n_mid:
+            mid_teams  = {r["strTeam"] for r in sorted_split[n_champ:n_champ + n_mid]}
+            relg_teams = {r["strTeam"] for r in sorted_split[n_champ + n_mid:]}
+        else:
+            relg_teams = {r["strTeam"] for r in sorted_split[n_champ:]}
 
-    if not champ_teams or not relg_teams:
+    # Fallback 2: champ teams have already advanced past split_round;
+    # split_rows contains only the relg/mid teams, current_rows only the champ teams
+    if (not champ_teams or not relg_teams) and _current_team_set and _split_team_set:
+        if not (_current_team_set & _split_team_set):   # disjoint → safe to assign
+            champ_teams = _current_team_set
+            relg_teams  = _split_team_set - mid_teams
+
+    # Allow empty relg_teams when all remaining teams are in champ
+    # (e.g. Moldova: 2 relg-playoff teams leave the main standings entirely)
+    _only_champ_remaining = bool(
+        champ_teams and not relg_teams
+        and _current_team_set and _current_team_set <= champ_teams
+    )
+    if not champ_teams or (not relg_teams and not _only_champ_remaining):
         return None  # Cannot identify conferences
 
     def _sort(rows):
         return sorted(rows, key=lambda r: int(r.get("intRank") or 99))
 
+    champ_current = _sort([r for r in current_rows if r["strTeam"] in champ_teams])
+    mid_current   = _sort([r for r in current_rows if r["strTeam"] in mid_teams])
+    relg_current  = _sort([r for r in current_rows if r["strTeam"] in relg_teams])
+    # If relegation conference hasn't started yet, fall back to their split-round rows
+    if not relg_current:
+        relg_current = _sort([r for r in split_rows if r["strTeam"] in relg_teams])
+    if not mid_current and mid_teams:
+        mid_current = _sort([r for r in split_rows if r["strTeam"] in mid_teams])
+
+    # pre_split: all teams at the split round; if champ teams have already advanced
+    # (their split-round rows are gone), use their current rows as a proxy
+    pre_split_rows = _sort(split_rows)
+    if not any(r["strTeam"] in champ_teams for r in pre_split_rows):
+        # Supplement with champ current rows so the table shows all teams
+        pre_split_rows = _sort(split_rows + [r for r in current_rows if r["strTeam"] in champ_teams])
+
     return {
         "champ_teams":   champ_teams,
+        "mid_teams":     mid_teams,
         "relg_teams":    relg_teams,
-        "pre_split":     _sort(split_rows),
-        "champ_current": _sort([r for r in current_rows if r["strTeam"] in champ_teams]),
-        "relg_current":  _sort([r for r in current_rows if r["strTeam"] in relg_teams]),
+        "pre_split":     pre_split_rows,
+        "champ_current": champ_current,
+        "mid_current":   mid_current,
+        "relg_current":  relg_current,
         "pts_factor":    pts_factor,
     }
 

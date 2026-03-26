@@ -69,6 +69,24 @@ def build_lookup(ratings: pd.DataFrame) -> dict[str, float]:
     return lookup
 
 
+def check_coverage(standings: list[dict], ratings: pd.DataFrame) -> list[str]:
+    """
+    Return a list of team names from standings that have no matching rating
+    entry (neither via 'team' nor 'alias').  These teams will fall back to
+    the default attack/defense value during simulation.
+    """
+    known: set[str] = set()
+    for _, row in ratings.iterrows():
+        known.add(str(row["team"]).strip())
+        alias = str(row.get("alias", "")).strip()
+        if alias:
+            known.add(alias)
+    return [
+        s["strTeam"] for s in standings
+        if s.get("strTeam") and s["strTeam"] not in known
+    ]
+
+
 def _defaults_from_standings(standings: list[dict], csv_path: Path) -> pd.DataFrame:
     """
     Generate default Opta-like ratings from season stats and save to CSV.
@@ -80,8 +98,9 @@ def _defaults_from_standings(standings: list[dict], csv_path: Path) -> pd.DataFr
         pts    = int(row.get("intPoints") or 0)
         gd     = int(row.get("intGoalDifference") or 0)
         gf     = int(row.get("intGoalsFor") or 0)
-        # Composite performance score (arbitrary but rank-preserving)
-        score  = pts * 3 + gd * 2 + gf if played > 0 else 0
+        # Use goal difference per game as the primary signal (less circular than pts).
+        # Goals for per game added as a secondary signal to break GD ties.
+        score  = (gd * 10 + gf) / max(played, 1) if played > 0 else 0
         rows.append({"team": row["strTeam"], "_score": score})
 
     if not rows:
@@ -90,7 +109,7 @@ def _defaults_from_standings(standings: list[dict], csv_path: Path) -> pd.DataFr
     df = pd.DataFrame(rows)
     min_s, max_s = df["_score"].min(), df["_score"].max()
     if max_s > min_s:
-        df["opta_rating"] = 70.0 + 30.0 * (df["_score"] - min_s) / (max_s - min_s)
+        df["opta_rating"] = 68.0 + 14.0 * (df["_score"] - min_s) / (max_s - min_s)
     else:
         df["opta_rating"] = DEFAULT_OPTA
 

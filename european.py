@@ -17,7 +17,7 @@ from config import EUROPEAN_COMPETITIONS, LEAGUES, get_current_season
 from data_fetcher import SportsDBClient
 from simulator import fixture_odds
 from entrants_2026_27 import ENTRANTS as ENTRANTS_2026_27, STAGE_ORDER, QUALIFYING_DATES
-from club_coefficients import get_coeff
+from club_coefficients import get_coeff, get_tiebreak
 
 
 # Country name (as used in entrants_2026_27.py) → LEAGUES key
@@ -41,7 +41,208 @@ _UCL_QR1_COUNTRY_TO_LEAGUE: dict[str, str] = {
     "Romania":       "Romanian Liga I",
     "N. Macedonia":  "Macedonian First League",
     "San Marino":    "San Marino Campionato",
+    "Ukraine":       "Ukrainian Premier League",
+    "Hungary":       "Hungarian NB I",
+    "Slovakia":      "Slovak First League",
 }
+
+
+# League IDs for all QR1-participating countries (winter + summer leagues)
+_UCL_QR1_COUNTRY_TO_LEAGUE_ID: dict[str, int] = {
+    "Slovenia":      4692, "Moldova":       4655, "Ireland":       4643,
+    "Kosovo":        4968, "Gibraltar":     4964, "Bosnia-Herz.":  4624,
+    "N. Ireland":    4659, "Wales":         4472, "Malta":         4653,
+    "Andorra":       4618, "Bulgaria":      4626, "Armenia":       4619,
+    "Albania":       4617, "Luxembourg":    4694, "Azerbaijan":    4693,
+    "Montenegro":    4656, "Romania":       4691, "N. Macedonia":  4652,
+    "San Marino":    4667, "Latvia":        4650, "Estonia":       4634,
+    "Lithuania":     4651, "Iceland":       4642, "Faroe Islands": 4635,
+    "Finland":       4636, "Kazakhstan":    4649, "Belarus":       4622,
+    "Georgia":       4638,
+    # QR2 Champions Path direct entries
+    "Hungary":       4690,
+    "Denmark":       4340,
+    "Croatia":       4629,
+    "Serbia":        4671,
+    "Slovakia":      4672,
+    "Poland":        4422,
+    "Cyprus":        4630,
+    "Israel":        4644,
+    "Switzerland":   4675,
+    "Sweden":        4347,
+    # QR2 League Path direct entries
+    "Greece":        4336,
+    "Austria":       4621,
+    "Scotland":      4330,
+    # QR3 League Path direct entries
+    "Netherlands":   4337,
+    "Belgium":       4338,
+    "Norway":        4358,
+    "Turkey":        4339,
+    "Czech Rep.":    4631,
+    "France":        4334,
+    "Portugal":      4344,
+}
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def _load_qr1_opta_lookup() -> dict[str, dict]:
+    """Load Opta ratings for all QR1 countries from ratings CSVs.
+    Returns {country: {"ratings": {normalized_name: float}, "max": float}}.
+    """
+    import unicodedata, pandas as pd
+    from pathlib import Path
+
+    def _norm(s: str) -> str:
+        return unicodedata.normalize("NFD", str(s)).encode("ascii", "ignore").decode().lower().strip()
+
+    result: dict[str, dict] = {}
+    for country, lid in _UCL_QR1_COUNTRY_TO_LEAGUE_ID.items():
+        csv_path = Path(f"ratings/{lid}.csv")
+        if not csv_path.exists():
+            continue
+        df = pd.read_csv(csv_path)
+        df["opta_rating"] = pd.to_numeric(df["opta_rating"], errors="coerce")
+        df = df.dropna(subset=["opta_rating"])
+        if df.empty:
+            continue
+        lookup: dict[str, float] = {}
+        for _, row in df.iterrows():
+            r = float(row["opta_rating"])
+            lookup[_norm(row["team"])] = r
+            alias = str(row.get("alias", "")).strip()
+            if alias and alias.lower() != "nan":
+                lookup[_norm(alias)] = r
+        result[country] = {"ratings": lookup, "max": float(df["opta_rating"].max())}
+    return result
+
+
+# Extra league IDs for League Phase clubs not in the qualifying mapping
+_BADGE_EXTRA_IDS = [4328, 4335, 4331, 4332]  # Premier League, La Liga, Bundesliga, Serie A
+
+
+@st.cache_data(ttl=86_400, show_spinner=False)
+def _load_qual_badge_lookup(api_key: str) -> dict[str, str]:
+    """Build {normalised_name: badge_url} from standings across all qualifying + major leagues."""
+    import unicodedata
+    from config import LEAGUES, get_current_season
+
+    def _norm(s: str) -> str:
+        return unicodedata.normalize("NFD", str(s)).encode("ascii", "ignore").decode().lower().strip()
+
+    client    = SportsDBClient(api_key)
+    id_to_cfg = {cfg["id"]: (name, cfg) for name, cfg in LEAGUES.items()}
+    all_ids   = set(_UCL_QR1_COUNTRY_TO_LEAGUE_ID.values()) | set(_BADGE_EXTRA_IDS)
+
+    result: dict[str, str] = {}
+    for lid in all_ids:
+        entry = id_to_cfg.get(lid)
+        if not entry:
+            continue
+        _, lcfg = entry
+        season = get_current_season(lcfg["season_type"])
+        try:
+            rows = client.get_standings(lid, season)
+        except Exception:
+            continue
+        for row in rows:
+            badge = row.get("strBadge") or row.get("strTeamBadge") or ""
+            name  = row.get("strTeam") or row.get("strTeamName") or ""
+            if badge and name:
+                result[_norm(name)] = badge
+    return result
+
+
+def _get_qr1_opta(club: str | None, country: str, lookup: dict) -> float:
+    """Return Opta rating for a QR1 club. Falls back to league champion (max) if not found."""
+    import unicodedata
+
+    def _norm(s: str) -> str:
+        return unicodedata.normalize("NFD", str(s)).encode("ascii", "ignore").decode().lower().strip()
+
+    data = lookup.get(country, {})
+    if not data:
+        return 75.0
+    ratings = data["ratings"]
+    max_r   = data["max"]
+    if not club:
+        return max_r
+    cn = _norm(club)
+    if cn in ratings:
+        return ratings[cn]
+    # Partial match
+    for key, val in ratings.items():
+        if cn in key or key in cn:
+            return val
+    return max_r
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def _simulate_ucl_qr1(entries_key: tuple, n_sim: int = 10_000) -> tuple:
+    """Simulate UCL QR1 draw + two-legged ties.
+
+    entries_key: tuple of (display_name, flag, coeff) sorted by coeff desc.
+    Top half = seeded, bottom half = unseeded.
+    Returns tuple of (display_name, flag, coeff, seeded_bool, advance_pct) sorted by pct desc.
+    """
+    import numpy as np
+    from config import DEFAULT_HOME_ADVANTAGE, DEFAULT_BASE_GOALS
+
+    all_e   = list(entries_key)
+    n_total = len(all_e)
+    n       = n_total // 2           # 14 seeded, 14 unseeded
+
+    coeffs  = np.array([e[2] for e in all_e], dtype=float)
+    mean_c  = coeffs.mean()
+    base    = DEFAULT_BASE_GOALS
+    k       = 2.0
+    home_adv = DEFAULT_HOME_ADVANTAGE
+
+    rels     = coeffs / mean_c
+    attacks  = base * rels ** k
+    defenses = base * rels ** (-k)
+    league_avg = attacks.mean()
+
+    s_atk = attacks[:n];   s_def = defenses[:n]
+    u_atk = attacks[n:];   u_def = defenses[n:]
+
+    advance_s = np.zeros(n, dtype=np.int32)
+    advance_u = np.zeros(n, dtype=np.int32)
+
+    rng = np.random.default_rng(42)
+
+    # Vectorised: for each seeded slot i, draw its opponent for all sims at once.
+    perms = np.array([rng.permutation(n) for _ in range(n_sim)])  # (n_sim, n)
+
+    for i in range(n):
+        j_arr = perms[:, i]                                   # (n_sim,) unseeded index per sim
+
+        lam_s1 = s_atk[i] * u_def[j_arr] / league_avg * home_adv  # seeded home, leg 1
+        lam_u1 = u_atk[j_arr] * s_def[i] / league_avg              # unseeded away, leg 1
+        lam_s2 = s_atk[i] * u_def[j_arr] / league_avg              # seeded away, leg 2
+        lam_u2 = u_atk[j_arr] * s_def[i] / league_avg * home_adv  # unseeded home, leg 2
+
+        s_g = rng.poisson(lam_s1) + rng.poisson(lam_s2)
+        u_g = rng.poisson(lam_u1) + rng.poisson(lam_u2)
+
+        s_win = (s_g > u_g).astype(np.int32)
+        u_win = (u_g > s_g).astype(np.int32)
+        tie   = (s_g == u_g)
+        pen_s = rng.integers(0, 2, size=n_sim, dtype=np.int32)   # 0 or 1, 50/50
+        s_win += tie * pen_s
+        u_win += tie * (1 - pen_s)
+
+        advance_s[i] += s_win.sum()
+        np.add.at(advance_u, j_arr, u_win)
+
+    pcts = np.concatenate([advance_s, advance_u]) / n_sim
+
+    results = []
+    for idx, (name, flag, coeff) in enumerate(all_e):
+        results.append((name, flag, coeff, idx < n, float(pcts[idx])))
+
+    results.sort(key=lambda x: x[4], reverse=True)
+    return tuple(results)
 
 
 @st.cache_data(ttl=3_600, show_spinner=False)
@@ -605,12 +806,12 @@ with tab_qual:
         _comp_entrants = ENTRANTS_2026_27.get(comp_name, {})
         _comp_dates    = QUALIFYING_DATES.get(comp_name, {})
         _QUAL_STAGES   = ["First Qualifying Round", "Second Qualifying Round",
-                          "Third Qualifying Round", "Play-off Round"]
+                          "Third Qualifying Round", "Play-off Round", "League Phase"]
         _STATUS_BG = {
-            "confirmed":   "#1a3a1a",
-            "provisional": "#3a3010",
-            "projected":   "#1a2a3a",
-            "tbd":         "#2a2a2a",
+            "confirmed":   "#d4edda",
+            "provisional": "#fff3cd",
+            "projected":   "#cce5ff",
+            "tbd":         "#f8f9fa",
         }
         _STATUS_LABEL = {
             "confirmed":   "✅ Confirmed",
@@ -620,6 +821,7 @@ with tab_qual:
         }
         _albania_top4   = _fetch_albania_top4(_API_KEY)
         _ucl_qr1_proj   = _fetch_ucl_qr1_projections(_API_KEY) if comp_name == "Champions League" else {}
+        _badge_lu       = _load_qual_badge_lookup(_API_KEY)
         st.caption(
             "🟢 Confirmed — domestic season complete  "
             "🟡 Provisional — season still running  "
@@ -627,70 +829,356 @@ with tab_qual:
             "⬜ TBD — club not yet determined  ·  "
             "Draws and individual matchups not yet made"
         )
+        _COUNTRY_CODE: dict[str, str] = {
+            "England": "ENG", "Scotland": "SCO", "Wales": "WAL", "N. Ireland": "NIR",
+            "Germany": "GER", "Spain": "ESP", "Italy": "ITA", "France": "FRA",
+            "Netherlands": "NED", "Portugal": "POR", "Belgium": "BEL",
+            "Czech Rep.": "CZE", "Czechia": "CZE", "Turkey": "TUR", "Türkiye": "TUR",
+            "Greece": "GRE", "Norway": "NOR", "Austria": "AUT", "Switzerland": "SUI",
+            "Denmark": "DEN", "Poland": "POL", "Croatia": "CRO", "Serbia": "SRB",
+            "Slovakia": "SVK", "Cyprus": "CYP", "Israel": "ISR", "Sweden": "SWE",
+            "Hungary": "HUN", "Romania": "ROU", "Slovenia": "SVN", "Bulgaria": "BUL",
+            "Latvia": "LAT", "Faroe Islands": "FRO", "Faroe Isl.": "FRO",
+            "Estonia": "EST", "Lithuania": "LTU", "Iceland": "ISL", "Ireland": "IRL",
+            "Finland": "FIN", "Kazakhstan": "KAZ", "Belarus": "BLR", "Georgia": "GEO",
+            "Kosovo": "XKX", "Malta": "MLT", "Albania": "ALB", "Montenegro": "MNE",
+            "Luxembourg": "LUX", "N. Macedonia": "MKD", "Andorra": "AND",
+            "Gibraltar": "GIB", "San Marino": "SMR", "Moldova": "MDA",
+            "Armenia": "ARM", "Azerbaijan": "AZE", "Bosnia-Herz.": "BIH",
+            "Ukraine": "UKR", "Russia": "RUS", "Ukraine": "UKR",
+        }
+        _STATUS_ICON = {
+            "confirmed":   "✅",
+            "provisional": "⏳",
+            "projected":   "🔮",
+            "tbd":         "—",
+        }
+
+        def _short_route(route: str) -> str:
+            """'League 3rd' → '3rd', 'Cup winner' → 'Cup', 'EPS' → 'EPS', etc."""
+            r = route.strip()
+            if r.lower().startswith("league "):
+                return r[7:]          # '1st', '2nd', …
+            if r.lower().startswith("cup"):
+                return "Cup"
+            if r.lower().startswith("final four"):
+                return "FF"
+            if r.upper() == "EPS":
+                return "EPS"
+            # Generic: take first word
+            return r.split()[0] if r else r
+
+        import unicodedata as _ud
+        def _bn(s: str) -> str:
+            return _ud.normalize("NFD", str(s)).encode("ascii", "ignore").decode().lower().strip()
+
+        def _entry_table_html(clubs, header_label):
+            """Build a compact HTML table for a list of entrant clubs."""
+            rows = ""
+            for i, e in enumerate(clubs, 1):
+                bg          = _STATUS_BG.get(e["status"], "#f8f9fa")
+                raw_name    = e["club"]
+                country     = e.get("country", "")
+                ctry_code   = _COUNTRY_CODE.get(country, country[:3].upper())
+                route_s     = _short_route(e.get("route", ""))
+                coeff       = get_coeff(raw_name, country) if raw_name else None
+                coeff_str   = f"{coeff:.3f}" if coeff else "—"
+                status_icon = _STATUS_ICON.get(e["status"], "")
+                badge_url   = _badge_lu.get(_bn(raw_name or ""), "") if raw_name else ""
+                logo_html   = (f"<img src='{badge_url}' style='width:16px;height:16px;"
+                               f"object-fit:contain;vertical-align:middle;margin-right:3px'>"
+                               if badge_url else
+                               "<span style='display:inline-block;width:16px'></span>")
+                if raw_name:
+                    club_cell = (f"{logo_html}{raw_name} "
+                                 f"<span style='color:#6c757d;font-size:10px;font-weight:normal'>{ctry_code}</span>")
+                else:
+                    club_cell = f"<span style='color:#666;font-style:italic'>{e.get('route','TBD')}</span>"
+                rows += (
+                    f"<tr style='background:{bg}'>"
+                    f"<td style='padding:1px 3px;color:#555;font-size:10px;text-align:right;width:14px'>{i}</td>"
+                    f"<td style='padding:1px 3px;font-size:13px;width:18px'>{e['flag']}</td>"
+                    f"<td style='padding:1px 3px;font-weight:bold;color:#212529;font-size:12px'>{club_cell}</td>"
+                    f"<td style='padding:1px 3px;color:#999;font-size:10px;white-space:nowrap;text-align:center'>{route_s}</td>"
+                    f"<td style='padding:1px 3px;color:#856404;font-size:10px;font-weight:600;text-align:right;white-space:nowrap'>{coeff_str}</td>"
+                    f"<td style='padding:1px 3px;font-size:10px;text-align:center'>{status_icon}</td>"
+                    f"</tr>"
+                )
+            return (
+                f"<table style='width:auto;border-collapse:collapse;font-family:sans-serif'>"
+                f"<thead><tr style='background:#e9ecef'>"
+                f"<th style='padding:1px 3px;color:#555;text-align:right;font-size:9px'>#</th>"
+                f"<th style='padding:1px 3px;color:#888;text-align:left'></th>"
+                f"<th style='padding:1px 3px;color:#888;text-align:left;font-size:10px'>{header_label}</th>"
+                f"<th style='padding:1px 3px;color:#888;text-align:center;font-size:9px'>Pos</th>"
+                f"<th style='padding:1px 3px;color:#888;text-align:right;font-size:9px'>Coeff.</th>"
+                f"<th style='padding:1px 3px;color:#888;text-align:center;font-size:9px'></th>"
+                f"</tr></thead><tbody>{rows}</tbody></table>"
+            )
+
+        # Projected winners carried forward between rounds
+        _qr1_cp_projected: list[dict] = []
+        _qr2_lp_projected: list[dict] = []
+
+        def _pred_table_html(club_list, header_label, pct_lookup, advancing_names):
+            """Compact advance-probability table for qualifying predictions."""
+            _SIM_BG = {"adv": "#d4edda", "elim": "#f8d7da"}
+            rows = ""
+            for i, e in enumerate(club_list, 1):
+                raw_name = e.get("club")
+                name     = raw_name or f"{e.get('country','?')} (TBD)"
+                country  = e.get("country", "")
+                flag     = e["flag"]
+                pct      = pct_lookup.get(name, 0.0)
+                advance  = name in advancing_names
+                bg       = _SIM_BG["adv"] if advance else _SIM_BG["elim"]
+                icon     = "✅" if advance else "❌"
+                pct_s    = f"{pct * 100:.1f}%"
+                pct_col  = "#155724" if advance else "#842029"
+                ctry_code = _COUNTRY_CODE.get(country, country[:3].upper()) if country else ""
+                badge_url = _badge_lu.get(_bn(raw_name or ""), "") if raw_name else ""
+                logo_html = (f"<img src='{badge_url}' style='width:15px;height:15px;"
+                             f"object-fit:contain;vertical-align:middle;margin-right:3px'>"
+                             if badge_url else
+                             "<span style='display:inline-block;width:15px'></span>")
+                name_cell = (f"{logo_html}{name} "
+                             f"<span style='color:#6c757d;font-size:10px;font-weight:normal'>{ctry_code}</span>"
+                             if raw_name else name)
+                rows += (
+                    f"<tr style='background:{bg}'>"
+                    f"<td style='padding:1px 3px;color:#555;font-size:10px;text-align:right;width:14px'>{i}</td>"
+                    f"<td style='padding:1px 3px;font-size:13px;width:18px'>{flag}</td>"
+                    f"<td style='padding:1px 3px;font-weight:bold;color:#212529;font-size:12px'>{name_cell}</td>"
+                    f"<td style='padding:1px 4px;color:{pct_col};font-weight:600;"
+                    f"font-size:11px;text-align:right;white-space:nowrap'>{pct_s}</td>"
+                    f"<td style='padding:1px 3px;font-size:12px;text-align:center;width:20px'>{icon}</td>"
+                    f"</tr>"
+                )
+            return (
+                "<table style='width:auto;border-collapse:collapse;font-family:sans-serif'>"
+                "<thead><tr style='background:#e9ecef'>"
+                "<th style='padding:1px 3px;color:#555;text-align:right;font-size:9px'>#</th>"
+                "<th></th>"
+                f"<th style='padding:1px 3px;color:#888;text-align:left;font-size:10px'>{header_label}</th>"
+                "<th style='padding:1px 4px;color:#888;text-align:right;font-size:9px'>Advance%</th>"
+                "<th></th>"
+                f"</tr></thead><tbody>{rows}</tbody></table>"
+            )
+
+        def _run_predictions(confirmed_clubs, stage_label):
+            """Run simulation, render two-column predictions, return list of projected winners."""
+            _opta_lu = _load_qr1_opta_lookup()
+            _entries = []
+            for e in confirmed_clubs:
+                club    = e.get("club")
+                country = e.get("country", "")
+                flag    = e.get("flag", "🏳")
+                opta    = _get_qr1_opta(club, country, _opta_lu)
+                name    = club if club else f"{country} (TBD)"
+                _entries.append((name, flag, opta))
+            _entries.sort(key=lambda x: x[2], reverse=True)
+            if len(_entries) < 4:
+                return []
+            st.markdown("#### 🎯 Predictions (10,000 simulations)")
+            _sim_out      = _simulate_ucl_qr1(tuple(_entries))
+            _pct          = {nm: p for nm, fl, op, sd, p in _sim_out}
+            n_advance     = len(confirmed_clubs) // 2
+            _sorted_pct   = sorted(_pct.items(), key=lambda x: x[1], reverse=True)
+            advancing_names = {nm for nm, _ in _sorted_pct[:n_advance]}
+            _mid          = (len(confirmed_clubs) + 1) // 2
+            _col_l, _col_r = st.columns(2)
+            with _col_l:
+                st.markdown(_pred_table_html(confirmed_clubs[:_mid], "🥇 Seeded", _pct, advancing_names), unsafe_allow_html=True)
+            with _col_r:
+                st.markdown(_pred_table_html(confirmed_clubs[_mid:], "Unseeded", _pct, advancing_names), unsafe_allow_html=True)
+            st.caption("✅ Projected to advance · ❌ Projected to be eliminated")
+            # Return projected winners (top n_advance by advance%) as entry dicts
+            _name_to_e = {
+                (e.get("club") or f"{e.get('country','?')} (TBD)"): e
+                for e in confirmed_clubs
+            }
+            return [
+                {
+                    "club":    _name_to_e.get(nm, {}).get("club"),
+                    "country": _name_to_e.get(nm, {}).get("country", ""),
+                    "flag":    _name_to_e.get(nm, {}).get("flag", "🏳"),
+                    "route":   f"{stage_label} winner",
+                    "status":  "projected",
+                }
+                for nm, _ in _sorted_pct[:n_advance]
+            ]
+
         for stage in _QUAL_STAGES:
             if stage not in _comp_entrants:
                 continue
             dates = _comp_dates.get(stage, {})
             leg1  = dates.get("leg1", "TBD")
-            leg2  = dates.get("leg2", "TBD")
-            date_str = f"1st leg: **{leg1}** &nbsp;·&nbsp; 2nd leg: **{leg2}**"
+            leg2  = dates.get("leg2")
+            if stage == "League Phase":
+                date_str = f"Starts: **{leg1}**"
+            elif leg2:
+                date_str = f"1st leg: **{leg1}** &nbsp;·&nbsp; 2nd leg: **{leg2}**"
+            else:
+                date_str = f"1st leg: **{leg1}**"
             st.markdown(f"### {stage}")
             st.markdown(date_str, unsafe_allow_html=True)
             paths = _comp_entrants[stage]
             for path_label, clubs in paths.items():
                 resolved = _resolve_dynamic(clubs, _albania_top4, _ucl_qr1_proj)
+                # Expand projected winners from previous rounds into current field
+                if (stage == "Second Qualifying Round" and path_label == "Champions Path"
+                        and comp_name == "Champions League" and _qr1_cp_projected):
+                    resolved = [
+                        e for e in resolved
+                        if e.get("route") != "QR1 Champions Path winners"
+                    ] + _qr1_cp_projected
+                elif (stage == "Third Qualifying Round" and path_label == "League Path"
+                        and comp_name == "Champions League" and _qr2_lp_projected):
+                    resolved = [
+                        e for e in resolved
+                        if e.get("route") != "QR2 League Path winners"
+                    ] + _qr2_lp_projected
                 if len(paths) > 1:
                     st.markdown(f"*{path_label}*")
                 confirmed_clubs = [e for e in resolved if e["status"] != "tbd"]
                 tbd_clubs       = [e for e in resolved if e["status"] == "tbd"]
-                # Sort confirmed clubs by coefficient descending
+                # Sort by coefficient desc, then 25/26 pts desc, then 24/25 pts desc
                 confirmed_clubs.sort(
-                    key=lambda e: get_coeff(e.get("club"), e.get("country", "")),
+                    key=lambda e: (
+                        get_coeff(e.get("club"), e.get("country", "")),
+                        *get_tiebreak(e.get("club")),
+                    ),
                     reverse=True
                 )
-                # Confirmed / provisional table
-                if confirmed_clubs:
-                    rows_html = ""
-                    for e in confirmed_clubs:
-                        bg    = _STATUS_BG[e["status"]]
-                        label = _STATUS_LABEL[e["status"]]
-                        coeff = get_coeff(e.get("club"), e.get("country", ""))
-                        coeff_str = f"{coeff:.3f}" if coeff else "—"
-                        rows_html += (
-                            f"<tr style='background:{bg}'>"
-                            f"<td style='padding:4px 8px;font-size:15px'>{e['flag']}</td>"
-                            f"<td style='padding:4px 8px;font-weight:bold;color:white'>{e['club']}</td>"
-                            f"<td style='padding:4px 8px;color:#aaa'>{e['country']}</td>"
-                            f"<td style='padding:4px 8px;color:#888;font-size:12px'>{e['route']}</td>"
-                            f"<td style='padding:4px 8px;color:#f0c040;font-size:12px;font-weight:600'>{coeff_str}</td>"
-                            f"<td style='padding:4px 8px;color:#aaa;font-size:12px'>{label}</td>"
-                            f"</tr>"
+                # League Phase: four pots of 9 ranked by coefficient
+                if stage == "League Phase" and confirmed_clubs:
+                    def _pot_table_html(clubs, header):
+                        rows = ""
+                        for i, e in enumerate(clubs, 1):
+                            bg        = _STATUS_BG.get(e["status"], "#f8f9fa")
+                            raw_name  = e["club"]
+                            country   = e.get("country", "")
+                            ctry_code = _COUNTRY_CODE.get(country, country[:3].upper()) if country else ""
+                            coeff     = get_coeff(raw_name, country) if raw_name else None
+                            coeff_str = f"{coeff:.3f}" if coeff else "—"
+                            badge_url = _badge_lu.get(_bn(raw_name or ""), "") if raw_name else ""
+                            logo_html = (f"<img src='{badge_url}' style='width:16px;height:16px;"
+                                         f"object-fit:contain;vertical-align:middle;margin-right:3px'>"
+                                         if badge_url else
+                                         "<span style='display:inline-block;width:16px'></span>")
+                            if raw_name:
+                                name_cell = (f"{logo_html}{raw_name} "
+                                             f"<span style='color:#6c757d;font-size:9px;font-weight:normal'>{ctry_code}</span>")
+                            else:
+                                name_cell = f"<span style='color:#666;font-style:italic'>{e.get('route','TBD')}</span>"
+                            rows += (
+                                f"<tr style='background:{bg}'>"
+                                f"<td style='padding:1px 2px;color:#555;font-size:10px;text-align:right;width:12px'>{i}</td>"
+                                f"<td style='padding:1px 2px;font-size:12px;width:16px'>{e['flag']}</td>"
+                                f"<td style='padding:1px 2px;font-weight:bold;color:#212529;font-size:11px'>{name_cell}</td>"
+                                f"<td style='padding:1px 3px;color:#856404;font-size:10px;font-weight:600;"
+                                f"text-align:right;white-space:nowrap'>{coeff_str}</td>"
+                                f"</tr>"
+                            )
+                        return (
+                            f"<table style='width:100%;border-collapse:collapse;font-family:sans-serif'>"
+                            f"<thead><tr style='background:#e9ecef'>"
+                            f"<th style='padding:1px 2px;color:#555;text-align:right;font-size:9px'>#</th>"
+                            f"<th></th>"
+                            f"<th style='padding:1px 2px;color:#888;text-align:left;font-size:10px'>{header}</th>"
+                            f"<th style='padding:1px 3px;color:#888;text-align:right;font-size:9px'>Coeff.</th>"
+                            f"</tr></thead><tbody>{rows}</tbody></table>"
                         )
-                    st.markdown(
-                        f"<table style='width:100%;border-collapse:collapse;"
-                        f"font-family:sans-serif;margin-bottom:6px'>"
-                        f"<thead><tr style='background:#1a1a2e'>"
-                        f"<th style='padding:4px 8px;color:#888;text-align:left'></th>"
-                        f"<th style='padding:4px 8px;color:#888;text-align:left'>Club</th>"
-                        f"<th style='padding:4px 8px;color:#888;text-align:left'>Country</th>"
-                        f"<th style='padding:4px 8px;color:#888;text-align:left'>Route</th>"
-                        f"<th style='padding:4px 8px;color:#888;text-align:left'>Coeff.</th>"
-                        f"<th style='padding:4px 8px;color:#888;text-align:left'>Status</th>"
-                        f"</tr></thead><tbody>{rows_html}</tbody></table>",
-                        unsafe_allow_html=True,
-                    )
+                    _pot_cols = st.columns(4)
+                    for _pi, _pcol in enumerate(_pot_cols, 1):
+                        _pot_clubs = confirmed_clubs[(_pi - 1) * 9 : _pi * 9]
+                        with _pcol:
+                            st.markdown(_pot_table_html(_pot_clubs, f"🏆 Pot {_pi}"), unsafe_allow_html=True)
+
+                # All other stages: seeded / unseeded halves when large enough
+                elif stage != "League Phase" and confirmed_clubs:
+                    if len(confirmed_clubs) >= 4:
+                        mid      = (len(confirmed_clubs) + 1) // 2
+                        seeded   = confirmed_clubs[:mid]
+                        unseeded = confirmed_clubs[mid:]
+                        col_l, col_r = st.columns(2)
+                        with col_l:
+                            st.markdown(_entry_table_html(seeded, "🥇 Seeded"), unsafe_allow_html=True)
+                        with col_r:
+                            st.markdown(_entry_table_html(unseeded, "Unseeded"), unsafe_allow_html=True)
+                    else:
+                        st.markdown(_entry_table_html(confirmed_clubs, "Club"), unsafe_allow_html=True)
                 # TBD slots — compact text list
                 if tbd_clubs:
                     tbd_items = " · ".join(
                         f"{e['flag']} {e['country']} ({e['route']})" for e in tbd_clubs
                     )
                     st.markdown(
-                        f"<div style='background:#1e1e1e;border-left:3px solid #555;"
-                        f"padding:8px 12px;border-radius:4px;color:#888;"
+                        f"<div style='background:#f8f9fa;border-left:3px solid #adb5bd;"
+                        f"padding:8px 12px;border-radius:4px;color:#495057;"
                         f"font-size:12px;margin-bottom:10px'>"
-                        f"<b style='color:#666'>TBD slots:</b> {tbd_items}</div>",
+                        f"<b style='color:#495057'>TBD slots:</b> {tbd_items}</div>",
                         unsafe_allow_html=True,
                     )
+
+                # ── Inline predictions for UCL QR1 Champions Path ────────────
+                if (stage == "First Qualifying Round" and path_label == "Champions Path"
+                        and comp_name == "Champions League"):
+                    _opta_lu     = _load_qr1_opta_lookup()
+                    _qr1_entries = []
+                    _name_to_entry: dict[str, dict] = {}
+                    for e in resolved:
+                        club    = e.get("club")
+                        country = e.get("country", "")
+                        flag    = e.get("flag", "🏳")
+                        opta    = _get_qr1_opta(club, country, _opta_lu)
+                        name    = club if club else f"{country} (TBD)"
+                        _qr1_entries.append((name, flag, opta))
+                        _name_to_entry[name] = e
+                    _qr1_entries.sort(key=lambda x: x[2], reverse=True)
+
+                    if len(_qr1_entries) >= 4:
+                        _qr1_sim      = _simulate_ucl_qr1(tuple(_qr1_entries))
+                        _qr1_pct      = {nm: p for nm, fl, op, sd, p in _qr1_sim}
+                        n_adv         = len(_qr1_entries) // 2
+                        _qr1_sorted   = sorted(_qr1_pct.items(), key=lambda x: x[1], reverse=True)
+                        _qr1_advancing = {nm for nm, _ in _qr1_sorted[:n_adv]}
+                        # Store top-n_adv as projected QR2 entrants
+                        _qr1_cp_projected = []
+                        for nm, _ in _qr1_sorted[:n_adv]:
+                            _orig = _name_to_entry.get(nm, {})
+                            _qr1_cp_projected.append({
+                                "club":    _orig.get("club"),
+                                "country": _orig.get("country", ""),
+                                "flag":    _orig.get("flag", "🏳"),
+                                "route":   "QR1 winner",
+                                "status":  "projected",
+                            })
+                        # Display predictions (confirmed clubs in coefficient order)
+                        st.markdown("#### 🎯 Predictions (10,000 simulations)")
+                        _p_mid = (len(confirmed_clubs) + 1) // 2
+                        _pc_l, _pc_r = st.columns(2)
+                        with _pc_l:
+                            st.markdown(_pred_table_html(confirmed_clubs[:_p_mid], "🥇 Seeded", _qr1_pct, _qr1_advancing), unsafe_allow_html=True)
+                        with _pc_r:
+                            st.markdown(_pred_table_html(confirmed_clubs[_p_mid:], "Unseeded", _qr1_pct, _qr1_advancing), unsafe_allow_html=True)
+                        st.caption("✅ Projected to advance · ❌ Projected to be eliminated")
+
+                # ── Inline predictions for UCL QR2 Champions Path ─────────────
+                elif (stage == "Second Qualifying Round" and path_label == "Champions Path"
+                        and comp_name == "Champions League"):
+                    _run_predictions(confirmed_clubs, "QR2 Champions Path")
+
+                # ── Inline predictions for UCL QR2 League Path ────────────────
+                elif (stage == "Second Qualifying Round" and path_label == "League Path"
+                        and comp_name == "Champions League"):
+                    _qr2_lp_projected = _run_predictions(confirmed_clubs, "QR2 League Path")
+
+                # ── Inline predictions for UCL QR3 League Path ────────────────
+                elif (stage == "Third Qualifying Round" and path_label == "League Path"
+                        and comp_name == "Champions League"):
+                    _run_predictions(confirmed_clubs, "QR3 League Path")
+
             st.divider()
 
     # ── Live seasons: fetch from API as before ───────────────────────────────
@@ -741,19 +1229,27 @@ if tab_entrants is not None:
             st.caption(
                 "🟢 Confirmed — domestic season complete  "
                 "🟡 Provisional — season still running  "
+                "🔮 Projected — based on current standings  "
                 "⬜ TBD — club not yet determined"
             )
 
             _STATUS_BG = {
-                "confirmed":   "#1a3a1a",
-                "provisional": "#3a3010",
-                "tbd":         "#2a2a2a",
+                "confirmed":   "#d4edda",
+                "provisional": "#fff3cd",
+                "projected":   "#cce5ff",
+                "tbd":         "#f8f9fa",
             }
             _STATUS_LABEL = {
                 "confirmed":   "✅ Confirmed",
                 "provisional": "⏳ Provisional",
+                "projected":   "🔮 Projected",
                 "tbd":         "— TBD",
             }
+
+            # Resolve projections (Albania Final Four + UCL QR1 winter leaders)
+            _ent_albania_top4  = _fetch_albania_top4(_API_KEY)
+            _ent_ucl_qr1_proj  = _fetch_ucl_qr1_projections(_API_KEY) if comp_name == "Champions League" else {}
+            _badge_lu          = _load_qual_badge_lookup(_API_KEY)  # cached — essentially free
 
             # Iterate stages in chronological order
             for stage in STAGE_ORDER:
@@ -764,41 +1260,126 @@ if tab_entrants is not None:
                     for path_label, clubs in paths.items():
                         if len(paths) > 1:
                             st.markdown(f"*{path_label}*")
+                        clubs = _resolve_dynamic(clubs, _ent_albania_top4, _ent_ucl_qr1_proj)
                         # Sort known clubs by coefficient desc; TBD slots at the end
                         known  = [e for e in clubs if e.get("club")]
                         tbds   = [e for e in clubs if not e.get("club")]
                         known.sort(
-                            key=lambda e: get_coeff(e["club"], e.get("country", "")),
+                            key=lambda e: (
+                                get_coeff(e["club"], e.get("country", "")),
+                                *get_tiebreak(e["club"]),
+                            ),
                             reverse=True
                         )
-                        sorted_clubs = known + tbds
-                        rows_html = ""
-                        for e in sorted_clubs:
-                            bg    = _STATUS_BG.get(e["status"], "#2a2a2a")
-                            name  = e["club"] if e["club"] else f"<span style='color:#888'>{e['route']}</span>"
-                            label = _STATUS_LABEL.get(e["status"], "")
-                            coeff = get_coeff(e.get("club"), e.get("country", "")) if e.get("club") else None
-                            coeff_str = f"{coeff:.3f}" if coeff else "—"
-                            rows_html += (
-                                f"<tr style='background:{bg}'>"
-                                f"<td style='padding:4px 8px;font-size:15px'>{e['flag']}</td>"
-                                f"<td style='padding:4px 8px;font-weight:bold;color:white'>{name}</td>"
-                                f"<td style='padding:4px 8px;color:#aaa'>{e['country']}</td>"
-                                f"<td style='padding:4px 8px;color:#888;font-size:12px'>{e['route']}</td>"
-                                f"<td style='padding:4px 8px;color:#f0c040;font-size:12px;font-weight:600'>{coeff_str}</td>"
-                                f"<td style='padding:4px 8px;color:#aaa;font-size:12px'>{label}</td>"
-                                f"</tr>"
+                        # Split into seeded / unseeded halves when large enough
+                        if len(known) >= 4:
+                            mid      = (len(known) + 1) // 2
+                            seeded   = known[:mid]
+                            unseeded = known[mid:]
+                            col_l, col_r = st.columns(2)
+                            with col_l:
+                                st.markdown(_entry_table_html(seeded, "🥇 Seeded"), unsafe_allow_html=True)
+                            with col_r:
+                                st.markdown(_entry_table_html(unseeded, "Unseeded"), unsafe_allow_html=True)
+                        elif known:
+                            st.markdown(_entry_table_html(known, "Club"), unsafe_allow_html=True)
+                        if tbds:
+                            tbd_items = " · ".join(
+                                f"{e['flag']} {e.get('country','')} ({e['route']})" for e in tbds
                             )
-                        st.markdown(
-                            f"<table style='width:100%;border-collapse:collapse;font-family:sans-serif'>"
-                            f"<thead><tr style='background:#1a1a2e'>"
-                            f"<th style='padding:4px 8px;color:#888;text-align:left'></th>"
-                            f"<th style='padding:4px 8px;color:#888;text-align:left'>Club</th>"
-                            f"<th style='padding:4px 8px;color:#888;text-align:left'>Country</th>"
-                            f"<th style='padding:4px 8px;color:#888;text-align:left'>Route</th>"
-                            f"<th style='padding:4px 8px;color:#888;text-align:left'>Coeff.</th>"
-                            f"<th style='padding:4px 8px;color:#888;text-align:left'>Status</th>"
-                            f"</tr></thead><tbody>{rows_html}</tbody></table>",
-                            unsafe_allow_html=True,
-                        )
+                            st.markdown(
+                                f"<div style='background:#f8f9fa;border-left:3px solid #adb5bd;"
+                                f"padding:8px 12px;border-radius:4px;color:#495057;"
+                                f"font-size:12px;margin-bottom:6px'>"
+                                f"<b style='color:#495057'>TBD slots:</b> {tbd_items}</div>",
+                                unsafe_allow_html=True,
+                            )
                         st.markdown("")
+
+if False:
+    with tab_qual:  # placeholder — QR1 predictions rendered inline inside tab_qual above
+        st.markdown("### First Qualifying Round — Predictions")
+        st.caption(
+            "10,000 Monte Carlo simulations of the QR1 draw and two-legged ties. "
+            "Strength is derived from UEFA coefficients using the same Poisson model "
+            "as league projections. Seeded clubs host leg 1; unseeded host leg 2. "
+            "Ties on aggregate go to 50/50 penalties."
+        )
+
+        # Resolve all 28 QR1 entries (same logic as Qualifying tab)
+        _qr1_raw      = ENTRANTS_2026_27.get("Champions League", {}).get("First Qualifying Round", {}).get("Champions Path", [])
+        _qr1_al4      = _fetch_albania_top4(_API_KEY)
+        _qr1_proj     = _fetch_ucl_qr1_projections(_API_KEY)
+        _qr1_resolved = _resolve_dynamic(_qr1_raw, _qr1_al4, _qr1_proj)
+
+        # Build (display_name, flag, coeff) for each entry; TBDs use nation coefficient
+        _qr1_entries = []
+        for e in _qr1_resolved:
+            club    = e.get("club")
+            country = e.get("country", "")
+            flag    = e.get("flag", "🏳")
+            coeff   = get_coeff(club, country) if club else get_coeff(None, country)
+            name    = club if club else f"{country} (TBD)"
+            _qr1_entries.append((name, flag, coeff))
+
+        # Sort by (coeff desc, tiebreak) to replicate seeded/unseeded split
+        _qr1_entries.sort(
+            key=lambda x: (x[2], get_tiebreak(x[0] if "TBD" not in x[0] else None)),
+            reverse=True,
+        )
+
+        if len(_qr1_entries) < 2:
+            st.info("Not enough clubs resolved yet to simulate.")
+        else:
+            entries_key = tuple(_qr1_entries)
+
+            with st.spinner("Running 10,000 simulations…"):
+                sim_results = _simulate_ucl_qr1(entries_key)
+
+            # ── HTML table ──────────────────────────────────────────────────
+            n_advance = len(sim_results) // 2   # top half projected to advance
+            _SIM_BG = {"advance": "#d4edda", "eliminate": "#f8d7da"}
+
+            rows_html = ""
+            for rank, (name, flag, coeff, is_seeded, pct) in enumerate(sim_results, 1):
+                advance   = rank <= n_advance
+                bg        = _SIM_BG["advance"] if advance else _SIM_BG["eliminate"]
+                seed_lbl  = "<span style='color:#856404;font-size:10px'>S</span>" if is_seeded \
+                            else "<span style='color:#888;font-size:10px'>U</span>"
+                result_icon = "✅" if advance else "❌"
+                pct_str   = f"{pct * 100:.1f}%"
+                bar_w     = int(pct * 100)
+                bar_html  = (
+                    f"<div style='background:#dee2e6;border-radius:3px;width:80px;height:6px;display:inline-block;vertical-align:middle'>"
+                    f"<div style='background:{'#4caf50' if advance else '#e53935'};width:{bar_w}%;height:100%;border-radius:3px'></div>"
+                    f"</div>"
+                )
+                rows_html += (
+                    f"<tr style='background:{bg}'>"
+                    f"<td style='padding:3px 6px;color:#555;font-size:11px;text-align:right;width:18px'>{rank}</td>"
+                    f"<td style='padding:3px 6px;font-size:14px;width:22px'>{flag}</td>"
+                    f"<td style='padding:3px 6px;font-weight:bold;color:#212529;font-size:13px'>{name}</td>"
+                    f"<td style='padding:3px 6px;text-align:center;width:20px'>{seed_lbl}</td>"
+                    f"<td style='padding:3px 6px;color:{'#155724' if advance else '#842029'};font-weight:600;font-size:12px;text-align:right;width:50px'>{pct_str}</td>"
+                    f"<td style='padding:3px 10px;width:100px'>{bar_html}</td>"
+                    f"<td style='padding:3px 6px;font-size:13px;text-align:center;width:22px'>{result_icon}</td>"
+                    f"</tr>"
+                )
+
+            table_html = (
+                "<table style='width:100%;border-collapse:collapse;font-family:sans-serif'>"
+                "<thead><tr style='background:#e9ecef'>"
+                "<th style='padding:3px 6px;color:#555;text-align:right;font-size:10px'>#</th>"
+                "<th style='padding:3px 6px'></th>"
+                "<th style='padding:3px 6px;color:#888;text-align:left;font-size:11px'>Club</th>"
+                "<th style='padding:3px 6px;color:#888;text-align:center;font-size:10px'>Seed</th>"
+                "<th style='padding:3px 6px;color:#888;text-align:right;font-size:10px'>Advance%</th>"
+                "<th style='padding:3px 6px;color:#888;font-size:10px'></th>"
+                "<th style='padding:3px 6px;color:#888;text-align:center;font-size:10px'></th>"
+                f"</tr></thead><tbody>{rows_html}</tbody></table>"
+            )
+            st.markdown(table_html, unsafe_allow_html=True)
+            st.caption(
+                "🟡 **S** = Seeded (top 14 by coefficient)  ·  ⬜ **U** = Unseeded  ·  "
+                "✅ Projected to advance  ·  ❌ Projected to be eliminated"
+            )

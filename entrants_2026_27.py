@@ -16,16 +16,18 @@ Last updated: 2026-03-17
 _CL = {
     "League Phase": {
         "League Path": [
-            # England (4 spots)
+            # England (5 spots)
             {"club": "Arsenal",           "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "route": "League 1st",  "status": "provisional"},
             {"club": "Manchester City",   "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "route": "League 2nd",  "status": "provisional"},
             {"club": "Manchester United", "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "route": "League 3rd",  "status": "provisional"},
             {"club": "Aston Villa",       "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "route": "League 4th",  "status": "provisional"},
-            # Spain (4 spots)
+            {"club": None,                "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "route": "League 5th",  "status": "tbd"},
+            # Spain (5 spots)
             {"club": "Barcelona",         "country": "Spain",       "flag": "🇪🇸", "route": "League 1st",  "status": "provisional"},
             {"club": "Real Madrid",       "country": "Spain",       "flag": "🇪🇸", "route": "League 2nd",  "status": "provisional"},
             {"club": "Atlético Madrid",   "country": "Spain",       "flag": "🇪🇸", "route": "League 3rd",  "status": "provisional"},
             {"club": "Villarreal",        "country": "Spain",       "flag": "🇪🇸", "route": "League 4th",  "status": "provisional"},
+            {"club": None,                "country": "Spain",       "flag": "🇪🇸", "route": "League 5th",  "status": "tbd"},
             # Germany (4 spots)
             {"club": "Bayern München",    "country": "Germany",     "flag": "🇩🇪", "route": "League 1st",  "status": "provisional"},
             {"club": "Borussia Dortmund", "country": "Germany",     "flag": "🇩🇪", "route": "League 2nd",  "status": "provisional"},
@@ -43,12 +45,14 @@ _CL = {
             # Netherlands (2 spots)
             {"club": "PSV",               "country": "Netherlands", "flag": "🇳🇱", "route": "League 1st",  "status": "provisional"},
             {"club": "Feyenoord",         "country": "Netherlands", "flag": "🇳🇱", "route": "League 2nd",  "status": "provisional"},
-            # Portugal (1 spot)
+            # Portugal (2 spots)
             {"club": "Porto",             "country": "Portugal",    "flag": "🇵🇹", "route": "League 1st",  "status": "provisional"},
-            # Belgium, Czechia, Türkiye (1 spot each)
+            {"club": None,                "country": "Portugal",    "flag": "🇵🇹", "route": "League 2nd",  "status": "tbd"},
+            # Belgium, Czechia, Türkiye, Greece (1 spot each)
             {"club": "Union SG",          "country": "Belgium",     "flag": "🇧🇪", "route": "League 1st",  "status": "provisional"},
             {"club": "Slavia Praha",      "country": "Czechia",     "flag": "🇨🇿", "route": "League 1st",  "status": "provisional"},
             {"club": "Galatasaray",       "country": "Türkiye",     "flag": "🇹🇷", "route": "League 1st",  "status": "provisional"},
+            {"club": None,                "country": "Greece",      "flag": "🇬🇷", "route": "League 1st",  "status": "tbd"},
             # European Performance Spots (2)
             {"club": "Liverpool",         "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "route": "EPS",         "status": "provisional"},
             {"club": "Real Betis",        "country": "Spain",       "flag": "🇪🇸", "route": "EPS",         "status": "provisional"},
@@ -62,10 +66,10 @@ _CL = {
 
     "Play-off Round": {
         "Champions Path (5 into League Phase)": [
-            {"club": "Viking",            "country": "Norway",      "flag": "🇳🇴", "route": "League 1st",  "status": "confirmed"},
-            {"club": None, "country": "Greece",      "flag": "🇬🇷", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Austria",     "flag": "🇦🇹", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Scotland",    "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "route": "League 1st", "status": "tbd"},
+            {"club": "Viking",            "country": "Norway",   "flag": "🇳🇴", "route": "League 1st", "status": "confirmed"},
+            {"club": "Celtic",            "country": "Scotland", "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "route": "League 1st", "status": "provisional"},
+            {"club": "Sturm Graz",        "country": "Austria",  "flag": "🇦🇹", "route": "League 1st", "status": "provisional"},
+            {"club": "Shakhtar Donetsk",  "country": "Ukraine",  "flag": "🇺🇦", "route": "League 1st", "status": "provisional"},
             {"club": None, "country": "-", "flag": "🔢", "route": "6× QR3 Champions Path winners", "status": "tbd"},
         ],
         "League Path (2 into League Phase)": [
@@ -87,57 +91,36 @@ _CL = {
             {"club": None, "country": "-", "flag": "🔢", "route": "QR2 Champions Path winners", "status": "tbd"},
         ],
         "League Path": [
-            {"club": None, "country": "Netherlands", "flag": "🇳🇱", "route": "League 3rd", "status": "tbd"},
-            {"club": None, "country": "Portugal",    "flag": "🇵🇹", "route": "League 2nd", "status": "tbd"},
-            {"club": None, "country": "Belgium",     "flag": "🇧🇪", "route": "League 2nd", "status": "tbd"},
-            {"club": None, "country": "Czechia",     "flag": "🇨🇿", "route": "League 2nd", "status": "tbd"},
-            {"club": None, "country": "Türkiye",     "flag": "🇹🇷", "route": "League 2nd", "status": "tbd"},
-            {"club": None, "country": "-", "flag": "🔢", "route": "QR2 League Path winners", "status": "tbd"},
+            {"club": "NEC Nijmegen",  "country": "Netherlands", "flag": "🇳🇱", "route": "League 3rd", "status": "provisional"},
+            {"club": "Club Brugge",   "country": "Belgium",     "flag": "🇧🇪", "route": "League 2nd", "status": "provisional"},
+            {"club": "Bodø/Glimt",    "country": "Norway",      "flag": "🇳🇴", "route": "League 2nd", "status": "confirmed"},
+            {"club": "Fenerbahçe",    "country": "Turkey",      "flag": "🇹🇷", "route": "League 2nd", "status": "provisional"},
+            {"club": "Sparta Praha",  "country": "Czech Rep.",  "flag": "🇨🇿", "route": "League 2nd", "status": "provisional"},
+            {"club": "Lyon",          "country": "France",      "flag": "🇫🇷", "route": "League 4th", "status": "provisional"},
+            {"club": None,            "country": "Portugal",    "flag": "🇵🇹", "route": "League 2nd", "status": "tbd"},
+            {"club": None,            "country": "-",           "flag": "🔢", "route": "QR2 League Path winners", "status": "tbd"},
         ],
     },
 
     "Second Qualifying Round": {
         "Champions Path": [
-            {"club": "Shamrock Rovers",   "country": "Ireland",     "flag": "🇮🇪", "route": "League 1st",  "status": "confirmed"},
-            {"club": "Vikingur Reykjavik","country": "Iceland",     "flag": "🇮🇸", "route": "League 1st",  "status": "confirmed"},
-            {"club": "Riga FC",           "country": "Latvia",      "flag": "🇱🇻", "route": "League 1st",  "status": "confirmed"},
-            {"club": "KuPS Kuopio",       "country": "Finland",     "flag": "🇫🇮", "route": "League 1st",  "status": "confirmed"},
-            {"club": "Kairat Almaty",     "country": "Kazakhstan",  "flag": "🇰🇿", "route": "League 1st",  "status": "confirmed"},
-            {"club": "KI Klaksvik",       "country": "Faroe Islands","flag": "🇫🇴", "route": "League 1st",  "status": "confirmed"},
-            {"club": "Kauno Žalgiris",    "country": "Lithuania",   "flag": "🇱🇹", "route": "League 1st",  "status": "confirmed"},
-            {"club": "Flora Tallinn",     "country": "Estonia",     "flag": "🇪🇪", "route": "League 1st",  "status": "confirmed"},
-            {"club": "The New Saints",    "country": "Wales",       "flag": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "route": "League 1st",  "status": "confirmed"},
-            {"club": "Iberia 1999",       "country": "Georgia",     "flag": "🇬🇪", "route": "League 1st",  "status": "confirmed"},
-            {"club": "ML Vitebsk",        "country": "Belarus",     "flag": "🇧🇾", "route": "League 1st",  "status": "confirmed"},
-            # TBD champions path
-            {"club": None, "country": "Ukraine",      "flag": "🇺🇦", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Hungary",      "flag": "🇭🇺", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Romania",      "flag": "🇷🇴", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Slovakia",     "flag": "🇸🇰", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Slovenia",     "flag": "🇸🇮", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Bulgaria",     "flag": "🇧🇬", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Azerbaijan",   "flag": "🇦🇿", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Moldova",      "flag": "🇲🇩", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Bosnia-Herz.", "flag": "🇧🇦", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Armenia",      "flag": "🇦🇲", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Kosovo",       "flag": "🇽🇰", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Malta",        "flag": "🇲🇹", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "N. Ireland",   "flag": "🏴󠁧󠁢󠁮󠁩󠁲󠁿", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Albania",      "flag": "🇦🇱", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Montenegro",   "flag": "🇲🇪", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Luxembourg",   "flag": "🇱🇺", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "N. Macedonia", "flag": "🇲🇰", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Andorra",      "flag": "🇦🇩", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Gibraltar",    "flag": "🇬🇮", "route": "League 1st (likely Lincoln Red Imps)", "status": "tbd"},
-            {"club": None, "country": "San Marino",   "flag": "🇸🇲", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "-", "flag": "🔢", "route": "QR1 Champions Path winners", "status": "tbd"},
+            {"club": "Ferencváros",      "country": "Hungary",     "flag": "🇭🇺", "route": "League 1st", "status": "provisional"},
+            {"club": "Midtjylland",      "country": "Denmark",     "flag": "🇩🇰", "route": "League 1st", "status": "provisional"},
+            {"club": "Dinamo Zagreb",    "country": "Croatia",     "flag": "🇭🇷", "route": "League 1st", "status": "provisional"},
+            {"club": "Crvena zvezda",    "country": "Serbia",      "flag": "🇷🇸", "route": "League 1st", "status": "provisional"},
+            {"club": "Slovan Bratislava","country": "Slovakia",    "flag": "🇸🇰", "route": "League 1st", "status": "provisional"},
+            {"club": "Lech Poznań",      "country": "Poland",      "flag": "🇵🇱", "route": "League 1st", "status": "provisional"},
+            {"club": "Omonoia",          "country": "Cyprus",      "flag": "🇨🇾", "route": "League 1st", "status": "provisional"},
+            {"club": "Hapoel Beer Sheva","country": "Israel",      "flag": "🇮🇱", "route": "League 1st", "status": "provisional"},
+            {"club": "Thun",             "country": "Switzerland", "flag": "🇨🇭", "route": "League 1st", "status": "provisional"},
+            {"club": "Mjällby",          "country": "Sweden",      "flag": "🇸🇪", "route": "League 1st", "status": "confirmed"},
+            {"club": None,               "country": "-",           "flag": "🔢", "route": "QR1 Champions Path winners", "status": "tbd"},
         ],
         "League Path": [
-            {"club": "Bodø/Glimt",        "country": "Norway",      "flag": "🇳🇴", "route": "League 2nd",  "status": "confirmed"},
-            {"club": None, "country": "Greece",      "flag": "🇬🇷", "route": "League 2nd", "status": "tbd"},
-            {"club": None, "country": "Austria",     "flag": "🇦🇹", "route": "League 2nd", "status": "tbd"},
-            {"club": None, "country": "Scotland",    "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "route": "League 2nd", "status": "tbd"},
-            {"club": None, "country": "Poland",      "flag": "🇵🇱", "route": "League 2nd", "status": "tbd"},
+            {"club": "PAOK",                  "country": "Greece",   "flag": "🇬🇷", "route": "League 2nd", "status": "provisional"},
+            {"club": "Salzburg",              "country": "Austria",  "flag": "🇦🇹", "route": "League 2nd", "status": "provisional"},
+            {"club": "Hearts",                "country": "Scotland", "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "route": "League 2nd", "status": "provisional"},
+            {"club": "Jagiellonia Białystok", "country": "Poland",   "flag": "🇵🇱", "route": "League 2nd", "status": "provisional"},
         ],
     },
 
@@ -150,11 +133,13 @@ _CL = {
             {"club": "The New Saints",    "country": "Wales",       "flag": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "route": "League 1st",  "status": "confirmed"},
             {"club": "Kauno Žalgiris",    "country": "Lithuania",   "flag": "🇱🇹", "route": "League 1st",  "status": "confirmed"},
             {"club": "Vikingur Reykjavik","country": "Iceland",     "flag": "🇮🇸", "route": "League 1st",  "status": "confirmed"},
+            {"club": "Shamrock Rovers",   "country": "Ireland",     "flag": "🇮🇪", "route": "League 1st",  "status": "confirmed"},
+            {"club": "KuPS Kuopio",       "country": "Finland",     "flag": "🇫🇮", "route": "League 1st",  "status": "confirmed"},
+            {"club": "Kairat Almaty",     "country": "Kazakhstan",  "flag": "🇰🇿", "route": "League 1st",  "status": "confirmed"},
+            {"club": "ML Vitebsk",        "country": "Belarus",     "flag": "🇧🇾", "route": "League 1st",  "status": "confirmed"},
+            {"club": "Iberia 1999",       "country": "Georgia",     "flag": "🇬🇪", "route": "League 1st",  "status": "confirmed"},
             # TBD from lowest-ranked associations
-            {"club": None, "country": "Ukraine",      "flag": "🇺🇦", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Hungary",      "flag": "🇭🇺", "route": "League 1st", "status": "tbd"},
             {"club": None, "country": "Romania",      "flag": "🇷🇴", "route": "League 1st", "status": "tbd"},
-            {"club": None, "country": "Slovakia",     "flag": "🇸🇰", "route": "League 1st", "status": "tbd"},
             {"club": None, "country": "Slovenia",     "flag": "🇸🇮", "route": "League 1st", "status": "tbd"},
             {"club": None, "country": "Bulgaria",     "flag": "🇧🇬", "route": "League 1st", "status": "tbd"},
             {"club": None, "country": "Azerbaijan",   "flag": "🇦🇿", "route": "League 1st", "status": "tbd"},

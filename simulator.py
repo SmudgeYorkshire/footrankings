@@ -24,6 +24,19 @@ converted to attack/defense via a power transform:
 where k (default 2.0) controls how much the ratings spread translates to
 goal differences.  Higher k → stronger teams dominate more.
 
+Goals model
+-----------
+Goals are drawn from a Negative Binomial distribution rather than Poisson.
+NegBin(r, p) where r = λ/φ, p = 1/(1+φ), φ = OVERDISPERSION (default 0.15).
+This captures real-football overdispersion: Var[goals] = λ(1+φ) > λ.
+Reduces to Poisson as φ → 0.
+
+Form adjustment
+---------------
+Each team's last FORM_GAMES (default 5) results are used to compute a
+small attack multiplier (±FORM_STRENGTH = ±5%).  Good recent form boosts
+expected goals scored; poor form reduces them.
+
 Tiebreakers
 -----------
 Each league can specify a list of tiebreaker rules (from config.py).
@@ -47,16 +60,28 @@ import pandas as pd
 
 from config import DEFAULT_HOME_ADVANTAGE, DEFAULT_BASE_GOALS
 
-_MAX_GOALS = 10  # upper bound for Poisson grid (captures >99.9% of probability mass)
+_MAX_GOALS    = 10    # upper bound for goal grid (captures >99.9% of probability mass)
+OVERDISPERSION = 0.15 # NegBin overdispersion φ: Var[goals] = λ(1+φ)
+FORM_GAMES     = 5    # number of recent results used for form adjustment
+FORM_STRENGTH  = 0.05 # max ±5% attack multiplier from form
 
 
-def _poisson_pmf(lam: float) -> list[float]:
-    """Return P(X=k) for k=0..._MAX_GOALS for X ~ Poisson(lam)."""
-    exp_lam = math.exp(-lam)
+def _goals_pmf(lam: float) -> list[float]:
+    """
+    Return P(X=k) for k=0..._MAX_GOALS using a Negative Binomial distribution.
+
+    NegBin(r, p) where r = lam/OVERDISPERSION, p = 1/(1+OVERDISPERSION).
+    Var[X] = lam*(1+OVERDISPERSION) — captures real-football overdispersion.
+    Reduces to Poisson as OVERDISPERSION → 0.
+    """
+    phi = OVERDISPERSION
+    r   = lam / phi
+    p   = 1.0 / (1.0 + phi)
+    q   = phi / (1.0 + phi)          # = 1 - p
     pmf = [0.0] * (_MAX_GOALS + 1)
-    pmf[0] = exp_lam
+    pmf[0] = math.exp(r * math.log(p)) if lam > 0 else 1.0
     for k in range(1, _MAX_GOALS + 1):
-        pmf[k] = pmf[k - 1] * lam / k
+        pmf[k] = pmf[k - 1] * (r + k - 1) / k * q
     return pmf
 
 
@@ -75,6 +100,47 @@ def _build_rat_lookup(ratings: pd.DataFrame, base_goals: float) -> tuple[dict, f
         if alias:
             lookup[alias] = pair
     return lookup, league_avg
+
+
+def _compute_form(
+    teams: list[str],
+    played_fixtures: list[dict],
+    team_idx: dict[str, int],
+) -> np.ndarray:
+    """
+    Compute a per-team attack multiplier from their last FORM_GAMES results.
+
+    Returns array shape (n_teams,). Values near 1.0:
+      - perfect recent form  → 1.0 + FORM_STRENGTH
+      - average form         → 1.0
+      - poor recent form     → 1.0 - FORM_STRENGTH
+    """
+    n = len(teams)
+    results: list[list[float]] = [[] for _ in range(n)]
+    for f in played_fixtures:
+        h = team_idx.get(f.get("strHomeTeam", ""))
+        a = team_idx.get(f.get("strAwayTeam", ""))
+        if h is None or a is None:
+            continue
+        try:
+            hg = int(f.get("intHomeScore") or 0)
+            ag = int(f.get("intAwayScore") or 0)
+        except (TypeError, ValueError):
+            continue
+        if hg > ag:
+            results[h].append(1.0); results[a].append(0.0)
+        elif hg == ag:
+            results[h].append(0.5); results[a].append(0.5)
+        else:
+            results[h].append(0.0); results[a].append(1.0)
+
+    multipliers = np.ones(n)
+    for i in range(n):
+        recent = results[i][-FORM_GAMES:]
+        if recent:
+            form_score = sum(recent) / len(recent)   # 0.0 (all losses) … 1.0 (all wins)
+            multipliers[i] = 1.0 + FORM_STRENGTH * (2.0 * form_score - 1.0)
+    return multipliers
 
 
 def fixture_odds(
@@ -104,8 +170,8 @@ def fixture_odds(
         lam_h = h_att * max(a_def, 0.01) / league_avg * home_advantage
         lam_a = a_att * max(h_def, 0.01) / league_avg
 
-        pmf_h = _poisson_pmf(lam_h)
-        pmf_a = _poisson_pmf(lam_a)
+        pmf_h = _goals_pmf(lam_h)
+        pmf_a = _goals_pmf(lam_a)
 
         p_home = p_draw = 0.0
         for gh in range(_MAX_GOALS + 1):
@@ -339,8 +405,22 @@ def simulate_season(
 
     # Simulate all goals at once: shape (F, n_sim)
     rng = np.random.default_rng()
-    home_goals = rng.poisson(home_lambdas[:, None] * np.ones((F, n_sim)))
-    away_goals = rng.poisson(away_lambdas[:, None] * np.ones((F, n_sim)))
+
+    # Apply form multipliers to attacking lambdas (based on last FORM_GAMES results)
+    if played_fixtures:
+        _form = _compute_form(teams, played_fixtures, team_idx)
+        home_lambdas *= _form[home_idx]
+        away_lambdas *= _form[away_idx]
+
+    # Draw goals from Negative Binomial (overdispersed Poisson)
+    _phi  = OVERDISPERSION
+    _p_nb = 1.0 / (1.0 + _phi)
+    home_goals = rng.negative_binomial(
+        home_lambdas[:, None] / _phi * np.ones((F, n_sim)), _p_nb
+    )
+    away_goals = rng.negative_binomial(
+        away_lambdas[:, None] / _phi * np.ones((F, n_sim)), _p_nb
+    )
 
     # Points per fixture
     home_pts = np.where(home_goals > away_goals, 3, np.where(home_goals == away_goals, 1, 0))
@@ -521,8 +601,8 @@ def simulate_final_four(
             # Extra time (30 min ≈ 1/3 of 90 min)
             tied = ga == gb
             if tied.any():
-                ga = np.where(tied, ga + rng.poisson(la * 0.333, n_m), ga)
-                gb = np.where(tied, gb + rng.poisson(lb * 0.333, n_m), gb)
+                ga = np.where(tied, ga + rng.poisson(la * 0.767, n_m), ga)
+                gb = np.where(tied, gb + rng.poisson(lb * 0.767, n_m), gb)
                 # Penalties
                 still = ga == gb
                 coin  = rng.integers(0, 2, n_m).astype(bool)
@@ -537,4 +617,575 @@ def simulate_final_four(
         "Final %":    [round(final_apps[t] / n_sim / 2 * 100, 1) for t in teams_4],
         "Title %":    [round(titles[t]     / n_sim * 100, 1) for t in teams_4],
     }).sort_values("Title %", ascending=False).reset_index(drop=True)
+    return df
+
+
+def simulate_uecl_playoff(
+    bye_team: str,
+    team_a: str,
+    team_b: str,
+    ratings: pd.DataFrame,
+    n_sim: int = 10_000,
+    home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+) -> pd.DataFrame:
+    """
+    Simulate the Austrian 3-team UECL play-off.
+
+    Format
+    ------
+    Semi-final (one leg, at team_a's ground): team_a (7th) hosts team_b (8th).
+        If level after 90 min → extra time → 50/50 penalties.
+    Final (two legs): SF winner hosts bye_team in leg 1;
+        bye_team (5th) hosts SF winner in leg 2.
+        Aggregate score decides. If level → extra time at bye_team's ground → 50/50 penalties.
+    Winner qualifies for UECL QR2.
+
+    Returns
+    -------
+    DataFrame with columns [Team, Role, SF Win %, Final %, Winner %]
+    sorted by Winner % descending.
+    """
+    if not bye_team or not team_a or not team_b:
+        return pd.DataFrame()
+
+    if "opta_rating" in ratings.columns and "attack" not in ratings.columns:
+        ratings = _opta_to_attack_defense(ratings)
+
+    rat_lookup, l_avg = _build_rat_lookup(ratings, DEFAULT_BASE_GOALS)
+    default_r = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+    _phi  = OVERDISPERSION
+    _p_nb = 1.0 / (1.0 + _phi)
+
+    def get_lams(home: str, away: str) -> tuple[float, float]:
+        h_att, h_def = rat_lookup.get(home, default_r)
+        a_att, a_def = rat_lookup.get(away, default_r)
+        return (h_att * max(a_def, 0.01) / l_avg * home_advantage,
+                a_att * max(h_def, 0.01) / l_avg)
+
+    def draw(lam: float, n: int) -> np.ndarray:
+        return rng.negative_binomial(max(lam / _phi, 1e-6), _p_nb, n)
+
+    rng = np.random.default_rng()
+
+    # ── Semi-final: team_a (7th) hosts team_b (8th), one leg ─────────────────
+    lam_ah, lam_ba = get_lams(team_a, team_b)
+    ga_sf = draw(lam_ah, n_sim)
+    gb_sf = draw(lam_ba, n_sim)
+    tied_sf = ga_sf == gb_sf
+    if tied_sf.any():
+        ga_sf = np.where(tied_sf, ga_sf + draw(lam_ah * 0.767, n_sim), ga_sf)
+        gb_sf = np.where(tied_sf, gb_sf + draw(lam_ba * 0.767, n_sim), gb_sf)
+        still_sf = ga_sf == gb_sf
+        coin_sf  = rng.integers(0, 2, n_sim).astype(bool)
+        ga_sf = np.where(still_sf, ga_sf + coin_sf.astype(int),    ga_sf)
+        gb_sf = np.where(still_sf, gb_sf + (~coin_sf).astype(int), gb_sf)
+
+    a_wins_sf = ga_sf > gb_sf
+    sf_win = {team_a: int(a_wins_sf.sum()), team_b: int((~a_wins_sf).sum()), bye_team: 0}
+
+    # ── Final: two legs ───────────────────────────────────────────────────────
+    # Leg 1: SF winner hosts bye_team  |  Leg 2: bye_team hosts SF winner
+    final_wins = {team_a: 0, team_b: 0, bye_team: 0}
+
+    for sf_winner, sf_mask in [(team_a, a_wins_sf), (team_b, ~a_wins_sf)]:
+        n_m = int(sf_mask.sum())
+        if n_m == 0:
+            continue
+        lam_sf_h, lam_bye_a = get_lams(sf_winner, bye_team)  # leg 1: SF winner at home
+        lam_bye_h, lam_sf_a = get_lams(bye_team, sf_winner)  # leg 2: bye_team at home
+
+        g_sf_1  = draw(lam_sf_h,  n_m)
+        g_bye_1 = draw(lam_bye_a, n_m)
+        g_bye_2 = draw(lam_bye_h, n_m)
+        g_sf_2  = draw(lam_sf_a,  n_m)
+
+        agg_sf  = g_sf_1  + g_sf_2
+        agg_bye = g_bye_1 + g_bye_2
+
+        # If level on aggregate → ET at bye_team's ground → pens
+        tied_f = agg_sf == agg_bye
+        if tied_f.any():
+            agg_sf  = np.where(tied_f, agg_sf  + draw(lam_sf_a  * 0.767, n_m), agg_sf)
+            agg_bye = np.where(tied_f, agg_bye + draw(lam_bye_h * 0.767, n_m), agg_bye)
+            still_f = agg_sf == agg_bye
+            coin_f  = rng.integers(0, 2, n_m).astype(bool)
+            agg_sf  = np.where(still_f, agg_sf  + coin_f.astype(int),    agg_sf)
+            agg_bye = np.where(still_f, agg_bye + (~coin_f).astype(int), agg_bye)
+
+        final_wins[sf_winner] += int((agg_sf > agg_bye).sum())
+        final_wins[bye_team]  += int((agg_bye > agg_sf).sum())
+
+    final_apps = {
+        bye_team: n_sim,
+        team_a:   int(a_wins_sf.sum()),
+        team_b:   int((~a_wins_sf).sum()),
+    }
+
+    teams_3 = [bye_team, team_a, team_b]
+    roles   = {
+        bye_team: "Bye to Final (hosts leg 2)",
+        team_a:   "SF host (7th)",
+        team_b:   "SF away (8th)",
+    }
+
+    df = pd.DataFrame({
+        "Team":      teams_3,
+        "Role":      [roles[t]                                        for t in teams_3],
+        "SF Win %":  ["-" if t == bye_team
+                      else round(sf_win[t] / n_sim * 100, 1)         for t in teams_3],
+        "Final %":   [round(final_apps[t] / n_sim * 100, 1)          for t in teams_3],
+        "Winner %":  [round(final_wins[t] / n_sim * 100, 1)          for t in teams_3],
+    }).sort_values("Winner %", ascending=False).reset_index(drop=True)
+    return df
+
+
+def simulate_uecl_3team_playoff(
+    bye_team: str,   # hosts the one-legged final (e.g. 4th in champ)
+    team_a: str,     # SF home (e.g. 7th overall / 1st in relg)
+    team_b: str,     # SF away (e.g. 8th overall / 2nd in relg)
+    ratings: pd.DataFrame,
+    n_sim: int = 10_000,
+    home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+) -> pd.DataFrame:
+    """
+    Simulate a 3-team UECL play-off with one-legged SF and one-legged final.
+
+    Format
+    ------
+    Semi-final (one leg, at team_a's ground): team_a hosts team_b.
+        If level after 90 min → extra time → 50/50 penalties.
+    Final (one leg, at bye_team's ground): bye_team hosts SF winner.
+        If level after 90 min → extra time → 50/50 penalties.
+    Winner qualifies for UECL – QR2.
+
+    Returns
+    -------
+    DataFrame with columns [Team, Role, SF Win %, Final %, Winner %]
+    sorted by Winner % descending.
+    """
+    if not bye_team or not team_a or not team_b:
+        return pd.DataFrame()
+
+    if "opta_rating" in ratings.columns and "attack" not in ratings.columns:
+        ratings = _opta_to_attack_defense(ratings)
+
+    rat_lookup, l_avg = _build_rat_lookup(ratings, DEFAULT_BASE_GOALS)
+    default_r = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+    _phi  = OVERDISPERSION
+    _p_nb = 1.0 / (1.0 + _phi)
+
+    def get_lams(home: str, away: str) -> tuple[float, float]:
+        h_att, h_def = rat_lookup.get(home, default_r)
+        a_att, a_def = rat_lookup.get(away, default_r)
+        return (h_att * max(a_def, 0.01) / l_avg * home_advantage,
+                a_att * max(h_def, 0.01) / l_avg)
+
+    def draw(lam: float, n: int) -> np.ndarray:
+        return rng.negative_binomial(max(lam / _phi, 1e-6), _p_nb, n)
+
+    def play_one_leg(home: str, away: str, n: int) -> np.ndarray:
+        """Return boolean array: True = home wins."""
+        lam_h, lam_a = get_lams(home, away)
+        g_h = draw(lam_h, n)
+        g_a = draw(lam_a, n)
+        tied = g_h == g_a
+        if tied.any():
+            g_h = np.where(tied, g_h + draw(lam_h * 0.767, n), g_h)
+            g_a = np.where(tied, g_a + draw(lam_a * 0.767, n), g_a)
+            still = g_h == g_a
+            coin = rng.integers(0, 2, n).astype(bool)
+            g_h = np.where(still, g_h + coin.astype(int),    g_h)
+            g_a = np.where(still, g_a + (~coin).astype(int), g_a)
+        return g_h > g_a
+
+    rng = np.random.default_rng()
+
+    # ── Semi-final: team_a hosts team_b (one leg) ────────────────────────────
+    a_wins_sf = play_one_leg(team_a, team_b, n_sim)
+    sf_win = {team_a: int(a_wins_sf.sum()), team_b: int((~a_wins_sf).sum()), bye_team: 0}
+
+    # ── Final: bye_team hosts SF winner (one leg) ────────────────────────────
+    final_wins = {team_a: 0, team_b: 0, bye_team: 0}
+    for sf_winner, sf_mask in [(team_a, a_wins_sf), (team_b, ~a_wins_sf)]:
+        n_m = int(sf_mask.sum())
+        if n_m == 0:
+            continue
+        bye_wins = play_one_leg(bye_team, sf_winner, n_m)
+        final_wins[bye_team]   += int(bye_wins.sum())
+        final_wins[sf_winner]  += int((~bye_wins).sum())
+
+    final_apps = {bye_team: n_sim, team_a: int(a_wins_sf.sum()), team_b: int((~a_wins_sf).sum())}
+
+    teams_3 = [bye_team, team_a, team_b]
+    roles   = {bye_team: "Final host (4th)", team_a: "SF host (7th)", team_b: "SF away (8th)"}
+    df = pd.DataFrame({
+        "Team":     teams_3,
+        "Role":     [roles[t]                                          for t in teams_3],
+        "SF Win %": ["-" if t == bye_team
+                     else round(sf_win[t] / n_sim * 100, 1)           for t in teams_3],
+        "Final %":  [round(final_apps[t] / n_sim * 100, 1)            for t in teams_3],
+        "Winner %": [round(final_wins[t] / n_sim * 100, 1)            for t in teams_3],
+    }).sort_values("Winner %", ascending=False).reset_index(drop=True)
+    return df
+
+
+def simulate_uecl_8team_playoff(
+    pos2: str, pos3: str, pos5: str, pos6: str, pos7: str, pos8: str,
+    pos9: str, pos10: str, pos11: str, pos12: str,
+    ratings: pd.DataFrame,
+    n_sim: int = 10_000,
+    home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+) -> pd.DataFrame:
+    """
+    San Marino UECL 8-team play-off (all ties one-legged, ET+pens on ties).
+
+    R1: 9th hosts 12th (Match A),  10th hosts 11th (Match B)
+    QF: 2nd hosts R1-B winner,  6th hosts 7th,
+        3rd hosts R1-A winner,  5th hosts 8th
+    SF: QF1 winner hosts QF2 winner,  QF3 winner hosts QF4 winner
+    Final: lower-position-number (higher-ranked) SF winner hosts.
+
+    Returns
+    -------
+    DataFrame [Team, Role, R1 Win %, QF Win %, SF Win %, Win %]
+    sorted by Win % descending.
+    """
+    all_args = [pos2, pos3, pos5, pos6, pos7, pos8, pos9, pos10, pos11, pos12]
+    if any(not t for t in all_args):
+        return pd.DataFrame()
+
+    if "opta_rating" in ratings.columns and "attack" not in ratings.columns:
+        ratings = _opta_to_attack_defense(ratings)
+
+    rat_lookup, l_avg = _build_rat_lookup(ratings, DEFAULT_BASE_GOALS)
+    default_r = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+    _phi  = OVERDISPERSION
+    _p_nb = 1.0 / (1.0 + _phi)
+
+    # teams_list order: positions [2,3,5,6,7,8,9,10,11,12] → indices [0..9]
+    teams_list = [pos2, pos3, pos5, pos6, pos7, pos8, pos9, pos10, pos11, pos12]
+    n_teams = len(teams_list)
+    idx = {t: i for i, t in enumerate(teams_list)}
+
+    # Pre-compute pairwise lambda matrices
+    lam_h_mat = np.zeros((n_teams, n_teams))
+    lam_a_mat = np.zeros((n_teams, n_teams))
+    for i, h in enumerate(teams_list):
+        h_att, h_def = rat_lookup.get(h, default_r)
+        for j, a in enumerate(teams_list):
+            if i != j:
+                a_att, a_def = rat_lookup.get(a, default_r)
+                lam_h_mat[i, j] = h_att * max(a_def, 0.01) / l_avg * home_advantage
+                lam_a_mat[i, j] = a_att * max(h_def, 0.01) / l_avg
+
+    rng = np.random.default_rng()
+
+    def play_v(home_i: np.ndarray, away_i: np.ndarray) -> np.ndarray:
+        """Vectorized one-legged tie. True = home wins."""
+        lh = lam_h_mat[home_i, away_i]
+        la = lam_a_mat[home_i, away_i]
+        g_h = rng.negative_binomial(np.maximum(lh / _phi, 1e-6), _p_nb)
+        g_a = rng.negative_binomial(np.maximum(la / _phi, 1e-6), _p_nb)
+        tied = g_h == g_a
+        g_h = np.where(tied, g_h + rng.negative_binomial(np.maximum(lh * 0.767 / _phi, 1e-6), _p_nb), g_h)
+        g_a = np.where(tied, g_a + rng.negative_binomial(np.maximum(la * 0.767 / _phi, 1e-6), _p_nb), g_a)
+        still = g_h == g_a
+        coin = rng.integers(0, 2, g_h.shape[0]).astype(bool)
+        g_h = np.where(still, g_h + coin.astype(int),    g_h)
+        g_a = np.where(still, g_a + (~coin).astype(int), g_a)
+        return g_h > g_a
+
+    N = n_sim
+    i2, i3, i5, i6, i7, i8, i9, i10, i11, i12 = (idx[t] for t in teams_list)
+
+    # ── R1 ────────────────────────────────────────────────────────────────────
+    r1a = play_v(np.full(N, i9,  dtype=int), np.full(N, i12, dtype=int))  # True=9th wins
+    r1b = play_v(np.full(N, i10, dtype=int), np.full(N, i11, dtype=int))  # True=10th wins
+    r1a_win = np.where(r1a, i9,  i12)
+    r1b_win = np.where(r1b, i10, i11)
+
+    # ── QF ────────────────────────────────────────────────────────────────────
+    qf1_res = play_v(np.full(N, i2, dtype=int), r1b_win)    # 2nd hosts R1B winner
+    qf1_win = np.where(qf1_res, i2, r1b_win)
+
+    qf2_res = play_v(np.full(N, i6, dtype=int), np.full(N, i7, dtype=int))
+    qf2_win = np.where(qf2_res, i6, i7)
+
+    qf3_res = play_v(np.full(N, i3, dtype=int), r1a_win)    # 3rd hosts R1A winner
+    qf3_win = np.where(qf3_res, i3, r1a_win)
+
+    qf4_res = play_v(np.full(N, i5, dtype=int), np.full(N, i8, dtype=int))
+    qf4_win = np.where(qf4_res, i5, i8)
+
+    # ── SF ────────────────────────────────────────────────────────────────────
+    sf1_res = play_v(qf1_win, qf2_win)   # QF1 winner hosts QF2 winner
+    sf1_win = np.where(sf1_res, qf1_win, qf2_win)
+
+    sf2_res = play_v(qf3_win, qf4_win)   # QF3 winner hosts QF4 winner
+    sf2_win = np.where(sf2_res, qf3_win, qf4_win)
+
+    # ── Final ─────────────────────────────────────────────────────────────────
+    # Lower team index = lower position number = higher rank = hosts
+    fin_home = np.where(sf1_win < sf2_win, sf1_win, sf2_win)
+    fin_away = np.where(sf1_win < sf2_win, sf2_win, sf1_win)
+    fin_res  = play_v(fin_home, fin_away)
+    fin_win  = np.where(fin_res, fin_home, fin_away)
+
+    # ── Collect stats ─────────────────────────────────────────────────────────
+    def pct(c): return round(c / N * 100, 1)
+    r1_roles = {i9: "R1 home (9th)", i10: "R1 home (10th)",
+                i11: "R1 away (11th)", i12: "R1 away (12th)"}
+    qf_roles = {i2: "QF seed (2nd)", i3: "QF seed (3rd)", i5: "QF seed (5th)",
+                i6: "QF seed (6th)", i7: "QF seed (7th)", i8: "QF seed (8th)"}
+    r1_wins = {i9: pct(r1a.sum()), i10: pct(r1b.sum()),
+               i11: pct((~r1b).sum()), i12: pct((~r1a).sum())}
+
+    rows = []
+    for i, team in enumerate(teams_list):
+        qf_w = sum(int((w == i).sum()) for w in [qf1_win, qf2_win, qf3_win, qf4_win])
+        sf_w = sum(int((w == i).sum()) for w in [sf1_win, sf2_win])
+        rows.append({
+            "Team":      team,
+            "Role":      r1_roles.get(i, qf_roles.get(i, "")),
+            "R1 Win %":  r1_wins.get(i, "–"),
+            "QF Win %":  pct(qf_w),
+            "SF Win %":  pct(sf_w),
+            "Win %":     pct(int((fin_win == i).sum())),
+        })
+    return (pd.DataFrame(rows)
+            .sort_values("Win %", ascending=False)
+            .reset_index(drop=True))
+
+
+def simulate_uecl_5team_playoff(
+    pos3: str,   # Final host (3rd in champ)
+    pos4: str,   # QF1 home (4th in champ)
+    pos5: str,   # QF2 home (5th in champ)
+    pos7: str,   # QF2 away (7th overall / 1st in play-off conf)
+    pos8: str,   # QF1 away (8th overall / 2nd in play-off conf)
+    ratings: pd.DataFrame,
+    n_sim: int = 10_000,
+    home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+    qf1_home_rank: int = 4, qf1_away_rank: int = 8,
+    qf2_home_rank: int = 5, qf2_away_rank: int = 7,
+    final_host_rank: int = 3,
+) -> pd.DataFrame:
+    """
+    Simulate a 5-team UECL play-off with one-legged QF, SF, and Final.
+
+    Format
+    ------
+    QF1 (one leg, at pos4's ground): pos4 hosts pos8.
+    QF2 (one leg, at pos5's ground): pos5 hosts pos7.
+    SF  (one leg): lower position number (higher rank) hosts.
+    Final (one leg, at pos3's ground): pos3 hosts SF winner.
+        If level after 90 min → extra time → 50/50 penalties.
+    Winner qualifies for UECL – QR1.
+
+    Returns
+    -------
+    DataFrame with columns [Team, Role, QF Win %, SF Win %, Winner %]
+    sorted by Winner % descending.
+    """
+    if not all([pos3, pos4, pos5, pos7, pos8]):
+        return pd.DataFrame()
+
+    if "opta_rating" in ratings.columns and "attack" not in ratings.columns:
+        ratings = _opta_to_attack_defense(ratings)
+
+    rat_lookup, l_avg = _build_rat_lookup(ratings, DEFAULT_BASE_GOALS)
+    default_r = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+    _phi  = OVERDISPERSION
+    _p_nb = 1.0 / (1.0 + _phi)
+
+    def get_lams(home: str, away: str) -> tuple[float, float]:
+        h_att, h_def = rat_lookup.get(home, default_r)
+        a_att, a_def = rat_lookup.get(away, default_r)
+        return (h_att * max(a_def, 0.01) / l_avg * home_advantage,
+                a_att * max(h_def, 0.01) / l_avg)
+
+    def draw(lam: float, n: int) -> np.ndarray:
+        return rng.negative_binomial(max(lam / _phi, 1e-6), _p_nb, n)
+
+    def play_one_leg(home: str, away: str, n: int) -> np.ndarray:
+        """Return boolean array: True = home wins."""
+        lam_h, lam_a = get_lams(home, away)
+        g_h = draw(lam_h, n)
+        g_a = draw(lam_a, n)
+        tied = g_h == g_a
+        if tied.any():
+            g_h = np.where(tied, g_h + draw(lam_h * 0.767, n), g_h)
+            g_a = np.where(tied, g_a + draw(lam_a * 0.767, n), g_a)
+            still = g_h == g_a
+            coin = rng.integers(0, 2, n).astype(bool)
+            g_h = np.where(still, g_h + coin.astype(int),    g_h)
+            g_a = np.where(still, g_a + (~coin).astype(int), g_a)
+        return g_h > g_a
+
+    rng = np.random.default_rng()
+    rank = {pos3: final_host_rank, pos4: qf1_home_rank, pos5: qf2_home_rank,
+            pos7: qf2_away_rank,   pos8: qf1_away_rank}
+
+    # ── QF1: pos4 hosts pos8 ─────────────────────────────────────────────────
+    pos4_wins_qf1 = play_one_leg(pos4, pos8, n_sim)
+    qf_wins = {pos3: 0, pos4: int(pos4_wins_qf1.sum()), pos5: 0,
+               pos7: 0, pos8: int((~pos4_wins_qf1).sum())}
+
+    # ── QF2: pos5 hosts pos7 ─────────────────────────────────────────────────
+    pos5_wins_qf2 = play_one_leg(pos5, pos7, n_sim)
+    qf_wins[pos5] = int(pos5_wins_qf2.sum())
+    qf_wins[pos7] = int((~pos5_wins_qf2).sum())
+
+    sf_wins    = {t: 0 for t in [pos3, pos4, pos5, pos7, pos8]}
+    winner_cnt = {t: 0 for t in [pos3, pos4, pos5, pos7, pos8]}
+
+    # ── SF & Final: iterate over 4 QF outcome combinations ───────────────────
+    for qf1_winner, qf1_mask in [(pos4, pos4_wins_qf1), (pos8, ~pos4_wins_qf1)]:
+        for qf2_winner, qf2_mask in [(pos5, pos5_wins_qf2), (pos7, ~pos5_wins_qf2)]:
+            mask = qf1_mask & qf2_mask
+            n_m  = int(mask.sum())
+            if n_m == 0:
+                continue
+            # Lower rank number = higher seed = hosts
+            sf_home, sf_away = ((qf1_winner, qf2_winner)
+                                if rank[qf1_winner] < rank[qf2_winner]
+                                else (qf2_winner, qf1_winner))
+            home_wins_sf = play_one_leg(sf_home, sf_away, n_m)
+            for sf_winner, sf_mask2 in [(sf_home, home_wins_sf), (sf_away, ~home_wins_sf)]:
+                n_sf = int(sf_mask2.sum())
+                if n_sf == 0:
+                    continue
+                sf_wins[sf_winner] += n_sf
+                # Final: pos3 hosts
+                pos3_wins = play_one_leg(pos3, sf_winner, n_sf)
+                winner_cnt[pos3]      += int(pos3_wins.sum())
+                winner_cnt[sf_winner] += int((~pos3_wins).sum())
+
+    all_teams = [pos3, pos4, pos5, pos7, pos8]
+    roles = {
+        pos3: f"Final host ({final_host_rank}th)",
+        pos4: f"QF host ({qf1_home_rank}th)",
+        pos5: f"QF host ({qf2_home_rank}th)",
+        pos7: f"QF away ({qf2_away_rank}th)",
+        pos8: f"QF away ({qf1_away_rank}th)",
+    }
+    df = pd.DataFrame({
+        "Team":     all_teams,
+        "Role":     [roles[t] for t in all_teams],
+        "QF Win %": ["-" if t == pos3 else round(qf_wins[t] / n_sim * 100, 1)
+                     for t in all_teams],
+        "SF Win %": ["-" if t == pos3 else round(sf_wins[t] / n_sim * 100, 1)
+                     for t in all_teams],
+        "Winner %": [round(winner_cnt[t] / n_sim * 100, 1) for t in all_teams],
+    }).sort_values("Winner %", ascending=False).reset_index(drop=True)
+    return df
+
+
+def simulate_uecl_4team_playoff(
+    sf1_home: str, sf1_away: str,   # e.g. 5th hosts 9th
+    sf2_home: str, sf2_away: str,   # e.g. 7th hosts 8th
+    ratings: pd.DataFrame,
+    n_sim: int = 10_000,
+    home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+    sf1_home_rank: int = 5,
+    sf1_away_rank: int = 9,
+    sf2_home_rank: int = 7,
+    sf2_away_rank: int = 8,
+) -> pd.DataFrame:
+    """
+    Simulate a 4-team single-elimination UECL play-off.
+
+    Format
+    ------
+    SF1 (one leg): sf1_home (5th) hosts sf1_away (9th)
+    SF2 (one leg): sf2_home (7th) hosts sf2_away (8th)
+    Final (one leg): hosted by the SF winner with the higher league rank
+        (lower rank number = higher rank, e.g. 5 > 7)
+    If level after 90 min → extra time → 50/50 penalties.
+    Winner qualifies for UECL.
+
+    Returns
+    -------
+    DataFrame with columns [Team, Role, SF Win %, Winner %]
+    sorted by Winner % descending.
+    """
+    if not sf1_home or not sf1_away or not sf2_home or not sf2_away:
+        return pd.DataFrame()
+
+    if "opta_rating" in ratings.columns and "attack" not in ratings.columns:
+        ratings = _opta_to_attack_defense(ratings)
+
+    rat_lookup, l_avg = _build_rat_lookup(ratings, DEFAULT_BASE_GOALS)
+    default_r = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+    _phi  = OVERDISPERSION
+    _p_nb = 1.0 / (1.0 + _phi)
+
+    def get_lams(home: str, away: str) -> tuple[float, float]:
+        h_att, h_def = rat_lookup.get(home, default_r)
+        a_att, a_def = rat_lookup.get(away, default_r)
+        return (h_att * max(a_def, 0.01) / l_avg * home_advantage,
+                a_att * max(h_def, 0.01) / l_avg)
+
+    def draw(lam: float, n: int) -> np.ndarray:
+        return rng.negative_binomial(max(lam / _phi, 1e-6), _p_nb, n)
+
+    def play_one_leg(home: str, away: str, n: int) -> np.ndarray:
+        """Returns boolean array: True = home wins (after ET + pens if needed)."""
+        lam_h, lam_a = get_lams(home, away)
+        gh = draw(lam_h, n)
+        ga = draw(lam_a, n)
+        tied = gh == ga
+        if tied.any():
+            gh = np.where(tied, gh + draw(lam_h * 0.767, n), gh)
+            ga = np.where(tied, ga + draw(lam_a * 0.767, n), ga)
+            still = gh == ga
+            coin = rng.integers(0, 2, n).astype(bool)
+            gh = np.where(still, gh + coin.astype(int),    gh)
+            ga = np.where(still, ga + (~coin).astype(int), ga)
+        return gh > ga
+
+    rng = np.random.default_rng()
+
+    # ── Semi-finals ──────────────────────────────────────────────────────────
+    sf1_home_wins = play_one_leg(sf1_home, sf1_away, n_sim)
+    sf2_home_wins = play_one_leg(sf2_home, sf2_away, n_sim)
+
+    sf_wins = {
+        sf1_home: int(sf1_home_wins.sum()),
+        sf1_away: int((~sf1_home_wins).sum()),
+        sf2_home: int(sf2_home_wins.sum()),
+        sf2_away: int((~sf2_home_wins).sum()),
+    }
+
+    # ── Final: host = SF winner with lower rank number ───────────────────────
+    final_wins = {sf1_home: 0, sf1_away: 0, sf2_home: 0, sf2_away: 0}
+
+    for mask, f1_team, f1_rank, f2_team, f2_rank in [
+        (sf1_home_wins  &  sf2_home_wins,  sf1_home, sf1_home_rank, sf2_home, sf2_home_rank),
+        (sf1_home_wins  & ~sf2_home_wins,  sf1_home, sf1_home_rank, sf2_away, sf2_away_rank),
+        (~sf1_home_wins &  sf2_home_wins,  sf1_away, sf1_away_rank, sf2_home, sf2_home_rank),
+        (~sf1_home_wins & ~sf2_home_wins,  sf1_away, sf1_away_rank, sf2_away, sf2_away_rank),
+    ]:
+        n_m = int(mask.sum())
+        if n_m == 0:
+            continue
+        host, visitor = (f1_team, f2_team) if f1_rank < f2_rank else (f2_team, f1_team)
+        host_wins_f = play_one_leg(host, visitor, n_m)
+        final_wins[host]    += int(host_wins_f.sum())
+        final_wins[visitor] += int((~host_wins_f).sum())
+
+    teams = [sf1_home, sf1_away, sf2_home, sf2_away]
+    roles = {
+        sf1_home: f"SF1 host ({sf1_home_rank}th)",
+        sf1_away: f"SF1 away ({sf1_away_rank}th)",
+        sf2_home: f"SF2 host ({sf2_home_rank}th)",
+        sf2_away: f"SF2 away ({sf2_away_rank}th)",
+    }
+
+    df = pd.DataFrame({
+        "Team":      teams,
+        "Role":      [roles[t]                                    for t in teams],
+        "SF Win %":  [round(sf_wins[t]    / n_sim * 100, 1)      for t in teams],
+        "Winner %":  [round(final_wins[t] / n_sim * 100, 1)      for t in teams],
+    }).sort_values("Winner %", ascending=False).reset_index(drop=True)
     return df

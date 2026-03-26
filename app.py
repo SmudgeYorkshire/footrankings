@@ -11,7 +11,7 @@ import streamlit.components.v1 as components
 from _auth import load_authenticator, get_role
 
 st.set_page_config(
-    page_title="Football Rankings – European Football Statistics & Projections",
+    page_title="Football Rankings – Statistics & Projections",
     page_icon="⚽",
     layout="wide",
 )
@@ -77,7 +77,7 @@ st.session_state["_authenticator"] = authenticator
 # ---------------------------------------------------------------------------
 st.markdown(
     "<h2 style='margin:0'>⚽ Football Rankings "
-    "<span style='font-weight:400; color:#555'>— European Football Statistics &amp; Projections</span></h2>",
+    "<span style='font-weight:400; color:#555'>— Statistics &amp; Projections</span></h2>",
     unsafe_allow_html=True,
 )
 st.divider()
@@ -88,6 +88,7 @@ st.divider()
 pages = [
     st.Page("football_rankings.py", title="European Leagues",       icon="⚽"),
     st.Page("european.py",          title="European Competitions",  icon="🏆"),
+    st.Page("world_cup_page.py",    title="2026 World Cup",         icon="🌍"),
 ]
 if is_admin:
     pages.append(st.Page("admin.py", title="Admin", icon="🔒"))
