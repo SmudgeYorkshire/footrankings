@@ -121,6 +121,66 @@ def _simulate_group_once(teams: list[str], elos: list[float]) -> list[tuple[str,
     return results
 
 
+def _simulate_group_once_with_preds(
+    teams: list[str],
+    elos:  list[float],
+    fixed: dict,
+) -> list[tuple]:
+    """Like _simulate_group_once but with some match results pre-fixed."""
+    pts = {t: 0 for t in teams}
+    gf  = {t: 0 for t in teams}
+    ga  = {t: 0 for t in teams}
+    elo = dict(zip(teams, elos))
+    for i, j in [(0,1),(2,3),(0,2),(1,3),(0,3),(1,2)]:
+        ta, tb = teams[i], teams[j]
+        if (ta, tb) in fixed:
+            g_a, g_b = fixed[(ta, tb)]
+        elif (tb, ta) in fixed:
+            g_b, g_a = fixed[(tb, ta)]
+        else:
+            ratio = (elo[ta] - elo[tb]) / 400.0
+            base  = 1.25
+            g_a = max(0, int(np.random.poisson(base * 10 ** ( ratio * 0.5))))
+            g_b = max(0, int(np.random.poisson(base * 10 ** (-ratio * 0.5))))
+        if g_a > g_b:    pts[ta] += 3
+        elif g_a == g_b: pts[ta] += 1; pts[tb] += 1
+        else:            pts[tb] += 3
+        gf[ta] += g_a; ga[ta] += g_b
+        gf[tb] += g_b; ga[tb] += g_a
+    res = [(t, pts[t], gf[t], ga[t]) for t in teams]
+    res.sort(key=lambda x: (x[1], x[2] - x[3], x[2]), reverse=True)
+    return res
+
+
+def simulate_group_manual(group_key: str, fixed: dict, n: int = 20_000) -> pd.DataFrame:
+    """Monte Carlo group simulation with some results pre-fixed (uncached)."""
+    teams = WC_GROUPS[group_key]
+    elos  = [_effective_elo(t) for t in teams]
+    finish = {t: [0, 0, 0, 0] for t in teams}
+    for _ in range(n):
+        for pos, (team, *_) in enumerate(
+            _simulate_group_once_with_preds(teams, elos, fixed)
+        ):
+            finish[team][pos] += 1
+    rows = []
+    for t, elo in zip(teams, elos):
+        p1, p2, p3, p4 = [c / n * 100 for c in finish[t]]
+        rows.append({
+            "Team":      _flag(t) + " " + t,
+            "Elo":       int(elo),
+            "1st %":     round(p1, 1),
+            "2nd %":     round(p2, 1),
+            "3rd %":     round(p3, 1),
+            "4th %":     round(p4, 1),
+            "Advance %": round(p1 + p2 + (8 / 12) * p3, 1),
+        })
+    df = (pd.DataFrame(rows)
+          .sort_values("Advance %", ascending=False)
+          .reset_index(drop=True))
+    df.index += 1
+    return df
+
+
 @st.cache_data(show_spinner=False)
 def simulate_group(group_key: str, n: int = 20_000) -> pd.DataFrame:
     """
@@ -665,6 +725,125 @@ def _render_my_predictions() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Manual Predictions tab
+# ---------------------------------------------------------------------------
+
+def _render_manual_predictions_wc() -> None:
+    st.markdown("## 🔮 Manual Predictions")
+    st.caption(
+        "Enter predicted scores for group stage matches. "
+        "Unset matches will be simulated using Elo ratings."
+    )
+
+    group_keys = sorted(WC_GROUPS.keys())
+    group_sel  = st.selectbox(
+        "Select Group", group_keys,
+        format_func=lambda k: f"Group {k}",
+        key="wc_manual_group_sel",
+    )
+
+    teams       = WC_GROUPS[group_sel]
+    _MATCHUPS   = [(0,1),(2,3),(0,2),(1,3),(0,3),(1,2)]
+    _MD_LABELS  = ["MD1","MD1","MD2","MD2","MD3","MD3"]
+    match_pairs = [(teams[i], teams[j]) for i, j in _MATCHUPS]
+
+    ver_key = f"wc_manual_ver_{group_sel}"
+    sim_key = f"wc_manual_sim_{group_sel}"
+    if ver_key not in st.session_state:
+        st.session_state[ver_key] = 0
+
+    match_df = pd.DataFrame([
+        {"MD":   _MD_LABELS[k],
+         "Home": f"{_flag(ta)} {ta}",
+         "HG":   None,
+         "AG":   None,
+         "Away": f"{_flag(tb)} {tb}"}
+        for k, (ta, tb) in enumerate(match_pairs)
+    ])
+
+    col_cfg = {
+        "MD":   st.column_config.TextColumn("MD",   disabled=True, width="small"),
+        "Home": st.column_config.TextColumn("Home", disabled=True),
+        "HG":   st.column_config.NumberColumn("HG", min_value=0, max_value=20, step=1),
+        "AG":   st.column_config.NumberColumn("AG", min_value=0, max_value=20, step=1),
+        "Away": st.column_config.TextColumn("Away", disabled=True),
+    }
+    edited = st.data_editor(
+        match_df,
+        column_config=col_cfg,
+        disabled=["MD", "Home", "Away"],
+        hide_index=True,
+        use_container_width=True,
+        key=f"wc_pred_editor_{group_sel}_{st.session_state[ver_key]}",
+    )
+
+    # Extract filled predictions
+    filled_mask = edited[["HG", "AG"]].notna().all(axis=1)
+    fixed_results: dict = {}
+    for idx in edited[filled_mask].index:
+        ta, tb = match_pairs[idx]
+        fixed_results[(ta, tb)] = (int(edited.at[idx, "HG"]), int(edited.at[idx, "AG"]))
+
+    # Live standings from filled predictions
+    if fixed_results:
+        pts = {t: 0 for t in teams}; w = {t: 0 for t in teams}
+        d   = {t: 0 for t in teams}; l = {t: 0 for t in teams}
+        gf  = {t: 0 for t in teams}; ga = {t: 0 for t in teams}
+        for (ta, tb), (g_a, g_b) in fixed_results.items():
+            if g_a > g_b:    pts[ta] += 3; w[ta] += 1; l[tb] += 1
+            elif g_a == g_b: pts[ta] += 1; pts[tb] += 1; d[ta] += 1; d[tb] += 1
+            else:            pts[tb] += 3; w[tb] += 1; l[ta] += 1
+            gf[ta] += g_a; ga[ta] += g_b
+            gf[tb] += g_b; ga[tb] += g_a
+        st_rows = sorted(
+            [{"Team": f"{_flag(t)} {t}", "P": w[t]+d[t]+l[t],
+              "W": w[t], "D": d[t], "L": l[t],
+              "GF": gf[t], "GA": ga[t], "GD": gf[t]-ga[t], "Pts": pts[t]}
+             for t in teams],
+            key=lambda r: (r["Pts"], r["GD"], r["GF"]), reverse=True,
+        )
+        st.markdown("#### Predicted Group Standings")
+        st.dataframe(pd.DataFrame(st_rows), hide_index=True, use_container_width=True)
+
+    st.divider()
+
+    n_sim   = 20_000
+    pred_fp = (
+        group_sel,
+        tuple(sorted((ta, tb, g_a, g_b)
+                     for (ta, tb), (g_a, g_b) in fixed_results.items())),
+        n_sim,
+    )
+
+    col_run, col_clear = st.columns([3, 1])
+    with col_run:
+        if st.button(f"▶  Run {n_sim:,} simulations",
+                     key=f"wc_run_{group_sel}", use_container_width=True):
+            with st.spinner("Simulating…"):
+                _df = simulate_group_manual(group_sel, fixed_results, n_sim)
+            st.session_state[sim_key] = {"df": _df, "fp": pred_fp}
+    with col_clear:
+        if st.button("↺ Clear", key=f"wc_clear_{group_sel}", use_container_width=True):
+            st.session_state[ver_key] = st.session_state.get(ver_key, 0) + 1
+            st.session_state.pop(sim_key, None)
+            st.rerun()
+
+    cached = st.session_state.get(sim_key)
+    if cached:
+        if cached["fp"] != pred_fp:
+            st.warning("⚠️ Predictions changed since last run — re-run to update.")
+        st.markdown("#### Advancement Probabilities")
+        st.dataframe(
+            cached["df"].style.format({
+                "1st %": "{:.1f}%", "2nd %": "{:.1f}%",
+                "3rd %": "{:.1f}%", "4th %": "{:.1f}%",
+                "Advance %": "{:.1f}%",
+            }),
+            use_container_width=True,
+        )
+
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
@@ -680,11 +859,12 @@ def render_world_cup() -> None:
     )
     st.divider()
 
-    tab_po, tab_fifa, tab_groups, tab_ko, tab_picks = st.tabs([
+    tab_po, tab_fifa, tab_groups, tab_ko, tab_manual, tab_picks = st.tabs([
         "🏆 UEFA Play-off",
         "🌍 FIFA Play-offs",
         "⚽ Group Stage",
         "🥊 Knockout",
+        "🔮 Manual Predictions",
         "🎯 My Predictions",
     ])
 
@@ -699,6 +879,9 @@ def render_world_cup() -> None:
 
     with tab_ko:
         _render_knockout()
+
+    with tab_manual:
+        _render_manual_predictions_wc()
 
     with tab_picks:
         _render_my_predictions()
