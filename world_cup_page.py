@@ -62,10 +62,11 @@ def _path_winner_elo(path_key: str) -> float:
     p_s2a = _elo_win_prob(e2a, e2b, _h2)
     p_s2b = 1 - p_s2a
     # Build all 4 possible final matchups and weight
+    # Final hosted by SF2 winner — SF1 winner plays away
     total_elo = 0.0
-    for winner1, elo1, p1, w1_sf1_home in [(s1a, e1a, p_s1a, True), (s1b, e1b, p_s1b, False)]:
+    for winner1, elo1, p1 in [(s1a, e1a, p_s1a), (s1b, e1b, p_s1b)]:
         for winner2, elo2, p2 in [(s2a, e2a, p_s2a), (s2b, e2b, p_s2b)]:
-            _fadv = 0.0 if _hf else (_UEFA_HOME_ADV if w1_sf1_home else 0.0)
+            _fadv = 0.0 if _hf else -_UEFA_HOME_ADV  # winner2 (SF2 winner) hosts
             p_final_w1 = _elo_win_prob(elo1, elo2, _fadv)
             total_elo += p1 * p2 * (p_final_w1 * elo1 + (1 - p_final_w1) * elo2)
     return total_elo
@@ -406,14 +407,13 @@ def _render_uefa_playoff() -> None:
                 unsafe_allow_html=True,
             )
 
-            # Final: neutral_final → no home adv; otherwise SF1 home team hosts
+            # Final: hosted by SF2 winner (they play at home); SF1 winner always plays away
             st.markdown(f"**Final** *(March 31)*")
             final_probs: dict[str, float] = {}
-            for winner1, elo1, p1, w1_is_sf1_home in [
-                (s1a, e1a, p1a, True), (s1b, e1b, p1b, False)
-            ]:
+            for winner1, elo1, p1 in [(s1a, e1a, p1a), (s1b, e1b, p1b)]:
                 for winner2, elo2, p2 in [(s2a, e2a, p2a), (s2b, e2b, p2b)]:
-                    _fadv = 0.0 if _neutral_final else (_UEFA_HOME_ADV if w1_is_sf1_home else 0.0)
+                    # winner2 (SF2 winner) hosts → negative fadv for winner1 (SF1 winner plays away)
+                    _fadv = 0.0 if _neutral_final else -_UEFA_HOME_ADV
                     pf = _elo_win_prob(elo1, elo2, _fadv)
                     final_probs[winner1] = final_probs.get(winner1, 0) + p1 * p2 * pf
                     final_probs[winner2] = final_probs.get(winner2, 0) + p1 * p2 * (1 - pf)
