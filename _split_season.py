@@ -1,18 +1,14 @@
 """
 Helpers for leagues with split seasons (regular season + conference rounds).
 
-After the regular season ends at `split_round`, TheSportsDB returns TWO sets
-of standings rows for the same league:
-  - Pre-split rows  (intPlayed == split_round): final regular-season table,
-    with strDescription = "Championship round" or "Relegation Round"
-  - Current rows    (intPlayed >  split_round): live conference standings
-
-This module detects that phase, identifies which conference each team belongs
-to, and provides helpers to filter fixtures by conference.
+TheSportsDB confirmed they cannot keep split-league standings tables up to
+date.  The table endpoint is therefore used only to identify which conference
+each team belongs to; actual post-split standings are always recomputed in
+football_rankings.py from the presplit snapshot + played fixture results.
 
 pts_factor values:
   1.0 – points carried over fully (most leagues)
-  0.5 – points halved going into playoff (Belgium, Austria, Romania, Serbia)
+  0.5 – points halved going into split phase (Belgium, Austria, Romania, Serbia)
   0.0 – points reset to zero (Malta Apertura/Clausura)
 """
 
@@ -154,11 +150,13 @@ def recompute_conference_standings(
     pts_round: str = "down",
 ) -> list[dict]:
     """
-    Recompute conference standings when the TheSportsDB API stops updating
-    them post-split (e.g., Austrian Relegation Round).
+    Build conference standings from scratch using the presplit snapshot as
+    the base and applying played post-split fixtures on top.
 
     Applies pts_factor to starting points, then adds W/D/L/GF/GA from
     each played fixture, then re-ranks by points → GD → GF.
+    Called for every conference (champ / mid / relg) because TheSportsDB
+    does not update split-league tables post-split.
     """
     import copy
     import math

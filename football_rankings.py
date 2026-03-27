@@ -501,23 +501,27 @@ def main_content():
 
     split_info = get_split_info(standings, split_round, n_champ=n_champ, n_mid=cfg.get("n_mid", 0), pts_factor=pts_factor, presplit=_presplit_snapshot) if split_round else None
 
-    # If TheSportsDB stops updating conference standings post-split (e.g. Austrian
-    # Relegation Round), recompute them from played fixtures so the Current Table
-    # shows accurate results rather than stuck-at-split-round data.
-    if split_info and split_round:
-        _pts_round = cfg.get("pts_round", "down")
-        for _conf_key in ("relg_current", "mid_current"):
-            _conf_rows = split_info.get(_conf_key, [])
-            _conf_teams = split_info.get(
-                "relg_teams" if _conf_key == "relg_current" else "mid_teams", set()
+    # TheSportsDB confirmed they cannot update split-league standings tables.
+    # Always recompute all conference standings from the presplit snapshot +
+    # played post-split fixtures so Current Table and Projections are accurate.
+    if split_info and split_round and _presplit_snapshot:
+        _pts_round      = cfg.get("pts_round", "down")
+        _presplit_by_tm = {r["strTeam"]: r for r in _presplit_snapshot}
+        for _conf_key, _teams_key in [
+            ("champ_current", "champ_teams"),
+            ("mid_current",   "mid_teams"),
+            ("relg_current",  "relg_teams"),
+        ]:
+            _conf_teams = split_info.get(_teams_key, set())
+            if not _conf_teams:
+                continue
+            _base = [_presplit_by_tm[t] for t in _conf_teams if t in _presplit_by_tm]
+            if not _base:
+                continue
+            _conf_played = conference_fixtures(played_fixtures, _conf_teams)
+            split_info[_conf_key] = recompute_conference_standings(
+                _base, _conf_played, pts_factor, _pts_round
             )
-            if (_conf_rows and _conf_teams
-                    and all(int(r.get("intPlayed", 0)) <= split_round for r in _conf_rows)):
-                _conf_played = conference_fixtures(played_fixtures, _conf_teams)
-                if _conf_played:
-                    split_info[_conf_key] = recompute_conference_standings(
-                        _conf_rows, _conf_played, pts_factor, _pts_round
-                    )
 
     # Override pre_split with the accurate Round N snapshot if available
     if split_info and _presplit_snapshot:
