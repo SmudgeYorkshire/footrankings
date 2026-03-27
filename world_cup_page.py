@@ -49,11 +49,27 @@ def _flag(team: str) -> str:
 def _path_winner_elo(path_key: str) -> float:
     """Weighted average Elo of likely winner of a UEFA playoff path."""
     path = UEFA_PLAYOFF_PATHS[path_key]
+
+    # If both finalists are confirmed, compute directly from the actual final matchup
+    sf1_winner = path.get("sf1_winner")
+    sf2_winner = path.get("sf2_winner")
+    if sf1_winner and sf2_winner:
+        e1 = _resolve_elo(sf1_winner)
+        e2 = _resolve_elo(sf2_winner)
+        if path.get("final_host_sf1"):
+            _fadv = _UEFA_HOME_ADV      # SF1 winner hosts
+        elif path.get("neutral_final") or path.get("neutral", False):
+            _fadv = 0.0
+        else:
+            _fadv = -_UEFA_HOME_ADV     # SF2 winner hosts
+        p1 = _elo_win_prob(e1, e2, _fadv)
+        return p1 * e1 + (1 - p1) * e2
+
+    # Fallback: simulate all 4 possible matchups from the semi-final teams
     s1a, s1b = path["semifinal_1"]
     s2a, s2b = path["semifinal_2"]
     e1a, e1b = _resolve_elo(s1a), _resolve_elo(s1b)
     e2a, e2b = _resolve_elo(s2a), _resolve_elo(s2b)
-    # P(each team wins their semi — respect per-match neutral flags)
     _h1 = 0.0 if path.get("neutral_sf1", path.get("neutral", False)) else _UEFA_HOME_ADV
     _h2 = 0.0 if path.get("neutral_sf2", path.get("neutral", False)) else _UEFA_HOME_ADV
     _hf = path.get("neutral_final", path.get("neutral", False))
@@ -61,12 +77,10 @@ def _path_winner_elo(path_key: str) -> float:
     p_s1b = 1 - p_s1a
     p_s2a = _elo_win_prob(e2a, e2b, _h2)
     p_s2b = 1 - p_s2a
-    # Build all 4 possible final matchups and weight
-    # Final hosted by SF2 winner — SF1 winner plays away
     total_elo = 0.0
     for winner1, elo1, p1 in [(s1a, e1a, p_s1a), (s1b, e1b, p_s1b)]:
         for winner2, elo2, p2 in [(s2a, e2a, p_s2a), (s2b, e2b, p_s2b)]:
-            _fadv = 0.0 if _hf else -_UEFA_HOME_ADV  # winner2 (SF2 winner) hosts
+            _fadv = 0.0 if _hf else -_UEFA_HOME_ADV  # SF2 winner hosts
             p_final_w1 = _elo_win_prob(elo1, elo2, _fadv)
             total_elo += p1 * p2 * (p_final_w1 * elo1 + (1 - p_final_w1) * elo2)
     return total_elo
@@ -78,6 +92,19 @@ def _effective_elo(team: str) -> float:
         key = team.replace("UEFA PO Path ", "").replace(" Winner", "")
         return _path_winner_elo(key)
     return _resolve_elo(team)
+
+
+def _display_name(team: str) -> str:
+    """Human-friendly team name; resolves UEFA playoff placeholders to finalists."""
+    if not team.startswith("UEFA PO Path "):
+        return team
+    key = team.replace("UEFA PO Path ", "").replace(" Winner", "")
+    path = UEFA_PLAYOFF_PATHS.get(key, {})
+    f1 = path.get("sf1_winner")
+    f2 = path.get("sf2_winner")
+    if f1 and f2:
+        return f"{f1} / {f2}"
+    return team
 
 
 # ---------------------------------------------------------------------------
@@ -440,12 +467,21 @@ def _render_group_stage() -> None:
     team_cols = st.columns(4)
     for i, (t, elo) in enumerate(zip(teams, elos)):
         with team_cols[i]:
-            st.metric(f"{_flag(t)} {t}", f"Elo {int(elo)}")
+            st.metric(f"{_flag(t)} {_display_name(t)}", f"Elo {int(elo)}")
 
     st.markdown("---")
 
     with st.spinner("Running simulation…"):
         df = simulate_group(group_sel)
+
+    # Replace placeholder names with confirmed finalists in display
+    df = df.copy()
+    for _pk, _p in UEFA_PLAYOFF_PATHS.items():
+        _f1, _f2 = _p.get("sf1_winner"), _p.get("sf2_winner")
+        if _f1 and _f2:
+            df["Team"] = df["Team"].str.replace(
+                f"UEFA PO Path {_pk} Winner", f"{_f1} / {_f2}", regex=False
+            )
 
     st.markdown("#### Projected Group Standings")
     st.dataframe(_style_group_df(df), use_container_width=True)
@@ -463,11 +499,11 @@ def _render_group_stage() -> None:
         ea, eb = _effective_elo(ta), _effective_elo(tb)
         pa, pd_, pb = _match_probs(ea, eb)
         st.markdown(
-            f"{_flag(ta)} **{ta}** "
+            f"{_flag(ta)} **{_display_name(ta)}** "
             f"<span style='color:#1a73e8'>{pa*100:.0f}%</span> · "
             f"<span style='color:#888'>{pd_*100:.0f}%</span> · "
             f"<span style='color:#e53935'>{pb*100:.0f}%</span> "
-            f"**{tb}** {_flag(tb)}",
+            f"**{_display_name(tb)}** {_flag(tb)}",
             unsafe_allow_html=True,
         )
 
@@ -482,6 +518,15 @@ def _render_knockout() -> None:
 
     with st.spinner("Running full tournament simulation…"):
         df = simulate_tournament()
+
+    # Replace placeholder names with confirmed finalists in display
+    df = df.copy()
+    for _pk, _p in UEFA_PLAYOFF_PATHS.items():
+        _f1, _f2 = _p.get("sf1_winner"), _p.get("sf2_winner")
+        if _f1 and _f2:
+            df["Team"] = df["Team"].str.replace(
+                f"UEFA PO Path {_pk} Winner", f"{_f1} / {_f2}", regex=False
+            )
 
     st.markdown("### All Teams — Tournament Outlook")
     top20 = df.head(20).copy()
@@ -595,10 +640,10 @@ def _render_manual_predictions_wc() -> None:
 
     match_df = pd.DataFrame([
         {"MD":   _MD_LABELS[k],
-         "Home": f"{_flag(ta)} {ta}",
+         "Home": f"{_flag(ta)} {_display_name(ta)}",
          "HG":   None,
          "AG":   None,
-         "Away": f"{_flag(tb)} {tb}"}
+         "Away": f"{_flag(tb)} {_display_name(tb)}"}
         for k, (ta, tb) in enumerate(match_pairs)
     ])
 
