@@ -485,14 +485,24 @@ def _render_uefa_playoff() -> None:
                 )
 
             # Final
-            st.markdown(f"**Final** *(March 31)*")
+            _final_city      = path.get("final_city", "")
+            _final_host_sf1  = path.get("final_host_sf1", False)
+            _city_note       = f" · {_final_city}" if _final_city else ""
+            st.markdown(f"**Final** *(March 31{_city_note})*")
             if _sf1_winner and _sf2_winner:
                 # Both finalists known — show direct probabilities
                 e1 = _resolve_elo(_sf1_winner)
                 e2 = _resolve_elo(_sf2_winner)
-                _fadv = 0.0 if _neutral_final else -_UEFA_HOME_ADV
+                _fadv = (_UEFA_HOME_ADV if _final_host_sf1
+                         else 0.0 if _neutral_final
+                         else -_UEFA_HOME_ADV)
                 pf1 = _elo_win_prob(e1, e2, _fadv)
-                _host_note = "Neutral venue" if _neutral_final else f"🏠 {_sf2_winner} hosts"
+                if _neutral_final:
+                    _host_note = "⚪ Neutral venue"
+                elif _final_host_sf1:
+                    _host_note = f"🏠 {_sf1_winner} hosts"
+                else:
+                    _host_note = f"🏠 {_sf2_winner} hosts"
                 st.caption(_host_note)
                 rows_fp = [
                     {"Team": f"{_flag(_sf1_winner)} {_sf1_winner}", "Win Path %": f"{pf1*100:.1f}%"},
@@ -504,9 +514,11 @@ def _render_uefa_playoff() -> None:
                 p1a = _elo_win_prob(e1a, e1b, 0.0 if _neutral_sf1 else _UEFA_HOME_ADV); p1b = 1-p1a
                 p2a = _elo_win_prob(e2a, e2b, 0.0 if _neutral_sf2 else _UEFA_HOME_ADV); p2b = 1-p2a
                 final_probs: dict[str, float] = {}
-                for w1, elo1, p1 in [(s1a, e1a, p1a), (s1b, e1b, p1b)]:
+                for w1, elo1, p1, is_sf1 in [(s1a, e1a, p1a, True), (s1b, e1b, p1b, False)]:
                     for w2, elo2, p2 in [(s2a, e2a, p2a), (s2b, e2b, p2b)]:
-                        _fadv = 0.0 if _neutral_final else -_UEFA_HOME_ADV
+                        _fadv = (_UEFA_HOME_ADV if (_final_host_sf1 and is_sf1)
+                                 else 0.0 if _neutral_final
+                                 else -_UEFA_HOME_ADV)
                         pf = _elo_win_prob(elo1, elo2, _fadv)
                         final_probs[w1] = final_probs.get(w1, 0) + p1 * p2 * pf
                         final_probs[w2] = final_probs.get(w2, 0) + p1 * p2 * (1 - pf)

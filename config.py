@@ -98,7 +98,7 @@ LEAGUES = {
     "Armenian Premier League":      {"id": 4619, "country": "Armenia",     "flag": "🇦🇲", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "wins", "gd", "less_red_cards", "less_yellow_cards", "fair_play", "draw"],
                                      "home_advantage": 1.42,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
+                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 10: "Relegation"},
                                      "cup_details": (
                                          "2025/26 Armenian Cup winner qualifies for the UECL – QR2. "
                                          "Noah are predicted to win the 2025/26 Armenian Cup and secure a UECL – QR2 spot."

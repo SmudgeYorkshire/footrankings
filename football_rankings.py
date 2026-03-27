@@ -1611,7 +1611,6 @@ def main_content():
                                 f"<td style='padding:6px 10px'>{img}<b>{team}</b></td>"
                                 f"<td style='padding:6px 10px;color:#aaa;font-size:12px'>{seed}</td>"
                                 f"<td style='padding:6px 10px;text-align:right'>{row['SF Win %']}%</td>"
-                                f"<td style='padding:6px 10px;text-align:right'>{row['Final %']}%</td>"
                                 f"<td style='padding:6px 10px;text-align:right;font-weight:bold'>{row['Title %']}%</td>"
                                 f"<td style='padding:6px 10px'>{_ff_status_html(status) if status else ''}</td>"
                                 f"</tr>"
@@ -1622,7 +1621,6 @@ def main_content():
                             "<th style='padding:6px 10px;text-align:left'>Team</th>"
                             "<th style='padding:6px 10px;text-align:left;color:#888;font-size:12px'>Seed</th>"
                             "<th style='padding:6px 10px;text-align:right;color:#888'>SF Win %</th>"
-                            "<th style='padding:6px 10px;text-align:right;color:#888'>Final %</th>"
                             "<th style='padding:6px 10px;text-align:right;color:#888'>Title %</th>"
                             "<th style='padding:6px 10px;text-align:left;color:#888'>Status</th>"
                             f"</tr></thead><tbody>{rows_html}</tbody></table>",
