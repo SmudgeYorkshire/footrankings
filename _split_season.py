@@ -145,3 +145,81 @@ def conference_fixtures(fixtures: list[dict], teams: set[str]) -> list[dict]:
         f for f in fixtures
         if f.get("strHomeTeam") in teams and f.get("strAwayTeam") in teams
     ]
+
+
+def recompute_conference_standings(
+    base_rows: list[dict],
+    played_fixtures: list[dict],
+    pts_factor: float = 1.0,
+    pts_round: str = "down",
+) -> list[dict]:
+    """
+    Recompute conference standings when the TheSportsDB API stops updating
+    them post-split (e.g., Austrian Relegation Round).
+
+    Applies pts_factor to starting points, then adds W/D/L/GF/GA from
+    each played fixture, then re-ranks by points → GD → GF.
+    """
+    import copy
+    import math
+
+    rows: dict[str, dict] = {}
+    for r in base_rows:
+        row = copy.deepcopy(r)
+        raw_pts = int(r.get("intPoints") or 0)
+        if pts_factor == 1.0:
+            adj_pts = raw_pts
+        elif pts_round == "up":
+            adj_pts = math.ceil(raw_pts * pts_factor)
+        else:
+            adj_pts = math.floor(raw_pts * pts_factor)
+        row["intPoints"]       = adj_pts
+        row["intWin"]          = int(r.get("intWin")          or 0)
+        row["intDraw"]         = int(r.get("intDraw")         or 0)
+        row["intLoss"]         = int(r.get("intLoss")         or 0)
+        row["intGoalsFor"]     = int(r.get("intGoalsFor")     or 0)
+        row["intGoalsAgainst"] = int(r.get("intGoalsAgainst") or 0)
+        row["intPlayed"]       = int(r.get("intPlayed")       or 0)
+        rows[r["strTeam"]] = row
+
+    for fix in played_fixtures:
+        home = fix.get("strHomeTeam")
+        away = fix.get("strAwayTeam")
+        try:
+            hg = int(fix.get("intHomeScore"))
+            ag = int(fix.get("intAwayScore"))
+        except (TypeError, ValueError):
+            continue
+        if home not in rows or away not in rows:
+            continue
+        rows[home]["intPlayed"] += 1
+        rows[away]["intPlayed"] += 1
+        rows[home]["intGoalsFor"]     += hg
+        rows[home]["intGoalsAgainst"] += ag
+        rows[away]["intGoalsFor"]     += ag
+        rows[away]["intGoalsAgainst"] += hg
+        if hg > ag:
+            rows[home]["intWin"]    += 1
+            rows[home]["intPoints"] += 3
+            rows[away]["intLoss"]   += 1
+        elif hg < ag:
+            rows[away]["intWin"]    += 1
+            rows[away]["intPoints"] += 3
+            rows[home]["intLoss"]   += 1
+        else:
+            rows[home]["intDraw"]   += 1
+            rows[home]["intPoints"] += 1
+            rows[away]["intDraw"]   += 1
+            rows[away]["intPoints"] += 1
+
+    row_list = list(rows.values())
+    for row in row_list:
+        row["intGoalDifference"] = row["intGoalsFor"] - row["intGoalsAgainst"]
+    row_list.sort(key=lambda r: (
+        -int(r["intPoints"]),
+        -int(r["intGoalDifference"]),
+        -int(r["intGoalsFor"]),
+    ))
+    for i, row in enumerate(row_list, start=1):
+        row["intRank"] = i
+    return row_list

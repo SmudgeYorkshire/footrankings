@@ -15,7 +15,7 @@ from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_c
 from data_fetcher import SportsDBClient
 from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff
 from ratings_manager import load_ratings, build_lookup, check_coverage
-from _split_season import get_split_info, conference_fixtures
+from _split_season import get_split_info, conference_fixtures, recompute_conference_standings
 from league_status import LEAGUE_STATUS
 
 _API_KEY = os.getenv("THESPORTSDB_API_KEY", "3")
@@ -501,6 +501,24 @@ def main_content():
 
     split_info = get_split_info(standings, split_round, n_champ=n_champ, n_mid=cfg.get("n_mid", 0), pts_factor=pts_factor, presplit=_presplit_snapshot) if split_round else None
 
+    # If TheSportsDB stops updating conference standings post-split (e.g. Austrian
+    # Relegation Round), recompute them from played fixtures so the Current Table
+    # shows accurate results rather than stuck-at-split-round data.
+    if split_info and split_round:
+        _pts_round = cfg.get("pts_round", "down")
+        for _conf_key in ("relg_current", "mid_current"):
+            _conf_rows = split_info.get(_conf_key, [])
+            _conf_teams = split_info.get(
+                "relg_teams" if _conf_key == "relg_current" else "mid_teams", set()
+            )
+            if (_conf_rows and _conf_teams
+                    and all(int(r.get("intPlayed", 0)) <= split_round for r in _conf_rows)):
+                _conf_played = conference_fixtures(played_fixtures, _conf_teams)
+                if _conf_played:
+                    split_info[_conf_key] = recompute_conference_standings(
+                        _conf_rows, _conf_played, pts_factor, _pts_round
+                    )
+
     # Override pre_split with the accurate Round N snapshot if available
     if split_info and _presplit_snapshot:
         split_info["pre_split"] = sorted(_presplit_snapshot,
@@ -734,7 +752,7 @@ def main_content():
                 st.markdown(f"### 🔵 {_mid_label}")
                 st.markdown(_conf_progress_html(_mid_pf, _mid_rf), unsafe_allow_html=True)
                 st.caption(_pts_note)
-                _render_table(_table_rows(split_info["mid_current"], zones=_mid_zones))
+                _render_table(_table_rows(split_info["mid_current"], zones=_mid_zones, relative_zones=True))
                 st.caption(_tb_caption(_mid_tbs))
             if split_info.get("relg_current") and not cfg.get("champ_only"):
                 st.markdown("### ⚠️ Relegation Round")
@@ -1493,7 +1511,7 @@ def main_content():
 
                 # ── Champ vs Mid/Relg group European Play-off (Predictions) ──
                 _cmp2 = cfg.get("champ_mid_playoff")
-                if _cmp2 and not probs_champ.empty:
+                if _cmp2 and split_info and not probs_champ.empty:
                     _cmp2_away_conf = _cmp2.get("away_conf", "mid")
                     _cmp2_away_probs = (probs_relg if _cmp2_away_conf == "relg" else probs_mid)
                     if _cmp2_away_probs is not None and not _cmp2_away_probs.empty:
