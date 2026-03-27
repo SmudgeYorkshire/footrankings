@@ -77,7 +77,7 @@ WC_ELO: dict[str, int] = {
     "New Caledonia":  1294,
     # IC Playoff weighted-average placeholders (used in group projections)
     "IC Playoff 1 Winner": 1602,   # weighted avg: DR Congo 68%, Jamaica 29%, New Caledonia 2%
-    "IC Playoff 2 Winner": 1610,   # weighted avg: Bolivia 48%, Iraq 46%, Suriname 7%
+    "IC Playoff 2 Winner": 1631,   # weighted avg: Bolivia (confirmed SF winner) 61% vs Iraq 39%
 }
 
 # ---------------------------------------------------------------------------
@@ -187,6 +187,8 @@ UEFA_PLAYOFF_PATHS: dict[str, dict] = {
         "semifinal_1":    ("Italy",   "Northern Ireland"),
         "semifinal_2":    ("Wales",   "Bosnia-Herzegovina"),
         "winner_group":   "B",
+        "sf1_winner":     "Italy",              "sf1_score": "2–0",
+        "sf2_winner":     "Bosnia-Herzegovina", "sf2_score": "1–1 (aet, 4–2 pens)",
     },
     "B": {
         "label":          "Path B → Group F",
@@ -195,8 +197,10 @@ UEFA_PLAYOFF_PATHS: dict[str, dict] = {
         "semifinal_1":    ("Ukraine", "Sweden"),
         "semifinal_2":    ("Poland",  "Albania"),
         "winner_group":   "F",
-        "neutral_sf1":    True,   # SF1 (Ukraine) at neutral ground — Ukraine cannot host
-        "neutral_final":  True,   # Final at neutral ground if Ukraine participates
+        "neutral_sf1":    True,
+        "neutral_final":  True,
+        "sf1_winner":     "Sweden", "sf1_score": "3–1",
+        "sf2_winner":     "Poland", "sf2_score": "2–1",
     },
     "C": {
         "label":          "Path C → Group D",
@@ -205,6 +209,8 @@ UEFA_PLAYOFF_PATHS: dict[str, dict] = {
         "semifinal_1":    ("Turkey",  "Romania"),
         "semifinal_2":    ("Slovakia", "Kosovo"),
         "winner_group":   "D",
+        "sf1_winner":     "Turkey", "sf1_score": "1–0",
+        "sf2_winner":     "Kosovo", "sf2_score": "4–3 (aet)",
     },
     "D": {
         "label":          "Path D → Group A",
@@ -213,6 +219,8 @@ UEFA_PLAYOFF_PATHS: dict[str, dict] = {
         "semifinal_1":    ("Denmark", "N. Macedonia"),
         "semifinal_2":    ("Czechia", "Ireland"),
         "winner_group":   "A",
+        "sf1_winner":     "Denmark", "sf1_score": "4–0",
+        "sf2_winner":     "Czechia", "sf2_score": "2–2 (aet, 4–3 pens)",
     },
 }
 
@@ -227,10 +235,10 @@ FIFA_IC_PLAYOFFS: dict[str, dict] = {
         "final_date":   "2026-03-31",
         "semi_venue":   "Guadalajara (Estadio Akron)",
         "final_venue":  "Guadalajara (Estadio Akron)",
-        # Top-ranked team receives a bye directly to the final
-        "bye_team":     "DR Congo",          # CAF  — seeded, plays final only
-        "semifinal":    ("New Caledonia", "Jamaica"),   # OFC vs CONCACAF
+        "bye_team":     "DR Congo",
+        "semifinal":    ("New Caledonia", "Jamaica"),
         "winner_group": "K",
+        "sf_winner":    "Jamaica", "sf_score": "0–1",
     },
     "2": {
         "label":        "Pathway 2 → Group I",
@@ -238,10 +246,10 @@ FIFA_IC_PLAYOFFS: dict[str, dict] = {
         "final_date":   "2026-03-31",
         "semi_venue":   "Monterrey (Estadio BBVA)",
         "final_venue":  "Monterrey (Estadio BBVA)",
-        # Top-ranked team receives a bye directly to the final
-        "bye_team":     "Iraq",              # AFC  — seeded, plays final only
-        "semifinal":    ("Bolivia", "Suriname"),        # CONMEBOL vs CONCACAF
+        "bye_team":     "Iraq",
+        "semifinal":    ("Bolivia", "Suriname"),
         "winner_group": "I",
+        "sf_winner":    "Bolivia", "sf_score": "2–1",
     },
 }
 
