@@ -12,7 +12,7 @@ import numpy as np
 
 from world_cup_2026 import (
     WC_GROUPS, WC_ELO, WC_FLAGS,
-    UEFA_PLAYOFF_PATHS, FIFA_IC_PLAYOFFS, IC_PLAYOFF_INFO, WC_FORMAT,
+    UEFA_PLAYOFF_PATHS, WC_FORMAT,
 )
 
 # ---------------------------------------------------------------------------
@@ -421,119 +421,6 @@ def _style_tournament_df(df: pd.DataFrame) -> pd.io.formats.style.Styler:
 # Section renderers
 # ---------------------------------------------------------------------------
 
-def _render_uefa_playoff() -> None:
-    st.markdown("## UEFA Play-off for World Cup")
-    st.markdown(
-        "Four paths decide the final four European spots. "
-        "**Semi-finals: March 26** — **Finals: March 31, 2026.** "
-        "Predictions are based on Elo ratings from [eloratings.net](https://www.eloratings.net/)."
-    )
-
-    cols = st.columns(2)
-    for idx, (path_key, path) in enumerate(UEFA_PLAYOFF_PATHS.items()):
-        with cols[idx % 2]:
-            st.markdown(f"### Path {path_key} → Group {path['winner_group']}")
-            s1a, s1b = path["semifinal_1"]
-            s2a, s2b = path["semifinal_2"]
-            e1a, e1b = _resolve_elo(s1a), _resolve_elo(s1b)
-            e2a, e2b = _resolve_elo(s2a), _resolve_elo(s2b)
-
-            _neutral_sf1   = path.get("neutral_sf1",   path.get("neutral", False))
-            _neutral_sf2   = path.get("neutral_sf2",   path.get("neutral", False))
-            _neutral_final = path.get("neutral_final", path.get("neutral", False))
-            _sf1_winner    = path.get("sf1_winner")
-            _sf2_winner    = path.get("sf2_winner")
-
-            # Semi-final 1
-            st.markdown(f"**Semi-final 1** *(March 26)*")
-            if _sf1_winner:
-                _sf1_loser = s1b if _sf1_winner == s1a else s1a
-                st.markdown(
-                    f"✅ {_flag(_sf1_winner)} **{_sf1_winner}** {path.get('sf1_score','')} "
-                    f"{_sf1_loser} {_flag(_sf1_loser)}",
-                    unsafe_allow_html=True,
-                )
-            else:
-                _sf1_prefix = "⚪" if _neutral_sf1 else "🏠"
-                p1a = _elo_win_prob(e1a, e1b, 0.0 if _neutral_sf1 else _UEFA_HOME_ADV)
-                st.markdown(
-                    f"{_sf1_prefix} {_flag(s1a)} **{s1a}** "
-                    f"<span style='color:#1a73e8'>{p1a*100:.0f}%</span> vs "
-                    f"<span style='color:#e53935'>{(1-p1a)*100:.0f}%</span> "
-                    f"**{s1b}** {_flag(s1b)}",
-                    unsafe_allow_html=True,
-                )
-
-            # Semi-final 2
-            st.markdown(f"**Semi-final 2** *(March 26)*")
-            if _sf2_winner:
-                _sf2_loser = s2b if _sf2_winner == s2a else s2a
-                st.markdown(
-                    f"✅ {_flag(_sf2_winner)} **{_sf2_winner}** {path.get('sf2_score','')} "
-                    f"{_sf2_loser} {_flag(_sf2_loser)}",
-                    unsafe_allow_html=True,
-                )
-            else:
-                _sf2_prefix = "⚪" if _neutral_sf2 else "🏠"
-                p2a = _elo_win_prob(e2a, e2b, 0.0 if _neutral_sf2 else _UEFA_HOME_ADV)
-                st.markdown(
-                    f"{_sf2_prefix} {_flag(s2a)} **{s2a}** "
-                    f"<span style='color:#1a73e8'>{p2a*100:.0f}%</span> vs "
-                    f"<span style='color:#e53935'>{(1-p2a)*100:.0f}%</span> "
-                    f"**{s2b}** {_flag(s2b)}",
-                    unsafe_allow_html=True,
-                )
-
-            # Final
-            _final_city      = path.get("final_city", "")
-            _final_host_sf1  = path.get("final_host_sf1", False)
-            _city_note       = f" · {_final_city}" if _final_city else ""
-            st.markdown(f"**Final** *(March 31{_city_note})*")
-            if _sf1_winner and _sf2_winner:
-                # Both finalists known — show direct probabilities
-                e1 = _resolve_elo(_sf1_winner)
-                e2 = _resolve_elo(_sf2_winner)
-                _fadv = (_UEFA_HOME_ADV if _final_host_sf1
-                         else 0.0 if _neutral_final
-                         else -_UEFA_HOME_ADV)
-                pf1 = _elo_win_prob(e1, e2, _fadv)
-                if _neutral_final:
-                    _host_note = "⚪ Neutral venue"
-                elif _final_host_sf1:
-                    _host_note = f"🏠 {_sf1_winner} hosts"
-                else:
-                    _host_note = f"🏠 {_sf2_winner} hosts"
-                st.caption(_host_note)
-                rows_fp = [
-                    {"Team": f"{_flag(_sf1_winner)} {_sf1_winner}", "Win Path %": f"{pf1*100:.1f}%"},
-                    {"Team": f"{_flag(_sf2_winner)} {_sf2_winner}", "Win Path %": f"{(1-pf1)*100:.1f}%"},
-                ]
-                best = _sf1_winner if pf1 >= 0.5 else _sf2_winner
-            else:
-                # SFs not yet played — compute weighted probabilities
-                p1a = _elo_win_prob(e1a, e1b, 0.0 if _neutral_sf1 else _UEFA_HOME_ADV); p1b = 1-p1a
-                p2a = _elo_win_prob(e2a, e2b, 0.0 if _neutral_sf2 else _UEFA_HOME_ADV); p2b = 1-p2a
-                final_probs: dict[str, float] = {}
-                for w1, elo1, p1, is_sf1 in [(s1a, e1a, p1a, True), (s1b, e1b, p1b, False)]:
-                    for w2, elo2, p2 in [(s2a, e2a, p2a), (s2b, e2b, p2b)]:
-                        _fadv = (_UEFA_HOME_ADV if (_final_host_sf1 and is_sf1)
-                                 else 0.0 if _neutral_final
-                                 else -_UEFA_HOME_ADV)
-                        pf = _elo_win_prob(elo1, elo2, _fadv)
-                        final_probs[w1] = final_probs.get(w1, 0) + p1 * p2 * pf
-                        final_probs[w2] = final_probs.get(w2, 0) + p1 * p2 * (1 - pf)
-                fp_sorted = sorted(final_probs.items(), key=lambda x: -x[1])
-                best = fp_sorted[0][0]
-                rows_fp = [{"Team": f"{_flag(t)} {t}", "Win Path %": f"{p*100:.1f}%"}
-                           for t, p in fp_sorted]
-            st.dataframe(pd.DataFrame(rows_fp), hide_index=True, use_container_width=True)
-            st.markdown(
-                f"**Predicted qualifier:** {_flag(best)} **{best}** "
-                f"→ joins Group {path['winner_group']}",
-            )
-            st.divider()
-
-
 def _render_group_stage() -> None:
     st.markdown("## Group Stage Projections")
     st.caption(
@@ -622,126 +509,11 @@ def _render_knockout() -> None:
     st.dataframe(_style_tournament_df(df), use_container_width=True)
 
 
-def _render_fifa_playoff() -> None:
-    st.markdown("## FIFA Inter-Confederation Play-offs")
-    st.markdown(
-        "Six teams from five confederations compete for the final **two World Cup spots**. "
-        "The two highest-ranked teams (DR Congo and Iraq) receive **byes** directly to the finals. "
-        "**Semi-finals: March 26** — **Finals: March 31, 2026.** "
-        "All matches played in Mexico (single-leg; extra time + penalties if tied). "
-        "Predictions based on Elo ratings from [eloratings.net](https://www.eloratings.net/)."
-    )
-
-    conf_labels = {
-        "DR Congo": "CAF", "Iraq": "AFC",
-        "Jamaica": "CONCACAF", "Bolivia": "CONMEBOL",
-        "Suriname": "CONCACAF", "New Caledonia": "OFC",
-    }
-
-    cols = st.columns(2)
-    for idx, (path_key, path) in enumerate(FIFA_IC_PLAYOFFS.items()):
-        with cols[idx]:
-            st.markdown(f"### Pathway {path_key} → Group {path['winner_group']}")
-            bye_team     = path["bye_team"]
-            sf_a, sf_b   = path["semifinal"]
-            e_bye        = _resolve_elo(bye_team)
-            e_sf_a       = _resolve_elo(sf_a)
-            e_sf_b       = _resolve_elo(sf_b)
-            sf_done      = "sf_winner" in path
-
-            # ── Semi-final ────────────────────────────────────────────────
-            st.markdown(f"**Semi-final** *(March 26 · {path['semi_venue']})*")
-            if sf_done:
-                sf_winner = path["sf_winner"]
-                sf_loser  = sf_b if sf_winner == sf_a else sf_a
-                st.markdown(
-                    f"✅ {_flag(sf_winner)} **{sf_winner}** {path['sf_score']} "
-                    f"{_flag(sf_loser)} ~~{sf_loser}~~",
-                    unsafe_allow_html=True,
-                )
-            else:
-                p_sf_a = _elo_win_prob(e_sf_a, e_sf_b); p_sf_b = 1.0 - p_sf_a
-                st.markdown(
-                    f"{_flag(sf_a)} **{sf_a}** "
-                    f"<span style='color:#1a73e8'>{p_sf_a*100:.0f}%</span> vs "
-                    f"<span style='color:#e53935'>{p_sf_b*100:.0f}%</span> "
-                    f"**{sf_b}** {_flag(sf_b)}",
-                    unsafe_allow_html=True,
-                )
-            st.caption("Neutral venue · extra time & penalties if level after 90 min")
-
-            # ── Final ─────────────────────────────────────────────────────
-            st.markdown(f"**Final** *(March 31 · {path['final_venue']})*")
-            if sf_done:
-                sf_winner = path["sf_winner"]
-                e_sw = _resolve_elo(sf_winner)
-                p_bye = _elo_win_prob(e_bye, e_sw)
-                p_sf  = 1.0 - p_bye
-                st.markdown(
-                    f"{_flag(bye_team)} **{bye_team}** "
-                    f"<span style='color:#1a73e8'>{p_bye*100:.0f}%</span> vs "
-                    f"<span style='color:#e53935'>{p_sf*100:.0f}%</span> "
-                    f"**{sf_winner}** {_flag(sf_winner)}",
-                    unsafe_allow_html=True,
-                )
-                final_probs = {bye_team: p_bye, sf_winner: p_sf}
-                all_teams = [bye_team, sf_winner]
-            else:
-                p_sf_a = _elo_win_prob(e_sf_a, e_sf_b); p_sf_b = 1.0 - p_sf_a
-                st.markdown(
-                    f"{_flag(bye_team)} **{bye_team}** *(bye — seeded)* "
-                    f"<span style='color:#888'>Elo {int(e_bye)}</span>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown("vs. winner of semi-final above")
-                # Weighted win probabilities (neutral; sums to 100%)
-                final_probs: dict[str, float] = {}
-                for sw, e_sw, p_sw in [(sf_a, e_sf_a, p_sf_a), (sf_b, e_sf_b, p_sf_b)]:
-                    pf_bye = _elo_win_prob(e_bye, e_sw)
-                    final_probs[bye_team] = final_probs.get(bye_team, 0) + p_sw * pf_bye
-                    final_probs[sw]       = final_probs.get(sw, 0)       + p_sw * (1 - pf_bye)
-                all_teams = [bye_team, sf_a, sf_b]
-
-            # ── Overall pathway win table ─────────────────────────────────
-            st.markdown("**Overall pathway win probability:**")
-            rows = []
-            for t in sorted(all_teams, key=lambda x: -final_probs.get(x, 0)):
-                prob = final_probs.get(t, 0)
-                rows.append({
-                    "Team":          f"{_flag(t)} {t}",
-                    "Confederation": conf_labels.get(t, ""),
-                    "Elo":           int(_resolve_elo(t)),
-                    "Win %":         f"{prob*100:.1f}%",
-                    "Role":          "Seeded (bye)" if t == bye_team else "Finalist" if sf_done else "Semi-final",
-                })
-            df = pd.DataFrame(rows)
-            st.dataframe(df, hide_index=True, use_container_width=True)
-
-            best = max(final_probs, key=final_probs.get)
-            st.markdown(
-                f"**Predicted qualifier:** {_flag(best)} **{best}** → joins Group {path['winner_group']}",
-            )
-            st.divider()
-
-
 def _render_my_predictions() -> None:
     st.markdown("## My Predictions")
     st.caption(
         "Personal picks based on Elo projections, current form, and tournament experience."
     )
-
-    st.markdown("### UEFA Play-off predicted qualifiers")
-    po_preds = [
-        ("A", "Italy",   "🇮🇹"),
-        ("B", "Ukraine", "🇺🇦"),
-        ("C", "Turkey",  "🇹🇷"),
-        ("D", "Denmark", "🇩🇰"),
-    ]
-    for path_key, team, flag in po_preds:
-        group = UEFA_PLAYOFF_PATHS[path_key]["winner_group"]
-        st.markdown(f"- **Path {path_key}**: {flag} **{team}** → Group {group}")
-
-    st.divider()
 
     st.markdown("### Predicted Group Winners & Runners-up")
     gw_data = {
@@ -795,114 +567,7 @@ def _render_my_predictions() -> None:
 
 def _render_manual_predictions_wc() -> None:
     st.markdown("## 🔮 Manual Predictions")
-    st.caption(
-        "Pick semi-final winners to see Final win probabilities, "
-        "or enter group stage scores to run simulations."
-    )
-
-    # ── UEFA Play-off Finals ───────────────────────────────────────────────
-    st.markdown("### 🏆 UEFA Play-off Finals")
-    st.caption("Select who advances from each semi-final to see their Final win probabilities.")
-
-    for path_key, path in UEFA_PLAYOFF_PATHS.items():
-        s1a, s1b = path["semifinal_1"]
-        s2a, s2b = path["semifinal_2"]
-        _n_sf1 = path.get("neutral_sf1", path.get("neutral", False))
-        _n_sf2 = path.get("neutral_sf2", path.get("neutral", False))
-        _n_fin = path.get("neutral_final", path.get("neutral", False))
-
-        with st.expander(f"**Path {path_key}** — {path['label']}", expanded=False):
-            c1, c2 = st.columns(2)
-            with c1:
-                sf1_hadv = 0.0 if _n_sf1 else _UEFA_HOME_ADV
-                p1a = _elo_win_prob(_resolve_elo(s1a), _resolve_elo(s1b), sf1_hadv)
-                sf1_icon = "⚪" if _n_sf1 else "🏠"
-                st.markdown(
-                    f"**SF1** — {sf1_icon} {_flag(s1a)} **{s1a}** "
-                    f"<span style='color:#1a73e8'>{p1a*100:.0f}%</span> vs "
-                    f"<span style='color:#e53935'>{(1-p1a)*100:.0f}%</span> "
-                    f"**{s1b}** {_flag(s1b)}",
-                    unsafe_allow_html=True,
-                )
-                sf1_winner = st.radio(
-                    "SF1 winner", [s1a, s1b],
-                    format_func=lambda t: f"{_flag(t)} {t}",
-                    key=f"wc_uefa_sf1_{path_key}",
-                    horizontal=True,
-                )
-            with c2:
-                sf2_hadv = 0.0 if _n_sf2 else _UEFA_HOME_ADV
-                p2a = _elo_win_prob(_resolve_elo(s2a), _resolve_elo(s2b), sf2_hadv)
-                sf2_icon = "⚪" if _n_sf2 else "🏠"
-                st.markdown(
-                    f"**SF2** — {sf2_icon} {_flag(s2a)} **{s2a}** "
-                    f"<span style='color:#1a73e8'>{p2a*100:.0f}%</span> vs "
-                    f"<span style='color:#e53935'>{(1-p2a)*100:.0f}%</span> "
-                    f"**{s2b}** {_flag(s2b)}",
-                    unsafe_allow_html=True,
-                )
-                sf2_winner = st.radio(
-                    "SF2 winner", [s2a, s2b],
-                    format_func=lambda t: f"{_flag(t)} {t}",
-                    key=f"wc_uefa_sf2_{path_key}",
-                    horizontal=True,
-                )
-            # Final win probability — SF2 winner hosts unless neutral
-            e1 = _resolve_elo(sf1_winner)
-            e2 = _resolve_elo(sf2_winner)
-            _fadv = 0.0 if _n_fin else -_UEFA_HOME_ADV  # SF2 winner hosts
-            pf1 = _elo_win_prob(e1, e2, _fadv)
-            host_note = "Neutral venue" if _n_fin else f"🏠 {sf2_winner} hosts"
-            st.markdown(
-                f"**Final** — {host_note}  \n"
-                f"{_flag(sf1_winner)} **{sf1_winner}** "
-                f"<span style='color:#1a73e8;font-size:1.2em'><b>{pf1*100:.1f}%</b></span>"
-                f"&nbsp;&nbsp;vs&nbsp;&nbsp;"
-                f"<span style='color:#e53935;font-size:1.2em'><b>{(1-pf1)*100:.1f}%</b></span>"
-                f" **{sf2_winner}** {_flag(sf2_winner)}",
-                unsafe_allow_html=True,
-            )
-
-    st.divider()
-
-    # ── FIFA IC Play-off Finals ────────────────────────────────────────────
-    st.markdown("### 🌍 FIFA Play-off Finals")
-    st.caption("All matches at neutral venues in Mexico. Select the semi-final winner.")
-
-    fifa_cols = st.columns(2)
-    for col_idx, (path_key, path) in enumerate(FIFA_IC_PLAYOFFS.items()):
-        bye_team   = path["bye_team"]
-        sf_a, sf_b = path["semifinal"]
-        with fifa_cols[col_idx]:
-            st.markdown(f"**Pathway {path_key}** → Group {path['winner_group']}")
-            p_sf_a = _elo_win_prob(_resolve_elo(sf_a), _resolve_elo(sf_b))
-            st.markdown(
-                f"SF: {_flag(sf_a)} **{sf_a}** "
-                f"<span style='color:#1a73e8'>{p_sf_a*100:.0f}%</span> vs "
-                f"<span style='color:#e53935'>{(1-p_sf_a)*100:.0f}%</span>"
-                f" **{sf_b}** {_flag(sf_b)}",
-                unsafe_allow_html=True,
-            )
-            sf_winner = st.radio(
-                "SF winner", [sf_a, sf_b],
-                format_func=lambda t: f"{_flag(t)} {t}",
-                key=f"wc_fifa_sf_{path_key}",
-                horizontal=True,
-            )
-            e_bye = _resolve_elo(bye_team)
-            e_sf  = _resolve_elo(sf_winner)
-            pf_bye = _elo_win_prob(e_bye, e_sf)  # neutral
-            st.markdown(
-                f"**Final** *(neutral)*  \n"
-                f"{_flag(bye_team)} **{bye_team}** *(bye)* "
-                f"<span style='color:#1a73e8;font-size:1.2em'><b>{pf_bye*100:.1f}%</b></span>"
-                f"&nbsp;&nbsp;vs&nbsp;&nbsp;"
-                f"<span style='color:#e53935;font-size:1.2em'><b>{(1-pf_bye)*100:.1f}%</b></span>"
-                f" **{sf_winner}** {_flag(sf_winner)}",
-                unsafe_allow_html=True,
-            )
-
-    st.divider()
+    st.caption("Enter predicted group stage scores to run simulations.")
 
     # ── Group Stage ───────────────────────────────────────────────────────
     st.markdown("### ⚽ Group Stage Predictions")
@@ -1035,20 +700,12 @@ def render_world_cup() -> None:
     )
     st.divider()
 
-    tab_po, tab_fifa, tab_groups, tab_ko, tab_manual, tab_picks = st.tabs([
-        "🏆 UEFA Play-off",
-        "🌍 FIFA Play-offs",
+    tab_groups, tab_ko, tab_manual, tab_picks = st.tabs([
         "⚽ Group Stage",
         "🥊 Knockout",
         "🔮 Manual Predictions",
         "🎯 My Predictions",
     ])
-
-    with tab_po:
-        _render_uefa_playoff()
-
-    with tab_fifa:
-        _render_fifa_playoff()
 
     with tab_groups:
         _render_group_stage()
