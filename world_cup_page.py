@@ -12,7 +12,7 @@ import numpy as np
 
 from world_cup_2026 import (
     WC_GROUPS, WC_ELO, WC_FLAGS,
-    UEFA_PLAYOFF_PATHS, WC_FORMAT,
+    UEFA_PLAYOFF_PATHS, FIFA_IC_PLAYOFFS, WC_FORMAT,
 )
 
 # ---------------------------------------------------------------------------
@@ -105,6 +105,23 @@ def _display_name(team: str) -> str:
     if f1 and f2:
         return f"{f1} / {f2}"
     return team
+
+
+def _playoff_options(placeholder: str) -> tuple[str, str] | None:
+    """Return (finalist_1, finalist_2) for a playoff placeholder, or None if unresolved."""
+    if placeholder.startswith("UEFA PO Path "):
+        key = placeholder.replace("UEFA PO Path ", "").replace(" Winner", "")
+        path = UEFA_PLAYOFF_PATHS.get(key, {})
+        f1, f2 = path.get("sf1_winner"), path.get("sf2_winner")
+        if f1 and f2:
+            return (f1, f2)
+    elif placeholder.startswith("IC Playoff "):
+        num = placeholder.replace("IC Playoff ", "").replace(" Winner", "")
+        po = FIFA_IC_PLAYOFFS.get(num, {})
+        bye, sf_w = po.get("bye_team"), po.get("sf_winner")
+        if bye and sf_w:
+            return (bye, sf_w)
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -241,6 +258,37 @@ def simulate_group(group_key: str, n: int = 20_000) -> pd.DataFrame:
             "Advance %": adv,
         })
 
+    df = pd.DataFrame(rows)
+    df.sort_values("Advance %", ascending=False, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    df.index += 1
+    return df
+
+
+@st.cache_data(show_spinner=False)
+def simulate_group_with_teams(teams_tuple: tuple, n: int = 20_000) -> pd.DataFrame:
+    """Monte Carlo group simulation for an exact list of teams (playoff substitution)."""
+    teams = list(teams_tuple)
+    elos  = [_effective_elo(t) for t in teams]
+    finish_counts = {t: [0, 0, 0, 0] for t in teams}
+    np.random.seed(42)
+    for _ in range(n):
+        res = _simulate_group_once(teams, elos)
+        for pos, (team, *_) in enumerate(res):
+            finish_counts[team][pos] += 1
+    rows = []
+    for t, elo in zip(teams, elos):
+        cnts = finish_counts[t]
+        p1, p2, p3, p4 = [c / n * 100 for c in cnts]
+        rows.append({
+            "Team":      _flag(t) + " " + t,
+            "Elo":       int(elo),
+            "1st %":     p1,
+            "2nd %":     p2,
+            "3rd %":     p3,
+            "4th %":     p4,
+            "Advance %": p1 + p2 + (8 / 12) * p3,
+        })
     df = pd.DataFrame(rows)
     df.sort_values("Advance %", ascending=False, inplace=True)
     df.reset_index(drop=True, inplace=True)
@@ -448,45 +496,23 @@ def _style_tournament_df(df: pd.DataFrame) -> pd.io.formats.style.Styler:
 # Section renderers
 # ---------------------------------------------------------------------------
 
-def _render_group_stage() -> None:
-    st.markdown("## Group Stage Projections")
-    st.caption(
-        "Monte Carlo simulation (20,000 runs) using Elo ratings. "
-        "Advance % = P(1st) + P(2nd) + 0.67 × P(3rd)."
-    )
+def _render_group_scenario(teams: list[str]) -> None:
+    """Render team overview, projected standings, and fixture odds for one group lineup."""
+    elos = [_effective_elo(t) for t in teams]
 
-    group_keys = sorted(WC_GROUPS.keys())
-    group_sel  = st.selectbox("Select Group", group_keys,
-                              format_func=lambda g: f"Group {g}")
-
-    teams = WC_GROUPS[group_sel]
-    elos  = [_effective_elo(t) for t in teams]
-
-    # Quick team overview
-    st.markdown(f"### Group {group_sel}")
     team_cols = st.columns(4)
     for i, (t, elo) in enumerate(zip(teams, elos)):
         with team_cols[i]:
-            st.metric(f"{_flag(t)} {_display_name(t)}", f"Elo {int(elo)}")
+            st.metric(f"{_flag(t)} {t}", f"Elo {int(elo)}")
 
     st.markdown("---")
 
     with st.spinner("Running simulation…"):
-        df = simulate_group(group_sel)
-
-    # Replace placeholder names with confirmed finalists in display
-    df = df.copy()
-    for _pk, _p in UEFA_PLAYOFF_PATHS.items():
-        _f1, _f2 = _p.get("sf1_winner"), _p.get("sf2_winner")
-        if _f1 and _f2:
-            df["Team"] = df["Team"].str.replace(
-                f"UEFA PO Path {_pk} Winner", f"{_f1} / {_f2}", regex=False
-            )
+        df = simulate_group_with_teams(tuple(teams))
 
     st.markdown("#### Projected Group Standings")
     st.dataframe(_style_group_df(df), use_container_width=True)
 
-    # Show all group matchups with odds
     st.markdown("#### Group Fixtures & Odds")
     matchups = [(0,1),(2,3),(0,2),(1,3),(0,3),(1,2)]
     md_labels = ["MD1","MD1","MD2","MD2","MD3","MD3"]
@@ -499,13 +525,49 @@ def _render_group_stage() -> None:
         ea, eb = _effective_elo(ta), _effective_elo(tb)
         pa, pd_, pb = _match_probs(ea, eb)
         st.markdown(
-            f"{_flag(ta)} **{_display_name(ta)}** "
+            f"{_flag(ta)} **{ta}** "
             f"<span style='color:#1a73e8'>{pa*100:.0f}%</span> · "
             f"<span style='color:#888'>{pd_*100:.0f}%</span> · "
             f"<span style='color:#e53935'>{pb*100:.0f}%</span> "
-            f"**{_display_name(tb)}** {_flag(tb)}",
+            f"**{tb}** {_flag(tb)}",
             unsafe_allow_html=True,
         )
+
+
+def _render_group_stage() -> None:
+    st.markdown("## Group Stage Projections")
+    st.caption(
+        "Monte Carlo simulation (20,000 runs) using Elo ratings. "
+        "Advance % = P(1st) + P(2nd) + 0.67 × P(3rd)."
+    )
+
+    group_keys = sorted(WC_GROUPS.keys())
+    group_sel  = st.selectbox("Select Group", group_keys,
+                              format_func=lambda g: f"Group {g}")
+
+    teams = list(WC_GROUPS[group_sel])
+
+    # Find playoff placeholder in this group (if any)
+    _placeholder = next(
+        (t for t in teams if t.startswith("UEFA PO Path ") or t.startswith("IC Playoff ")),
+        None,
+    )
+    _options = _playoff_options(_placeholder) if _placeholder else None
+
+    st.markdown(f"### Group {group_sel}")
+
+    if _options:
+        f1, f2 = _options
+        tab1, tab2 = st.tabs([
+            f"{_flag(f1)} {f1} qualifies",
+            f"{_flag(f2)} {f2} qualifies",
+        ])
+        for finalist, tab in [(f1, tab1), (f2, tab2)]:
+            with tab:
+                sub = [finalist if t == _placeholder else t for t in teams]
+                _render_group_scenario(sub)
+    else:
+        _render_group_scenario(teams)
 
 
 def _render_knockout() -> None:
