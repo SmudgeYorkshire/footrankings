@@ -8,77 +8,77 @@ Groups, fixtures, Elo ratings, UEFA/IC playoff brackets.
 # Elo ratings (from eloratings.net, March 2026)
 # ---------------------------------------------------------------------------
 WC_ELO: dict[str, int] = {
-    # All ratings from eloratings.net World.tsv — updated 30 March 2026
-    # (post-UEFA playoff semi-finals and IC playoff semi-finals)
+    # All ratings from eloratings.net World.tsv — updated 1 April 2026
+    # (post-UEFA & IC playoff finals; Bosnia/Czechia estimated pending eloratings update)
     "Spain":              2174,
     "Argentina":          2113,
     "France":             2082,
-    "England":            2036,
+    "England":            2020,   # -16
     "Portugal":           1975,
     "Colombia":           1975,
     "Brazil":             1970,
-    "Netherlands":        1965,
+    "Netherlands":        1961,   # -4
     "Croatia":            1944,
-    "Ecuador":            1929,
-    "Germany":            1922,
-    "Norway":             1916,
-    "Uruguay":            1896,
-    "Japan":              1888,
-    "Switzerland":        1885,
-    "Turkey":             1885,
+    "Ecuador":            1933,   # +4
+    "Germany":            1923,   # +1
+    "Norway":             1912,   # -4
+    "Uruguay":            1892,   # -4
+    "Japan":              1904,   # +16
+    "Turkey":             1902,   # +17 (UEFA playoff final win vs Kosovo)
+    "Switzerland":        1889,   # +4
     "Senegal":            1878,
-    "Denmark":            1873,
-    "Italy":              1866,
+    "Denmark":            1873,   # eliminated (Elo drop pending eloratings update)
+    "Italy":              1866,   # eliminated (Elo drop pending eloratings update)
     "Belgium":            1866,
     "Mexico":             1858,
-    "Paraguay":           1844,
-    "Austria":            1821,
-    "Morocco":            1810,
+    "Paraguay":           1833,   # -11
+    "Austria":            1827,   # +6
+    "Morocco":            1821,   # +11
     "Canada":             1794,
-    "Scotland":           1780,
-    "Australia":          1779,
-    "Ukraine":            1760,
-    "South Korea":        1758,
-    "Poland":             1746,
-    "Algeria":            1739,
-    "Iran":               1739,
-    "Kosovo":             1738,
+    "Australia":          1783,   # +4
+    "Ukraine":            1767,   # +7
+    "Scotland":           1767,   # -13
+    "South Korea":        1752,   # -6
+    "Algeria":            1743,   # +4
+    "Iran":               1760,   # +21
+    "Sweden":             1719,   # +17 (UEFA playoff final win vs Poland)
+    "Bosnia-Herzegovina": 1615,   # estimated +31 (final win vs Italy, eloratings pending)
+    "Czechia":            1747,   # estimated +24 (final win vs Denmark, eloratings pending)
     "United States":      1730,
-    "Panama":             1730,
+    "Panama":             1737,   # +7
     "Uzbekistan":         1727,
     "Venezuela":          1727,
-    "Czechia":            1723,
-    "Hungary":            1705,
-    "Wales":              1703,
-    "Sweden":             1702,
-    "Jordan":             1687,
+    "Kosovo":             1721,   # -17 (eliminated)
+    "Poland":             1729,   # -17 (eliminated)
+    "Hungary":            1703,   # -2
+    "Wales":              1698,   # -5 (eliminated)
+    "Jordan":             1690,   # +3
     "Egypt":              1680,
     "Bolivia":            1670,
-    "Ivory Coast":        1663,
-    "Slovakia":           1663,
-    "South Africa":       1531,
-    "Albania":            1653,
+    "Ivory Coast":        1676,   # +13
+    "Slovakia":           1673,   # +10 (eliminated)
+    "Albania":            1646,   # -7 (eliminated)
     "DR Congo":           1640,
-    "Romania":            1637,
-    "Ireland":            1696,
+    "Romania":            1627,   # -10 (eliminated)
+    "Ireland":            1691,   # -5 (eliminated)
     "Tunisia":            1626,
-    "Haiti":              1530,
+    "Haiti":              1532,   # +2
     "New Caledonia":      1286,
-    "N. Macedonia":       1584,
-    "Bosnia-Herzegovina": 1584,
+    "N. Macedonia":       1589,   # +5 (eliminated)
     "Iraq":               1582,
     "New Zealand":        1585,
-    "Ghana":              1506,
-    "Curaçao":            1440,
+    "Ghana":              1505,   # -1
+    "Curaçao":            1436,   # -4
     "Qatar":              1425,
     "Cape Verde":         1549,
-    "Saudi Arabia":       1571,
-    "Northern Ireland":   1457,
+    "Saudi Arabia":       1568,   # -3
+    "Northern Ireland":   1457,   # (eliminated)
     "Jamaica":            1550,
     "Suriname":           1431,
+    "South Africa":       1524,   # -7
     # IC Playoff weighted-average placeholders (used in group projections)
-    "IC Playoff 1 Winner": 1606,   # weighted avg: DR Congo (1640) 63% vs Jamaica (1550) 37%
-    "IC Playoff 2 Winner": 1637,   # weighted avg: Bolivia (1670) 62% vs Iraq (1582) 38%
+    "IC Playoff 1 Winner": 1606,   # DR Congo (1640) 63% vs Jamaica (1550) 37%
+    "IC Playoff 2 Winner": 1637,   # Bolivia (1670) 62% vs Iraq (1582) 38%
 }
 
 # ---------------------------------------------------------------------------
@@ -162,18 +162,18 @@ WC_FLAGS: dict[str, str] = {
 # Groups (post-draw; UEFA/IC playoff winners are placeholders)
 # ---------------------------------------------------------------------------
 WC_GROUPS: dict[str, list[str]] = {
-    "A": ["Mexico",        "South Korea",  "South Africa",       "UEFA PO Path D Winner"],
-    "B": ["Canada",        "Switzerland",  "Qatar",              "UEFA PO Path A Winner"],
-    "C": ["Brazil",        "Morocco",      "Scotland",           "Haiti"],
-    "D": ["United States", "Paraguay",     "Australia",          "UEFA PO Path C Winner"],
-    "E": ["Germany",       "Ecuador",      "Ivory Coast",        "Curaçao"],
-    "F": ["Netherlands",   "Japan",        "Tunisia",            "UEFA PO Path B Winner"],
-    "G": ["Belgium",       "Egypt",        "Iran",               "New Zealand"],
-    "H": ["Spain",         "Uruguay",      "Saudi Arabia",       "Cape Verde"],
-    "I": ["France",        "Senegal",      "Norway",             "IC Playoff 2 Winner"],
-    "J": ["Argentina",     "Austria",      "Algeria",            "Jordan"],
-    "K": ["Portugal",      "Colombia",     "Uzbekistan",         "IC Playoff 1 Winner"],
-    "L": ["England",       "Croatia",      "Ghana",              "Panama"],
+    "A": ["Mexico",        "South Korea",      "South Africa",  "Czechia"],
+    "B": ["Canada",        "Switzerland",      "Qatar",         "Bosnia-Herzegovina"],
+    "C": ["Brazil",        "Morocco",          "Scotland",      "Haiti"],
+    "D": ["United States", "Paraguay",         "Australia",     "Turkey"],
+    "E": ["Germany",       "Ecuador",          "Ivory Coast",   "Curaçao"],
+    "F": ["Netherlands",   "Japan",            "Tunisia",       "Sweden"],
+    "G": ["Belgium",       "Egypt",            "Iran",          "New Zealand"],
+    "H": ["Spain",         "Uruguay",          "Saudi Arabia",  "Cape Verde"],
+    "I": ["France",        "Senegal",          "Norway",        "IC Playoff 2 Winner"],
+    "J": ["Argentina",     "Austria",          "Algeria",       "Jordan"],
+    "K": ["Portugal",      "Colombia",         "Uzbekistan",    "IC Playoff 1 Winner"],
+    "L": ["England",       "Croatia",          "Ghana",         "Panama"],
 }
 
 # ---------------------------------------------------------------------------
@@ -191,6 +191,7 @@ UEFA_PLAYOFF_PATHS: dict[str, dict] = {
         "winner_group":   "B",
         "sf1_winner":     "Italy",              "sf1_score": "2–0",
         "sf2_winner":     "Bosnia-Herzegovina", "sf2_score": "1–1 (aet, 4–2 pens)",
+        "final_winner":   "Bosnia-Herzegovina",
     },
     "B": {
         "label":          "Path B → Group F",
@@ -204,6 +205,7 @@ UEFA_PLAYOFF_PATHS: dict[str, dict] = {
         "final_host_sf1": True,   # Sweden (SF1 winner) hosts Final in Solna
         "sf1_winner":     "Sweden", "sf1_score": "3–1",
         "sf2_winner":     "Poland", "sf2_score": "2–1",
+        "final_winner":   "Sweden",
     },
     "C": {
         "label":          "Path C → Group D",
@@ -215,6 +217,7 @@ UEFA_PLAYOFF_PATHS: dict[str, dict] = {
         "winner_group":   "D",
         "sf1_winner":     "Turkey", "sf1_score": "1–0",
         "sf2_winner":     "Kosovo", "sf2_score": "4–3 (aet)",
+        "final_winner":   "Turkey",
     },
     "D": {
         "label":          "Path D → Group A",
@@ -226,6 +229,7 @@ UEFA_PLAYOFF_PATHS: dict[str, dict] = {
         "winner_group":   "A",
         "sf1_winner":     "Denmark", "sf1_score": "4–0",
         "sf2_winner":     "Czechia", "sf2_score": "2–2 (aet, 4–3 pens)",
+        "final_winner":   "Czechia",
     },
 }
 
