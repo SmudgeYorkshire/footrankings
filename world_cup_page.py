@@ -638,13 +638,13 @@ def _render_knockout() -> None:
     with st.spinner("Running full tournament simulation…"):
         df = simulate_tournament()
 
-    # Replace placeholder names with confirmed finalists in display
+    # Resolve IC playoff placeholder names for display
     df = df.copy()
-    for _pk, _p in UEFA_PLAYOFF_PATHS.items():
-        _f1, _f2 = _p.get("sf1_winner"), _p.get("sf2_winner")
-        if _f1 and _f2:
+    for _placeholder in ("IC Playoff 1 Winner", "IC Playoff 2 Winner"):
+        _opts = _playoff_options(_placeholder)
+        if _opts:
             df["Team"] = df["Team"].str.replace(
-                f"UEFA PO Path {_pk} Winner", f"{_f1} / {_f2}", regex=False
+                _placeholder, f"{_opts[0]} / {_opts[1]}", regex=False
             )
 
     st.markdown("### All Teams — Tournament Outlook")
@@ -682,7 +682,7 @@ def _render_my_predictions() -> None:
     st.markdown("### Predicted Group Winners & Runners-up")
     gw_data = {
         "A": ("Mexico",        "South Korea"),
-        "B": ("Switzerland",   "Italy"),
+        "B": ("Switzerland",   "Bosnia-Herzegovina"),
         "C": ("Brazil",        "Morocco"),
         "D": ("United States", "Australia"),
         "E": ("Germany",       "Ecuador"),
