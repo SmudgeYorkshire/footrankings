@@ -325,7 +325,7 @@ def simulate_best_thirds(n: int = 20_000) -> pd.DataFrame:
             if tc == 0:
                 continue
             rows.append({
-                "Grp":           f"G{g}",
+                "Grp":           g,
                 "Team":          _flag(t) + " " + _display_name(t),
                 "Elo":           int(_effective_elo(t)),
                 "3rd %":         round(tc / n * 100, 1),
