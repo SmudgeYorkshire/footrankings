@@ -648,8 +648,7 @@ def _render_knockout() -> None:
             )
 
     st.markdown("### All Teams — Tournament Outlook")
-    top20 = df.head(20).copy()
-    st.dataframe(_style_tournament_df(top20), use_container_width=True)
+    st.dataframe(_style_tournament_df(df), use_container_width=True)
 
     st.markdown("#### Top 10 Tournament Favourites")
     top10 = df.head(10)
@@ -667,10 +666,6 @@ def _render_knockout() -> None:
             bar_html = _pct_bar(win_pct, max_win)
             st.markdown(bar_html, unsafe_allow_html=True)
             st.caption(f"Final: {final_pct:.1f}%  SF: {float(row['SF %']):.1f}%")
-
-    st.divider()
-    st.markdown("### Full Table (all 48 teams)")
-    st.dataframe(_style_tournament_df(df), use_container_width=True)
 
 
 def _render_my_predictions() -> None:
