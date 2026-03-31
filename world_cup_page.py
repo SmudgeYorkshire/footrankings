@@ -95,15 +95,12 @@ def _effective_elo(team: str) -> float:
 
 
 def _display_name(team: str) -> str:
-    """Human-friendly team name; resolves UEFA playoff placeholders to finalists."""
-    if not team.startswith("UEFA PO Path "):
-        return team
-    key = team.replace("UEFA PO Path ", "").replace(" Winner", "")
-    path = UEFA_PLAYOFF_PATHS.get(key, {})
-    f1 = path.get("sf1_winner")
-    f2 = path.get("sf2_winner")
-    if f1 and f2:
-        return f"{f1} / {f2}"
+    """Human-friendly team name; resolves playoff placeholders to finalists."""
+    opts = _playoff_options(team) if (
+        team.startswith("UEFA PO Path ") or team.startswith("IC Playoff ")
+    ) else None
+    if opts:
+        return f"{opts[0]} / {opts[1]}"
     return team
 
 
@@ -291,6 +288,51 @@ def simulate_group_with_teams(teams_tuple: tuple, n: int = 20_000) -> pd.DataFra
         })
     df = pd.DataFrame(rows)
     df.sort_values("Advance %", ascending=False, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    df.index += 1
+    return df
+
+
+@st.cache_data(show_spinner=False)
+def simulate_best_thirds(n: int = 20_000) -> pd.DataFrame:
+    """
+    Joint simulation across all 12 groups.
+    Returns each potential 3rd-place team's probability of finishing 3rd in their
+    group AND of being among the 8 best third-placers who advance.
+    """
+    group_teams = {g: list(teams) for g, teams in WC_GROUPS.items()}
+    group_elos  = {g: [_effective_elo(t) for t in ts] for g, ts in group_teams.items()}
+
+    third_count   = {}   # team → times finishing 3rd in group
+    advance_count = {}   # team → times in best-8 thirds
+
+    np.random.seed(42)
+    for _ in range(n):
+        thirds = []
+        for g in sorted(group_teams):
+            result = _simulate_group_once(group_teams[g], group_elos[g])
+            team, pts, gf, ga = result[2]
+            third_count[team]  = third_count.get(team, 0) + 1
+            thirds.append((team, pts, gf - ga, gf))
+        thirds.sort(key=lambda x: (x[1], x[2], x[3]), reverse=True)
+        for team, *_ in thirds[:8]:
+            advance_count[team] = advance_count.get(team, 0) + 1
+
+    rows = []
+    for g in sorted(group_teams):
+        for t in group_teams[g]:
+            tc = third_count.get(t, 0)
+            if tc == 0:
+                continue
+            rows.append({
+                "Grp":           f"G{g}",
+                "Team":          _flag(t) + " " + _display_name(t),
+                "Elo":           int(_effective_elo(t)),
+                "3rd %":         round(tc / n * 100, 1),
+                "Advance as 3rd %": round(advance_count.get(t, 0) / n * 100, 1),
+            })
+    df = pd.DataFrame(rows)
+    df.sort_values("Advance as 3rd %", ascending=False, inplace=True)
     df.reset_index(drop=True, inplace=True)
     df.index += 1
     return df
@@ -496,78 +538,93 @@ def _style_tournament_df(df: pd.DataFrame) -> pd.io.formats.style.Styler:
 # Section renderers
 # ---------------------------------------------------------------------------
 
-def _render_group_scenario(teams: list[str]) -> None:
-    """Render team overview, projected standings, and fixture odds for one group lineup."""
-    elos = [_effective_elo(t) for t in teams]
-
-    team_cols = st.columns(4)
-    for i, (t, elo) in enumerate(zip(teams, elos)):
-        with team_cols[i]:
-            st.metric(f"{_flag(t)} {t}", f"Elo {int(elo)}")
-
-    st.markdown("---")
-
-    with st.spinner("Running simulation…"):
-        df = simulate_group_with_teams(tuple(teams))
-
-    st.markdown("#### Projected Group Standings")
+def _render_group_sim_and_fixtures(teams: list[str]) -> None:
+    """Standings table + collapsible fixtures for one resolved team lineup."""
+    df = simulate_group_with_teams(tuple(teams))
     st.dataframe(_style_group_df(df), use_container_width=True)
 
-    st.markdown("#### Group Fixtures & Odds")
-    matchups = [(0,1),(2,3),(0,2),(1,3),(0,3),(1,2)]
-    md_labels = ["MD1","MD1","MD2","MD2","MD3","MD3"]
-    prev_md = None
-    for (i, j), md in zip(matchups, md_labels):
-        if md != prev_md:
-            st.markdown(f"**Matchday {md[-1]}**")
-            prev_md = md
-        ta, tb = teams[i], teams[j]
-        ea, eb = _effective_elo(ta), _effective_elo(tb)
-        pa, pd_, pb = _match_probs(ea, eb)
-        st.markdown(
-            f"{_flag(ta)} **{ta}** "
-            f"<span style='color:#1a73e8'>{pa*100:.0f}%</span> · "
-            f"<span style='color:#888'>{pd_*100:.0f}%</span> · "
-            f"<span style='color:#e53935'>{pb*100:.0f}%</span> "
-            f"**{tb}** {_flag(tb)}",
-            unsafe_allow_html=True,
-        )
+    with st.expander("Fixtures & Odds"):
+        for (i, j), md in zip(
+            [(0,1),(2,3),(0,2),(1,3),(0,3),(1,2)],
+            [1, 1, 2, 2, 3, 3],
+        ):
+            ta, tb = teams[i], teams[j]
+            pa, pd_, pb = _match_probs(_effective_elo(ta), _effective_elo(tb))
+            st.markdown(
+                f"MD{md} &nbsp; {_flag(ta)} **{ta}** &nbsp;"
+                f"<span style='color:#1a73e8'>{pa*100:.0f}%</span> · "
+                f"<span style='color:#888'>{pd_*100:.0f}%</span> · "
+                f"<span style='color:#e53935'>{pb*100:.0f}%</span>"
+                f"&nbsp; **{tb}** {_flag(tb)}",
+                unsafe_allow_html=True,
+            )
+
+
+def _render_group_card(group_key: str) -> None:
+    """Render one group: header, standings, and collapsible fixtures."""
+    teams = list(WC_GROUPS[group_key])
+    placeholder = next(
+        (t for t in teams if t.startswith("IC Playoff ")), None
+    )
+    opts = _playoff_options(placeholder) if placeholder else None
+
+    st.markdown(f"**Group {group_key}**")
+
+    if opts:
+        f1, f2 = opts
+        t1, t2 = st.tabs([f"{_flag(f1)} {f1}", f"{_flag(f2)} {f2}"])
+        for finalist, tab in [(f1, t1), (f2, t2)]:
+            with tab:
+                _render_group_sim_and_fixtures(
+                    [finalist if t == placeholder else t for t in teams]
+                )
+    else:
+        _render_group_sim_and_fixtures(teams)
 
 
 def _render_group_stage() -> None:
     st.markdown("## Group Stage Projections")
     st.caption(
-        "Monte Carlo simulation (20,000 runs) using Elo ratings. "
-        "Advance % = P(1st) + P(2nd) + 0.67 × P(3rd)."
+        "Monte Carlo simulation (20,000 runs) using Elo ratings.  "
+        "Advance % = P(1st) + P(2nd) + 0.67 × P(3rd).  "
+        "Groups I & K show two tabs — one per IC playoff finalist."
     )
 
     group_keys = sorted(WC_GROUPS.keys())
-    group_sel  = st.selectbox("Select Group", group_keys,
-                              format_func=lambda g: f"Group {g}")
 
-    teams = list(WC_GROUPS[group_sel])
+    # 12 groups in a 3-column grid
+    for row_start in range(0, 12, 3):
+        cols = st.columns(3)
+        for col_idx, g in enumerate(group_keys[row_start:row_start + 3]):
+            with cols[col_idx]:
+                _render_group_card(g)
+        st.divider()
 
-    # Find playoff placeholder in this group (if any)
-    _placeholder = next(
-        (t for t in teams if t.startswith("UEFA PO Path ") or t.startswith("IC Playoff ")),
-        None,
+    # Best third-place ranking
+    st.markdown("### 🏅 Best Third-Place Rankings")
+    st.caption(
+        "8 of the 12 third-place finishers advance. "
+        "Advance as 3rd % = probability of being in the best 8. "
+        "Based on joint simulation across all groups."
     )
-    _options = _playoff_options(_placeholder) if _placeholder else None
+    with st.spinner("Simulating best thirds…"):
+        thirds_df = simulate_best_thirds()
 
-    st.markdown(f"### Group {group_sel}")
+    def _style_thirds(df: pd.DataFrame):
+        def row_style(row):
+            adv = row.get("Advance as 3rd %", 0)
+            if adv >= 50:
+                bg = "background-color:#e8f5e9"
+            elif adv >= 25:
+                bg = "background-color:#fff9c4"
+            else:
+                bg = "background-color:#ffebee"
+            return [bg] * len(row)
+        return df.style.apply(row_style, axis=1).format(
+            {"3rd %": "{:.1f}%", "Advance as 3rd %": "{:.1f}%"}
+        )
 
-    if _options:
-        f1, f2 = _options
-        tab1, tab2 = st.tabs([
-            f"{_flag(f1)} {f1} qualifies",
-            f"{_flag(f2)} {f2} qualifies",
-        ])
-        for finalist, tab in [(f1, tab1), (f2, tab2)]:
-            with tab:
-                sub = [finalist if t == _placeholder else t for t in teams]
-                _render_group_scenario(sub)
-    else:
-        _render_group_scenario(teams)
+    st.dataframe(_style_thirds(thirds_df), use_container_width=True)
 
 
 def _render_knockout() -> None:
