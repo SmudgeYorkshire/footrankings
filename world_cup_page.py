@@ -504,16 +504,11 @@ def _render_match_odds(team_a: str, team_b: str) -> None:
 
 
 def _style_group_df(df: pd.DataFrame) -> pd.io.formats.style.Styler:
-    """Colour-code the group projection table."""
+    """Colour-code the group projection table: green = predicted to advance, red = eliminated."""
     def _row_style(row):
-        styles = [""] * len(row)
         adv = row.get("Advance %", 0)
-        if adv >= 70:
-            bg = "background-color:#e8f5e9"  # green
-        elif adv >= 40:
-            bg = "background-color:#fff9c4"  # yellow
-        else:
-            bg = "background-color:#ffebee"  # red
+        # 50% threshold: top-2 always green; 3rd green only if strong best-third candidate
+        bg = "background-color:#e8f5e9" if adv >= 50 else "background-color:#ffebee"
         return [bg] * len(row)
 
     fmt = {
