@@ -572,15 +572,15 @@ def _render_group_stage() -> None:
     st.caption(
         "Monte Carlo simulation (20,000 runs) using Elo ratings.  "
         "Advance % = P(1st) + P(2nd) + 0.67 × P(3rd).  "
-        "Groups I & K show two tabs — one per IC playoff finalist."
+        "Two groups per row."
     )
 
     group_keys = sorted(WC_GROUPS.keys())
 
-    # 12 groups in a 3-column grid
-    for row_start in range(0, 12, 3):
-        cols = st.columns(3)
-        for col_idx, g in enumerate(group_keys[row_start:row_start + 3]):
+    # 12 groups in a 2-column grid
+    for row_start in range(0, 12, 2):
+        cols = st.columns(2)
+        for col_idx, g in enumerate(group_keys[row_start:row_start + 2]):
             with cols[col_idx]:
                 _render_group_card(g)
         st.divider()
