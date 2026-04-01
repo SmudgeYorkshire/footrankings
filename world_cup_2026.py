@@ -54,18 +54,18 @@ WC_ELO: dict[str, int] = {
     "Wales":              1698,   # -5 (eliminated)
     "Jordan":             1690,   # +3
     "Egypt":              1680,
-    "Bolivia":            1670,
+    "Bolivia":            1645,   # estimated -25 (IC playoff final loss vs Iraq)
     "Ivory Coast":        1676,   # +13
     "Slovakia":           1673,   # +10 (eliminated)
     "Albania":            1646,   # -7 (eliminated)
-    "DR Congo":           1640,
+    "DR Congo":           1655,   # estimated +15 (IC playoff final win vs Jamaica)
     "Romania":            1627,   # -10 (eliminated)
     "Ireland":            1691,   # -5 (eliminated)
     "Tunisia":            1626,
     "Haiti":              1532,   # +2
     "New Caledonia":      1286,
     "N. Macedonia":       1589,   # +5 (eliminated)
-    "Iraq":               1582,
+    "Iraq":               1607,   # estimated +25 (IC playoff final upset win vs Bolivia)
     "New Zealand":        1585,
     "Ghana":              1505,   # -1
     "Curaçao":            1436,   # -4
@@ -73,12 +73,9 @@ WC_ELO: dict[str, int] = {
     "Cape Verde":         1549,
     "Saudi Arabia":       1568,   # -3
     "Northern Ireland":   1457,   # (eliminated)
-    "Jamaica":            1550,
+    "Jamaica":            1535,   # estimated -15 (IC playoff final loss vs DR Congo)
     "Suriname":           1431,
     "South Africa":       1524,   # -7
-    # IC Playoff weighted-average placeholders (used in group projections)
-    "IC Playoff 1 Winner": 1606,   # DR Congo (1640) 63% vs Jamaica (1550) 37%
-    "IC Playoff 2 Winner": 1637,   # Bolivia (1670) 62% vs Iraq (1582) 38%
 }
 
 # ---------------------------------------------------------------------------
@@ -170,9 +167,9 @@ WC_GROUPS: dict[str, list[str]] = {
     "F": ["Netherlands",   "Japan",            "Tunisia",       "Sweden"],
     "G": ["Belgium",       "Egypt",            "Iran",          "New Zealand"],
     "H": ["Spain",         "Uruguay",          "Saudi Arabia",  "Cape Verde"],
-    "I": ["France",        "Senegal",          "Norway",        "IC Playoff 2 Winner"],
+    "I": ["France",        "Senegal",          "Norway",        "Iraq"],
     "J": ["Argentina",     "Austria",          "Algeria",       "Jordan"],
-    "K": ["Portugal",      "Colombia",         "Uzbekistan",    "IC Playoff 1 Winner"],
+    "K": ["Portugal",      "Colombia",         "Uzbekistan",    "DR Congo"],
     "L": ["England",       "Croatia",          "Ghana",         "Panama"],
 }
 
@@ -247,7 +244,8 @@ FIFA_IC_PLAYOFFS: dict[str, dict] = {
         "bye_team":     "DR Congo",
         "semifinal":    ("New Caledonia", "Jamaica"),
         "winner_group": "K",
-        "sf_winner":    "Jamaica", "sf_score": "0–1",
+        "sf_winner":    "Jamaica",  "sf_score":    "0–1",
+        "final_winner": "DR Congo",
     },
     "2": {
         "label":        "Pathway 2 → Group I",
@@ -258,7 +256,8 @@ FIFA_IC_PLAYOFFS: dict[str, dict] = {
         "bye_team":     "Iraq",
         "semifinal":    ("Bolivia", "Suriname"),
         "winner_group": "I",
-        "sf_winner":    "Bolivia", "sf_score": "2–1",
+        "sf_winner":    "Bolivia", "sf_score":    "2–1",
+        "final_winner": "Iraq",
     },
 }
 

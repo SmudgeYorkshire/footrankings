@@ -563,23 +563,8 @@ def _render_group_sim_and_fixtures(teams: list[str]) -> None:
 def _render_group_card(group_key: str) -> None:
     """Render one group: header, standings, and collapsible fixtures."""
     teams = list(WC_GROUPS[group_key])
-    placeholder = next(
-        (t for t in teams if t.startswith("IC Playoff ")), None
-    )
-    opts = _playoff_options(placeholder) if placeholder else None
-
     st.markdown(f"**Group {group_key}**")
-
-    if opts:
-        f1, f2 = opts
-        t1, t2 = st.tabs([f"{_flag(f1)} {f1}", f"{_flag(f2)} {f2}"])
-        for finalist, tab in [(f1, t1), (f2, t2)]:
-            with tab:
-                _render_group_sim_and_fixtures(
-                    [finalist if t == placeholder else t for t in teams]
-                )
-    else:
-        _render_group_sim_and_fixtures(teams)
+    _render_group_sim_and_fixtures(teams)
 
 
 def _render_group_stage() -> None:
@@ -637,15 +622,6 @@ def _render_knockout() -> None:
 
     with st.spinner("Running full tournament simulation…"):
         df = simulate_tournament()
-
-    # Resolve IC playoff placeholder names for display
-    df = df.copy()
-    for _placeholder in ("IC Playoff 1 Winner", "IC Playoff 2 Winner"):
-        _opts = _playoff_options(_placeholder)
-        if _opts:
-            df["Team"] = df["Team"].str.replace(
-                _placeholder, f"{_opts[0]} / {_opts[1]}", regex=False
-            )
 
     st.markdown("### All Teams — Tournament Outlook")
     st.dataframe(_style_tournament_df(df), use_container_width=True)
