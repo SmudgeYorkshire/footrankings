@@ -598,16 +598,20 @@ def _render_group_stage() -> None:
 
     group_keys = sorted(WC_GROUPS.keys())
 
-    # Compute best-thirds once; derive which 8 groups have their 3rd-placer advancing
+    # Compute best-thirds simulation once (for the table at the bottom)
     with st.spinner("Simulating best thirds…"):
         thirds_df = simulate_best_thirds()
-    best_per_group = (
-        thirds_df.groupby("Grp")["Advance as 3rd %"]
-        .max()
-        .reset_index()
-        .sort_values("Advance as 3rd %", ascending=False)
-    )
-    advancing_groups: set = set(best_per_group.head(8)["Grp"])
+
+    # Derive advancing_groups from each group's own 3rd-place Advance %
+    # so that coloring always matches the displayed values.
+    third_advances_by_group: dict[str, float] = {}
+    for g, teams in WC_GROUPS.items():
+        df_g = simulate_group_with_teams(tuple(teams))
+        if len(df_g) >= 3:
+            third_advances_by_group[g] = float(df_g.iloc[2]["Advance %"])
+    # Top 8 groups by their 3rd-place Advance %
+    threshold = sorted(third_advances_by_group.values(), reverse=True)[7]
+    advancing_groups: set = {g for g, v in third_advances_by_group.items() if v >= threshold}
 
     # 12 groups in a 2-column grid
     for row_start in range(0, 12, 2):
