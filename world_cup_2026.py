@@ -9,24 +9,24 @@ Groups, fixtures, Elo ratings, UEFA/IC playoff brackets.
 # ---------------------------------------------------------------------------
 WC_ELO: dict[str, int] = {
     # All ratings from eloratings.net World.tsv — updated 1 April 2026
-    # (post-UEFA & IC playoff finals; Bosnia/Czechia estimated pending eloratings update)
-    "Spain":              2174,
+    # (Bosnia/Czechia/Iraq estimated — eloratings pending playoff final processing)
+    "Spain":              2165,   # -9
     "Argentina":          2113,
     "France":             2082,
-    "England":            2020,   # -16
-    "Portugal":           1975,
+    "England":            2020,
+    "Portugal":           1984,   # +9
     "Colombia":           1975,
-    "Brazil":             1970,
-    "Netherlands":        1961,   # -4
-    "Croatia":            1944,
-    "Ecuador":            1933,   # +4
-    "Germany":            1923,   # +1
-    "Norway":             1912,   # -4
-    "Uruguay":            1892,   # -4
-    "Japan":              1904,   # +16
-    "Turkey":             1902,   # +17 (UEFA playoff final win vs Kosovo)
-    "Switzerland":        1889,   # +4
-    "Senegal":            1878,
+    "Brazil":             1984,   # +14
+    "Netherlands":        1961,
+    "Croatia":            1930,   # -14
+    "Ecuador":            1933,
+    "Germany":            1923,
+    "Norway":             1912,
+    "Uruguay":            1892,
+    "Japan":              1904,
+    "Turkey":             1902,
+    "Switzerland":        1889,
+    "Senegal":            1879,   # +1
     "Denmark":            1873,   # eliminated (Elo drop pending eloratings update)
     "Italy":              1866,   # eliminated (Elo drop pending eloratings update)
     "Belgium":            1866,
@@ -44,7 +44,7 @@ WC_ELO: dict[str, int] = {
     "Sweden":             1719,   # +17 (UEFA playoff final win vs Poland)
     "Bosnia-Herzegovina": 1615,   # estimated +31 (final win vs Italy, eloratings pending)
     "Czechia":            1747,   # estimated +24 (final win vs Denmark, eloratings pending)
-    "United States":      1730,
+    "United States":      1721,   # -9
     "Panama":             1737,   # +7
     "Uzbekistan":         1727,
     "Venezuela":          1727,
@@ -53,7 +53,7 @@ WC_ELO: dict[str, int] = {
     "Hungary":            1703,   # -2
     "Wales":              1698,   # -5 (eliminated)
     "Jordan":             1690,   # +3
-    "Egypt":              1680,
+    "Egypt":              1689,   # +9
     "Bolivia":            1645,   # estimated -25 (IC playoff final loss vs Iraq)
     "Ivory Coast":        1676,   # +13
     "Slovakia":           1673,   # +10 (eliminated)
