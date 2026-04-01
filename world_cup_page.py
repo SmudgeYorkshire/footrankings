@@ -510,17 +510,14 @@ def _style_group_df(df: pd.DataFrame, third_advances: bool = True) -> pd.io.form
     Green = predicted to advance; red = predicted eliminated.
     third_advances controls whether the 3rd-place row gets green or red.
     """
-    def _all_styles(df):
-        styles = pd.DataFrame("", index=df.index, columns=df.columns)
-        for idx in df.index:
-            if idx <= 1:
-                bg = "background-color:#e8f5e9"   # 1st & 2nd: always advance
-            elif idx == 2:
-                bg = "background-color:#e8f5e9" if third_advances else "background-color:#ffebee"
-            else:
-                bg = "background-color:#ffebee"   # 4th: always eliminated
-            styles.iloc[idx] = bg
-        return styles
+    def _all_styles(data):
+        advancing = {0, 1, 2} if third_advances else {0, 1}
+        rows = [
+            ["background-color:#e8f5e9" if i in advancing else "background-color:#ffebee"]
+            * len(data.columns)
+            for i in range(len(data))
+        ]
+        return pd.DataFrame(rows, index=data.index, columns=data.columns)
 
     fmt = {
         "1st %":     "{:.1f}%",
