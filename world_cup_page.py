@@ -570,9 +570,10 @@ def _render_group_card(group_key: str) -> None:
 def _render_group_stage() -> None:
     st.markdown("## Group Stage Projections")
     st.caption(
-        "Monte Carlo simulation (20,000 runs) using Elo ratings.  "
-        "Advance % = P(1st) + P(2nd) + 0.67 × P(3rd).  "
-        "Two groups per row."
+        "**Model:** Elo ratings (eloratings.net) → Poisson goal simulation → Monte Carlo (20,000 runs).  "
+        "Each match samples goals from a Poisson distribution scaled to the Elo difference between teams "
+        "(base 1.25 goals/team; draw probability decreases as Elo gap widens).  "
+        "**Advance %** = P(1st) + P(2nd) + 0.67 × P(3rd)."
     )
 
     group_keys = sorted(WC_GROUPS.keys())
@@ -615,9 +616,10 @@ def _render_group_stage() -> None:
 def _render_knockout() -> None:
     st.markdown("## Tournament Winner Projections")
     st.caption(
-        "Full Monte Carlo simulation (20,000 runs). "
-        "Bracket seeding is simplified — actual FIFA bracket depends on group finish positions. "
-        "These probabilities reflect each team's overall tournament strength."
+        "**Model:** Elo ratings (eloratings.net) → Monte Carlo (20,000 runs).  "
+        "Group stage uses Poisson goal simulation; knockout rounds use Elo win probability directly "
+        "(no draws — extra time/penalties modelled as a coin flip weighted by Elo).  "
+        "Bracket seeding is simplified — actual FIFA draw depends on group finish positions."
     )
 
     with st.spinner("Running full tournament simulation…"):
