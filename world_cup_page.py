@@ -503,13 +503,24 @@ def _render_match_odds(team_a: str, team_b: str) -> None:
         st.caption(f"Elo: **{eb}**")
 
 
-def _style_group_df(df: pd.DataFrame) -> pd.io.formats.style.Styler:
-    """Colour-code the group projection table: green = predicted to advance, red = eliminated."""
-    def _row_style(row):
-        adv = row.get("Advance %", 0)
-        # 50% threshold: top-2 always green; 3rd green only if strong best-third candidate
-        bg = "background-color:#e8f5e9" if adv >= 50 else "background-color:#ffebee"
-        return [bg] * len(row)
+def _style_group_df(df: pd.DataFrame, third_advances: bool = True) -> pd.io.formats.style.Styler:
+    """
+    Colour-code the group projection table.
+    Rows are sorted by Advance % descending (idx 0=1st, 1=2nd, 2=3rd, 3=4th).
+    Green = predicted to advance; red = predicted eliminated.
+    third_advances controls whether the 3rd-place row gets green or red.
+    """
+    def _all_styles(df):
+        styles = pd.DataFrame("", index=df.index, columns=df.columns)
+        for idx in df.index:
+            if idx <= 1:
+                bg = "background-color:#e8f5e9"   # 1st & 2nd: always advance
+            elif idx == 2:
+                bg = "background-color:#e8f5e9" if third_advances else "background-color:#ffebee"
+            else:
+                bg = "background-color:#ffebee"   # 4th: always eliminated
+            styles.iloc[idx] = bg
+        return styles
 
     fmt = {
         "1st %":     "{:.1f}%",
@@ -518,7 +529,7 @@ def _style_group_df(df: pd.DataFrame) -> pd.io.formats.style.Styler:
         "4th %":     "{:.1f}%",
         "Advance %": "{:.1f}%",
     }
-    return df.style.apply(_row_style, axis=1).format(fmt)
+    return df.style.apply(_all_styles, axis=None).format(fmt)
 
 
 def _style_tournament_df(df: pd.DataFrame) -> pd.io.formats.style.Styler:
@@ -548,10 +559,10 @@ def _style_tournament_df(df: pd.DataFrame) -> pd.io.formats.style.Styler:
 # Section renderers
 # ---------------------------------------------------------------------------
 
-def _render_group_sim_and_fixtures(teams: list[str]) -> None:
+def _render_group_sim_and_fixtures(teams: list[str], third_advances: bool = True) -> None:
     """Standings table + collapsible fixtures for one resolved team lineup."""
     df = simulate_group_with_teams(tuple(teams))
-    st.dataframe(_style_group_df(df), use_container_width=True)
+    st.dataframe(_style_group_df(df, third_advances=third_advances), use_container_width=True)
 
     with st.expander("Fixtures & Odds"):
         for (i, j), md in zip(
@@ -570,11 +581,11 @@ def _render_group_sim_and_fixtures(teams: list[str]) -> None:
             )
 
 
-def _render_group_card(group_key: str) -> None:
+def _render_group_card(group_key: str, advancing_groups: set) -> None:
     """Render one group: header, standings, and collapsible fixtures."""
     teams = list(WC_GROUPS[group_key])
     st.markdown(f"**Group {group_key}**")
-    _render_group_sim_and_fixtures(teams)
+    _render_group_sim_and_fixtures(teams, third_advances=group_key in advancing_groups)
 
 
 def _render_group_stage() -> None:
@@ -590,12 +601,23 @@ def _render_group_stage() -> None:
 
     group_keys = sorted(WC_GROUPS.keys())
 
+    # Compute best-thirds once; derive which 8 groups have their 3rd-placer advancing
+    with st.spinner("Simulating best thirds…"):
+        thirds_df = simulate_best_thirds()
+    best_per_group = (
+        thirds_df.groupby("Grp")["Advance as 3rd %"]
+        .max()
+        .reset_index()
+        .sort_values("Advance as 3rd %", ascending=False)
+    )
+    advancing_groups: set = set(best_per_group.head(8)["Grp"])
+
     # 12 groups in a 2-column grid
     for row_start in range(0, 12, 2):
         cols = st.columns(2)
         for col_idx, g in enumerate(group_keys[row_start:row_start + 2]):
             with cols[col_idx]:
-                _render_group_card(g)
+                _render_group_card(g, advancing_groups)
         st.divider()
 
     # Best third-place ranking
@@ -605,8 +627,6 @@ def _render_group_stage() -> None:
         "Advance as 3rd % = probability of being in the best 8. "
         "Based on joint simulation across all groups."
     )
-    with st.spinner("Simulating best thirds…"):
-        thirds_df = simulate_best_thirds()
 
     def _style_thirds(df: pd.DataFrame):
         def row_style(row):
