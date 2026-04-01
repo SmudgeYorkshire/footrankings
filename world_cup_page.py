@@ -279,11 +279,13 @@ def simulate_group_with_teams(teams_tuple: tuple, n: int = 20_000) -> pd.DataFra
     teams = list(teams_tuple)
     elos  = [_effective_elo(t) for t in teams]
     finish_counts = {t: [0, 0, 0, 0] for t in teams}
+    total_pts     = {t: 0 for t in teams}
     np.random.seed(42)
     for _ in range(n):
         res = _simulate_group_once(teams, elos)
-        for pos, (team, *_) in enumerate(res):
+        for pos, (team, pts, *_) in enumerate(res):
             finish_counts[team][pos] += 1
+            total_pts[team] += pts
     rows = []
     for t, elo in zip(teams, elos):
         cnts = finish_counts[t]
@@ -291,6 +293,7 @@ def simulate_group_with_teams(teams_tuple: tuple, n: int = 20_000) -> pd.DataFra
         rows.append({
             "Team":      _flag(t) + " " + t,
             "Elo":       int(elo),
+            "Avg Pts":   round(total_pts[t] / n, 1),
             "1st %":     p1,
             "2nd %":     p2,
             "3rd %":     p3,
@@ -520,6 +523,7 @@ def _style_group_df(df: pd.DataFrame, third_advances: bool = True) -> pd.io.form
         return pd.DataFrame(rows, index=data.index, columns=data.columns)
 
     fmt = {
+        "Avg Pts":   "{:.1f}",
         "1st %":     "{:.1f}%",
         "2nd %":     "{:.1f}%",
         "3rd %":     "{:.1f}%",
