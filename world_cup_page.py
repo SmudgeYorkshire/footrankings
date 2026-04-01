@@ -13,13 +13,15 @@ import numpy as np
 from world_cup_2026 import (
     WC_GROUPS, WC_ELO, WC_FLAGS,
     UEFA_PLAYOFF_PATHS, FIFA_IC_PLAYOFFS, WC_FORMAT,
+    WC_HOSTS, HOST_ELO_ADV, WC_STYLE,
 )
 
 # ---------------------------------------------------------------------------
-# Elo model helpers (neutral ground — no home advantage in WC)
+# Elo model helpers
 # ---------------------------------------------------------------------------
 
-_UEFA_HOME_ADV = 75  # Elo-point home advantage for UEFA qualifying play-off matches
+_UEFA_HOME_ADV  = 75    # Elo-point home advantage for UEFA qualifying play-off matches
+_KO_UPSET_FACTOR = 0.85  # Compress KO win probabilities 15% toward 50/50 (single-game variance)
 
 
 def _elo_win_prob(elo_a: float, elo_b: float, home_adv: float = 0.0) -> float:
@@ -127,7 +129,7 @@ def _playoff_options(placeholder: str) -> tuple[str, str] | None:
 
 def _simulate_group_once(teams: list[str], elos: list[float]) -> list[tuple[str, int, int, int]]:
     """
-    Single group simulation.
+    Single group simulation with host advantage and team style factors.
     Returns list of (team, pts, gf, ga) sorted by (pts desc, gd desc, gf desc).
     """
     pts  = {t: 0 for t in teams}
@@ -137,14 +139,20 @@ def _simulate_group_once(teams: list[str], elos: list[float]) -> list[tuple[str,
 
     # All pairings: MD1 (0v1, 2v3), MD2 (0v2, 1v3), MD3 (0v3, 1v2)
     matchups = [(0,1),(2,3),(0,2),(1,3),(0,3),(1,2)]
+    base = 1.25
     for i, j in matchups:
         ta, tb = teams[i], teams[j]
-        pa, pd_, pb = _match_probs(elo[ta], elo[tb])
-        # Expected goals proportional to Elo advantage, base 1.25 per team
-        base = 1.25
-        ratio = (elo[ta] - elo[tb]) / 400.0
-        exp_a = base * 10 ** (ratio * 0.5)
-        exp_b = base * 10 ** (-ratio * 0.5)
+        # Host nation advantage: hosts get an Elo boost when playing
+        adv_a = HOST_ELO_ADV if ta in WC_HOSTS else 0.0
+        adv_b = HOST_ELO_ADV if tb in WC_HOSTS else 0.0
+        ratio = ((elo[ta] + adv_a) - (elo[tb] + adv_b)) / 400.0
+        # Style factors: attacking teams score more and concede more;
+        # the product (1+sty_a)*(1+sty_b) scales the game's total goal volume.
+        sty_a = WC_STYLE.get(ta, 0.0)
+        sty_b = WC_STYLE.get(tb, 0.0)
+        style_mult = (1.0 + sty_a) * (1.0 + sty_b)
+        exp_a = base * style_mult * 10 ** (ratio * 0.5)
+        exp_b = base * style_mult * 10 ** (-ratio * 0.5)
         ga_goals = max(0, int(np.random.poisson(exp_a)))
         gb_goals = max(0, int(np.random.poisson(exp_b)))
         if ga_goals > gb_goals:
@@ -179,10 +187,13 @@ def _simulate_group_once_with_preds(
         elif (tb, ta) in fixed:
             g_b, g_a = fixed[(tb, ta)]
         else:
-            ratio = (elo[ta] - elo[tb]) / 400.0
+            adv_a = HOST_ELO_ADV if ta in WC_HOSTS else 0.0
+            adv_b = HOST_ELO_ADV if tb in WC_HOSTS else 0.0
+            ratio = ((elo[ta] + adv_a) - (elo[tb] + adv_b)) / 400.0
             base  = 1.25
-            g_a = max(0, int(np.random.poisson(base * 10 ** ( ratio * 0.5))))
-            g_b = max(0, int(np.random.poisson(base * 10 ** (-ratio * 0.5))))
+            style_mult = (1.0 + WC_STYLE.get(ta, 0.0)) * (1.0 + WC_STYLE.get(tb, 0.0))
+            g_a = max(0, int(np.random.poisson(base * style_mult * 10 ** ( ratio * 0.5))))
+            g_b = max(0, int(np.random.poisson(base * style_mult * 10 ** (-ratio * 0.5))))
         if g_a > g_b:    pts[ta] += 3
         elif g_a == g_b: pts[ta] += 1; pts[tb] += 1
         else:            pts[tb] += 3
@@ -358,8 +369,12 @@ def simulate_tournament(n: int = 20_000) -> pd.DataFrame:
              for teams in WC_GROUPS.values() for t in teams}
 
     def _ko_match(ta, tb):
-        pa = _elo_win_prob(elo_map[ta], elo_map[tb])
-        return ta if random.random() < pa else tb
+        adv_a = HOST_ELO_ADV if ta in WC_HOSTS else 0.0
+        adv_b = HOST_ELO_ADV if tb in WC_HOSTS else 0.0
+        p_raw = _elo_win_prob(elo_map[ta] + adv_a, elo_map[tb] + adv_b)
+        # Compress toward 50/50: single KO matches have more variance than Elo predicts
+        p_adj = 0.5 + (p_raw - 0.5) * _KO_UPSET_FACTOR
+        return ta if random.random() < p_adj else tb
 
     np.random.seed(42)
     random.seed(42)
@@ -571,8 +586,10 @@ def _render_group_stage() -> None:
     st.markdown("## Group Stage Projections")
     st.caption(
         "**Model:** Elo ratings (eloratings.net) → Poisson goal simulation → Monte Carlo (20,000 runs).  "
-        "Each match samples goals from a Poisson distribution scaled to the Elo difference between teams "
-        "(base 1.25 goals/team; draw probability decreases as Elo gap widens).  "
+        "Goals sampled from Poisson distributions scaled to Elo difference (base 1.25 goals/team).  "
+        "**Host advantage:** USA, Canada & Mexico get +50 Elo pts in all their matches.  "
+        "**Style factors:** attacking teams (e.g. Norway, Brazil) play higher-scoring games; "
+        "defensive teams (e.g. Morocco, Uruguay) play tighter games.  "
         "**Advance %** = P(1st) + P(2nd) + 0.67 × P(3rd)."
     )
 
@@ -617,8 +634,10 @@ def _render_knockout() -> None:
     st.markdown("## Tournament Winner Projections")
     st.caption(
         "**Model:** Elo ratings (eloratings.net) → Monte Carlo (20,000 runs).  "
-        "Group stage uses Poisson goal simulation; knockout rounds use Elo win probability directly "
-        "(no draws — extra time/penalties modelled as a coin flip weighted by Elo).  "
+        "Group stage: Poisson goal simulation with host advantage (+50 Elo for USA/Canada/Mexico) "
+        "and team style factors.  "
+        "Knockout rounds: Elo win probability compressed 15% toward 50/50 to reflect single-game variance "
+        "(upsets are more likely than pure Elo implies); host advantage applied throughout.  "
         "Bracket seeding is simplified — actual FIFA draw depends on group finish positions."
     )
 

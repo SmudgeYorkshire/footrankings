@@ -79,6 +79,51 @@ WC_ELO: dict[str, int] = {
 }
 
 # ---------------------------------------------------------------------------
+# Host nations & advantage
+# ---------------------------------------------------------------------------
+WC_HOSTS: frozenset[str] = frozenset({"United States", "Canada", "Mexico"})
+HOST_ELO_ADV: int = 50   # Elo-point boost for host nations in all matches
+
+# ---------------------------------------------------------------------------
+# Team style ratings
+# Positive = attacking bias (scores more, concedes more than Elo alone predicts)
+# Negative = defensive bias (scores less, concedes less)
+# 0.0 (default) = balanced
+# ---------------------------------------------------------------------------
+WC_STYLE: dict[str, float] = {
+    # Attacking teams
+    "Norway":             0.20,   # Haaland-powered, high-scoring
+    "Brazil":             0.15,
+    "Argentina":          0.12,
+    "Netherlands":        0.10,
+    "Germany":            0.10,
+    "Belgium":            0.08,
+    "Ivory Coast":        0.08,
+    "Ghana":              0.08,
+    "Senegal":            0.05,
+    "France":             0.05,
+    "Portugal":           0.05,
+    "Ecuador":            0.05,
+    # Defensive teams
+    "Morocco":           -0.18,   # WC2022 defence was exceptional
+    "Iran":              -0.18,
+    "Uruguay":           -0.15,
+    "Panama":            -0.15,
+    "Jordan":            -0.12,
+    "Croatia":           -0.12,
+    "Switzerland":       -0.10,
+    "Japan":             -0.10,
+    "Saudi Arabia":      -0.10,
+    "Qatar":             -0.10,
+    "South Africa":      -0.08,
+    "New Zealand":       -0.08,
+    "Haiti":             -0.08,
+    "Curaçao":           -0.05,
+    "Sweden":            -0.05,
+    "Australia":         -0.05,
+}
+
+# ---------------------------------------------------------------------------
 # Flag emojis
 # ---------------------------------------------------------------------------
 WC_FLAGS: dict[str, str] = {
