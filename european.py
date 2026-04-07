@@ -533,7 +533,42 @@ st.divider()
 # ---------------------------------------------------------------------------
 _show_entrants = (season == "2026-2027") and (comp_name in ENTRANTS_2026_27)
 
-# Group QF fixtures (intRound=8) into two-leg ties
+# Hardcoded 2025-26 QF ties (fallback when TheSportsDB hasn't populated them yet)
+# team names match primary/alias entries in ratings CSVs
+_HARDCODED_QF: dict[str, list[list[dict]]] = {
+    "Champions League": [
+        [{"strHomeTeam": "Sporting CP",        "strAwayTeam": "Arsenal",          "dateEvent": "2026-04-07", "intRound": "8"},
+         {"strHomeTeam": "Arsenal",             "strAwayTeam": "Sporting CP",      "dateEvent": "2026-04-15", "intRound": "8"}],
+        [{"strHomeTeam": "Real Madrid",         "strAwayTeam": "Bayern München",   "dateEvent": "2026-04-07", "intRound": "8"},
+         {"strHomeTeam": "Bayern München",      "strAwayTeam": "Real Madrid",      "dateEvent": "2026-04-15", "intRound": "8"}],
+        [{"strHomeTeam": "Barcelona",           "strAwayTeam": "Atlético de Madrid","dateEvent": "2026-04-08","intRound": "8"},
+         {"strHomeTeam": "Atlético de Madrid",  "strAwayTeam": "Barcelona",        "dateEvent": "2026-04-14", "intRound": "8"}],
+        [{"strHomeTeam": "Paris Saint-Germain", "strAwayTeam": "Liverpool",        "dateEvent": "2026-04-08", "intRound": "8"},
+         {"strHomeTeam": "Liverpool",           "strAwayTeam": "Paris Saint-Germain","dateEvent": "2026-04-14","intRound": "8"}],
+    ],
+    "Europa League": [
+        [{"strHomeTeam": "Braga",               "strAwayTeam": "Real Betis",       "dateEvent": "2026-04-08", "intRound": "8"},
+         {"strHomeTeam": "Real Betis",          "strAwayTeam": "Braga",            "dateEvent": "2026-04-16", "intRound": "8"}],
+        [{"strHomeTeam": "SC Freiburg",         "strAwayTeam": "Celta Vigo",       "dateEvent": "2026-04-09", "intRound": "8"},
+         {"strHomeTeam": "Celta Vigo",          "strAwayTeam": "SC Freiburg",      "dateEvent": "2026-04-16", "intRound": "8"}],
+        [{"strHomeTeam": "Porto",               "strAwayTeam": "Nottingham Forest","dateEvent": "2026-04-09", "intRound": "8"},
+         {"strHomeTeam": "Nottingham Forest",   "strAwayTeam": "Porto",            "dateEvent": "2026-04-16", "intRound": "8"}],
+        [{"strHomeTeam": "Bologna",             "strAwayTeam": "Aston Villa",      "dateEvent": "2026-04-09", "intRound": "8"},
+         {"strHomeTeam": "Aston Villa",         "strAwayTeam": "Bologna",          "dateEvent": "2026-04-16", "intRound": "8"}],
+    ],
+    "Conference League": [
+        [{"strHomeTeam": "Rayo Vallecano",      "strAwayTeam": "AEK Athens",       "dateEvent": "2026-04-09", "intRound": "8"},
+         {"strHomeTeam": "AEK Athens",          "strAwayTeam": "Rayo Vallecano",   "dateEvent": "2026-04-16", "intRound": "8"}],
+        [{"strHomeTeam": "Mainz 05",            "strAwayTeam": "Strasbourg",       "dateEvent": "2026-04-09", "intRound": "8"},
+         {"strHomeTeam": "Strasbourg",          "strAwayTeam": "Mainz 05",         "dateEvent": "2026-04-16", "intRound": "8"}],
+        [{"strHomeTeam": "Crystal Palace",      "strAwayTeam": "Fiorentina",       "dateEvent": "2026-04-09", "intRound": "8"},
+         {"strHomeTeam": "Fiorentina",          "strAwayTeam": "Crystal Palace",   "dateEvent": "2026-04-16", "intRound": "8"}],
+        [{"strHomeTeam": "Shakhtar Donetsk",    "strAwayTeam": "AZ Alkmaar",       "dateEvent": "2026-04-09", "intRound": "8"},
+         {"strHomeTeam": "AZ Alkmaar",          "strAwayTeam": "Shakhtar Donetsk", "dateEvent": "2026-04-16", "intRound": "8"}],
+    ],
+}
+
+# Group QF fixtures (intRound=8) into two-leg ties; fall back to hardcoded when empty
 _qf_all = [f for f in all_knockout if _intround(f) == 8]
 _qf_tie_map: dict[str, list] = {}
 for _f in _qf_all:
@@ -544,6 +579,10 @@ qf_ties: list[list[dict]] = [
     for legs in _qf_tie_map.values()
 ]
 qf_ties.sort(key=lambda legs: legs[0].get("dateEvent", ""))
+
+if not qf_ties and comp_name in _HARDCODED_QF and season == "2025-2026":
+    qf_ties = _HARDCODED_QF[comp_name]
+
 _has_qf = bool(qf_ties)
 
 if has_lp:
