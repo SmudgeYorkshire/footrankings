@@ -185,6 +185,96 @@ def fixture_odds(
 
     return results
 
+
+def two_leg_advance_odds(
+    team1: str,
+    team2: str,
+    ratings: pd.DataFrame,
+    home_advantage: float = 1.05,
+    leg1_score: tuple | None = None,
+) -> dict:
+    """
+    Analytical two-leg knockout tie odds using the same NegBin Poisson model.
+
+    team1 = home in leg 1, away in leg 2.
+    team2 = away in leg 1, home in leg 2.
+    leg1_score = (team1_goals, team2_goals) if the first leg is known;
+                 when provided, only leg 2 is simulated and leg 1 odds are
+                 returned as empty (no longer relevant).
+
+    Returns dict with keys:
+      leg1      – {home_win, draw, away_win, xg_home, xg_away}
+      leg2      – {home_win, draw, away_win, xg_home, xg_away}
+      team1_adv – probability team1 advances overall
+      team2_adv – 1 - team1_adv
+    """
+    if "attack" not in ratings.columns:
+        ratings = _opta_to_attack_defense(ratings)
+
+    rat_lookup, league_avg = _build_rat_lookup(ratings, DEFAULT_BASE_GOALS)
+    default = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+
+    t1_att, t1_def = rat_lookup.get(team1, default)
+    t2_att, t2_def = rat_lookup.get(team2, default)
+
+    # Expected goals per leg (all four values)
+    xg_l1_t1 = t1_att * max(t2_def, 0.01) / league_avg * home_advantage  # team1 at home, leg1
+    xg_l1_t2 = t2_att * max(t1_def, 0.01) / league_avg                   # team2 away,  leg1
+    xg_l2_t2 = t2_att * max(t1_def, 0.01) / league_avg * home_advantage  # team2 at home, leg2
+    xg_l2_t1 = t1_att * max(t2_def, 0.01) / league_avg                   # team1 away,  leg2
+
+    pmf_l1_t1 = _goals_pmf(xg_l1_t1)
+    pmf_l1_t2 = _goals_pmf(xg_l1_t2)
+    pmf_l2_t2 = _goals_pmf(xg_l2_t2)
+    pmf_l2_t1 = _goals_pmf(xg_l2_t1)
+
+    def _leg_odds(pmf_h: list, pmf_a: list) -> dict:
+        p_home = p_draw = 0.0
+        for gh in range(_MAX_GOALS + 1):
+            for ga in range(_MAX_GOALS + 1):
+                p = pmf_h[gh] * pmf_a[ga]
+                if gh > ga:    p_home += p
+                elif gh == ga: p_draw += p
+        return {"home_win": p_home, "draw": p_draw, "away_win": 1.0 - p_home - p_draw}
+
+    leg1_odds = _leg_odds(pmf_l1_t1, pmf_l1_t2)
+    leg2_odds = _leg_odds(pmf_l2_t2, pmf_l2_t1)
+
+    # Two-leg advance probability (no away-goals rule since 2021)
+    t1_adv = 0.0
+    if leg1_score is not None:
+        # Leg 1 result known — iterate over leg 2 outcomes only
+        l1_t1, l1_t2 = int(leg1_score[0]), int(leg1_score[1])
+        for l2_t2 in range(_MAX_GOALS + 1):
+            for l2_t1 in range(_MAX_GOALS + 1):
+                p = pmf_l2_t2[l2_t2] * pmf_l2_t1[l2_t1]
+                agg1 = l1_t1 + l2_t1
+                agg2 = l1_t2 + l2_t2
+                if agg1 > agg2:   t1_adv += p
+                elif agg1 == agg2: t1_adv += p * 0.5  # ET/penalties: 50/50
+    else:
+        # Full two-leg grid (11^4 ≈ 14 k iterations — fast)
+        for l1_t1 in range(_MAX_GOALS + 1):
+            for l1_t2 in range(_MAX_GOALS + 1):
+                p1 = pmf_l1_t1[l1_t1] * pmf_l1_t2[l1_t2]
+                if p1 < 1e-12:
+                    continue
+                for l2_t2 in range(_MAX_GOALS + 1):
+                    for l2_t1 in range(_MAX_GOALS + 1):
+                        p = p1 * pmf_l2_t2[l2_t2] * pmf_l2_t1[l2_t1]
+                        agg1 = l1_t1 + l2_t1
+                        agg2 = l1_t2 + l2_t2
+                        if agg1 > agg2:    t1_adv += p
+                        elif agg1 == agg2: t1_adv += p * 0.5
+
+    return {
+        "leg1":      {**leg1_odds, "xg_home": xg_l1_t1, "xg_away": xg_l1_t2},
+        "leg2":      {**leg2_odds, "xg_home": xg_l2_t2, "xg_away": xg_l2_t1},
+        "team1_adv": t1_adv,
+        "team2_adv": 1.0 - t1_adv,
+    }
+
+
 # Exponent for Opta → attack/defense conversion
 OPTA_K = 2.0
 

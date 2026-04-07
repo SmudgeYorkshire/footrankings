@@ -15,7 +15,7 @@ from pathlib import Path
 
 from config import EUROPEAN_COMPETITIONS, LEAGUES, get_current_season
 from data_fetcher import SportsDBClient
-from simulator import fixture_odds
+from simulator import fixture_odds, two_leg_advance_odds
 from entrants_2026_27 import ENTRANTS as ENTRANTS_2026_27, STAGE_ORDER, QUALIFYING_DATES
 from club_coefficients import get_coeff, get_tiebreak
 
@@ -533,24 +533,37 @@ st.divider()
 # ---------------------------------------------------------------------------
 _show_entrants = (season == "2026-2027") and (comp_name in ENTRANTS_2026_27)
 
+# Group QF fixtures (intRound=8) into two-leg ties
+_qf_all = [f for f in all_knockout if _intround(f) == 8]
+_qf_tie_map: dict[str, list] = {}
+for _f in _qf_all:
+    _key = "_vs_".join(sorted([_f.get("strHomeTeam", ""), _f.get("strAwayTeam", "")]))
+    _qf_tie_map.setdefault(_key, []).append(_f)
+qf_ties: list[list[dict]] = [
+    sorted(legs, key=lambda x: x.get("dateEvent", ""))
+    for legs in _qf_tie_map.values()
+]
+qf_ties.sort(key=lambda legs: legs[0].get("dateEvent", ""))
+_has_qf = bool(qf_ties)
+
 if has_lp:
     if _show_entrants:
-        tab_league, tab_lp_results, tab_knockout, tab_bracket, tab_qual, tab_entrants = st.tabs(
-            ["📊 Standings", "📋 League Stage", "⚔️ Knockout", "🏆 Bracket", "🔍 Qualifying", "📋 Entrants"]
+        tab_league, tab_lp_results, tab_knockout, tab_bracket, tab_predictions, tab_qual, tab_entrants = st.tabs(
+            ["📊 Standings", "📋 League Stage", "⚔️ Knockout", "🏆 Bracket", "🔮 QF Predictions", "🔍 Qualifying", "📋 Entrants"]
         )
     else:
-        tab_league, tab_lp_results, tab_knockout, tab_bracket, tab_qual = st.tabs(
-            ["📊 Standings", "📋 League Stage", "⚔️ Knockout", "🏆 Bracket", "🔍 Qualifying"]
+        tab_league, tab_lp_results, tab_knockout, tab_bracket, tab_predictions, tab_qual = st.tabs(
+            ["📊 Standings", "📋 League Stage", "⚔️ Knockout", "🏆 Bracket", "🔮 QF Predictions", "🔍 Qualifying"]
         )
         tab_entrants = None
 else:
     if _show_entrants:
-        tab_knockout, tab_bracket, tab_qual, tab_entrants = st.tabs(
-            ["⚔️ Knockout", "🏆 Bracket", "🔍 Qualifying", "📋 Entrants"]
+        tab_knockout, tab_bracket, tab_predictions, tab_qual, tab_entrants = st.tabs(
+            ["⚔️ Knockout", "🏆 Bracket", "🔮 QF Predictions", "🔍 Qualifying", "📋 Entrants"]
         )
     else:
-        tab_knockout, tab_bracket, tab_qual = st.tabs(
-            ["⚔️ Knockout", "🏆 Bracket", "🔍 Qualifying"]
+        tab_knockout, tab_bracket, tab_predictions, tab_qual = st.tabs(
+            ["⚔️ Knockout", "🏆 Bracket", "🔮 QF Predictions", "🔍 Qualifying"]
         )
         tab_entrants = None
     tab_league = None
@@ -795,6 +808,152 @@ with tab_bracket:
   {"".join(col_blocks)}
 </div>""", unsafe_allow_html=True)
         st.caption("🟢 Winner of played match")
+
+
+# ---------------------------------------------------------------------------
+# Tab — QF Predictions
+# ---------------------------------------------------------------------------
+with tab_predictions:
+    st.markdown("## Quarter-Final Predictions")
+    st.caption(
+        "**Model:** Opta ratings → attack/defence via power transform (k=2.0) → "
+        "Negative-Binomial goal distribution (overdispersion 0.15) → "
+        "analytical two-leg advance probability.  "
+        "Home advantage: 1.05×.  ET/penalties modelled as 50/50."
+    )
+
+    if not _has_qf:
+        st.info("Quarter-final fixtures not yet available for this competition.")
+    else:
+        def _render_qf_tie(legs: list[dict], manual_score: tuple | None = None) -> None:
+            """Render one QF tie card: odds for each leg + overall advance %."""
+            leg1 = legs[0]
+            leg2 = legs[1] if len(legs) > 1 else None
+            team1 = leg1.get("strHomeTeam", "")   # home in leg1
+            team2 = leg1.get("strAwayTeam", "")   # home in leg2
+
+            l1_played = leg1 in ko_played
+            l1_score = None
+            if l1_played:
+                l1_score = (
+                    int(leg1.get("intHomeScore") or 0),
+                    int(leg1.get("intAwayScore") or 0),
+                )
+            elif manual_score is not None:
+                l1_score = manual_score
+
+            odds = two_leg_advance_odds(team1, team2, ratings_df, leg1_score=l1_score)
+            t1_adv = odds["team1_adv"]
+            t2_adv = odds["team2_adv"]
+            l1o    = odds["leg1"]
+            l2o    = odds["leg2"]
+
+            b1 = badge_lookup.get(team1, "")
+            b2 = badge_lookup.get(team2, "")
+
+            # ── Header ──────────────────────────────────────────────
+            hc1, hc2, hc3 = st.columns([2, 1, 2])
+            with hc1:
+                if b1:
+                    st.image(b1, width=36)
+                st.markdown(f"**{team1}**")
+            with hc2:
+                st.markdown("<div style='text-align:center;padding-top:8px'>vs</div>",
+                            unsafe_allow_html=True)
+            with hc3:
+                if b2:
+                    st.image(b2, width=36)
+                st.markdown(f"**{team2}**")
+
+            # ── Leg odds ────────────────────────────────────────────
+            d1 = leg1.get("dateEvent", "")[:10]
+            d2 = (leg2.get("dateEvent", "")[:10] if leg2 else "TBD")
+
+            lc1, lc2 = st.columns(2)
+            with lc1:
+                st.markdown(f"**Leg 1** · {d1} · *{team1}* at home")
+                if l1_played:
+                    score = f"{leg1.get('intHomeScore', '?')}–{leg1.get('intAwayScore', '?')}"
+                    st.markdown(f"Result: **{score}**")
+                else:
+                    st.markdown(
+                        f"<span style='color:#1a73e8'>{l1o['home_win']:.0%}</span> · "
+                        f"<span style='color:#888'>{l1o['draw']:.0%}</span> · "
+                        f"<span style='color:#e53935'>{l1o['away_win']:.0%}</span>  "
+                        f"&nbsp;&nbsp;xG: **{l1o['xg_home']:.2f}** – **{l1o['xg_away']:.2f}**",
+                        unsafe_allow_html=True,
+                    )
+            with lc2:
+                st.markdown(f"**Leg 2** · {d2} · *{team2}* at home")
+                st.markdown(
+                    f"<span style='color:#1a73e8'>{l2o['home_win']:.0%}</span> · "
+                    f"<span style='color:#888'>{l2o['draw']:.0%}</span> · "
+                    f"<span style='color:#e53935'>{l2o['away_win']:.0%}</span>  "
+                    f"&nbsp;&nbsp;xG: **{l2o['xg_home']:.2f}** – **{l2o['xg_away']:.2f}**",
+                    unsafe_allow_html=True,
+                )
+
+            # ── Advance bar ─────────────────────────────────────────
+            bar_w1 = int(round(t1_adv * 100))
+            bar_w2 = 100 - bar_w1
+            c1, c2 = ("#1a73e8", "#e53935") if t1_adv >= 0.5 else ("#e53935", "#1a73e8")
+            st.markdown(
+                f"<div style='margin:10px 0 4px'>"
+                f"<div style='display:flex;height:22px;border-radius:4px;overflow:hidden'>"
+                f"<div style='width:{bar_w1}%;background:{c1};display:flex;align-items:center;"
+                f"justify-content:center;color:white;font-size:12px;font-weight:600'>"
+                f"{team1} {t1_adv:.0%}</div>"
+                f"<div style='width:{bar_w2}%;background:{c2};display:flex;align-items:center;"
+                f"justify-content:center;color:white;font-size:12px;font-weight:600'>"
+                f"{t2_adv:.0%} {team2}</div>"
+                f"</div></div>",
+                unsafe_allow_html=True,
+            )
+            if l1_score and not l1_played:
+                st.caption(f"Based on 1st leg entered result: {team1} {l1_score[0]}–{l1_score[1]} {team2}")
+
+        # ── Render ties ─────────────────────────────────────────────────────
+        for i, legs in enumerate(qf_ties):
+            team1 = legs[0].get("strHomeTeam", "")
+            team2 = legs[0].get("strAwayTeam", "")
+            leg1_played = legs[0] in ko_played
+
+            with st.container(border=True):
+                _render_qf_tie(legs)
+
+        # ── Manual: enter 1st leg result ────────────────────────────────────
+        st.divider()
+        st.markdown("### Enter 1st Leg Result")
+        st.caption(
+            "Select a tie and enter the first leg score to see updated "
+            "second-leg odds and advance probabilities."
+        )
+
+        unplayed_ties = [
+            legs for legs in qf_ties if legs[0] not in ko_played
+        ]
+        if not unplayed_ties:
+            st.info("All first legs have been played — results auto-applied above.")
+        else:
+            tie_labels = [
+                f"{legs[0].get('strHomeTeam','')} vs {legs[0].get('strAwayTeam','')}"
+                for legs in unplayed_ties
+            ]
+            sel_label = st.selectbox("Select tie", tie_labels, key="qf_sel_tie")
+            sel_legs  = unplayed_ties[tie_labels.index(sel_label)]
+            t1 = sel_legs[0].get("strHomeTeam", "")
+            t2 = sel_legs[0].get("strAwayTeam", "")
+
+            sc1, sc2 = st.columns(2)
+            with sc1:
+                g1 = st.number_input(f"{t1} goals (home)", min_value=0, max_value=15,
+                                     value=1, step=1, key="qf_g1")
+            with sc2:
+                g2 = st.number_input(f"{t2} goals (away)", min_value=0, max_value=15,
+                                     value=1, step=1, key="qf_g2")
+
+            with st.container(border=True):
+                _render_qf_tie(sel_legs, manual_score=(int(g1), int(g2)))
 
 
 # ---------------------------------------------------------------------------
