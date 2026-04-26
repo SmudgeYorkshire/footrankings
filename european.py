@@ -410,7 +410,7 @@ with st.sidebar:
     )
     cfg     = EUROPEAN_COMPETITIONS[comp_name]
     comp_id = cfg["id"]
-    season  = st.selectbox("Season", ["2026-2027", "2025-2026"], index=0)
+    season  = st.selectbox("Season", ["2025-2026", "2026-2027"], index=0)
 
 
 # ---------------------------------------------------------------------------
