@@ -3,5 +3,10 @@
     {"strHomeTeam": "TSV Hartberg",   "strAwayTeam": "LASK",              "intHomeScore": "1", "intAwayScore": "5", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "29"},
     {"strHomeTeam": "Rapid Vienna",   "strAwayTeam": "Red Bull Salzburg", "intHomeScore": "1", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "29"},
     {"strHomeTeam": "Sturm Graz",     "strAwayTeam": "Austria Vienna",    "intHomeScore": "1", "intAwayScore": "1", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "29"}
+  ],
+  "4422_2025-2026": [
+    {"strHomeTeam": "Lech Pozna\u0144", "strAwayTeam": "Legia Warsaw",    "intHomeScore": "4", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "30"},
+    {"strHomeTeam": "Widzew \u0141\u00f3d\u017a", "strAwayTeam": "Motor Lublin", "intHomeScore": "2", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "30"},
+    {"strHomeTeam": "Wisla Plock",    "strAwayTeam": "Radomiak Radom",   "intHomeScore": "0", "intAwayScore": "1", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "30"}
   ]
 }
