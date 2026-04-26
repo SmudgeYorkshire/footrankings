@@ -413,7 +413,10 @@ def simulate_season(
         return rat_lookup.get(team, default_rating)
 
     # Base state vectors
-    base_points = np.array([int(row.get("intPoints", 0)) for row in standings_sorted], dtype=np.int64)
+    # _half_pts_bonus: 0.5 for teams that lost half a point to floor-rounding at split
+    # (Austrian-style tiebreaker — credited back as effective points for ranking)
+    _half_bonus = np.array([float(row.get("_half_pts_bonus", 0.0)) for row in standings_sorted])
+    base_points = np.array([int(row.get("intPoints", 0)) for row in standings_sorted], dtype=np.float64) + _half_bonus
     base_gd     = np.array([int(row.get("intGoalDifference", 0)) for row in standings_sorted], dtype=np.int64)
     base_gf     = np.array([int(row.get("intGoalsFor", 0)) for row in standings_sorted], dtype=np.int64)
 
@@ -517,7 +520,7 @@ def simulate_season(
     away_pts = np.where(away_goals > home_goals, 3, np.where(home_goals == away_goals, 1, 0))
 
     # Accumulate across simulations (n_teams, n_sim)
-    pts_matrix = np.tile(base_points[:, None], n_sim).astype(np.int64)
+    pts_matrix = np.tile(base_points[:, None], n_sim).astype(np.float64)
     gd_matrix  = np.tile(base_gd[:, None],     n_sim).astype(np.int64)
     gf_matrix  = np.tile(base_gf[:, None],     n_sim).astype(np.int64)
 
