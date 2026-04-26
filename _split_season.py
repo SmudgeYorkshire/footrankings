@@ -178,6 +178,11 @@ def recompute_conference_standings(
         row["intGoalsFor"]     = int(r.get("intGoalsFor")     or 0)
         row["intGoalsAgainst"] = int(r.get("intGoalsAgainst") or 0)
         row["intPlayed"]       = int(r.get("intPlayed")       or 0)
+        # Store rounding bonus: when pts_factor=0.5 and pre-split pts were odd,
+        # the team lost 0.5 pts to flooring — credited back as tiebreaker
+        row["_half_pts_bonus"] = (
+            0.5 if (pts_factor == 0.5 and pts_round == "down" and raw_pts % 2 == 1) else 0.0
+        )
         rows[r["strTeam"]] = row
 
     for fix in played_fixtures:
@@ -214,7 +219,7 @@ def recompute_conference_standings(
     for row in row_list:
         row["intGoalDifference"] = row["intGoalsFor"] - row["intGoalsAgainst"]
     row_list.sort(key=lambda r: (
-        -int(r["intPoints"]),
+        -(int(r["intPoints"]) + r.get("_half_pts_bonus", 0.0)),  # pts + rounding credit
         -int(r["intGoalDifference"]),
         -int(r["intGoalsFor"]),
     ))
