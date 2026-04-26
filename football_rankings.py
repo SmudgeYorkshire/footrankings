@@ -481,16 +481,23 @@ def main_content():
     # ── Pre-split snapshot cache ─────────────────────────────────────────────
     # Saves the exact Round N standings before any team advances or points are
     # halved. Used exclusively for the "Regular Season Final Table" display.
-    _presplit_cache = f"cache/presplit_{league_id}_{season}.json"
+    # presplit/ is committed to git so the live app always has the snapshot.
+    # cache/ is local-only and written at runtime.
+    _presplit_committed = f"presplit/{league_id}_{season}.json"
+    _presplit_cache     = f"cache/presplit_{league_id}_{season}.json"
     _presplit_snapshot = None
     if split_round:
-        if os.path.exists(_presplit_cache):
-            try:
-                with open(_presplit_cache) as _f:
-                    _presplit_snapshot = json.load(_f)
-            except Exception:
-                pass
-        elif standings and all(int(r.get("intPlayed", 0)) == split_round for r in standings):
+        for _path in (_presplit_cache, _presplit_committed):
+            if os.path.exists(_path):
+                try:
+                    with open(_path) as _f:
+                        _presplit_snapshot = json.load(_f)
+                    break
+                except Exception:
+                    pass
+        if _presplit_snapshot is None and standings and all(
+            int(r.get("intPlayed", 0)) == split_round for r in standings
+        ):
             # All teams just completed the split round — save the snapshot now
             try:
                 with open(_presplit_cache, "w") as _f:
