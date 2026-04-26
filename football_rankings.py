@@ -525,7 +525,11 @@ def main_content():
             _base = [_presplit_by_tm[t] for t in _conf_teams if t in _presplit_by_tm]
             if not _base:
                 continue
-            _conf_played = conference_fixtures(played_fixtures, _conf_teams)
+            _post_split_played = [
+                f for f in played_fixtures
+                if int(f.get("intRound") or 0) > split_round
+            ]
+            _conf_played = conference_fixtures(_post_split_played, _conf_teams)
             split_info[_conf_key] = recompute_conference_standings(
                 _base, _conf_played, pts_factor, _pts_round
             )
