@@ -7,6 +7,7 @@ environment only (not user-editable). Opta ratings are hidden.
 
 import os
 import json
+from pathlib import Path
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -465,6 +466,65 @@ def main_content():
             "Try a different season or check back later."
         )
         return
+
+    # ── Apply fixture patches to standings when TheSportsDB lags ────────────
+    _patch_file = Path("presplit/fixture_patches.json")
+    _patch_key  = f"{league_id}_{season}"
+    if _patch_file.exists() and standings:
+        try:
+            with open(_patch_file) as _pf:
+                _patches = json.load(_pf).get(_patch_key, [])
+            if _patches:
+                _std_by_team = {r["strTeam"]: r for r in standings}
+                _modified = False
+                for _p in _patches:
+                    _home  = _p.get("strHomeTeam", "")
+                    _away  = _p.get("strAwayTeam", "")
+                    _round = int(_p.get("intRound", 0))
+                    _hr    = _std_by_team.get(_home)
+                    _ar    = _std_by_team.get(_away)
+                    if not _hr or not _ar:
+                        continue
+                    if int(_hr.get("intPlayed", 0)) >= _round:
+                        continue  # standings already up to date for this match
+                    _hg = int(_p.get("intHomeScore", 0))
+                    _ag = int(_p.get("intAwayScore", 0))
+                    for _row, _gf, _ga in [(_hr, _hg, _ag), (_ar, _ag, _hg)]:
+                        _row["intPlayed"]       = str(int(_row.get("intPlayed", 0)) + 1)
+                        _row["intGoalsFor"]     = str(int(_row.get("intGoalsFor", 0)) + _gf)
+                        _row["intGoalsAgainst"] = str(int(_row.get("intGoalsAgainst", 0)) + _ga)
+                        _row["intGoalDifference"] = str(
+                            int(_row.get("intGoalsFor", 0)) - int(_row.get("intGoalsAgainst", 0))
+                        )
+                        if _hg > _ag:
+                            if _row is _hr:
+                                _row["intWin"]    = str(int(_row.get("intWin", 0)) + 1)
+                                _row["intPoints"] = str(int(_row.get("intPoints", 0)) + 3)
+                            else:
+                                _row["intLoss"] = str(int(_row.get("intLoss", 0)) + 1)
+                        elif _hg == _ag:
+                            _row["intDraw"]   = str(int(_row.get("intDraw", 0)) + 1)
+                            _row["intPoints"] = str(int(_row.get("intPoints", 0)) + 1)
+                        else:
+                            if _row is _ar:
+                                _row["intWin"]    = str(int(_row.get("intWin", 0)) + 1)
+                                _row["intPoints"] = str(int(_row.get("intPoints", 0)) + 3)
+                            else:
+                                _row["intLoss"] = str(int(_row.get("intLoss", 0)) + 1)
+                    _modified = True
+                if _modified:
+                    standings = sorted(
+                        standings,
+                        key=lambda r: (
+                            -int(r.get("intPoints", 0)),
+                            -int(r.get("intGoalDifference", 0)),
+                            -int(r.get("intGoalsFor", 0)),
+                        ),
+                    )
+                    for _i, _r in enumerate(standings, 1):
+                        _r["intRank"] = str(_i)
+        except Exception:
+            pass
 
     ratings_df = load_ratings(league_id, standings)
     _missing_ratings = check_coverage(standings, ratings_df)
