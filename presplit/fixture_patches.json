@@ -8,5 +8,9 @@
     {"strHomeTeam": "Lech Pozna\u0144", "strAwayTeam": "Legia Warsaw",    "intHomeScore": "4", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "30"},
     {"strHomeTeam": "Widzew \u0141\u00f3d\u017a", "strAwayTeam": "Motor Lublin", "intHomeScore": "2", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "30"},
     {"strHomeTeam": "Wisla Plock",    "strAwayTeam": "Radomiak Radom",   "intHomeScore": "0", "intAwayScore": "1", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "30"}
+  ],
+  "4338_2025-2026": [
+    {"strHomeTeam": "Zulte Waregem", "strAwayTeam": "RAAL La Louvi\u00e8re", "intHomeScore": "2", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "34"},
+    {"strHomeTeam": "Anderlecht",    "strAwayTeam": "Union Saint-Gilloise", "intHomeScore": "1", "intAwayScore": "3", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "35"}
   ]
 }
