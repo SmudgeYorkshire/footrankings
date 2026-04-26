@@ -63,6 +63,8 @@ class SportsDBClient:
         """
         Return (played_fixtures, remaining_fixtures) for the season.
         Remaining = events where intHomeScore is null/empty.
+        Committed fixture patches in presplit/fixture_patches.json override
+        API results (e.g. when the API lags behind with live/2H status).
         """
         data = self._cached_get(
             f"eventsseason.php?id={league_id}&s={season}",
@@ -71,6 +73,33 @@ class SportsDBClient:
         )
         if not data or not data.get("events"):
             return [], []
+
+        # Apply committed fixture patches (overrides stale API status)
+        _patch_file = Path("presplit/fixture_patches.json")
+        _patch_key  = f"{league_id}_{season}"
+        if _patch_file.exists():
+            try:
+                with open(_patch_file) as _pf:
+                    _all_patches = json.load(_pf)
+                _patches = _all_patches.get(_patch_key, [])
+                if _patches:
+                    # Index API events by (home, away, date) for fast lookup
+                    _event_idx: dict[tuple, int] = {}
+                    for _i, _ev in enumerate(data["events"]):
+                        _k = (
+                            _ev.get("strHomeTeam", ""),
+                            _ev.get("strAwayTeam", ""),
+                            _ev.get("dateEvent", ""),
+                        )
+                        _event_idx[_k] = _i
+                    for _p in _patches:
+                        _k = (_p.get("strHomeTeam", ""), _p.get("strAwayTeam", ""), _p.get("dateEvent", ""))
+                        if _k in _event_idx:
+                            data["events"][_event_idx[_k]].update(_p)
+                        else:
+                            data["events"].append(_p)
+            except Exception:
+                pass
 
         _FINISHED = {"Match Finished", "FT", "AOT", "AET", "AP"}
         played, remaining = [], []

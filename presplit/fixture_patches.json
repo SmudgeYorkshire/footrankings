@@ -1,0 +1,7 @@
+{
+  "4621_2025-2026": [
+    {"strHomeTeam": "TSV Hartberg",   "strAwayTeam": "LASK",              "intHomeScore": "1", "intAwayScore": "5", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "29"},
+    {"strHomeTeam": "Rapid Vienna",   "strAwayTeam": "Red Bull Salzburg", "intHomeScore": "1", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "29"},
+    {"strHomeTeam": "Sturm Graz",     "strAwayTeam": "Austria Vienna",    "intHomeScore": "1", "intAwayScore": "1", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "29"}
+  ]
+}
