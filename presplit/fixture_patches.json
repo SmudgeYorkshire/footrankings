@@ -12,5 +12,8 @@
   "4338_2025-2026": [
     {"strHomeTeam": "Zulte Waregem", "strAwayTeam": "RAAL La Louvi\u00e8re", "intHomeScore": "2", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "34"},
     {"strHomeTeam": "Anderlecht",    "strAwayTeam": "Union Saint-Gilloise", "intHomeScore": "1", "intAwayScore": "3", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "35"}
+  ],
+  "4655_2025-2026": [
+    {"strHomeTeam": "Dacia Buiucani", "strAwayTeam": "Sheriff Tiraspol", "intHomeScore": "0", "intAwayScore": "2", "strStatus": "Match Finished", "dateEvent": "2026-03-20", "intRound": "3"}
   ]
 }
