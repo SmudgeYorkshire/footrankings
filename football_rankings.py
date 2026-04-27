@@ -472,7 +472,7 @@ def main_content():
     _patch_key  = f"{league_id}_{season}"
     if _patch_file.exists() and standings:
         try:
-            with open(_patch_file) as _pf:
+            with open(_patch_file, encoding="utf-8") as _pf:
                 _patches = json.load(_pf).get(_patch_key, [])
             if _patches:
                 _std_by_team = {r["strTeam"]: r for r in standings}
@@ -485,7 +485,8 @@ def main_content():
                     _ar    = _std_by_team.get(_away)
                     if not _hr or not _ar:
                         continue
-                    if int(_hr.get("intPlayed", 0)) >= _round:
+                    if (int(_hr.get("intPlayed", 0)) >= _round
+                            and int(_ar.get("intPlayed", 0)) >= _round):
                         continue  # standings already up to date for this match
                     _hg = int(_p.get("intHomeScore", 0))
                     _ag = int(_p.get("intAwayScore", 0))
