@@ -15,5 +15,12 @@
   ],
   "4655_2025-2026": [
     {"strHomeTeam": "Dacia Buiucani", "strAwayTeam": "Sheriff Tiraspol", "intHomeScore": "0", "intAwayScore": "2", "strStatus": "Match Finished", "dateEvent": "2026-03-20", "intRound": "3"}
+  ],
+  "4339_2025-2026": [
+    {"strHomeTeam": "Eyüpspor",       "strAwayTeam": "Gaziantep",        "intHomeScore": "3", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-25", "intRound": "31"},
+    {"strHomeTeam": "Göztepe",        "strAwayTeam": "Antalyaspor",      "intHomeScore": "2", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-25", "intRound": "31"},
+    {"strHomeTeam": "Kayserispor",    "strAwayTeam": "Rizespor",         "intHomeScore": "2", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-25", "intRound": "31"},
+    {"strHomeTeam": "Galatasaray",    "strAwayTeam": "Fenerbahçe",  "intHomeScore": "3", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "31"},
+    {"strHomeTeam": "Gençlerbirliği", "strAwayTeam": "Kocaelispor", "intHomeScore": "1", "intAwayScore": "0", "strStatus": "Match Finished", "dateEvent": "2026-04-26", "intRound": "31"}
   ]
 }
