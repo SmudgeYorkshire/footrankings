@@ -584,7 +584,9 @@ def main_content():
         if _h2h_pts_only and _h2h_cutoff:
             _champ_set = split_info.get("champ_teams", set())
             _h2h_raw   = {t: 0 for t in _champ_set}
-            _seen_pairs: set = set()   # deduplicate: TSDB sometimes stores same match twice
+            # Deduplicate: TSDB sometimes stores same match twice (home/away swapped).
+            # Keep the LAST occurrence per pair+date — it's the authoritative entry.
+            _pair_last: dict = {}
             for _fx in played_fixtures:
                 if (_fx.get("dateEvent") or "") >= _h2h_cutoff:
                     continue
@@ -592,14 +594,12 @@ def main_content():
                 _fa = _fx.get("strAwayTeam", "")
                 if _fh not in _champ_set or _fa not in _champ_set:
                     continue
-                _pair_key = (frozenset({_fh, _fa}), _fx.get("dateEvent", ""))
-                if _pair_key in _seen_pairs:
-                    continue
-                _seen_pairs.add(_pair_key)
                 try:
                     _fhg = int(_fx["intHomeScore"]); _fag = int(_fx["intAwayScore"])
                 except (TypeError, ValueError, KeyError):
                     continue
+                _pair_last[(frozenset({_fh, _fa}), _fx.get("dateEvent", ""))] = (_fh, _fa, _fhg, _fag)
+            for (_fh, _fa, _fhg, _fag) in _pair_last.values():
                 if _fhg > _fag:
                     _h2h_raw[_fh] += 3
                 elif _fhg < _fag:
@@ -622,9 +622,8 @@ def main_content():
 
             if _h2h_pts_only and _h2h_cutoff:
                 # Post-split games identified by date (round numbers reset in TSDB)
-                # Deduplicate in case TSDB stored the same fixture twice (home/away swapped)
-                _conf_played = []
-                _conf_seen: set = set()
+                # Deduplicate: keep LAST occurrence per pair+date (authoritative entry)
+                _conf_last: dict = {}
                 for _cf in played_fixtures:
                     if ((_cf.get("dateEvent") or "") < _h2h_cutoff
                             or _cf.get("strHomeTeam") not in _conf_teams
@@ -632,10 +631,8 @@ def main_content():
                         continue
                     _cpk = (frozenset({_cf.get("strHomeTeam"), _cf.get("strAwayTeam")}),
                             _cf.get("dateEvent", ""))
-                    if _cpk in _conf_seen:
-                        continue
-                    _conf_seen.add(_cpk)
-                    _conf_played.append(_cf)
+                    _conf_last[_cpk] = _cf
+                _conf_played = list(_conf_last.values())
                 if _h2h_start_pts and _conf_key == "champ_current":
                     # Reset all records; only carry over h2h-derived starting points
                     _base = [
