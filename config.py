@@ -422,6 +422,11 @@ LEAGUES = {
                                      "european_spots": {1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR1"},
                                      "split_round": 21, "n_champ": 6, "pts_factor": 0.5, "champ_only": True,
                                      "h2h_pts_only": True, "h2h_phase1_cutoff": "2026-01-01",
+                                     "champ_base_pts": {
+                                         "Petrocub Hîncești": 15, "Zimbru Chișinău": 14,
+                                         "Sheriff Tiraspol": 11, "Milsami Orhei": 10,
+                                         "Bălți": 8, "Dacia Buiucani": 1,
+                                     },
                                      "zone_notes": {"relegation": "Bottom 2 teams (7th–8th) enter a 6-team Relegation Playoff alongside 4 Liga 1 clubs. Only the playoff winner earns a Super Liga spot for next season."},
                                      "cup_details": (
                                          "2025/26 Moldovan Cup winner qualifies for the UEL – QR1. "

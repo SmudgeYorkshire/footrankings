@@ -580,33 +580,37 @@ def main_content():
 
         # For leagues like Moldova: starting points = h2h pts vs same-group teams
         # in Phase I, halved and floored.  All other records reset to zero.
+        # champ_base_pts in config takes priority (authoritative values from Wikipedia).
         _h2h_start_pts = None
         if _h2h_pts_only and _h2h_cutoff:
-            _champ_set = split_info.get("champ_teams", set())
-            _h2h_raw   = {t: 0 for t in _champ_set}
-            # Deduplicate: TSDB sometimes stores same match twice (home/away swapped).
-            # Keep the LAST occurrence per pair+date — it's the authoritative entry.
-            _pair_last: dict = {}
-            for _fx in played_fixtures:
-                if (_fx.get("dateEvent") or "") >= _h2h_cutoff:
-                    continue
-                _fh = _fx.get("strHomeTeam", "")
-                _fa = _fx.get("strAwayTeam", "")
-                if _fh not in _champ_set or _fa not in _champ_set:
-                    continue
-                try:
-                    _fhg = int(_fx["intHomeScore"]); _fag = int(_fx["intAwayScore"])
-                except (TypeError, ValueError, KeyError):
-                    continue
-                _pair_last[(frozenset({_fh, _fa}), _fx.get("dateEvent", ""))] = (_fh, _fa, _fhg, _fag)
-            for (_fh, _fa, _fhg, _fag) in _pair_last.values():
-                if _fhg > _fag:
-                    _h2h_raw[_fh] += 3
-                elif _fhg < _fag:
-                    _h2h_raw[_fa] += 3
-                else:
-                    _h2h_raw[_fh] += 1; _h2h_raw[_fa] += 1
-            _h2h_start_pts = {t: _math.floor(p / 2) for t, p in _h2h_raw.items()}
+            _champ_base_cfg = cfg.get("champ_base_pts")
+            if _champ_base_cfg:
+                # Use hardcoded authoritative starting points — bypasses unreliable TSDB data
+                _h2h_start_pts = dict(_champ_base_cfg)
+            else:
+                _champ_set = split_info.get("champ_teams", set())
+                _h2h_raw   = {t: 0 for t in _champ_set}
+                _pair_last: dict = {}
+                for _fx in played_fixtures:
+                    if (_fx.get("dateEvent") or "") >= _h2h_cutoff:
+                        continue
+                    _fh = _fx.get("strHomeTeam", "")
+                    _fa = _fx.get("strAwayTeam", "")
+                    if _fh not in _champ_set or _fa not in _champ_set:
+                        continue
+                    try:
+                        _fhg = int(_fx["intHomeScore"]); _fag = int(_fx["intAwayScore"])
+                    except (TypeError, ValueError, KeyError):
+                        continue
+                    _pair_last[(frozenset({_fh, _fa}), _fx.get("dateEvent", ""))] = (_fh, _fa, _fhg, _fag)
+                for (_fh, _fa, _fhg, _fag) in _pair_last.values():
+                    if _fhg > _fag:
+                        _h2h_raw[_fh] += 3
+                    elif _fhg < _fag:
+                        _h2h_raw[_fa] += 3
+                    else:
+                        _h2h_raw[_fh] += 1; _h2h_raw[_fa] += 1
+                _h2h_start_pts = {t: _math.floor(p / 2) for t, p in _h2h_raw.items()}
 
         for _conf_key, _teams_key in [
             ("champ_current", "champ_teams"),
