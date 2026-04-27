@@ -572,8 +572,42 @@ def main_content():
     # Always recompute all conference standings from the presplit snapshot +
     # played post-split fixtures so Current Table and Projections are accurate.
     if split_info and split_round and _presplit_snapshot:
+        import math as _math
         _pts_round      = cfg.get("pts_round", "down")
+        _h2h_pts_only   = cfg.get("h2h_pts_only", False)
+        _h2h_cutoff     = cfg.get("h2h_phase1_cutoff")   # e.g. "2026-01-01"
         _presplit_by_tm = {r["strTeam"]: r for r in _presplit_snapshot}
+
+        # For leagues like Moldova: starting points = h2h pts vs same-group teams
+        # in Phase I, halved and floored.  All other records reset to zero.
+        _h2h_start_pts = None
+        if _h2h_pts_only and _h2h_cutoff:
+            _champ_set = split_info.get("champ_teams", set())
+            _h2h_raw   = {t: 0 for t in _champ_set}
+            _seen_pairs: set = set()   # deduplicate: TSDB sometimes stores same match twice
+            for _fx in played_fixtures:
+                if (_fx.get("dateEvent") or "") >= _h2h_cutoff:
+                    continue
+                _fh = _fx.get("strHomeTeam", "")
+                _fa = _fx.get("strAwayTeam", "")
+                if _fh not in _champ_set or _fa not in _champ_set:
+                    continue
+                _pair_key = (frozenset({_fh, _fa}), _fx.get("dateEvent", ""))
+                if _pair_key in _seen_pairs:
+                    continue
+                _seen_pairs.add(_pair_key)
+                try:
+                    _fhg = int(_fx["intHomeScore"]); _fag = int(_fx["intAwayScore"])
+                except (TypeError, ValueError, KeyError):
+                    continue
+                if _fhg > _fag:
+                    _h2h_raw[_fh] += 3
+                elif _fhg < _fag:
+                    _h2h_raw[_fa] += 3
+                else:
+                    _h2h_raw[_fh] += 1; _h2h_raw[_fa] += 1
+            _h2h_start_pts = {t: _math.floor(p / 2) for t, p in _h2h_raw.items()}
+
         for _conf_key, _teams_key in [
             ("champ_current", "champ_teams"),
             ("mid_current",   "mid_teams"),
@@ -585,11 +619,43 @@ def main_content():
             _base = [_presplit_by_tm[t] for t in _conf_teams if t in _presplit_by_tm]
             if not _base:
                 continue
-            _post_split_played = [
-                f for f in played_fixtures
-                if int(f.get("intRound") or 0) > split_round
-            ]
-            _conf_played = conference_fixtures(_post_split_played, _conf_teams)
+
+            if _h2h_pts_only and _h2h_cutoff:
+                # Post-split games identified by date (round numbers reset in TSDB)
+                # Deduplicate in case TSDB stored the same fixture twice (home/away swapped)
+                _conf_played = []
+                _conf_seen: set = set()
+                for _cf in played_fixtures:
+                    if ((_cf.get("dateEvent") or "") < _h2h_cutoff
+                            or _cf.get("strHomeTeam") not in _conf_teams
+                            or _cf.get("strAwayTeam") not in _conf_teams):
+                        continue
+                    _cpk = (frozenset({_cf.get("strHomeTeam"), _cf.get("strAwayTeam")}),
+                            _cf.get("dateEvent", ""))
+                    if _cpk in _conf_seen:
+                        continue
+                    _conf_seen.add(_cpk)
+                    _conf_played.append(_cf)
+                if _h2h_start_pts and _conf_key == "champ_current":
+                    # Reset all records; only carry over h2h-derived starting points
+                    _base = [
+                        {**r,
+                         "intPoints":       _h2h_start_pts.get(r["strTeam"], 0),
+                         "intWin":          0, "intDraw":          0, "intLoss": 0,
+                         "intGoalsFor":     0, "intGoalsAgainst":  0, "intPlayed": 0}
+                        for r in _base
+                    ]
+                    split_info[_conf_key] = recompute_conference_standings(
+                        _base, _conf_played, pts_factor=1.0, pts_round="down"
+                    )
+                    continue
+            else:
+                _post_split_played = [
+                    f for f in played_fixtures
+                    if int(f.get("intRound") or 0) > split_round
+                ]
+                _conf_played = conference_fixtures(_post_split_played, _conf_teams)
+
             split_info[_conf_key] = recompute_conference_standings(
                 _base, _conf_played, pts_factor, _pts_round
             )
@@ -784,7 +850,9 @@ def main_content():
                 "⚠️ Points halved (rounded up) at split" if _pts_dir == "up"
                 else "⚠️ Points halved (rounded down) at split"
             )
-            if _pf == 0.0:
+            if cfg.get("h2h_pts_only"):
+                _pts_note = "⚠️ Only h2h points vs same-group teams from Phase I, halved (rounded down)"
+            elif _pf == 0.0:
                 _pts_note = "⚠️ Points reset to zero at split"
             elif _pf == 0.5:
                 _pts_note = _half_note
@@ -797,7 +865,9 @@ def main_content():
                 _relg_pts_note = _half_note
             else:
                 _relg_pts_note = "Points carried over in full"
-            _champ_pf = conference_fixtures(played_fixtures,    split_info["champ_teams"])
+            _h2h_cut = cfg.get("h2h_phase1_cutoff")
+            _champ_pf = [f for f in conference_fixtures(played_fixtures,    split_info["champ_teams"])
+                         if not _h2h_cut or (f.get("dateEvent") or "") >= _h2h_cut]
             _champ_rf = conference_fixtures(remaining_fixtures, split_info["champ_teams"])
             _relg_pf  = conference_fixtures(played_fixtures,    split_info["relg_teams"])
             _relg_rf  = conference_fixtures(remaining_fixtures, split_info["relg_teams"])
@@ -1268,8 +1338,10 @@ def main_content():
                                  if split_info.get("relg_current") else None)
                 # Use pre-computed zones (same source as Current Table)
                 st.markdown("### 🏆 Championship Round")
+                _proj_champ_pf = [f for f in conference_fixtures(played_fixtures, split_info["champ_teams"])
+                                  if not _h2h_cut or (f.get("dateEvent") or "") >= _h2h_cut]
                 st.markdown(_conf_progress_html(
-                    conference_fixtures(played_fixtures,    split_info["champ_teams"]),
+                    _proj_champ_pf,
                     conference_fixtures(remaining_fixtures, split_info["champ_teams"]),
                 ), unsafe_allow_html=True)
                 if not probs_champ.empty:
