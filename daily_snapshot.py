@@ -106,13 +106,21 @@ def append_snapshot(tsdb_id, probs, date_str) -> dict[str, float] | None:
     path = os.path.join(HISTORY_DIR, f"{tsdb_id}.csv")
     n_positions = len(probs.columns)
     fieldnames = ["date", "team"] + [f"pos_{i}" for i in range(1, n_positions + 1)]
-    file_exists = os.path.exists(path)
+
+    # Idempotent per day: drop any existing rows for date_str before writing
+    # fresh ones, so re-running the same day (manual trigger, retry, etc.)
+    # replaces that day's numbers instead of duplicating them — duplicate
+    # (date, team) pairs would break the history chart's pivot() later.
+    existing_rows = []
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            existing_rows = [r for r in csv.DictReader(f) if r["date"] != date_str]
 
     title_probs = {}
-    with open(path, "a", newline="", encoding="utf-8") as f:
+    with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
-        if not file_exists:
-            writer.writeheader()
+        writer.writeheader()
+        writer.writerows(existing_rows)
         for team in probs.index:
             row = {"date": date_str, "team": team}
             for i, col in enumerate(probs.columns, 1):
