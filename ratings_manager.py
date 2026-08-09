@@ -6,11 +6,11 @@ one file per league: ratings/{league_id}.csv
 
 CSV columns:
     team        – team name as shown on Opta (used for display)
-    alias       – alternative name used by TheSportsDB (leave blank if identical)
+    alias       – alternative name used by the live-data provider (leave blank if identical)
     opta_rating – Opta Power Ranking score (0–100 scale)
 
-When looking up a team from TheSportsDB standings/fixtures, the code
-checks `alias` first (if set), then `team`.
+When looking up a team from the live-data provider's standings/fixtures,
+the code checks `alias` first (if set), then `team`.
 
 Default ratings (when no CSV exists yet) are estimated from season stats:
 a composite score based on points, goal difference, and goals scored,
@@ -57,7 +57,7 @@ def save_ratings(league_id: int, ratings: pd.DataFrame) -> None:
 def build_lookup(ratings: pd.DataFrame) -> dict[str, float]:
     """
     Build a {name: opta_rating} dict that maps both 'team' and 'alias'
-    to the same rating, so TheSportsDB names resolve correctly.
+    to the same rating, so the live-data provider's names resolve correctly.
     """
     lookup: dict[str, float] = {}
     for _, row in ratings.iterrows():

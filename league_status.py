@@ -74,7 +74,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         },
     },
 
-    "Andorran Primera Divisió": {"regular": {
+    "Andorran 1a Divisió": {"regular": {
         1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
         9: "Relegation - PO",
     }},
@@ -98,7 +98,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         9: "Relegation", 10: "Relegation",
     }},
 
-    "Croatian First League": {"regular": {
+    "Croatian First Football League": {"regular": {
         1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
         10: "Relegation",
     }},
@@ -126,7 +126,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         11: "Relegation", 12: "Relegation",
     }},
 
-    "Icelandic Úrvalsdeild": {"regular": {
+    "Icelandic Besta deild karla": {"regular": {
         1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR1",
     }},
 
@@ -146,11 +146,11 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
     }},
 
-    "Lithuanian A Lyga": {"regular": {
+    "Lithuanian TOPLYGA": {"regular": {
         1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
     }},
 
-    "Luxembourgish National Div": {"regular": {
+    "Luxembourg National Division": {"regular": {
         1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
     }},
 
@@ -194,12 +194,12 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         16: "Relegation - PO", 17: "Relegation", 18: "Relegation",
     }},
 
-    "Russian Premier League": {"regular": {
+    "Russian Football Premier League": {"regular": {
         13: "Relegation - PO", 14: "Relegation - PO",
         15: "Relegation", 16: "Relegation",
     }},
 
-    "San Marino Campionato": {"regular": {
+    "San-Marino Campionato": {"regular": {
         1: "UCL - QR1", 2: "UECL - PO", 3: "UECL - PO", 4: "UECL - QR1",
         5: "UECL - PO", 6: "UECL - PO", 7: "UECL - PO", 8: "UECL - PO",
         9: "UECL - PO", 10: "UECL - PO", 11: "UECL - PO", 12: "UECL - PO",
@@ -253,29 +253,13 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         },
     },
 
-    # ── Belgian Pro League ── 16 teams · split Rd 30 · top 6 → Champ · pts ×0.5
-    # 7–12 → Europe Play-Offs (PO II, pts ×0.5), 13–16 → Relegation Play-Offs (full pts)
-    "Belgian Pro League": {
-        "regular": {
-            1: "Championship Group", 2: "Championship Group", 3: "Championship Group",
-            4: "Championship Group", 5: "Championship Group", 6: "Championship Group",
-            7: "European Group", 8: "European Group", 9: "European Group",
-            10: "European Group", 11: "European Group", 12: "European Group",
-            13: "Relegation Group", 14: "Relegation Group",
-            15: "Relegation Group", 16: "Relegation Group",
-        },
-        "champ": {  # 6 teams · pts halved (rounded up)
-            1: "UCL - LS", 2: "UCL - QR3 (LP)", 3: "UEL - PO", 4: "UEL - QR2", 5: "UECL Play-offs*",
-        },
-        "mid": {  # 6 teams (Europe Play-offs, pts halved rounded up) · winner plays 5th from Champ
-            1: "UECL Play-offs*",
-        },
-        "relg": {  # 4 teams (full pts) · last place plays relg PO vs Challenger Pro League
-            4: "Relegation - PO",  # 16th overall (only relegation risk this season due to expansion)
-        },
-    },
+    # ── Belgian Pro League ── 18 teams · single round-robin · 34 rounds
+    "Belgian Pro League": {"regular": {
+        1: "UCL - LS", 2: "UCL - QR3", 3: "UEL - QR2", 4: "UECL - QR2",
+        17: "Relegation", 18: "Relegation",
+    }},
 
-    # ── Bulgarian First League ── 16 teams · split Rd 26 · top 4 → Champ · mid 4 → UECL PO · bottom 8 → Relg
+    # ── Bulgarian First League ── 14 teams · split Rd 26 · top 4 → Champ · mid 4 → UECL PO · bottom 6 → Relg
     "Bulgarian First League": {
         "regular": {
             1: "Championship Group", 2: "Championship Group",
@@ -284,17 +268,16 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             7: "European Group", 8: "European Group",
             9: "Relegation Group", 10: "Relegation Group", 11: "Relegation Group",
             12: "Relegation Group", 13: "Relegation Group", 14: "Relegation Group",
-            15: "Relegation Group", 16: "Relegation Group",
         },
-        "champ": {  # 4 teams · 4th plays CL Play-offs group winner for UECL spot
-            1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL Play-offs*",
+        "champ": {  # 4 teams · 4th (or 3rd) plays European Group winner for UECL spot
+            1: "UCL - QR1", 2: "UEL - QR1", 4: "UECL Play-offs*",
         },
-        "mid": {  # 4 teams · winner plays 4th from Champ for UECL – QR2 spot
+        "mid": {  # 4 teams · winner plays Championship Group's 3rd/4th for UECL – QR2 spot
             1: "UECL Play-offs*",
         },
-        "relg": {  # 8 teams (pos 9-16 overall) · 13th/14th (5th/6th) play PO · 15th/16th relegated
-            5: "Relegation - PO", 6: "Relegation - PO",
-            7: "Relegation", 8: "Relegation",
+        "relg": {  # 6 teams (pos 9-14 overall) · 13th (5th) plays PO · 14th (6th) relegated
+            5: "Relegation - PO",
+            6: "Relegation",
         },
     },
 
@@ -374,9 +357,9 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         },
     },
 
-    # ── Gibraltar National League ── 12 teams · split Rd 22 (11×2) · top 6 → Champ only · pts ×1.0
+    # ── Gibraltarian National League ── 12 teams · split Rd 22 (11×2) · top 6 → Champ only · pts ×1.0
     # Bottom 6 keep their regular-season positions — no Relegation Round
-    "Gibraltar National League": {
+    "Gibraltarian National League": {
         "regular": {
             1: "Championship Round", 2: "Championship Round", 3: "Championship Round",
             4: "Championship Round", 5: "Championship Round", 6: "Championship Round",
@@ -387,8 +370,8 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         },
     },
 
-    # ── Greek Super League ── 14 teams · split Rd 26 (13×2) · top 4 → Champ, next 4 → European · pts ×0.5
-    "Greek Super League": {
+    # ── Greek Super League 1 ── 14 teams · split Rd 26 (13×2) · top 4 → Champ, next 4 → European · pts ×0.5
+    "Greek Super League 1": {
         "regular": {
             1: "Championship Group", 2: "Championship Group",
             3: "Championship Group", 4: "Championship Group",
@@ -531,8 +514,8 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         },
     },
 
-    # ── Slovak First League ── 12 teams · split Rd 22 (11×2) · top 6 → Champ · pts ×1.0
-    "Slovak First League": {
+    # ── Slovak First Football League ── 12 teams · split Rd 22 (11×2) · top 6 → Champ · pts ×1.0
+    "Slovak First Football League": {
         "regular": {
             1: "Championship Group", 2: "Championship Group", 3: "Championship Group",
             4: "Championship Group", 5: "Championship Group", 6: "Championship Group",
@@ -565,8 +548,8 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         },
     },
 
-    # ── Welsh Premier League ── 12 teams · split Rd 22 (11×2) · top 6 → Championship Conference · pts ×1.0
-    "Welsh Premier League": {
+    # ── Welsh Cymru Premier ── 12 teams · split Rd 22 (11×2) · top 6 → Championship Conference · pts ×1.0
+    "Welsh Cymru Premier": {
         "regular": {
             1: "Championship Conference", 2: "Championship Conference", 3: "Championship Conference",
             4: "Championship Conference", 5: "Championship Conference", 6: "Championship Conference",

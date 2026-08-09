@@ -14,7 +14,7 @@ import pandas as pd
 from pathlib import Path
 
 from config import EUROPEAN_COMPETITIONS, LEAGUES, get_current_season
-from data_fetcher import SportsDBClient
+from api_football_fetcher import ApiFootballClient
 from simulator import fixture_odds, two_leg_advance_odds
 from entrants_2026_27 import ENTRANTS as ENTRANTS_2026_27, STAGE_ORDER, QUALIFYING_DATES
 from club_coefficients import get_coeff, get_tiebreak
@@ -26,24 +26,24 @@ _UCL_QR1_COUNTRY_TO_LEAGUE: dict[str, str] = {
     "Moldova":       "Moldovan National Division",
     "Ireland":       "Irish Premier Division",
     "Kosovo":        "Kosovan Superleague",
-    "Gibraltar":     "Gibraltar National League",
+    "Gibraltar":     "Gibraltarian National League",
     "Bosnia-Herz.":  "Bosnian Premier Liga",
     "N. Ireland":    "Northern Irish Premiership",
-    "Wales":         "Welsh Premier League",
+    "Wales":         "Welsh Cymru Premier",
     "Malta":         "Maltese Premier League",
-    "Andorra":       "Andorran Primera Divisió",
+    "Andorra":       "Andorran 1a Divisió",
     "Bulgaria":      "Bulgarian First League",
     "Armenia":       "Armenian Premier League",
     "Albania":       "Albanian Superliga",
-    "Luxembourg":    "Luxembourgish National Div",
+    "Luxembourg":    "Luxembourg National Division",
     "Azerbaijan":    "Azerbaijani Premier League",
     "Montenegro":    "Montenegrin First League",
     "Romania":       "Romanian Liga I",
     "N. Macedonia":  "Macedonian First League",
-    "San Marino":    "San Marino Campionato",
+    "San Marino":    "San-Marino Campionato",
     "Ukraine":       "Ukrainian Premier League",
     "Hungary":       "Hungarian NB I",
-    "Slovakia":      "Slovak First League",
+    "Slovakia":      "Slovak First Football League",
 }
 
 
@@ -130,8 +130,8 @@ def _load_qual_badge_lookup(api_key: str) -> dict[str, str]:
     def _norm(s: str) -> str:
         return unicodedata.normalize("NFD", str(s)).encode("ascii", "ignore").decode().lower().strip()
 
-    client    = SportsDBClient(api_key)
-    id_to_cfg = {cfg["id"]: (name, cfg) for name, cfg in LEAGUES.items()}
+    client    = ApiFootballClient(api_key)
+    id_to_cfg = {cfg.get("tsdb_id", cfg["id"]): (name, cfg) for name, cfg in LEAGUES.items()}
     all_ids   = set(_UCL_QR1_COUNTRY_TO_LEAGUE_ID.values()) | set(_BADGE_EXTRA_IDS)
 
     result: dict[str, str] = {}
@@ -140,9 +140,9 @@ def _load_qual_badge_lookup(api_key: str) -> dict[str, str]:
         if not entry:
             continue
         _, lcfg = entry
-        season = get_current_season(lcfg["season_type"])
+        season = lcfg.get("af_season") or get_current_season(lcfg["season_type"])
         try:
-            rows = client.get_standings(lid, season)
+            rows = client.get_standings(lcfg["id"], season)
         except Exception:
             continue
         for row in rows:
@@ -248,13 +248,13 @@ def _simulate_ucl_qr1(entries_key: tuple, n_sim: int = 10_000) -> tuple:
 @st.cache_data(ttl=3_600, show_spinner=False)
 def _fetch_ucl_qr1_projections(api_key: str) -> dict[str, str]:
     """Return {country: projected_champion} for winter UCL QR1 leagues."""
-    client = SportsDBClient(api_key)
+    client = ApiFootballClient(api_key)
     result = {}
     for country, league_name in _UCL_QR1_COUNTRY_TO_LEAGUE.items():
         lcfg = LEAGUES.get(league_name)
         if not lcfg:
             continue
-        ssn = get_current_season(lcfg["season_type"])
+        ssn = lcfg.get("af_season") or get_current_season(lcfg["season_type"])
         standings = client.get_standings(lcfg["id"], ssn)
         if standings:
             leader = min(standings, key=lambda r: int(r.get("intRank") or 99))
@@ -264,9 +264,11 @@ def _fetch_ucl_qr1_projections(api_key: str) -> dict[str, str]:
 
 @st.cache_data(ttl=3_600, show_spinner=False)
 def _fetch_albania_top4(api_key: str) -> list[str]:
-    """Return Albania 2025-26 top-4 team names ordered by current rank."""
-    client = SportsDBClient(api_key)
-    standings = client.get_standings(LEAGUES["Albanian Superliga"]["id"], "2025-2026")
+    """Return Albania's current top-4 team names ordered by current rank."""
+    client = ApiFootballClient(api_key)
+    _cfg = LEAGUES["Albanian Superliga"]
+    ssn = _cfg.get("af_season") or get_current_season(_cfg["season_type"])
+    standings = client.get_standings(_cfg["id"], ssn)
     if not standings:
         return []
     return [
@@ -300,7 +302,7 @@ def _resolve_dynamic(entries: list[dict], albania_top4: list[str],
             out.append(e)
     return out
 
-_API_KEY = os.getenv("THESPORTSDB_API_KEY", "3")
+_API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -318,7 +320,7 @@ def _utc_to_cet(date_str: str, time_str: str) -> str:
         return date_str
 
 
-# Display names for known intRound values (TheSportsDB omits strRound for these)
+# Display names for known intRound values (used when strRound is absent, e.g. hardcoded fixtures)
 _ROUND_DISPLAY = {
     400:  "Qualifying",
     1128: "First Qualifying Round",
@@ -335,7 +337,7 @@ _ROUND_DISPLAY = {
 }
 
 _ROUND_ORDER = {
-    "knockout play-offs": 1, "knockout playoffs": 1,
+    "knockout play-offs": 1, "knockout playoffs": 1, "play-offs": 1,
     "round of 64": 1,
     "round of 32": 2,
     "round of 16": 3,
@@ -410,7 +412,7 @@ with st.sidebar:
     )
     cfg     = EUROPEAN_COMPETITIONS[comp_name]
     comp_id = cfg["id"]
-    season  = st.selectbox("Season", ["2025-2026", "2026-2027"], index=0)
+    season  = "2026-2027"   # only the current season is tracked
 
 
 # ---------------------------------------------------------------------------
@@ -418,7 +420,7 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 @st.cache_data(ttl=60, show_spinner=False)
 def fetch_all(lid, ssn, key):
-    c = SportsDBClient(api_key=key)
+    c = ApiFootballClient(api_key=key)
     standings         = c.get_standings(lid, ssn)
     played, remaining = c.get_fixtures(lid, ssn)
     info              = c.get_league_info(lid)
@@ -447,22 +449,33 @@ for row in standings:
         badge_lookup.setdefault(row["strTeam"], row["strBadge"])
 
 # ---------------------------------------------------------------------------
-# Round classification
+# Round classification — based on API-Football's strRound text (e.g.
+# "1st Qualifying Round", "League Stage - 8", "Round of 16"), not numeric IDs.
 # ---------------------------------------------------------------------------
-lp_rounds      = cfg.get("league_phase_rounds", 8)
-has_lp         = cfg.get("has_league_phase", lp_rounds > 0)
-qualifying_ids = cfg.get("qualifying_rounds", set())
-n_direct       = cfg.get("n_direct", 8)
-n_playoff      = cfg.get("n_playoff", 16)
+lp_rounds = cfg.get("league_phase_rounds", 8)
+has_lp    = cfg.get("has_league_phase", lp_rounds > 0)
+n_direct  = cfg.get("n_direct", 8)
+n_playoff = cfg.get("n_playoff", 16)
+
+
+def _round_str(f: dict) -> str:
+    return (f.get("strRound") or "").lower()
+
+
+def _is_qualifying(f: dict) -> bool:
+    return "qualifying" in _round_str(f) or "preliminary" in _round_str(f)
+
+
+def _is_league_phase(f: dict) -> bool:
+    return "league stage" in _round_str(f) or "league phase" in _round_str(f)
+
 
 all_fixtures = played_fixtures + remaining_fixtures
 
 lp_played    = [f for f in played_fixtures    if has_lp and 1 <= _intround(f) <= lp_rounds]
-qual_played  = [f for f in played_fixtures    if _intround(f) in qualifying_ids]
-qual_all     = [f for f in all_fixtures       if _intround(f) in qualifying_ids]
-ko_played    = [f for f in played_fixtures    if _intround(f) not in qualifying_ids
-                                              and (not has_lp or _intround(f) > lp_rounds)]
-ko_remaining = [f for f in remaining_fixtures if _intround(f) not in qualifying_ids]
+qual_played  = [f for f in played_fixtures    if _is_qualifying(f)]
+ko_played    = [f for f in played_fixtures    if not _is_qualifying(f) and not _is_league_phase(f)]
+ko_remaining = [f for f in remaining_fixtures if not _is_qualifying(f) and not _is_league_phase(f)]
 all_knockout = ko_played + ko_remaining
 
 # Group by round label
@@ -470,15 +483,6 @@ ko_rounds_map: dict[str, list] = {}
 for f in all_knockout:
     ko_rounds_map.setdefault(_round_key(f), []).append(f)
 sorted_ko_rounds = sorted(ko_rounds_map.keys(), key=_round_sort)
-
-qual_rounds_map: dict[str, list] = {}
-for f in qual_all:
-    qual_rounds_map.setdefault(_round_key(f), []).append(f)
-sorted_qual_rounds = sorted(
-    qual_rounds_map.keys(),
-    key=lambda r: _intround(qual_rounds_map[r][0]),
-    reverse=True,   # largest round number = earliest qualifying round
-)
 
 # Combined Opta ratings from all domestic league CSVs
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -533,43 +537,8 @@ st.divider()
 # ---------------------------------------------------------------------------
 _show_entrants = (season == "2026-2027") and (comp_name in ENTRANTS_2026_27)
 
-# Hardcoded 2025-26 QF ties (fallback when TheSportsDB hasn't populated them yet)
-# team names match primary/alias entries in ratings CSVs
-_HARDCODED_QF: dict[str, list[list[dict]]] = {
-    "Champions League": [
-        [{"strHomeTeam": "Sporting CP",        "strAwayTeam": "Arsenal",          "dateEvent": "2026-04-07", "intRound": "8"},
-         {"strHomeTeam": "Arsenal",             "strAwayTeam": "Sporting CP",      "dateEvent": "2026-04-15", "intRound": "8"}],
-        [{"strHomeTeam": "Real Madrid",         "strAwayTeam": "Bayern München",   "dateEvent": "2026-04-07", "intRound": "8"},
-         {"strHomeTeam": "Bayern München",      "strAwayTeam": "Real Madrid",      "dateEvent": "2026-04-15", "intRound": "8"}],
-        [{"strHomeTeam": "Barcelona",           "strAwayTeam": "Atlético de Madrid","dateEvent": "2026-04-08","intRound": "8"},
-         {"strHomeTeam": "Atlético de Madrid",  "strAwayTeam": "Barcelona",        "dateEvent": "2026-04-14", "intRound": "8"}],
-        [{"strHomeTeam": "Paris Saint-Germain", "strAwayTeam": "Liverpool",        "dateEvent": "2026-04-08", "intRound": "8"},
-         {"strHomeTeam": "Liverpool",           "strAwayTeam": "Paris Saint-Germain","dateEvent": "2026-04-14","intRound": "8"}],
-    ],
-    "Europa League": [
-        [{"strHomeTeam": "Braga",               "strAwayTeam": "Real Betis",       "dateEvent": "2026-04-08", "intRound": "8"},
-         {"strHomeTeam": "Real Betis",          "strAwayTeam": "Braga",            "dateEvent": "2026-04-16", "intRound": "8"}],
-        [{"strHomeTeam": "SC Freiburg",         "strAwayTeam": "Celta Vigo",       "dateEvent": "2026-04-09", "intRound": "8"},
-         {"strHomeTeam": "Celta Vigo",          "strAwayTeam": "SC Freiburg",      "dateEvent": "2026-04-16", "intRound": "8"}],
-        [{"strHomeTeam": "Porto",               "strAwayTeam": "Nottingham Forest","dateEvent": "2026-04-09", "intRound": "8"},
-         {"strHomeTeam": "Nottingham Forest",   "strAwayTeam": "Porto",            "dateEvent": "2026-04-16", "intRound": "8"}],
-        [{"strHomeTeam": "Bologna",             "strAwayTeam": "Aston Villa",      "dateEvent": "2026-04-09", "intRound": "8"},
-         {"strHomeTeam": "Aston Villa",         "strAwayTeam": "Bologna",          "dateEvent": "2026-04-16", "intRound": "8"}],
-    ],
-    "Conference League": [
-        [{"strHomeTeam": "Rayo Vallecano",      "strAwayTeam": "AEK Athens",       "dateEvent": "2026-04-09", "intRound": "8"},
-         {"strHomeTeam": "AEK Athens",          "strAwayTeam": "Rayo Vallecano",   "dateEvent": "2026-04-16", "intRound": "8"}],
-        [{"strHomeTeam": "Mainz 05",            "strAwayTeam": "Strasbourg",       "dateEvent": "2026-04-09", "intRound": "8"},
-         {"strHomeTeam": "Strasbourg",          "strAwayTeam": "Mainz 05",         "dateEvent": "2026-04-16", "intRound": "8"}],
-        [{"strHomeTeam": "Crystal Palace",      "strAwayTeam": "Fiorentina",       "dateEvent": "2026-04-09", "intRound": "8"},
-         {"strHomeTeam": "Fiorentina",          "strAwayTeam": "Crystal Palace",   "dateEvent": "2026-04-16", "intRound": "8"}],
-        [{"strHomeTeam": "Shakhtar Donetsk",    "strAwayTeam": "AZ Alkmaar",       "dateEvent": "2026-04-09", "intRound": "8"},
-         {"strHomeTeam": "AZ Alkmaar",          "strAwayTeam": "Shakhtar Donetsk", "dateEvent": "2026-04-16", "intRound": "8"}],
-    ],
-}
-
-# Group QF fixtures (intRound=8) into two-leg ties; fall back to hardcoded when empty
-_qf_all = [f for f in all_knockout if _intround(f) == 8]
+# Group QF fixtures into two-leg ties
+_qf_all = [f for f in all_knockout if "quarter-final" in _round_str(f)]
 _qf_tie_map: dict[str, list] = {}
 for _f in _qf_all:
     _key = "_vs_".join(sorted([_f.get("strHomeTeam", ""), _f.get("strAwayTeam", "")]))
@@ -579,9 +548,6 @@ qf_ties: list[list[dict]] = [
     for legs in _qf_tie_map.values()
 ]
 qf_ties.sort(key=lambda legs: legs[0].get("dateEvent", ""))
-
-if not qf_ties and comp_name in _HARDCODED_QF and season == "2025-2026":
-    qf_ties = _HARDCODED_QF[comp_name]
 
 _has_qf = bool(qf_ties)
 
@@ -1378,41 +1344,6 @@ with tab_qual:
                     _run_predictions(confirmed_clubs, "QR3 League Path")
 
             st.divider()
-
-    # ── Live seasons: fetch from API as before ───────────────────────────────
-    elif not qual_all:
-        st.info("No qualifying data available.")
-    else:
-        _q_cfg = {
-            "Date":  st.column_config.TextColumn("Date",  width=130),
-            "HB":    st.column_config.ImageColumn("",     width="small"),
-            "Home":  st.column_config.TextColumn("Home",  width="medium"),
-            "Score": st.column_config.TextColumn("Score", width="small"),
-            "Away":  st.column_config.TextColumn("Away",  width="medium"),
-            "AB":    st.column_config.ImageColumn("",     width="small"),
-        }
-        for rnd in sorted_qual_rounds:
-            rnd_fixtures  = sorted(qual_rounds_map[rnd], key=lambda x: x.get("dateEvent", ""))
-            n_played      = sum(1 for f in rnd_fixtures if f in qual_played)
-            st.markdown(
-                f"### {rnd} "
-                f"<span style='font-size:14px;color:#888;font-weight:normal'>"
-                f"({n_played} matches)</span>",
-                unsafe_allow_html=True,
-            )
-            rows = [{
-                "Date":  _utc_to_cet(f.get("dateEvent", ""), f.get("strTime", "")),
-                "HB":    badge_lookup.get(f.get("strHomeTeam", ""), ""),
-                "Home":  f.get("strHomeTeam", ""),
-                "Score": (f"{f.get('intHomeScore','')}–{f.get('intAwayScore','')}"
-                          if f in qual_played else "vs"),
-                "Away":  f.get("strAwayTeam", ""),
-                "AB":    badge_lookup.get(f.get("strAwayTeam", ""), ""),
-            } for f in rnd_fixtures]
-            _q_styled = pd.DataFrame(rows).style.set_properties(
-                subset=["Home", "Away"], **{"font-weight": "bold"})
-            st.dataframe(_q_styled, column_config=_q_cfg,
-                         use_container_width=False, hide_index=True)
 
 
 # ---------------------------------------------------------------------------

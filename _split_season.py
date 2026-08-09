@@ -1,7 +1,7 @@
 """
 Helpers for leagues with split seasons (regular season + conference rounds).
 
-TheSportsDB confirmed they cannot keep split-league standings tables up to
+Providers cannot reliably keep split-league standings tables up to
 date.  The table endpoint is therefore used only to identify which conference
 each team belongs to; actual post-split standings are always recomputed in
 football_rankings.py from the presplit snapshot + played fixture results.
@@ -31,13 +31,13 @@ def get_split_info(standings: list[dict], split_round: int,
         pts_factor    – float: 1.0 full / 0.5 halved / 0.0 reset
 
     presplit: optional saved snapshot of standings at exactly split_round; used
-    as split_rows when TheSportsDB stops returning the pre-split rows after the
+    as split_rows when the provider stops returning the pre-split rows after the
     split has started.
     """
     split_rows   = [r for r in standings if int(r.get("intPlayed") or 0) == split_round]
     current_rows = [r for r in standings if int(r.get("intPlayed") or 0) >  split_round]
 
-    # Fallback A: TheSportsDB dropped the pre-split rows — use the saved snapshot
+    # Fallback A: provider dropped the pre-split rows — use the saved snapshot
     if not split_rows and presplit:
         split_rows = list(presplit)
 
@@ -55,7 +55,7 @@ def get_split_info(standings: list[dict], split_round: int,
     if not split_rows or not current_rows:
         return None  # Regular season still running
 
-    # Try to identify conferences from TheSportsDB strDescription
+    # Try to identify conferences from strDescription
     champ_teams = {
         r["strTeam"] for r in split_rows
         if "championship" in (r.get("strDescription") or "").lower()
@@ -155,7 +155,7 @@ def recompute_conference_standings(
 
     Applies pts_factor to starting points, then adds W/D/L/GF/GA from
     each played fixture, then re-ranks by points → GD → GF.
-    Called for every conference (champ / mid / relg) because TheSportsDB
+    Called for every conference (champ / mid / relg) because the provider
     does not update split-league tables post-split.
     """
     import copy
@@ -226,3 +226,27 @@ def recompute_conference_standings(
     for i, row in enumerate(row_list, start=1):
         row["intRank"] = i
     return row_list
+
+
+def compute_full_standings(roster_rows: list[dict], played_fixtures: list[dict]) -> list[dict]:
+    """
+    Build a whole league's table from scratch: every team at 0 played, then
+    every played fixture applied on top. Used as the site's primary standings
+    source for every league (regardless of provider) instead of trusting the
+    provider's own aggregated table endpoint, which live-data providers have
+    been observed to lag behind actual match results by anywhere from
+    minutes to hours.
+
+    roster_rows only needs to supply the team list + badges (typically the
+    provider's own get_standings() result) — its stats are zeroed and ignored.
+    """
+    zeroed = []
+    for r in roster_rows:
+        row = dict(r)
+        row.update({
+            "intPlayed": 0, "intWin": 0, "intDraw": 0, "intLoss": 0,
+            "intGoalsFor": 0, "intGoalsAgainst": 0, "intGoalDifference": 0,
+            "intPoints": 0,
+        })
+        zeroed.append(row)
+    return recompute_conference_standings(zeroed, played_fixtures, pts_factor=1.0, pts_round="down")

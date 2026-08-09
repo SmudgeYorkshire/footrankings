@@ -11,7 +11,7 @@ Usage:
 """
 
 # Club coefficients — keyed by exact name as on kassiesa.net
-# Where a club appears under an alias in TheSportsDB we handle via get_coeff()
+# Where a club appears under an alias from the live-data provider we handle via get_coeff()
 CLUB_COEFFICIENTS: dict[str, float] = {
     "Real Madrid": 144.500,
     "Bayern München": 137.500,
@@ -431,7 +431,7 @@ CLUB_COEFFICIENTS: dict[str, float] = {
     "Leicester City": 13.000,
 }
 
-# Aliases: TheSportsDB / common name → kassiesa.net name
+# Aliases: live-data provider / common name → kassiesa.net name
 CLUB_ALIASES: dict[str, str] = {
     # England
     "Tottenham": "Tottenham Hotspur",

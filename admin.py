@@ -14,10 +14,10 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
-from data_fetcher import SportsDBClient
+from api_football_fetcher import ApiFootballClient
 from simulator import simulate_season, fixture_odds
 from ratings_manager import load_ratings, save_ratings, build_lookup, _defaults_from_standings
-from _split_season import get_split_info, conference_fixtures
+from _split_season import get_split_info, conference_fixtures, compute_full_standings
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -168,8 +168,8 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None, expected_p
 with st.sidebar:
     st.divider()
     api_key = st.text_input(
-        "TheSportsDB API key",
-        value=os.getenv("THESPORTSDB_API_KEY", "3"),
+        "API-Football key",
+        value=os.getenv("API_FOOTBALL_KEY", ""),
         type="password",
     )
     league_name = st.selectbox(
@@ -179,7 +179,8 @@ with st.sidebar:
     )
     cfg = LEAGUES[league_name]
     league_id = cfg["id"]
-    season = get_current_season(cfg["season_type"])
+    ratings_id = cfg.get("tsdb_id", cfg["id"])  # ratings CSVs stay on their original stable ID
+    season = cfg.get("af_season") or get_current_season(cfg["season_type"])
     st.caption(f"Season: **{season}**")
     st.divider()
     n_sim = st.select_slider(
@@ -194,7 +195,7 @@ with st.sidebar:
     )
     st.divider()
     if st.button("🔄 Refresh data", use_container_width=True):
-        SportsDBClient(api_key=api_key).invalidate_cache(league_id, season)
+        ApiFootballClient(api_key=api_key).invalidate_cache(league_id, season)
         st.cache_data.clear()
         st.rerun()
 
@@ -203,10 +204,11 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 @st.cache_data(ttl=3_600, show_spinner=False)
 def fetch_all(lid, ssn, key):
-    c = SportsDBClient(api_key=key)
-    standings = c.get_standings(lid, ssn)
+    c = ApiFootballClient(api_key=key)
+    roster = c.get_standings(lid, ssn)
     played, remaining = c.get_fixtures(lid, ssn)
     info = c.get_league_info(lid)
+    standings = compute_full_standings(roster, played) if roster else roster
     return standings, played, remaining, info
 
 
@@ -226,7 +228,7 @@ if not standings:
     )
     st.stop()
 
-ratings_df = load_ratings(league_id, standings)
+ratings_df = load_ratings(ratings_id, standings)
 split_round = cfg.get("split_round")
 split_info = get_split_info(standings, split_round) if split_round else None
 badge_lookup = {row["strTeam"]: row["strBadge"] for row in standings if row.get("strBadge")}
@@ -482,11 +484,17 @@ with tab_ratings:
         "Enter the **Opta Power Ranking** (0–100 scale) for each team. "
         "Higher rating = stronger attack and tighter defense."
     )
+    _display_df = ratings_df.copy()
+    _display_df.insert(0, "provider_name", _display_df.apply(
+        lambda r: r["alias"] if str(r["alias"]).strip() else r["team"], axis=1
+    ))
     edited = st.data_editor(
-        ratings_df,
+        _display_df,
+        column_order=["provider_name", "team", "alias", "opta_rating"],
         column_config={
+            "provider_name": st.column_config.TextColumn("API-Football Name", disabled=True, width="large"),
             "team":        st.column_config.TextColumn("Opta Name", disabled=True, width="large"),
-            "alias":       st.column_config.TextColumn("TheSportsDB Name (if different)", width="large"),
+            "alias":       st.column_config.TextColumn("API-Football Name (if different)", width="large"),
             "opta_rating": st.column_config.NumberColumn(
                 "Opta Rating ★", min_value=0.0, max_value=100.0, step=0.1, format="%.1f"
             ),
@@ -498,13 +506,13 @@ with tab_ratings:
     col_save, col_reset = st.columns(2)
     with col_save:
         if st.button("💾 Save ratings", use_container_width=True):
-            save_ratings(league_id, edited)
+            save_ratings(ratings_id, edited)
             ratings_df = edited
             st.session_state.pop("admin_sim_results", None)
             st.success("Ratings saved. Re-run the simulation to update projections.")
     with col_reset:
         if st.button("↺ Reset to estimated ratings", use_container_width=True):
-            csv_path = Path("ratings") / f"{league_id}.csv"
+            csv_path = Path("ratings") / f"{ratings_id}.csv"
             ratings_df = _defaults_from_standings(standings, csv_path)
             st.session_state.pop("admin_sim_results", None)
             st.rerun()

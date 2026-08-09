@@ -88,6 +88,8 @@ st.divider()
 pages = [
     st.Page("football_rankings.py", title="European Leagues",       icon="⚽"),
     st.Page("european.py",          title="European Competitions",  icon="🏆"),
+    st.Page("opta_rankings.py",     title="Opta Rankings",          icon="⭐"),
+    st.Page("live.py",              title="Live",                   icon="🔴"),
 ]
 if is_admin:
     pages.append(st.Page("admin.py", title="Admin", icon="🔒"))

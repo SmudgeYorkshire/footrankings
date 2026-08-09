@@ -13,13 +13,90 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
-from data_fetcher import SportsDBClient
+from api_football_fetcher import ApiFootballClient
 from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff
 from ratings_manager import load_ratings, build_lookup, check_coverage
-from _split_season import get_split_info, conference_fixtures, recompute_conference_standings
+from _split_season import get_split_info, conference_fixtures, recompute_conference_standings, compute_full_standings
 from league_status import LEAGUE_STATUS
+from historical import fetch_historical_season
 
-_API_KEY = os.getenv("THESPORTSDB_API_KEY", "3")
+_API_KEY = os.getenv("API_FOOTBALL_KEY", "")
+
+# ---------------------------------------------------------------------------
+# Sidebar dropdown labels — "Country - League" (Top 5 first, then alphabetical
+# by country). The underlying LEAGUES key is untouched everywhere else (page
+# headers, admin, ratings files, etc. all keep showing the full league name).
+# ---------------------------------------------------------------------------
+_TOP5_LEAGUES = {
+    "English Premier League", "Italian Serie A", "Spanish La Liga",
+    "German Bundesliga", "French Ligue 1",
+}
+
+_DROPDOWN_LABELS: dict[str, str] = {
+    "English Premier League":          "England - Premier League",
+    "Italian Serie A":                 "Italy - Serie A",
+    "Spanish La Liga":                 "Spain - La Liga",
+    "German Bundesliga":               "Germany - Bundesliga",
+    "French Ligue 1":                  "France - Ligue 1",
+    "Albanian Superliga":              "Albania - Superliga",
+    "Andorran 1a Divisió":             "Andorra - 1a Divisió",
+    "Armenian Premier League":         "Armenia - Premier League",
+    "Austrian Bundesliga":             "Austria - Bundesliga",
+    "Azerbaijani Premier League":      "Azerbaijan - Premier League",
+    "Belarus Vyscha Liga":             "Belarus - Vyscha Liga",
+    "Belgian Pro League":              "Belgium - Pro League",
+    "Bosnian Premier Liga":            "Bosnia and Herzegovina - Premier Liga",
+    "Bulgarian First League":          "Bulgaria - First League",
+    "Croatian First Football League":  "Croatia - First Football League",
+    "Czech First League":              "Czech Republic - First League",
+    "Cypriot First Division":          "Cyprus - First Division",
+    "Danish Superliga":                "Denmark - Superliga",
+    "Dutch Eredivisie":                "Netherlands - Eredivisie",
+    "Estonian Meistriliiga":           "Estonia - Meistriliiga",
+    "Faroe Islands Premier League":    "Faroe Islands - Premier League",
+    "Finnish Veikkausliiga":           "Finland - Veikkausliiga",
+    "Georgian Erovnuli Liga":          "Georgia - Erovnuli Liga",
+    "Gibraltarian National League":    "Gibraltar - National League",
+    "Greek Super League 1":            "Greece - Super League 1",
+    "Hungarian NB I":                  "Hungary - NB I",
+    "Icelandic Besta deild karla":     "Iceland - Besta deild karla",
+    "Irish Premier Division":          "Ireland - Premier Division",
+    "Israeli Premier League":          "Israel - Premier League",
+    "Kazakhstan Premier League":       "Kazakhstan - Premier League",
+    "Kosovan Superleague":             "Kosovo - Superleague",
+    "Latvian Higher League":           "Latvia - Higher League",
+    "Lithuanian TOPLYGA":              "Lithuania - TOPLYGA",
+    "Luxembourg National Division":    "Luxembourg - National Division",
+    "Macedonian First League":         "North Macedonia - First League",
+    "Maltese Premier League":          "Malta - Premier League",
+    "Moldovan National Division":      "Moldova - National Division",
+    "Montenegrin First League":        "Montenegro - First League",
+    "Northern Irish Premiership":      "Northern Ireland - Premiership",
+    "Norwegian Eliteserien":           "Norway - Eliteserien",
+    "Polish Ekstraklasa":              "Poland - Ekstraklasa",
+    "Portuguese Primeira Liga":        "Portugal - Primeira Liga",
+    "Romanian Liga I":                 "Romania - Liga I",
+    "Russian Football Premier League": "Russia - Football Premier League",
+    "San-Marino Campionato":           "San Marino - Campionato",
+    "Scottish Premiership":            "Scotland - Premiership",
+    "Serbian Super Liga":              "Serbia - Super Liga",
+    "Slovak First Football League":    "Slovakia - First Football League",
+    "Slovenian 1. SNL":                "Slovenia - 1. SNL",
+    "Swedish Allsvenskan":             "Sweden - Allsvenskan",
+    "Swiss Super League":              "Switzerland - Super League",
+    "Turkish Super Lig":               "Turkey - Süper Lig",
+    "Ukrainian Premier League":        "Ukraine - Premier League",
+    "Welsh Cymru Premier":             "Wales - Cymru Premier",
+}
+
+
+def _dropdown_sort_key(league_name: str) -> tuple:
+    label = _DROPDOWN_LABELS.get(league_name, league_name)
+    country = label.split(" - ", 1)[0]
+    return (0 if league_name in _TOP5_LEAGUES else 1, country)
+
+
+_DROPDOWN_ORDER = sorted(LEAGUES.keys(), key=_dropdown_sort_key)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -31,7 +108,7 @@ from zoneinfo import ZoneInfo
 _CET = ZoneInfo("Europe/Berlin")
 
 def _utc_to_cet(date_str: str, time_str: str) -> str:
-    """Convert UTC date+time from TheSportsDB to CET/CEST. Returns 'HH:MM CET/CEST'."""
+    """Convert a UTC date+time to CET/CEST. Returns 'HH:MM CET/CEST'."""
     if not date_str or not time_str or time_str.startswith("00:00"):
         return ""
     try:
@@ -73,6 +150,44 @@ def render_heatmap(probs: pd.DataFrame):
         margin=dict(l=l, r=r, t=t, b=b),
     )
     st.plotly_chart(fig, use_container_width=False)
+
+
+def render_title_probability_history(tsdb_id: int):
+    """Line chart of each team's title-probability trend over time, built
+    from the daily snapshots in history/{tsdb_id}.csv (see daily_snapshot.py).
+    Shows nothing until at least 2 days of history have accumulated."""
+    path = Path("history") / f"{tsdb_id}.csv"
+    if not path.exists():
+        return
+    hist_df = pd.read_csv(path)
+    if hist_df.empty or "pos_1" not in hist_df.columns:
+        return
+    dates = sorted(hist_df["date"].unique())
+    if len(dates) < 2:
+        st.caption(
+            f"📈 Tracking title-probability trends daily — {len(dates)} day"
+            f"{'s' if len(dates) != 1 else ''} of history so far. Check back as it builds up."
+        )
+        return
+
+    pivot = hist_df.pivot(index="date", columns="team", values="pos_1").sort_index()
+    fig = go.Figure()
+    for team in pivot.columns:
+        fig.add_trace(go.Scatter(
+            x=pivot.index, y=(pivot[team] * 100).round(1),
+            mode="lines", name=team,
+            hovertemplate="%{y:.1f}%<extra>%{fullData.name}</extra>",
+        ))
+    fig.update_layout(
+        title="Title probability over time",
+        yaxis_title="Probability (%)", yaxis=dict(range=[0, 100]),
+        xaxis_title="",
+        height=450,
+        legend=dict(font=dict(size=10)),
+        margin=dict(l=10, r=10, t=40, b=10),
+    )
+    st.markdown("#### 📈 Title Probability History")
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def _clean_desc(desc: str) -> str:
@@ -406,12 +521,13 @@ with st.sidebar:
     st.divider()
     league_name = st.selectbox(
         "European Leagues",
-        options=list(LEAGUES.keys()),
-        format_func=lambda n: n,
+        options=_DROPDOWN_ORDER,
+        format_func=lambda n: _DROPDOWN_LABELS.get(n, n),
     )
     cfg = LEAGUES[league_name]
     league_id = cfg["id"]
-    season = get_current_season(cfg["season_type"])
+    ratings_id = cfg.get("tsdb_id", cfg["id"])  # ratings CSVs stay on their original stable ID
+    season = cfg.get("af_season") or get_current_season(cfg["season_type"])
     home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
     st.divider()
     st.markdown(
@@ -439,11 +555,135 @@ home_advantage = DEFAULT_HOME_ADVANTAGE
 # ---------------------------------------------------------------------------
 @st.cache_data(ttl=60, show_spinner=False)
 def fetch_all(lid, ssn, key):
-    c = SportsDBClient(api_key=key)
-    standings = c.get_standings(lid, ssn)
+    c = ApiFootballClient(api_key=key)
+    roster = c.get_standings(lid, ssn)
     played, remaining = c.get_fixtures(lid, ssn)
     info = c.get_league_info(lid)
+    # Self-computed from scratch every time — the provider's own aggregated
+    # standings table has been observed (on both providers) to lag actual
+    # match results by anywhere from minutes to hours; the roster (team
+    # names + badges) is all we take from it.
+    standings = compute_full_standings(roster, played) if roster else roster
     return standings, played, remaining, info
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def fetch_cup_status(cup_id, season, key):
+    """Fetch a domestic cup's fixtures for its current season and reduce
+    them to a compact status.
+
+    Only the given season is checked — if the provider hasn't released
+    fixtures for it yet, that's reported as-is rather than silently
+    falling back to showing last season's (now stale) result.
+
+    Returns a dict describing what to show: either the nearest upcoming
+    round (soonest remaining fixtures) or, if the cup has no fixtures left,
+    the Final's result (winner) or the most recently played match.
+    Returns None if the season has no fixture data at all yet.
+    """
+    from datetime import datetime, timedelta
+    # Some lower-round replay fixtures are left "not started" in the provider's
+    # data forever (e.g. a replay that was never needed). Anything dated more
+    # than a couple weeks in the past is stale, not a real upcoming match.
+    _stale_cutoff = (datetime.now() - timedelta(days=14)).strftime("%Y-%m-%d")
+
+    c = ApiFootballClient(api_key=key)
+    played, remaining = c.get_fixtures(cup_id, season)
+    remaining = [f for f in remaining if f.get("dateEvent", "0000") >= _stale_cutoff]
+    if not played and not remaining:
+        return None
+    cup_name = (played + remaining)[0].get("strLeague", "")
+
+    if remaining:
+        next_date = min(f.get("dateEvent", "9999") for f in remaining)
+        next_round = next(f.get("strRound") for f in remaining if f.get("dateEvent") == next_date)
+        n_in_round = sum(1 for f in remaining if f.get("strRound") == next_round)
+        return {
+            "name": cup_name, "status": "upcoming",
+            "round": next_round, "n_matches": n_in_round, "next_date": next_date,
+        }
+
+    # No remaining fixtures — cup is over (or its schedule isn't fully loaded yet).
+    last = max(played, key=lambda f: f.get("dateEvent", ""))
+    if (last.get("strRound") or "").strip().lower() == "final":
+        home, away = last.get("strHomeTeam", ""), last.get("strAwayTeam", "")
+        hs, as_ = last.get("intHomeScore"), last.get("intAwayScore")
+        if (hs or 0) > (as_ or 0):
+            winner = home
+        elif (as_ or 0) > (hs or 0):
+            winner = away
+        else:
+            # Level after 90 (or extra time) — check penalties.
+            ph, pa = last.get("intPenaltyHome"), last.get("intPenaltyAway")
+            if ph is not None and pa is not None and ph != pa:
+                winner = home if ph > pa else away
+            else:
+                winner = None
+        return {
+            "name": cup_name, "status": "final",
+            "winner": winner, "home": home, "away": away, "hs": hs, "as": as_,
+            "ph": last.get("intPenaltyHome"), "pa": last.get("intPenaltyAway"),
+            "date": last.get("dateEvent", ""),
+        }
+    return {
+        "name": cup_name, "status": "last_played",
+        "round": last.get("strRound", ""), "date": last.get("dateEvent", ""),
+    }
+
+
+def render_cup_details(cfg: dict, key: str):
+    """Render live domestic-cup status in place of the old static prediction text."""
+    st.markdown("#### 🏆 Cup Details")
+    cup_id = cfg.get("cup_id")
+    season = cfg.get("af_season") or int(str(get_current_season(cfg["season_type"]))[:4])
+    if not cup_id:
+        st.caption("No cup data available for this competition.")
+        return
+    try:
+        cup = fetch_cup_status(cup_id, season, key)
+    except RuntimeError:
+        cup = None
+    if not cup:
+        st.caption("Fixtures will be released soon.")
+        return
+
+    if cup["status"] == "final":
+        if cup["winner"]:
+            pens = f" (pens {cup['ph']}–{cup['pa']})" if cup.get("ph") is not None else ""
+            st.markdown(
+                f"<small><b>{cup['name']}</b> — 🏆 <b>{cup['winner']}</b> won the Final "
+                f"({cup['home']} {cup['hs']}–{cup['as']} {cup['away']}{pens}, {cup['date']})</small>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                f"<small><b>{cup['name']}</b> — Final played {cup['date']}: "
+                f"{cup['home']} {cup['hs']}–{cup['as']} {cup['away']}</small>",
+                unsafe_allow_html=True,
+            )
+    elif cup["status"] == "upcoming":
+        st.markdown(
+            f"<small><b>{cup['name']}</b> — currently in the "
+            f"<b>{cup['round']}</b> ({cup['n_matches']} match{'es' if cup['n_matches'] != 1 else ''}, "
+            f"next on {cup['next_date']})</small>",
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            f"<small><b>{cup['name']}</b> — last played round: "
+            f"<b>{cup['round']}</b> ({cup['date']})</small>",
+            unsafe_allow_html=True,
+        )
+
+
+@st.cache_data(ttl=86_400, show_spinner=False)
+def fetch_available_seasons(lid, key):
+    return ApiFootballClient(api_key=key).get_available_seasons(lid)
+
+
+@st.cache_data(ttl=86_400, show_spinner=False)
+def fetch_historical_data(league_name_, season_year, key):
+    return fetch_historical_season(LEAGUES[league_name_], season_year, key)
 
 
 # ---------------------------------------------------------------------------
@@ -467,67 +707,12 @@ def main_content():
         )
         return
 
-    # ── Apply fixture patches to standings when TheSportsDB lags ────────────
-    _patch_file = Path("presplit/fixture_patches.json")
-    _patch_key  = f"{league_id}_{season}"
-    if _patch_file.exists() and standings:
-        try:
-            with open(_patch_file, encoding="utf-8") as _pf:
-                _patches = json.load(_pf).get(_patch_key, [])
-            if _patches:
-                _std_by_team = {r["strTeam"]: r for r in standings}
-                _modified = False
-                for _p in _patches:
-                    _home  = _p.get("strHomeTeam", "")
-                    _away  = _p.get("strAwayTeam", "")
-                    _round = int(_p.get("intRound", 0))
-                    _hr    = _std_by_team.get(_home)
-                    _ar    = _std_by_team.get(_away)
-                    if not _hr or not _ar:
-                        continue
-                    if (int(_hr.get("intPlayed", 0)) >= _round
-                            and int(_ar.get("intPlayed", 0)) >= _round):
-                        continue  # standings already up to date for this match
-                    _hg = int(_p.get("intHomeScore", 0))
-                    _ag = int(_p.get("intAwayScore", 0))
-                    for _row, _gf, _ga in [(_hr, _hg, _ag), (_ar, _ag, _hg)]:
-                        _row["intPlayed"]       = str(int(_row.get("intPlayed", 0)) + 1)
-                        _row["intGoalsFor"]     = str(int(_row.get("intGoalsFor", 0)) + _gf)
-                        _row["intGoalsAgainst"] = str(int(_row.get("intGoalsAgainst", 0)) + _ga)
-                        _row["intGoalDifference"] = str(
-                            int(_row.get("intGoalsFor", 0)) - int(_row.get("intGoalsAgainst", 0))
-                        )
-                        if _hg > _ag:
-                            if _row is _hr:
-                                _row["intWin"]    = str(int(_row.get("intWin", 0)) + 1)
-                                _row["intPoints"] = str(int(_row.get("intPoints", 0)) + 3)
-                            else:
-                                _row["intLoss"] = str(int(_row.get("intLoss", 0)) + 1)
-                        elif _hg == _ag:
-                            _row["intDraw"]   = str(int(_row.get("intDraw", 0)) + 1)
-                            _row["intPoints"] = str(int(_row.get("intPoints", 0)) + 1)
-                        else:
-                            if _row is _ar:
-                                _row["intWin"]    = str(int(_row.get("intWin", 0)) + 1)
-                                _row["intPoints"] = str(int(_row.get("intPoints", 0)) + 3)
-                            else:
-                                _row["intLoss"] = str(int(_row.get("intLoss", 0)) + 1)
-                    _modified = True
-                if _modified:
-                    standings = sorted(
-                        standings,
-                        key=lambda r: (
-                            -int(r.get("intPoints", 0)),
-                            -int(r.get("intGoalDifference", 0)),
-                            -int(r.get("intGoalsFor", 0)),
-                        ),
-                    )
-                    for _i, _r in enumerate(standings, 1):
-                        _r["intRank"] = str(_i)
-        except Exception:
-            pass
+    # Standings are already self-computed from scratch in fetch_all() —
+    # no patch step needed; the table reflects every played fixture the
+    # moment the provider marks it finished, regardless of how stale the
+    # provider's own aggregated standings table is.
 
-    ratings_df = load_ratings(league_id, standings)
+    ratings_df = load_ratings(ratings_id, standings)
     _missing_ratings = check_coverage(standings, ratings_df)
     if _missing_ratings:
         st.warning(
@@ -569,7 +754,7 @@ def main_content():
 
     split_info = get_split_info(standings, split_round, n_champ=n_champ, n_mid=cfg.get("n_mid", 0), pts_factor=pts_factor, presplit=_presplit_snapshot) if split_round else None
 
-    # TheSportsDB confirmed they cannot update split-league standings tables.
+    # Providers' own split-league standings tables lag actual results.
     # Always recompute all conference standings from the presplit snapshot +
     # played post-split fixtures so Current Table and Projections are accurate.
     if split_info and split_round and _presplit_snapshot:
@@ -675,7 +860,14 @@ def main_content():
         if league_badge:
             st.image(league_badge, width=70)
     with col_title:
-        _season_display = season.replace("-20", "/") if "-" in season else season
+        _season_str = str(season)
+        if "-" in _season_str:
+            _season_display = _season_str.replace("-20", "/")
+        elif cfg["season_type"] == "winter":
+            _y = int(_season_str[:4])
+            _season_display = f"{_y}/{str(_y + 1)[-2:]}"
+        else:
+            _season_display = _season_str
         _league_display = league_info.get("strLeague") or league_name
         st.markdown(f"## {_season_display} {_league_display}")
         total = len(played_fixtures) + len(remaining_fixtures)
@@ -686,7 +878,8 @@ def main_content():
         total_rounds = played_rounds + remaining_rounds
         current_round = min((r for r in rounds_with_remaining if r), default=total_rounds)
         # Last-updated from cache file mtime
-        _cache_path = Path("cache") / f"fixtures_{league_id}_{season}.json"
+        _af_season = ApiFootballClient._season_year(season)
+        _cache_path = Path("cache") / f"af_fixtures_{league_id}_{_af_season}.json"
         _updated_str = ""
         if _cache_path.exists():
             _mtime = _cache_path.stat().st_mtime
@@ -700,7 +893,7 @@ def main_content():
     st.divider()
 
     # Status maps — from league_status.py only; shared across ALL tabs
-    # TheSportsDB data is NOT used for status labels
+    # Live provider data is NOT used for status labels
     _ls           = LEAGUE_STATUS.get(league_name, {})
     _main_zones      = _ls.get("regular", {})   # pos → label for regular season
     _team_overrides  = cfg.get("team_status_overrides", {})  # team name → fixed label
@@ -720,8 +913,8 @@ def main_content():
     _UECL_PO_FOOTNOTE = "* These clubs enter additional domestic play-offs to determine the last UECL qualifying spot."
 
 
-    tab_table, tab_proj, tab_manual, tab_fixtures, tab_results, tab_format = st.tabs(
-        ["📊 Current Table", "🎯 Predictions", "🔮 Manual Predictions", "📅 Fixtures", "📋 Results", "🗂️ Format"]
+    tab_table, tab_proj, tab_manual, tab_fixtures, tab_results, tab_format, tab_history = st.tabs(
+        ["📊 Current Table", "🎯 Predictions", "🔮 Manual Predictions", "📅 Fixtures", "📋 Results", "🗂️ Format", "🕰️ History"]
     )
 
     # ── Current Table ────────────────────────────────────────────────────────
@@ -889,9 +1082,7 @@ def main_content():
                 st.caption(_UECL_PO_FOOTNOTE)
 
             # ── Cup Details ──────────────────────────────────────────────────────
-            _cup_details = cfg.get("cup_details", "Cup winner will enter European competitions")
-            st.markdown("#### 🏆 Cup Details")
-            st.markdown(f"<small>{_cup_details}</small>", unsafe_allow_html=True)
+            render_cup_details(cfg, _API_KEY)
 
             if split_info.get("mid_teams"):
                 _mid_pf  = conference_fixtures(played_fixtures,    split_info["mid_teams"])
@@ -1042,7 +1233,7 @@ def main_content():
                         unsafe_allow_html=True,
                     )
 
-            # ── UECL 5-team Play-off (e.g. Welsh Premier League) ─────────────
+            # ── UECL 5-team Play-off (e.g. Welsh Cymru Premier) ─────────────
             _u5cfg = cfg.get("uecl_5team_playoff")
             if _u5cfg and split_info:
                 _u5_champ = sorted(split_info["champ_current"], key=lambda r: int(r.get("intRank", 99)))
@@ -1158,9 +1349,7 @@ def main_content():
                 st.caption(cfg["team_status_note"])
 
             # ── Cup Details ──────────────────────────────────────────────────────
-            _cup_details = cfg.get("cup_details", "Cup winner will enter European competitions")
-            st.markdown("#### 🏆 Cup Details")
-            st.markdown(f"<small>{_cup_details}</small>", unsafe_allow_html=True)
+            render_cup_details(cfg, _API_KEY)
 
             # ── UECL 4-team Play-offs (e.g. Dutch Eredivisie) ────────────────
             _u4cfg = cfg.get("uecl_4team_playoff")
@@ -1464,6 +1653,7 @@ def main_content():
                 # Use pre-computed _main_zones (same source as Current Table)
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
                                   status_map=_main_zones, team_overrides=_team_overrides)
+                render_title_probability_history(ratings_id)
 
                 # ── Projected groups by probability (pre-split leagues) ───────
                 _nc = cfg.get("n_champ") or (4 if cfg.get("final_four") else None)
@@ -1890,17 +2080,15 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             styled_c     = base_df_c.style.apply(_style_rounds, axis=None).set_properties(
                 subset=["Home", "Away"], **{"font-weight": "bold"})
 
-            col_ed, col_tb = st.columns([5, 4])
-            with col_ed:
-                hdr_col_c, btn_col_c, _ = st.columns([2, 1, 3], vertical_alignment="center")
-                metric_ph_c = hdr_col_c.empty()
-                clear_ph_c  = btn_col_c.empty()
-                edited_df_c = st.data_editor(
-                    styled_c, column_config=_pred_col_cfg,
-                    disabled=["Rd", "HB", "Home", "Away", "AB"],
-                    use_container_width=True, hide_index=True,
-                    height=height_c, key=editor_key_c,
-                )
+            hdr_col_c, btn_col_c, _ = st.columns([2, 1, 3], vertical_alignment="center")
+            metric_ph_c = hdr_col_c.empty()
+            clear_ph_c  = btn_col_c.empty()
+            edited_df_c = st.data_editor(
+                styled_c, column_config=_pred_col_cfg,
+                disabled=["Rd", "HB", "Home", "Away", "AB"],
+                use_container_width=True, hide_index=True,
+                height=height_c, key=editor_key_c,
+            )
 
             filled_mask_c = edited_df_c[["HG", "AG"]].notna().all(axis=1)
             metric_ph_c.markdown(f"### Predicted: {int(filled_mask_c.sum())} / {len(conf_fixtures)}")
@@ -1927,14 +2115,14 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                                   not in predicted_pairs_c]
             updated_st_c = _apply_predictions(conf_standings, pred_applied_c)
 
-            with col_tb:
-                st.markdown("### Updated standings")
-                upd_df_c = pd.DataFrame(_upd_st_rows(conf_standings, updated_st_c))
-                upd_styled_c = upd_df_c.style.set_properties(
-                    subset=["Team", "Pts"], **{"font-weight": "bold"}
-                ).set_properties(**{"font-size": "12px", "padding": "2px 6px"})
-                st.dataframe(upd_styled_c, column_config=_upd_col_cfg,
-                             use_container_width=True, hide_index=True, height=height_c)
+            st.divider()
+            st.markdown("### Updated standings")
+            upd_df_c = pd.DataFrame(_upd_st_rows(conf_standings, updated_st_c))
+            upd_styled_c = upd_df_c.style.set_properties(
+                subset=["Team", "Pts"], **{"font-weight": "bold"}
+            ).set_properties(**{"font-size": "12px", "padding": "2px 6px"})
+            st.dataframe(upd_styled_c, column_config=_upd_col_cfg,
+                         use_container_width=True, hide_index=True, height=height_c)
 
             pred_fp_c = (
                 tuple(sorted((f["strHomeTeam"], f["strAwayTeam"], f["pred_hg"], f["pred_ag"])
@@ -1986,17 +2174,15 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             styled_base = base_df.style.apply(_style_rounds, axis=None).set_properties(
                 subset=["Home", "Away"], **{"font-weight": "bold"})
 
-            col_editor, col_table = st.columns([5, 4])
-            with col_editor:
-                hdr_col, btn_col, _ = st.columns([2, 1, 3], vertical_alignment="center")
-                metric_ph = hdr_col.empty()
-                clear_ph  = btn_col.empty()
-                edited_df = st.data_editor(
-                    styled_base, column_config=_pred_col_cfg,
-                    disabled=["Rd", "HB", "Home", "Away", "AB"],
-                    use_container_width=True, hide_index=True,
-                    height=height_reg, key=editor_key,
-                )
+            hdr_col, btn_col, _ = st.columns([2, 1, 3], vertical_alignment="center")
+            metric_ph = hdr_col.empty()
+            clear_ph  = btn_col.empty()
+            edited_df = st.data_editor(
+                styled_base, column_config=_pred_col_cfg,
+                disabled=["Rd", "HB", "Home", "Away", "AB"],
+                use_container_width=True, hide_index=True,
+                height=height_reg, key=editor_key,
+            )
 
             filled_mask = edited_df[["HG", "AG"]].notna().all(axis=1)
             metric_ph.markdown(f"### Predicted: {int(filled_mask.sum())} / {len(fix_list)}")
@@ -2021,14 +2207,14 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                                not in predicted_pairs]
             updated_st = _apply_predictions(st_list, pred_applied)
 
-            with col_table:
-                st.markdown("### Updated standings")
-                upd_df = pd.DataFrame(_upd_st_rows(st_list, updated_st))
-                upd_styled = upd_df.style.set_properties(
-                    subset=["Team", "Pts"], **{"font-weight": "bold"}
-                ).set_properties(**{"font-size": "12px", "padding": "2px 6px"})
-                st.dataframe(upd_styled, column_config=_upd_col_cfg,
-                             use_container_width=True, hide_index=True, height=height_reg)
+            st.divider()
+            st.markdown("### Updated standings")
+            upd_df = pd.DataFrame(_upd_st_rows(st_list, updated_st))
+            upd_styled = upd_df.style.set_properties(
+                subset=["Team", "Pts"], **{"font-weight": "bold"}
+            ).set_properties(**{"font-size": "12px", "padding": "2px 6px"})
+            st.dataframe(upd_styled, column_config=_upd_col_cfg,
+                         use_container_width=True, hide_index=True, height=height_reg)
 
             pred_fingerprint = (
                 tuple(sorted((f["strHomeTeam"], f["strAwayTeam"], f["pred_hg"], f["pred_ag"])
@@ -2730,6 +2916,63 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
         st.markdown("*Applied in order when clubs are level on points:*")
         for i, rule in enumerate(cfg.get("tiebreakers", ["gd", "gf"]), 1):
             st.markdown(f"**{i}.** {_TB_LABELS_FMT.get(rule, rule)}")
+
+    # ── History ──────────────────────────────────────────────────────────────
+    with tab_history:
+        available_seasons = fetch_available_seasons(league_id, _API_KEY)
+        if not available_seasons:
+            st.info("No past-season data available for this league yet.")
+        else:
+            def _season_label_hist(yr):
+                return f"{yr}/{str(yr + 1)[-2:]}" if cfg["season_type"] == "winter" else str(yr)
+            picked = st.selectbox(
+                "Season", options=available_seasons, format_func=_season_label_hist,
+                key="history_season_picker",
+            )
+            hist = fetch_historical_data(league_name, picked, _API_KEY)
+
+            for group in hist["groups"]:
+                st.markdown(f"#### {group['label']}" if len(hist["groups"]) > 1 else "#### Final Table")
+                hist_rows = [{
+                    "Pos":  int(r.get("intRank", 0)),
+                    "Badge": r.get("strBadge") or "",
+                    "Team": r.get("strTeam", ""),
+                    "P":    int(r.get("intPlayed", 0)),
+                    "W":    int(r.get("intWin", 0)),
+                    "D":    int(r.get("intDraw", 0)),
+                    "L":    int(r.get("intLoss", 0)),
+                    "GF":   int(r.get("intGoalsFor", 0)),
+                    "GA":   int(r.get("intGoalsAgainst", 0)),
+                    "GD":   int(r.get("intGoalDifference", 0)),
+                    "Pts":  int(r.get("intPoints", 0)),
+                } for r in group["rows"]]
+                _hist_df = pd.DataFrame(hist_rows).style.set_properties(
+                    subset=["Team", "Pts"], **{"font-weight": "bold"})
+                st.dataframe(_hist_df, column_config={
+                    "Badge": st.column_config.ImageColumn("", width="small"),
+                }, use_container_width=False, hide_index=True,
+                    height=len(hist_rows) * 35 + 42)
+
+            st.divider()
+            st.markdown("#### All Results")
+            hist_played = hist["played_fixtures"]
+            if not hist_played:
+                st.caption("No results recorded for this season.")
+            else:
+                hist_rounds: dict[int, list] = {}
+                for f in sorted(hist_played, key=lambda x: (int(x.get("intRound", 0) or 0), x.get("dateEvent", "")), reverse=True):
+                    rnd = int(f.get("intRound", 0) or 0)
+                    hist_rounds.setdefault(rnd, []).append({
+                        "Date":  f.get("dateEvent", ""),
+                        "Home":  f.get("strHomeTeam", ""),
+                        "Score": f"{f.get('intHomeScore', '')} – {f.get('intAwayScore', '')}",
+                        "Away":  f.get("strAwayTeam", ""),
+                    })
+                for rnd, rows in hist_rounds.items():
+                    with st.expander(f"Round {rnd}" if rnd else "Round —"):
+                        _hres_df = pd.DataFrame(rows).style.set_properties(
+                            subset=["Home", "Away"], **{"font-weight": "bold"})
+                        st.dataframe(_hres_df, use_container_width=False, hide_index=True)
 
 
 main_content()

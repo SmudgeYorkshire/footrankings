@@ -1,0 +1,541 @@
+league,league_id,provider,opta_name,provider_name
+English Premier League,4328,api_football,Brighton & Hove Albion,Brighton
+English Premier League,4328,api_football,Newcastle United,Newcastle
+English Premier League,4328,api_football,Leeds United,Leeds
+English Premier League,4328,api_football,Tottenham Hotspur,Tottenham
+English Premier League,4328,api_football,Coventry City,Coventry
+English Premier League,4328,api_football,Ipswich Town,Ipswich
+Italian Serie A,4332,api_football,Internazionale,Inter
+Italian Serie A,4332,api_football,Roma,AS Roma
+Italian Serie A,4332,api_football,Milan,AC Milan
+Spanish La Liga,4335,api_football,Atlético de Madrid,Atletico Madrid
+Spanish La Liga,4335,api_football,Celta de Vigo,Celta Vigo
+Spanish La Liga,4335,api_football,Athletic Club,Athletic Bilbao
+Spanish La Liga,4335,api_football,Alavés,Alaves
+Spanish La Liga,4335,api_football,Málaga,Malaga
+Spanish La Liga,4335,api_football,Espanyol,RCD Espanyol
+Spanish La Liga,4335,api_football,Racing de Santander,Racing Santander
+Spanish La Liga,4335,api_football,Deportivo de A Coruña,Deportivo La Coruna
+German Bundesliga,4331,api_football,Bayern München,Bayern Munich
+German Bundesliga,4331,api_football,Stuttgart,VfB Stuttgart
+German Bundesliga,4331,api_football,Hoffenheim,1899 Hoffenheim
+German Bundesliga,4331,api_football,Freiburg,SC Freiburg
+German Bundesliga,4331,api_football,Mainz 05,FSV Mainz 05
+German Bundesliga,4331,api_football,Augsburg,FC Augsburg
+German Bundesliga,4331,api_football,Borussia M'Gladbach,Borussia Mönchengladbach
+German Bundesliga,4331,api_football,Hamburger SV,Hamburg
+German Bundesliga,4331,api_football,Elversberg,SV Elversberg
+German Bundesliga,4331,api_football,Paderborn,SC Paderborn 07
+German Bundesliga,4331,api_football,Köln,1. FC Köln
+German Bundesliga,4331,api_football,Schalke 04,FC Schalke 04
+French Ligue 1,4334,api_football,Paris Saint-Germain,Paris Saint Germain
+French Ligue 1,4334,api_football,Lens,RC Lens
+French Ligue 1,4334,api_football,Lille,Lille OSC
+French Ligue 1,4334,api_football,Olympique Lyonnais,Lyon
+French Ligue 1,4334,api_football,Monaco,AS Monaco
+French Ligue 1,4334,api_football,Olympique Marseille,Marseille
+French Ligue 1,4334,api_football,Rennes,Stade Rennais
+French Ligue 1,4334,api_football,Strasbourg,RC Strasbourg
+French Ligue 1,4334,api_football,Lorient,FC Lorient
+French Ligue 1,4334,api_football,Auxerre,AJ Auxerre
+French Ligue 1,4334,api_football,Brest,Stade Brestois 29
+French Ligue 1,4334,api_football,Nice,OGC Nice
+French Ligue 1,4334,api_football,Troyes,Estac Troyes
+French Ligue 1,4334,api_football,Angers SCO,Angers
+Albanian Superliga,4617,api_football,Egnatia Rrogozhinë,Egnatia
+Albanian Superliga,4617,api_football,Dinamo City,Dinamo Tirana
+Albanian Superliga,4617,api_football,AF Elbasani,Elbasani
+Albanian Superliga,4617,api_football,Vllaznia Shkodër,Vllaznia Shkoder
+Albanian Superliga,4617,api_football,Tirana,FK Tirana
+Albanian Superliga,4617,api_football,Vora,FK Vora
+Albanian Superliga,4617,api_football,Partizani Tirana,Partizani
+Albanian Superliga,4617,api_football,Laçi,Laci
+Albanian Superliga,4617,api_football,Skënderbeu Korçë,Skenderbeu Korce
+Albanian Superliga,4617,api_football,Teuta Durrës,Teuta Durres
+Andorran 1a Divisió,4618,api_football,Inter Club d'Escaldes,Inter Escaldes
+Andorran 1a Divisió,4618,api_football,Atlètic Club d'Escaldes,Atlètic d'Escaldes
+Andorran 1a Divisió,4618,api_football,Ranger's,FC Rànger's
+Andorran 1a Divisió,4618,api_football,Penya Encarnada,Penya Encarnada d'Andorra
+Andorran 1a Divisió,4618,api_football,Ordino,FC Ordino
+Andorran 1a Divisió,4618,api_football,Pas de la Casa,FC Pas de la Casa
+Andorran 1a Divisió,4618,api_football,Carroi,FC Carroi
+Andorran 1a Divisió,4618,api_football,Esperança d'Andorra,FC Esperanca
+Armenian Premier League,4619,api_football,Noah,FC Noah
+Armenian Premier League,4619,api_football,Ararat-Armenia,FC Ararat-Armenia
+Armenian Premier League,4619,api_football,Pyunik,Pyunik Yerevan
+Armenian Premier League,4619,api_football,Urartu,FC Urartu
+Armenian Premier League,4619,api_football,Alashkert,Alashkert FC
+Armenian Premier League,4619,api_football,Van,Van FC
+Armenian Premier League,4619,api_football,BKMA,BKMA Yerevan
+Armenian Premier League,4619,api_football,Ararat,Ararat Yerevan
+Armenian Premier League,4619,api_football,Shirak,Shirak Gyumri
+Armenian Premier League,4619,api_football,Gandzasar,Gandzasar Kapan
+Austrian Bundesliga,4621,api_football,LASK,Lask Linz
+Austrian Bundesliga,4621,api_football,Salzburg,Red Bull Salzburg
+Austrian Bundesliga,4621,api_football,Austria Wien,Austria Vienna
+Austrian Bundesliga,4621,api_football,Rapid,Rapid Vienna
+Austrian Bundesliga,4621,api_football,Hartberg,TSV Hartberg
+Austrian Bundesliga,4621,api_football,Ried,SV Ried
+Austrian Bundesliga,4621,api_football,WSG Tirol,WSG Wattens
+Azerbaijani Premier League,4693,api_football,Sabah,Sabah FA
+Azerbaijani Premier League,4693,api_football,Qarabağ,Qarabag
+Azerbaijani Premier League,4693,api_football,Neftçi,Neftchi Baku
+Azerbaijani Premier League,4693,api_football,Zira,Zira FK
+Azerbaijani Premier League,4693,api_football,Turan,Turan Tovuz
+Azerbaijani Premier League,4693,api_football,Araz Naxçivan,Araz
+Azerbaijani Premier League,4693,api_football,Şamaxi,Şamaxı FK
+Azerbaijani Premier League,4693,api_football,İmişli,Imisli FK
+Azerbaijani Premier League,4693,api_football,Sumqayıt,Sumgayit FK
+Azerbaijani Premier League,4693,api_football,Safa,Safa Baku
+Azerbaijani Premier League,4693,api_football,Qəbələ,Qabala
+Azerbaijani Premier League,4693,api_football,Kapaz,Kəpəz
+Belarus Vyscha Liga,4622,api_football,Dinamo Minsk,FC Dinamo Minsk
+Belarus Vyscha Liga,4622,api_football,ML Vitebsk,Maxline Vitebsk
+Belarus Vyscha Liga,4622,api_football,Isloch,FC Isloch Minsk R.
+Belarus Vyscha Liga,4622,api_football,Torpedo Belaz,Torpedo Zhodino
+Belarus Vyscha Liga,4622,api_football,Dinamo Brest,Dynamo Brest
+Belarus Vyscha Liga,4622,api_football,Neman Grodno,Neman
+Belarus Vyscha Liga,4622,api_football,Gomel,FC Gomel
+Belarus Vyscha Liga,4622,api_football,Minsk,FC Minsk
+Belarus Vyscha Liga,4622,api_football,Slavia,Slavia Mozyr
+Belarus Vyscha Liga,4622,api_football,Vitebsk,FC Vitebsk
+Belarus Vyscha Liga,4622,api_football,BATE,Bate Borisov
+Belarus Vyscha Liga,4622,api_football,Arsenal,Arsenal Dzerzhinsk
+Belarus Vyscha Liga,4622,api_football,Baranovichi,FK Baranovichi
+Belarus Vyscha Liga,4622,api_football,Dnepr Mogilev,FC Dnepr Mogilev
+Belarus Vyscha Liga,4622,api_football,Belshina,Belshina Bobruisk
+Belarus Vyscha Liga,4622,api_football,Naftan,Naftan Novopolotsk
+Belgian Pro League,4338,api_football,Club Brugge,Club Brugge KV
+Belgian Pro League,4338,api_football,Union Saint-Gilloise,Union St. Gilloise
+Belgian Pro League,4338,api_football,Genk,KRC Genk
+Belgian Pro League,4338,api_football,Sint-Truiden,St. Truiden
+Belgian Pro League,4338,api_football,Anderlecht,RSC Anderlecht
+Belgian Pro League,4338,api_football,Sporting Charleroi,Charleroi
+Belgian Pro League,4338,api_football,Standard Liège,Standard Liege
+Belgian Pro League,4338,api_football,Gent,KAA Gent
+Belgian Pro League,4338,api_football,Beveren,SK Beveren
+Belgian Pro League,4338,api_football,Zulte Waregem,SV Zulte Waregem
+Belgian Pro League,4338,api_football,Westerlo,KVC Westerlo
+Belgian Pro League,4338,api_football,Antwerp,Royal Antwerp
+Belgian Pro League,4338,api_football,Mechelen,KV Mechelen
+Belgian Pro League,4338,api_football,Lommel,Lommel United
+Belgian Pro League,4338,api_football,OH Leuven,Oud-Heverlee Leuven
+Belgian Pro League,4338,api_football,Raal La Louvière,RAAL La Louvière
+Bosnian Premier Liga,4624,api_football,Borac Banja Luka,FK Borac Banja Luka
+Bosnian Premier Liga,4624,api_football,Zrinjski,Zrinjski Mostar
+Bosnian Premier Liga,4624,api_football,Sarajevo,FK Sarajevo
+Bosnian Premier Liga,4624,api_football,Velez,Velež
+Bosnian Premier Liga,4624,api_football,Zeljeznicar,Zeljeznicar Sarajevo
+Bosnian Premier Liga,4624,api_football,Siroki Brijeg,Široki Brijeg
+Bosnian Premier Liga,4624,api_football,Radnik Bijeljina,FK Radnik Bijeljina
+Bosnian Premier Liga,4624,api_football,Sloga Doboj,FK Sloga Doboj
+Bulgarian First League,4626,api_football,Ludogorets Razgrad,Ludogorets
+Bulgarian First League,4626,api_football,CSKA 1948 Sofia,CSKA 1948
+Bulgarian First League,4626,api_football,Arda Kardzhali,PFC Arda
+Bulgarian First League,4626,api_football,Cherno More Varna,Cherno More
+Bulgarian First League,4626,api_football,Lokomotiv Sofia 1929,Lokomotiv Sofia
+Bulgarian First League,4626,api_football,Dunav Ot Ruse,Dunav Ruse
+Croatian First Football League,4629,api_football,Dinamo Zagreb,GNK Dinamo Zagreb
+Croatian First Football League,4629,api_football,Rijeka,HNK Rijeka
+Croatian First Football League,4629,api_football,Hajduk Split,HNK Hajduk Split
+Croatian First Football League,4629,api_football,Varaždin,NK Varazdin
+Croatian First Football League,4629,api_football,Lokomotiva Zagreb,NK Lokomotiva Zagreb
+Croatian First Football League,4629,api_football,Osijek,NK Osijek
+Croatian First Football League,4629,api_football,Rudeš,Rudes
+Croatian First Football League,4629,api_football,Istra 1961,NK Istra 1961
+Croatian First Football League,4629,api_football,HNK Gorica,NK Gorica
+Croatian First Football League,4629,api_football,Slaven Koprivnica,NK Slaven Belupo
+Czech First League,4631,api_football,Slavia Praha,Slavia Prague
+Czech First League,4631,api_football,Sparta Praha,Sparta Prague
+Czech First League,4631,api_football,Viktoria Plzeň,Plzen
+Czech First League,4631,api_football,Hradec Králové,Hradec Kralove
+Czech First League,4631,api_football,Jablonec,FK Jablonec
+Czech First League,4631,api_football,Slovan Liberec,FC Slovan Liberec
+Czech First League,4631,api_football,Sigma Olomouc,SK Sigma Olomouc
+Czech First League,4631,api_football,Teplice,FK Teplice
+Czech First League,4631,api_football,Mladá Boleslav,Mlada Boleslav
+Czech First League,4631,api_football,Baník Ostrava,Banik Ostrava
+Czech First League,4631,api_football,Pardubice,FK Pardubice
+Czech First League,4631,api_football,Artis Brno,Artis
+Czech First League,4631,api_football,Slovácko,FC Slovacko
+Czech First League,4631,api_football,Zlín,Zlin
+Cypriot First Division,4630,api_football,Omonia Nicosia,AC Omonia
+Cypriot First Division,4630,api_football,Pafos,Pafos FC
+Cypriot First Division,4630,api_football,Apollon,Apollon Limassol
+Cypriot First Division,4630,api_football,Aris Limassol,Aris
+Cypriot First Division,4630,api_football,APOEL,Apoel Nicosia
+Cypriot First Division,4630,api_football,Anorthosis,Anorthosis Famagusta
+Cypriot First Division,4630,api_football,AEL,AEL Limassol
+Cypriot First Division,4630,api_football,Olympiakos Nicosia,Olympiakos
+Danish Superliga,4340,api_football,Midtjylland,FC Midtjylland
+Danish Superliga,4340,api_football,AGF,Aarhus
+Danish Superliga,4340,api_football,København,FC Copenhagen
+Danish Superliga,4340,api_football,Nordsjælland,FC Nordsjaelland
+Danish Superliga,4340,api_football,Brøndby,Brondby
+Danish Superliga,4340,api_football,Viborg,Viborg FF
+Danish Superliga,4340,api_football,Sønderjyske,Sonderjyske
+Danish Superliga,4340,api_football,OB,Odense
+Danish Superliga,4340,api_football,Randers,Randers FC
+Danish Superliga,4340,api_football,Horsens,AC Horsens
+Danish Superliga,4340,api_football,Silkeborg,Silkeborg IF
+Dutch Eredivisie,4337,api_football,PSV,PSV Eindhoven
+Dutch Eredivisie,4337,api_football,Ajax,AFC Ajax
+Dutch Eredivisie,4337,api_football,AZ,AZ Alkmaar
+Dutch Eredivisie,4337,api_football,Twente,FC Twente
+Dutch Eredivisie,4337,api_football,Utrecht,FC Utrecht
+Dutch Eredivisie,4337,api_football,NEC,NEC Nijmegen
+Dutch Eredivisie,4337,api_football,Heerenveen,SC Heerenveen
+Dutch Eredivisie,4337,api_football,Groningen,FC Groningen
+Dutch Eredivisie,4337,api_football,Go Ahead Eagles,GO Ahead Eagles
+Dutch Eredivisie,4337,api_football,Telstar,SC Telstar
+Dutch Eredivisie,4337,api_football,Excelsior,SBV Excelsior
+Estonian Meistriliiga,4634,api_football,FCI Levadia,FC Levadia Tallinn
+Estonian Meistriliiga,4634,api_football,Flora,Flora Tallinn
+Estonian Meistriliiga,4634,api_football,Nõmme Kalju,Kalju Nomme
+Estonian Meistriliiga,4634,api_football,Paide,Paide Linnameeskond
+Estonian Meistriliiga,4634,api_football,Vaprus,Pärnu Vaprus
+Estonian Meistriliiga,4634,api_football,Laagri,Harju Laagri
+Estonian Meistriliiga,4634,api_football,Tammeka,Tartu Tammeka
+Estonian Meistriliiga,4634,api_football,Nõmme United,Nomme United
+Estonian Meistriliiga,4634,api_football,Trans,Trans Narva
+Estonian Meistriliiga,4634,api_football,Kuressaare,FC Kuressaare
+Faroe Islands Premier League,4635,api_football,KÍ,KI Klaksvik
+Faroe Islands Premier League,4635,api_football,NSÍ,NSI Runavik
+Faroe Islands Premier League,4635,api_football,HB,HB Torshavn
+Faroe Islands Premier League,4635,api_football,Víkingur,Vikingur Gota
+Faroe Islands Premier League,4635,api_football,B36,B36 Torshavn
+Faroe Islands Premier League,4635,api_football,AB,AB Argir
+Faroe Islands Premier League,4635,api_football,B68,B68 Toftir
+Faroe Islands Premier League,4635,api_football,EB / Streymur,EB/Streymur
+Faroe Islands Premier League,4635,api_football,Skála,Skala IF
+Finnish Veikkausliiga,4636,api_football,Inter Turku,FC Inter Turku
+Finnish Veikkausliiga,4636,api_football,KuPS,KuPS Kuopio
+Finnish Veikkausliiga,4636,api_football,HJK,HJK Helsinki
+Finnish Veikkausliiga,4636,api_football,Ilves,Ilves Tampere
+Finnish Veikkausliiga,4636,api_football,VPS,VPS Vaasa
+Finnish Veikkausliiga,4636,api_football,SJK,SJK Seinajoki
+Finnish Veikkausliiga,4636,api_football,Gnistan,FC Gnistan
+Finnish Veikkausliiga,4636,api_football,Lahti,FC Lahti
+Finnish Veikkausliiga,4636,api_football,Oulu,AC Oulu
+Finnish Veikkausliiga,4636,api_football,TPS,Turku PS
+Finnish Veikkausliiga,4636,api_football,Jaro,FF Jaro
+Finnish Veikkausliiga,4636,api_football,Mariehamn,IFK Mariehamn
+Georgian Erovnuli Liga,4638,api_football,Iberia 1999,FC Iberia 1999
+Georgian Erovnuli Liga,4638,api_football,Torpedo Kutaisi,FC Torpedo Kutaisi
+Georgian Erovnuli Liga,4638,api_football,Dila,Dila Gori
+Georgian Erovnuli Liga,4638,api_football,Dinamo Tbilisi,FC Dinamo Tbilisi
+Georgian Erovnuli Liga,4638,api_football,Rustavi,FC Rustavi
+Georgian Erovnuli Liga,4638,api_football,Dinamo Batumi,FC Dinamo Batumi
+Georgian Erovnuli Liga,4638,api_football,Samgurali,Samgurali Tskhaltubo
+Georgian Erovnuli Liga,4638,api_football,Gagra,FC Gagra
+Georgian Erovnuli Liga,4638,api_football,Spaeri,FC Spaeri
+Georgian Erovnuli Liga,4638,api_football,Meshakhte,Meshakhte Tkibuli
+Gibraltarian National League,4964,api_football,Lincoln Red Imps,Lincoln Red Imps FC
+Gibraltarian National League,4964,api_football,St Joseph's,St Joseph S Fc
+Gibraltarian National League,4964,api_football,Europa,Europa FC
+Gibraltarian National League,4964,api_football,Mons Calpe,Mons Calpe SC
+Gibraltarian National League,4964,api_football,Magpies,FCB Magpies
+Greek Super League 1,4336,api_football,Olympiakos Piraeus,Olympiacos
+Greek Super League 1,4336,api_football,AEK Athens,AEK Athens FC
+Greek Super League 1,4336,api_football,Aris,Aris Thessalonikis
+Greek Super League 1,4336,api_football,Atromitos,Atromitos Athens
+Greek Super League 1,4336,api_football,OFI,OFI Crete
+Greek Super League 1,4336,api_football,Panaitolikos,Panetolikos
+Greek Super League 1,4336,api_football,Volos NFC,Volos
+Hungarian NB I,4690,api_football,Ferencváros,Ferencvarosi TC
+Hungarian NB I,4690,api_football,Győri ETO,Gyori ETO FC
+Hungarian NB I,4690,api_football,Paks,FC Paksi
+Hungarian NB I,4690,api_football,Puskás,Puskas Academy
+Hungarian NB I,4690,api_football,Debrecen,Debreceni VSC
+Hungarian NB I,4690,api_football,Zalaegerszeg,Zalaegerszegi TE
+Hungarian NB I,4690,api_football,MTK,MTK Budapest
+Hungarian NB I,4690,api_football,Nyíregyháza Spartacus,Nyiregyhaza
+Hungarian NB I,4690,api_football,Újpest,Ujpest
+Hungarian NB I,4690,api_football,Kisvárda,Kisvarda FC
+Hungarian NB I,4690,api_football,Honvéd,Budapest Honved
+Icelandic Besta deild karla,4642,api_football,Víkingur Reykjavík,Vikingur Reykjavik
+Icelandic Besta deild karla,4642,api_football,KR,KR Reykjavik
+Icelandic Besta deild karla,4642,api_football,Breiðablik,Breidablik
+Icelandic Besta deild karla,4642,api_football,Fram,Fram Reykjavik
+Icelandic Besta deild karla,4642,api_football,Valur,Valur Reykjavik
+Icelandic Besta deild karla,4642,api_football,Keflavík,Keflavik
+Icelandic Besta deild karla,4642,api_football,ÍA,IA Akranes
+Icelandic Besta deild karla,4642,api_football,FH,FH hafnarfjordur
+Icelandic Besta deild karla,4642,api_football,KA,KA Akureyri
+Icelandic Besta deild karla,4642,api_football,ÍBV,IBV Vestmannaeyjar
+Icelandic Besta deild karla,4642,api_football,Þór,Thor Akureyri
+Irish Premier Division,4643,api_football,Bohemians,Bohemian FC
+Irish Premier Division,4643,api_football,St Patrick's Athletic,St Patrick's Athl.
+Irish Premier Division,4643,api_football,Shelbourne,Shelbourne FC
+Irish Premier Division,4643,api_football,Dundalk,Dundalk FC
+Irish Premier Division,4643,api_football,Waterford,Waterford FC
+Israeli Premier League,4644,api_football,Hapoel Be'er Sheva,Hapoel Beer Sheva
+Israeli Premier League,4644,api_football,Hapoel Tel Aviv,Hapoel Tel-Aviv
+Israeli Premier League,4644,api_football,Hapoel Petah Tikva,Hapoel Petach Tikva
+Israeli Premier League,4644,api_football,Ironi Kiryat Shmona,Hapoel Ironi Kiryat Shmona
+Israeli Premier League,4644,api_football,Hapoel Jerusalem,Hapoel Katamon
+Kazakhstan Premier League,4649,api_football,Kairat,Kairat Almaty
+Kazakhstan Premier League,4649,api_football,Ordabasy,Ordabasy Shymkent
+Kazakhstan Premier League,4649,api_football,Astana,FC Astana
+Kazakhstan Premier League,4649,api_football,Yelimay,Yelimay Semey
+Kazakhstan Premier League,4649,api_football,Aktobe,FC Aktobe
+Kazakhstan Premier League,4649,api_football,Tobol Kostanay,FK Tobol Kostanay
+Kazakhstan Premier League,4649,api_football,Okzhetpes,Okzhetpes Kokshetau
+Kazakhstan Premier League,4649,api_football,Jenis,Zhenys
+Kazakhstan Premier League,4649,api_football,Kyzyl-Zhar,Kyzylzhar Petropavl
+Kazakhstan Premier League,4649,api_football,Kaspiy,Caspiy Aktau
+Kazakhstan Premier League,4649,api_football,Kaisar Kyzylorda,Kaisar
+Kazakhstan Premier League,4649,api_football,Atyrau,FC Atyrau
+Kazakhstan Premier League,4649,api_football,Ulytau,Ulytau Zhezkazgan
+Kazakhstan Premier League,4649,api_football,Ertis,Irtysh
+Kazakhstan Premier League,4649,api_football,Zhetysu,Jetysu Taldykorgan
+Kazakhstan Premier League,4649,api_football,Altay,Altai Öskemen
+Kosovan Superleague,4968,api_football,Drita,FC Drita
+Kosovan Superleague,4968,api_football,Malisheva,FC Malisheva
+Kosovan Superleague,4968,api_football,Ballkani,FC Ballkani
+Kosovan Superleague,4968,api_football,Dukagjini,FC Dukagjini
+Kosovan Superleague,4968,api_football,Llapi,FC Llapi
+Kosovan Superleague,4968,api_football,Gjilani,FC Gjilani
+Kosovan Superleague,4968,api_football,Drenica Skënderaj,Drenica
+Kosovan Superleague,4968,api_football,Prishtina,FC Prishtina
+Latvian Higher League,4650,api_football,Riga,Riga FC
+Latvian Higher League,4650,api_football,Rīgas FS,RFS
+Latvian Higher League,4650,api_football,Auda,Auda Kekava
+Latvian Higher League,4650,api_football,Liepāja,FK Liepaja
+Latvian Higher League,4650,api_football,BFC Daugavpils,Daugavpils
+Latvian Higher League,4650,api_football,FS Jelgava,Jelgava
+Latvian Higher League,4650,api_football,Super Nova,FK Super Nova
+Latvian Higher League,4650,api_football,Tukums,Tukums 2000
+Latvian Higher League,4650,api_football,Grobiņa,Grobiņas
+Latvian Higher League,4650,api_football,Ogre United,FK Ogre
+Lithuanian TOPLYGA,4651,api_football,Kauno Žalgiris,FK Kauno Zalgiris
+Lithuanian TOPLYGA,4651,api_football,Žalgiris,FK Zalgiris Vilnius
+Lithuanian TOPLYGA,4651,api_football,Sūduva,Suduva Marijampole
+Lithuanian TOPLYGA,4651,api_football,Banga,Banga Gargždai
+Lithuanian TOPLYGA,4651,api_football,Transinvest Vilnius,TransINVEST Vilnius
+Lithuanian TOPLYGA,4651,api_football,Džiugas Telšiai,FK Dziugas
+Lithuanian TOPLYGA,4651,api_football,Hegelmann,Hegelmann Litauen
+Lithuanian TOPLYGA,4651,api_football,Panevėžys,FK Panevezys
+Lithuanian TOPLYGA,4651,api_football,FA Šiauliai,Šiauliai
+Lithuanian TOPLYGA,4651,api_football,Riteriai,FK Riteriai
+Luxembourg National Division,4694,api_football,Differdange 03,FC Differdange 03
+Luxembourg National Division,4694,api_football,Mondorf-les-Bains,US Mondorf-les-bains
+Luxembourg National Division,4694,api_football,UNA Strassen,FC UNA Strassen
+Luxembourg National Division,4694,api_football,Racing,Racing FC Union Luxembourg
+Luxembourg National Division,4694,api_football,Progrès Niederkorn,Progres Niederkorn
+Luxembourg National Division,4694,api_football,Jeunesse d'Esch,AS Jeunesse Esch
+Luxembourg National Division,4694,api_football,UN Käerjéng,UN Kaerjeng 97
+Luxembourg National Division,4694,api_football,Rumelange,US Rumelange
+Luxembourg National Division,4694,api_football,Etzella Ettelbrück,Etzella Ettelbruck
+Luxembourg National Division,4694,api_football,Hostert,US Hostert
+Macedonian First League,4652,api_football,Shkendija,Shkëndija
+Macedonian First League,4652,api_football,Vardar Skopje,Vardar
+Macedonian First League,4652,api_football,Struga,FK Struga
+Macedonian First League,4652,api_football,Sileks,FK Sileks
+Macedonian First League,4652,api_football,Tikvesh,Tikveš
+Macedonian First League,4652,api_football,Aresimi,Arsimi
+Macedonian First League,4652,api_football,Bashkimi Kumanovo,Bashkimi
+Maltese Premier League,4653,api_football,Floriana,Floriana FC
+Maltese Premier League,4653,api_football,Hamrun Spartans,Ħamrun Spartans
+Maltese Premier League,4653,api_football,Valletta,Valletta FC
+Maltese Premier League,4653,api_football,Birkirkara,Birkirkara FC
+Maltese Premier League,4653,api_football,Gzira United,Gżira United
+Maltese Premier League,4653,api_football,Balzan,Balzan FC
+Maltese Premier League,4653,api_football,Hibernians,Hibernians Malta
+Maltese Premier League,4653,api_football,Zabbar St. Patrick,Żabbar St Patrick
+Maltese Premier League,4653,api_football,Mosta,Mosta FC
+Moldovan National Division,4655,api_football,Sheriff,Sheriff Tiraspol
+Moldovan National Division,4655,api_football,Petrocub,Petrocub Hîncești
+Moldovan National Division,4655,api_football,Zimbru,Zimbru Chișinău
+Moldovan National Division,4655,api_football,Milsami,Milsami Orhei
+Moldovan National Division,4655,api_football,CSF Bălți,Bălți
+Moldovan National Division,4655,api_football,Politehnica UTM,Politehnica Chisinau
+Moldovan National Division,4655,api_football,Dacia-Buiucani,Dacia Buiucani
+Moldovan National Division,4655,api_football,Real Sireți,Sireți
+Montenegrin First League,4656,api_football,Mornar,Mornar Bar
+Montenegrin First League,4656,api_football,Sutjeska,Sutjeska Niksic
+Montenegrin First League,4656,api_football,Budućnost,Buducnost Podgorica
+Montenegrin First League,4656,api_football,Dečić,FK Decic
+Montenegrin First League,4656,api_football,Petrovac,FK Petrovac
+Montenegrin First League,4656,api_football,Mladost DG,Mladost Donja Gorica
+Montenegrin First League,4656,api_football,Arsenal Tivat,FK Arsenal Tivat
+Montenegrin First League,4656,api_football,Bokelj,FK Bokelj
+Montenegrin First League,4656,api_football,Jezero,Jezero Plav
+Northern Irish Premiership,4659,api_football,Coleraine,Coleraine FC
+Northern Irish Premiership,4659,api_football,Cliftonville,Cliftonville FC
+Northern Irish Premiership,4659,api_football,Crusaders,Crusaders FC
+Norwegian Eliteserien,4358,api_football,Bodø / Glimt,Bodo/Glimt
+Norwegian Eliteserien,4358,api_football,Viking,Viking FK
+Norwegian Eliteserien,4358,api_football,Tromsø,Tromso
+Norwegian Eliteserien,4358,api_football,Brann,SK Brann
+Norwegian Eliteserien,4358,api_football,Molde,Molde FK
+Norwegian Eliteserien,4358,api_football,Lillestrøm,Lillestrom
+Norwegian Eliteserien,4358,api_football,Rosenborg,Rosenborg BK
+Norwegian Eliteserien,4358,api_football,Sarpsborg 08,Sarpsborg 08 FF
+Norwegian Eliteserien,4358,api_football,HamKam,Ham-Kam
+Norwegian Eliteserien,4358,api_football,Sandefjord,Sandefjord Fotball
+Norwegian Eliteserien,4358,api_football,Vålerenga,Valerenga
+Norwegian Eliteserien,4358,api_football,Fredrikstad,Fredrikstad FK
+Norwegian Eliteserien,4358,api_football,KFUM,KFUM Oslo
+Norwegian Eliteserien,4358,api_football,Aalesund,Aalesund FK
+Norwegian Eliteserien,4358,api_football,Start,IK Start
+Norwegian Eliteserien,4358,api_football,Kristiansund,Kristiansund BK
+Polish Ekstraklasa,4422,api_football,Lech Poznań,Lech Poznan
+Polish Ekstraklasa,4422,api_football,Legia Warszawa,Legia Warsaw
+Polish Ekstraklasa,4422,api_football,Jagiellonia Białystok,Jagiellonia
+Polish Ekstraklasa,4422,api_football,Raków Częstochowa,Rakow Czestochowa
+Polish Ekstraklasa,4422,api_football,Górnik Zabrze,Gornik Zabrze
+Polish Ekstraklasa,4422,api_football,Cracovia,Cracovia Krakow
+Polish Ekstraklasa,4422,api_football,Wisła Kraków,Wisla Krakow
+Polish Ekstraklasa,4422,api_football,Pogoń Szczecin,Pogon Szczecin
+Polish Ekstraklasa,4422,api_football,Widzew Łódź,Widzew Lodz
+Polish Ekstraklasa,4422,api_football,Zagłębie Lubin,Zaglebie Lubin
+Polish Ekstraklasa,4422,api_football,Śląsk Wrocław,Slask Wroclaw
+Polish Ekstraklasa,4422,api_football,Wisła Płock,Wisla Plock
+Portuguese Primeira Liga,4344,api_football,Sporting CP,Sporting Lisbon
+Portuguese Primeira Liga,4344,api_football,Benfica,SL Benfica
+Portuguese Primeira Liga,4344,api_football,Porto,FC Porto
+Portuguese Primeira Liga,4344,api_football,Sporting Braga,SC Braga
+Portuguese Primeira Liga,4344,api_football,Famalicão,Famalicao
+Portuguese Primeira Liga,4344,api_football,Gil Vicente,GIL Vicente
+Portuguese Primeira Liga,4344,api_football,Vitória Guimarães,Guimaraes
+Portuguese Primeira Liga,4344,api_football,Santa Clara,CD Santa Clara
+Portuguese Primeira Liga,4344,api_football,Arouca,FC Arouca
+Portuguese Primeira Liga,4344,api_football,Estoril,Estoril Praia
+Portuguese Primeira Liga,4344,api_football,Nacional,Nacional de Madeira
+Portuguese Primeira Liga,4344,api_football,Académico de Viseu,Academico Viseu
+Portuguese Primeira Liga,4344,api_football,Marítimo,Maritimo
+Portuguese Primeira Liga,4344,api_football,Estrela,Estrela Amadora
+Romanian Liga I,4691,api_football,CFR Cluj,CFR 1907 Cluj
+Romanian Liga I,4691,api_football,Universitatea Cluj,FC Universitatea Cluj
+Romanian Liga I,4691,api_football,Dinamo București,Dinamo Bucuresti
+Romanian Liga I,4691,api_football,FCSB,Steaua Bucharest
+Romanian Liga I,4691,api_football,Rapid București,Rapid
+Romanian Liga I,4691,api_football,Oțelul Galați,Oţelul
+Romanian Liga I,4691,api_football,Argeș,Arges Pitesti
+Romanian Liga I,4691,api_football,UTA Arad,Uta Arad
+Romanian Liga I,4691,api_football,FCV Farul Constanța,Farul Constanta
+Romanian Liga I,4691,api_football,Botoșani,FC Botosani
+Romanian Liga I,4691,api_football,Sepsi,Sepsi OSK Sfantu Gheorghe
+Romanian Liga I,4691,api_football,Voluntari,FC Voluntari
+Romanian Liga I,4691,api_football,Petrolul 52,Petrolul Ploiesti
+Romanian Liga I,4691,api_football,Csikszereda,Csikszereda Miercurea
+Russian Football Premier League,4355,api_football,Zenit,Zenit Saint Petersburg
+Russian Football Premier League,4355,api_football,Krasnodar,FC Krasnodar
+Russian Football Premier League,4355,api_football,Spartak Moskva,Spartak Moscow
+Russian Football Premier League,4355,api_football,CSKA Moskva,CSKA Moscow
+Russian Football Premier League,4355,api_football,Dinamo Moskva,Dynamo
+Russian Football Premier League,4355,api_football,Lokomotiv Moskva,Lokomotiv
+Russian Football Premier League,4355,api_football,Baltika,Baltika Kaliningrad
+Russian Football Premier League,4355,api_football,Rubin Kazan,Rubin
+Russian Football Premier League,4355,api_football,Rostov,FC Rostov
+Russian Football Premier League,4355,api_football,Akhmat Grozny,Akhmat
+Russian Football Premier League,4355,api_football,Dinamo Makhachkala,Dynamo Makhachkala
+Russian Football Premier League,4355,api_football,Krylya Sovetov,Krylia Sovetov
+Russian Football Premier League,4355,api_football,Orenburg,FC Orenburg
+Russian Football Premier League,4355,api_football,Akron,Akron Tolyatti
+San-Marino Campionato,4667,api_football,Virtus,SS Virtus
+San-Marino Campionato,4667,api_football,La Fiorita,SP La Fiorita
+San-Marino Campionato,4667,api_football,Tre Fiori,SS Tre Fiori
+San-Marino Campionato,4667,api_football,Tre Penne,SS Tre Penne
+San-Marino Campionato,4667,api_football,Folgore,Folgore Falciano
+San-Marino Campionato,4667,api_football,Cosmos,AC Cosmos
+San-Marino Campionato,4667,api_football,Domagnano,SS Domagnano
+San-Marino Campionato,4667,api_football,Fiorentino,AC Fiorentino
+San-Marino Campionato,4667,api_football,San Giovanni,SS San Giovanni
+San-Marino Campionato,4667,api_football,Juvenes / Dogana,Juvenes/Dogana
+San-Marino Campionato,4667,api_football,Libertas,SS Libertas
+San-Marino Campionato,4667,api_football,Faetano,SS Faetano
+San-Marino Campionato,4667,api_football,Pennarossa,AC Pennarossa
+San-Marino Campionato,4667,api_football,Murata,SS Murata
+San-Marino Campionato,4667,api_football,Cailungo,AC Cailungo
+Scottish Premiership,4330,api_football,Heart of Midlothian,Heart Of Midlothian
+Scottish Premiership,4330,api_football,Dundee United,Dundee Utd
+Scottish Premiership,4330,api_football,St. Mirren,ST Mirren
+Scottish Premiership,4330,api_football,St. Johnstone,ST Johnstone
+Serbian Super Liga,4671,api_football,Crvena Zvezda,FK Crvena Zvezda
+Serbian Super Liga,4671,api_football,Partizan,FK Partizan
+Serbian Super Liga,4671,api_football,Vojvodina,FK Vojvodina
+Serbian Super Liga,4671,api_football,Železničar Pančevo,Zeleznicar Pancevo
+Serbian Super Liga,4671,api_football,IMT Novi Beograd,FK IMT
+Serbian Super Liga,4671,api_football,Čukarički,Cukaricki
+Serbian Super Liga,4671,api_football,Radnik Surdulica,FK Radnik Surdulica
+Serbian Super Liga,4671,api_football,Radnički Kragujevac,Radnicki 1923
+Serbian Super Liga,4671,api_football,Novi Pazar,FK Novi Pazar
+Serbian Super Liga,4671,api_football,Radnički Niš,Radnicki NIS
+Serbian Super Liga,4671,api_football,Mačva Šabac,Macva
+Serbian Super Liga,4671,api_football,Mladost Lučani,Mladost Lucani
+Slovak First Football League,4672,api_football,Slovan Bratislava,SK Slovan Bratislava
+Slovak First Football League,4672,api_football,DAC 1904,Dunajska Streda
+Slovak First Football League,4672,api_football,Spartak Trnava,FC Spartak Trnava
+Slovak First Football League,4672,api_football,Žilina,MSK Zilina
+Slovak First Football League,4672,api_football,Podbrezová,Železiarne Podbrezová
+Slovak First Football League,4672,api_football,FC Košice,FK Košice
+Slovak First Football League,4672,api_football,Zemplín Michalovce,MFK Zemplin
+Slovak First Football League,4672,api_football,Skalica,MFK Skalica
+Slovak First Football League,4672,api_football,Trenčín,AS Trencin
+Slovak First Football League,4672,api_football,Ružomberok,MFK Ruzomberok
+Slovak First Football League,4672,api_football,Komárno,MFK Komarno
+Slovenian 1. SNL,4692,api_football,Celje,NK Celje
+Slovenian 1. SNL,4692,api_football,Koper,NK Koper
+Slovenian 1. SNL,4692,api_football,Maribor,NK Maribor
+Slovenian 1. SNL,4692,api_football,Bravo,NK Bravo
+Slovenian 1. SNL,4692,api_football,Olimpija,Olimpija Ljubljana
+Slovenian 1. SNL,4692,api_football,Brinje Grosuplje,Brinje-Grosuplje
+Slovenian 1. SNL,4692,api_football,Radomlje,NK Radomlje
+Slovenian 1. SNL,4692,api_football,Mura,NS Mura
+Slovenian 1. SNL,4692,api_football,Aluminij,NK Aluminij
+Swedish Allsvenskan,4347,api_football,Sirius,IK Sirius
+Swedish Allsvenskan,4347,api_football,Hammarby,Hammarby FF
+Swedish Allsvenskan,4347,api_football,Mjällby,Mjallby AIF
+Swedish Allsvenskan,4347,api_football,Djurgården,Djurgardens IF
+Swedish Allsvenskan,4347,api_football,GAIS,Gais
+Swedish Allsvenskan,4347,api_football,Häcken,BK Hacken
+Swedish Allsvenskan,4347,api_football,Malmö FF,Malmo FF
+Swedish Allsvenskan,4347,api_football,AIK,AIK Stockholm
+Swedish Allsvenskan,4347,api_football,Elfsborg,IF Elfsborg
+Swedish Allsvenskan,4347,api_football,IFK Göteborg,IFK Goteborg
+Swedish Allsvenskan,4347,api_football,Västerås,Vasteras SK FK
+Swedish Allsvenskan,4347,api_football,Kalmar,Kalmar FF
+Swedish Allsvenskan,4347,api_football,Brommapojkarna,IF Brommapojkarna
+Swedish Allsvenskan,4347,api_football,Örgryte,Orgryte IS
+Swedish Allsvenskan,4347,api_football,Degerfors,Degerfors IF
+Swedish Allsvenskan,4347,api_football,Halmstad,Halmstads BK
+Swiss Super League,4675,api_football,St.Gallen,FC ST. Gallen
+Swiss Super League,4675,api_football,Lugano,FC Lugano
+Swiss Super League,4675,api_football,Young Boys,BSC Young Boys
+Swiss Super League,4675,api_football,Sion,FC Sion
+Swiss Super League,4675,api_football,Servette,Servette FC
+Swiss Super League,4675,api_football,Thun,FC Thun
+Swiss Super League,4675,api_football,Basel,FC Basel 1893
+Swiss Super League,4675,api_football,Luzern,FC Luzern
+Swiss Super League,4675,api_football,Lausanne-Sport,Lausanne
+Swiss Super League,4675,api_football,Vaduz,FC Vaduz
+Swiss Super League,4675,api_football,Zürich,FC Zurich
+Swiss Super League,4675,api_football,Grasshoppers,Grasshopper Club Zurich
+Turkish Super Lig,4339,api_football,Fenerbahçe,Fenerbahce
+Turkish Super Lig,4339,api_football,Beşiktaş,Besiktas
+Turkish Super Lig,4339,api_football,İstanbul Başakşehir,Başakşehir
+Turkish Super Lig,4339,api_football,Göztepe,Goztepe
+Turkish Super Lig,4339,api_football,Rizespor,Caykur Rizespor
+Turkish Super Lig,4339,api_football,Gençlerbirliği,Gençlerbirliği S.K.
+Turkish Super Lig,4339,api_football,Kasımpaşa,Kasimpasa
+Turkish Super Lig,4339,api_football,Eyüpspor,Eyupspor
+Turkish Super Lig,4339,api_football,Çorum,Çorum FK
+Turkish Super Lig,4339,api_football,Gaziantep FK,Gaziantep
+Ukrainian Premier League,4354,api_football,Dynamo Kyiv,Dynamo Kiev
+Ukrainian Premier League,4354,api_football,Polissya,Polessya
+Ukrainian Premier League,4354,api_football,Karpaty Lviv,Karpaty
+Ukrainian Premier League,4354,api_football,Zorya,Zorya Luhansk
+Ukrainian Premier League,4354,api_football,Kharkiv,FC Kharkiv
+Ukrainian Premier League,4354,api_football,Kryvbas KR,Kryvbas Kryvyi Rih
+Ukrainian Premier League,4354,api_football,Epitsentr,Epitsentr Dunayivtsi
+Ukrainian Premier League,4354,api_football,Obolon Kyiv,Obolon'-Brovar
+Welsh Cymru Premier,4472,api_football,Connah's Quay,GAP Connah S Quay FC
+Welsh Cymru Premier,4472,api_football,Barry Town United,Barry Town
+Welsh Cymru Premier,4472,api_football,Haverfordwest County,Haverfordwest County AFC
+Welsh Cymru Premier,4472,api_football,Briton Ferry,Briton Ferry Llansawel
+Welsh Cymru Premier,4472,api_football,Cardiff MU,Cardiff MET
+Welsh Cymru Premier,4472,api_football,Cambrian United,Cambrian & Clydach
+Welsh Cymru Premier,4472,api_football,Holywell Town,Holywell
+Welsh Cymru Premier,4472,api_football,Ammanford,Ammanford AFC

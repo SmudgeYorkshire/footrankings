@@ -65,6 +65,43 @@ OVERDISPERSION = 0.15 # NegBin overdispersion φ: Var[goals] = λ(1+φ)
 FORM_GAMES     = 5    # number of recent results used for form adjustment
 FORM_STRENGTH  = 0.05 # max ±5% attack multiplier from form
 
+# Dixon-Coles (1997) low-score correlation correction. Independent
+# Poisson/NegBin systematically under-predicts 0-0 and 1-1 and
+# over-predicts 1-0 and 0-1; this single parameter corrects it. Typical
+# fitted values in the literature range -0.03 to -0.13; -0.10 is a
+# reasonable mid-range default absent our own fitted value.
+DIXON_COLES_RHO = -0.10
+
+# Attack/defense shape refinement (see apply_shape_adjustment). Opta's
+# rating is a single scalar with no attack/defense breakdown, so the
+# power-transform below splits it symmetrically by construction. These
+# constants bound how much real observed goals-for/against can tilt that
+# split — capped well under 1.0 so Opta remains the dominant signal for
+# team strength at every point in the season.
+# backtest.py showed 0.5 measurably *hurts* RPS (real goals-for/against
+# early in a season is noisier than it looks); 0.15 was close to neutral
+# across the leagues/snapshots tested. Revisit if re-tuned against more data.
+SHAPE_MAX_WEIGHT      = 0.15  # max exponent weight given to the empirical shape signal
+SHAPE_FULL_WEIGHT_GAMES = 15  # matches played at which the shape signal reaches SHAPE_MAX_WEIGHT
+
+
+def _dc_tau(x: int, y: int, lam_x: float, lam_y: float, rho: float = DIXON_COLES_RHO) -> float:
+    """Dixon-Coles correction factor for the joint P(home=x, away=y).
+
+    Only the four low-score cells are adjusted; every other scoreline
+    gets tau=1 (unchanged). Multiply this into an independent
+    pmf_x[x] * pmf_y[y] joint probability before using it.
+    """
+    if x == 0 and y == 0:
+        return 1.0 - lam_x * lam_y * rho
+    if x == 0 and y == 1:
+        return 1.0 + lam_x * rho
+    if x == 1 and y == 0:
+        return 1.0 + lam_y * rho
+    if x == 1 and y == 1:
+        return 1.0 - rho
+    return 1.0
+
 
 def _goals_pmf(lam: float) -> list[float]:
     """
@@ -173,15 +210,18 @@ def fixture_odds(
         pmf_h = _goals_pmf(lam_h)
         pmf_a = _goals_pmf(lam_a)
 
-        p_home = p_draw = 0.0
+        p_home = p_draw = p_away = 0.0
         for gh in range(_MAX_GOALS + 1):
             for ga in range(_MAX_GOALS + 1):
-                p = pmf_h[gh] * pmf_a[ga]
+                p = pmf_h[gh] * pmf_a[ga] * _dc_tau(gh, ga, lam_h, lam_a)
                 if gh > ga:
                     p_home += p
                 elif gh == ga:
                     p_draw += p
-        results.append({"home_win": p_home, "draw": p_draw, "away_win": 1.0 - p_home - p_draw})
+                else:
+                    p_away += p
+        total = p_home + p_draw + p_away  # renormalize — tau shifts mass, doesn't conserve it exactly
+        results.append({"home_win": p_home / total, "draw": p_draw / total, "away_win": p_away / total})
 
     return results
 
@@ -228,44 +268,53 @@ def two_leg_advance_odds(
     pmf_l2_t2 = _goals_pmf(xg_l2_t2)
     pmf_l2_t1 = _goals_pmf(xg_l2_t1)
 
-    def _leg_odds(pmf_h: list, pmf_a: list) -> dict:
-        p_home = p_draw = 0.0
+    def _leg_odds(pmf_h: list, pmf_a: list, lam_h: float, lam_a: float) -> dict:
+        p_home = p_draw = p_away = 0.0
         for gh in range(_MAX_GOALS + 1):
             for ga in range(_MAX_GOALS + 1):
-                p = pmf_h[gh] * pmf_a[ga]
+                p = pmf_h[gh] * pmf_a[ga] * _dc_tau(gh, ga, lam_h, lam_a)
                 if gh > ga:    p_home += p
                 elif gh == ga: p_draw += p
-        return {"home_win": p_home, "draw": p_draw, "away_win": 1.0 - p_home - p_draw}
+                else:          p_away += p
+        total = p_home + p_draw + p_away
+        return {"home_win": p_home / total, "draw": p_draw / total, "away_win": p_away / total}
 
-    leg1_odds = _leg_odds(pmf_l1_t1, pmf_l1_t2)
-    leg2_odds = _leg_odds(pmf_l2_t2, pmf_l2_t1)
+    leg1_odds = _leg_odds(pmf_l1_t1, pmf_l1_t2, xg_l1_t1, xg_l1_t2)
+    leg2_odds = _leg_odds(pmf_l2_t2, pmf_l2_t1, xg_l2_t2, xg_l2_t1)
 
     # Two-leg advance probability (no away-goals rule since 2021)
     t1_adv = 0.0
+    total_mass = 0.0
     if leg1_score is not None:
         # Leg 1 result known — iterate over leg 2 outcomes only
         l1_t1, l1_t2 = int(leg1_score[0]), int(leg1_score[1])
         for l2_t2 in range(_MAX_GOALS + 1):
             for l2_t1 in range(_MAX_GOALS + 1):
-                p = pmf_l2_t2[l2_t2] * pmf_l2_t1[l2_t1]
+                p = pmf_l2_t2[l2_t2] * pmf_l2_t1[l2_t1] * _dc_tau(l2_t2, l2_t1, xg_l2_t2, xg_l2_t1)
+                total_mass += p
                 agg1 = l1_t1 + l2_t1
                 agg2 = l1_t2 + l2_t2
                 if agg1 > agg2:   t1_adv += p
                 elif agg1 == agg2: t1_adv += p * 0.5  # ET/penalties: 50/50
     else:
-        # Full two-leg grid (11^4 ≈ 14 k iterations — fast)
+        # Full two-leg grid (11^4 ≈ 14 k iterations — fast). Each leg's
+        # own joint score gets its own Dixon-Coles correction, applied
+        # independently since the two legs are separate matches.
         for l1_t1 in range(_MAX_GOALS + 1):
             for l1_t2 in range(_MAX_GOALS + 1):
-                p1 = pmf_l1_t1[l1_t1] * pmf_l1_t2[l1_t2]
+                p1 = pmf_l1_t1[l1_t1] * pmf_l1_t2[l1_t2] * _dc_tau(l1_t1, l1_t2, xg_l1_t1, xg_l1_t2)
                 if p1 < 1e-12:
                     continue
                 for l2_t2 in range(_MAX_GOALS + 1):
                     for l2_t1 in range(_MAX_GOALS + 1):
-                        p = p1 * pmf_l2_t2[l2_t2] * pmf_l2_t1[l2_t1]
+                        p = p1 * pmf_l2_t2[l2_t2] * pmf_l2_t1[l2_t1] * _dc_tau(l2_t2, l2_t1, xg_l2_t2, xg_l2_t1)
+                        total_mass += p
                         agg1 = l1_t1 + l2_t1
                         agg2 = l1_t2 + l2_t2
                         if agg1 > agg2:    t1_adv += p
                         elif agg1 == agg2: t1_adv += p * 0.5
+
+    t1_adv /= total_mass  # renormalize — tau shifts mass, doesn't conserve it exactly
 
     return {
         "leg1":      {**leg1_odds, "xg_home": xg_l1_t1, "xg_away": xg_l1_t2},
@@ -291,6 +340,98 @@ def _opta_to_attack_defense(
     df["attack"] = base_goals * (relative ** k)
     df["defense"] = base_goals * (relative ** (-k))
     return df
+
+
+def apply_shape_adjustment(
+    ratings: pd.DataFrame,
+    played_fixtures: list[dict] | None,
+    base_goals: float = DEFAULT_BASE_GOALS,
+) -> pd.DataFrame:
+    """
+    Refine each team's Opta-anchored attack/defense split using actual
+    goals-for/against so far this season.
+
+    Opta's Power Rating is a single hierarchical-Elo scalar with no
+    attack/defense breakdown, so _opta_to_attack_defense splits it
+    symmetrically (relative**k / relative**-k) — a team rated X% above
+    average is assumed exactly X% better at BOTH scoring and defending.
+    That's the one thing Opta structurally can't tell us.
+
+    This keeps attack*defense fixed at whatever Opta implies (Opta stays
+    the authority on overall team strength — it's a manually-refreshed,
+    match-outcome+xG-informed rating, so there's no reason for a cruder
+    in-season goals-based blend to override its *magnitude*). It only
+    lets real observed output tilt the *shape*: whether that Opta-implied
+    strength should skew toward attack or defense.
+
+    Shrinkage: at 0 matches played this is a no-op (pure Opta split).
+    The empirical shape signal's influence ramps up to SHAPE_MAX_WEIGHT
+    (capped well under 1.0) by SHAPE_FULL_WEIGHT_GAMES matches played,
+    and never exceeds that cap — Opta remains dominant throughout.
+
+    NOT CURRENTLY WIRED INTO PRODUCTION. backtest.py --multi (32 runs
+    across 8 leagues / 2 seasons / 2 snapshots) showed every variant using
+    this scored WORSE mean RPS than its shape-free counterpart, at both
+    SHAPE_MAX_WEIGHT=0.5 (clearly worse) and 0.15 (still consistently
+    worse, just by less) — a monotonic trend with no weight tested so far
+    that helps. Kept here for future re-tuning/research, not because it's
+    proven to work. Re-run backtest.py --multi before re-enabling it.
+    """
+    if "attack" not in ratings.columns:
+        ratings = _opta_to_attack_defense(ratings, base_goals)
+    else:
+        ratings = ratings.copy()
+
+    if not played_fixtures:
+        return ratings
+
+    gf: dict[str, int] = {}
+    ga: dict[str, int] = {}
+    played: dict[str, int] = {}
+    for f in played_fixtures:
+        try:
+            hg = int(f.get("intHomeScore") or 0)
+            ag = int(f.get("intAwayScore") or 0)
+        except (TypeError, ValueError):
+            continue
+        for team, gf_, ga_ in [(f.get("strHomeTeam", ""), hg, ag), (f.get("strAwayTeam", ""), ag, hg)]:
+            if not team:
+                continue
+            gf[team] = gf.get(team, 0) + gf_
+            ga[team] = ga.get(team, 0) + ga_
+            played[team] = played.get(team, 0) + 1
+
+    if not played:
+        return ratings
+
+    league_gf_pg = sum(gf.values()) / sum(played.values())
+    if league_gf_pg <= 0:
+        return ratings
+    league_ga_pg = sum(ga.values()) / sum(played.values())
+
+    def _shape_and_weight(row) -> tuple[float, float]:
+        name = str(row["team"])
+        alias = str(row.get("alias", "")).strip()
+        key = name if name in played else (alias if alias in played else None)
+        if key is None:
+            return 1.0, 0.0
+        n = played[key]
+        attack_signal  = (gf[key] / n) / league_gf_pg
+        defense_signal = league_ga_pg / max(ga[key] / n, 0.1)
+        shape = math.sqrt(max(attack_signal, 1e-6) / max(defense_signal, 1e-6))
+        weight = min(n / SHAPE_FULL_WEIGHT_GAMES, 1.0) * SHAPE_MAX_WEIGHT
+        return shape, weight
+
+    shapes, weights = [], []
+    for _, row in ratings.iterrows():
+        s, w = _shape_and_weight(row)
+        shapes.append(s)
+        weights.append(w)
+    adj = np.array(shapes) ** np.array(weights)
+
+    ratings["attack"]  = ratings["attack"]  * adj
+    ratings["defense"] = ratings["defense"] / adj
+    return ratings
 
 
 def _rank_group(
@@ -355,6 +496,60 @@ def _rank_group(
     return list(group)  # all rules exhausted, keep original order
 
 
+def _apply_dixon_coles_mc(
+    home_goals: np.ndarray, away_goals: np.ndarray,
+    home_lambdas: np.ndarray, away_lambdas: np.ndarray,
+    rng: np.random.Generator, phi: float, p_nb: float,
+    rho: float = DIXON_COLES_RHO, max_rounds: int = 4,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Re-weight already-drawn NegBin goal arrays (shape (F, n_sim)) toward
+    the Dixon-Coles joint distribution via rejection resampling, applied
+    only to the four low-score cells (0-0, 0-1, 1-0, 1-1).
+
+    Standard rejection sampling: accept a draw landing in an affected
+    cell with probability tau(cell)/tau_max; reject and redraw (from the
+    same independent NegBin) otherwise. tau values are close to 1 for
+    realistic rho, so rejection rates are low and this converges in a
+    couple of rounds — remaining rejects after max_rounds are accepted
+    as-is (negligible residual bias).
+    """
+    lam_x = np.broadcast_to(home_lambdas[:, None], home_goals.shape)
+    lam_y = np.broadcast_to(away_lambdas[:, None], away_goals.shape)
+
+    tau00 = 1.0 - lam_x * lam_y * rho
+    tau01 = 1.0 + lam_x * rho
+    tau10 = 1.0 + lam_y * rho
+    tau11 = np.full_like(lam_x, 1.0 - rho)
+    tau_max = np.maximum.reduce([tau00, tau01, tau10, tau11, np.ones_like(lam_x)])
+
+    for _ in range(max_rounds):
+        m00 = (home_goals == 0) & (away_goals == 0)
+        m01 = (home_goals == 0) & (away_goals == 1)
+        m10 = (home_goals == 1) & (away_goals == 0)
+        m11 = (home_goals == 1) & (away_goals == 1)
+        affected = m00 | m01 | m10 | m11
+        if not affected.any():
+            break
+
+        cur_tau = np.ones_like(lam_x)
+        cur_tau[m00] = tau00[m00]
+        cur_tau[m01] = tau01[m01]
+        cur_tau[m10] = tau10[m10]
+        cur_tau[m11] = tau11[m11]
+
+        accept_prob = cur_tau / tau_max
+        u = rng.random(home_goals.shape)
+        reject = affected & (u > accept_prob)
+        if not reject.any():
+            break
+
+        home_goals[reject] = rng.negative_binomial(np.maximum(lam_x[reject] / phi, 1e-9), p_nb)
+        away_goals[reject] = rng.negative_binomial(np.maximum(lam_y[reject] / phi, 1e-9), p_nb)
+
+    return home_goals, away_goals
+
+
 def simulate_season(
     standings: list[dict],
     remaining_fixtures: list[dict],
@@ -363,20 +558,28 @@ def simulate_season(
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
     tiebreakers: list[str] | None = None,
     played_fixtures: list[dict] | None = None,
+    use_dixon_coles: bool = True,
+    apply_form: bool = True,
 ) -> pd.DataFrame:
     """
     Run a Monte Carlo simulation of the remaining season.
 
     Parameters
     ----------
-    standings          : list of TheSportsDB table row dicts
-    remaining_fixtures : list of TheSportsDB event dicts (unplayed only)
+    standings          : list of provider table row dicts
+    remaining_fixtures : list of provider fixture dicts (unplayed only)
     ratings            : DataFrame with columns ['team', 'opta_rating']
                          OR ['team', 'attack', 'defense']
     n_sim              : number of simulations
     home_advantage     : multiplicative factor applied to home team expected goals
     tiebreakers        : ordered list of tiebreaker rules (from config LEAGUES entry)
-    played_fixtures    : list of already-played TheSportsDB event dicts (for base H2H)
+    played_fixtures    : list of already-played provider fixture dicts (for base H2H)
+    use_dixon_coles    : apply the low-score correlation correction (default True;
+                         exposed mainly so backtest.py can A/B it)
+    apply_form         : apply the last-FORM_GAMES attack multiplier (default True;
+                         exposed mainly so backtest.py can check whether it still
+                         earns its keep now that Opta ratings refresh weekly and
+                         are themselves already form-sensitive)
 
     Returns
     -------
@@ -500,7 +703,7 @@ def simulate_season(
     rng = np.random.default_rng()
 
     # Apply form multipliers to attacking lambdas (based on last FORM_GAMES results)
-    if played_fixtures:
+    if played_fixtures and apply_form:
         _form = _compute_form(teams, played_fixtures, team_idx)
         home_lambdas *= _form[home_idx]
         away_lambdas *= _form[away_idx]
@@ -514,6 +717,10 @@ def simulate_season(
     away_goals = rng.negative_binomial(
         away_lambdas[:, None] / _phi * np.ones((F, n_sim)), _p_nb
     )
+    if use_dixon_coles:
+        home_goals, away_goals = _apply_dixon_coles_mc(
+            home_goals, away_goals, home_lambdas, away_lambdas, rng, _phi, _p_nb
+        )
 
     # Points per fixture
     home_pts = np.where(home_goals > away_goals, 3, np.where(home_goals == away_goals, 1, 0))
