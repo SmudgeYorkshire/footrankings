@@ -50,6 +50,18 @@ def _utc_to_cet(date_str: str, time_str: str) -> str:
         return time_str[:5]
 
 
+def _next_opponent_badges(fixtures: list[dict], badge_lookup: dict) -> dict[str, str]:
+    """team -> next opponent's badge URL, from the earliest upcoming fixture."""
+    result: dict[str, str] = {}
+    for f in sorted(fixtures, key=lambda x: (x.get("dateEvent") or "9999-99-99", x.get("strTime") or "99:99:99")):
+        home, away = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
+        pairs = ((home, away, f.get("strAwayTeamBadge")), (away, home, f.get("strHomeTeamBadge")))
+        for team, opp, opp_badge in pairs:
+            if team and team not in result:
+                result[team] = badge_lookup.get(opp) or opp_badge or ""
+    return result
+
+
 def render_heatmap(probs: pd.DataFrame):
     n_teams = len(probs)
     z = probs.values
@@ -783,6 +795,7 @@ def main_content():
         split_info["pre_split"] = sorted(_presplit_snapshot,
                                          key=lambda r: int(r.get("intRank") or 99))
     badge_lookup = {row["strTeam"]: row["strBadge"] for row in standings if row.get("strBadge")}
+    _next_opp_badge = _next_opponent_badges(remaining_fixtures, badge_lookup)
 
     # League header
     league_badge = league_info.get("strBadge") or league_info.get("strLogo")
@@ -858,7 +871,7 @@ def main_content():
                 return "".join(sq[:-1]) + " │ " + sq[-1]
             return "".join(sq)
 
-        def _table_rows(source_rows, zones=None, show_form=True, relative_zones=False, team_overrides=None):
+        def _table_rows(source_rows, zones=None, show_form=True, relative_zones=False, team_overrides=None, show_next=False):
             rows = []
             for rel_pos, row in enumerate(
                     sorted(source_rows, key=lambda r: int(r.get("intRank", 99))), start=1):
@@ -883,6 +896,8 @@ def main_content():
                 }
                 if show_form:
                     r["Form"] = _fmt_form(row.get("strForm", "") or "")
+                if show_next:
+                    r["Next"] = _next_opp_badge.get(team_name, "")
                 rows.append(r)
             return rows
 
@@ -939,6 +954,8 @@ def main_content():
             }
             if "Form" in df.columns:
                 col_cfg["Form"] = st.column_config.TextColumn("Form", width=130)
+            if "Next" in df.columns:
+                col_cfg["Next"] = st.column_config.ImageColumn("Next", width=32)
             tbl_col, _ = st.columns([5, 1])
             with tbl_col:
                 st.dataframe(style_obj, column_config=col_cfg, use_container_width=True,
@@ -1007,7 +1024,7 @@ def main_content():
             st.markdown("### 🏆 Championship Round")
             st.markdown(_conf_progress_html(_champ_pf, _champ_rf), unsafe_allow_html=True)
             st.caption(_pts_note)
-            _render_table(_table_rows(split_info["champ_current"], zones=_champ_zones))
+            _render_table(_table_rows(split_info["champ_current"], zones=_champ_zones, show_next=True))
             st.caption(_tb_caption(_champ_tbs))
             if any(str(v).endswith("*") for v in (_champ_zones or {}).values()):
                 st.caption(_UECL_PO_FOOTNOTE)
@@ -1021,13 +1038,13 @@ def main_content():
                 st.markdown(f"### 🔵 {_mid_label}")
                 st.markdown(_conf_progress_html(_mid_pf, _mid_rf), unsafe_allow_html=True)
                 st.caption(_pts_note)
-                _render_table(_table_rows(split_info["mid_current"], zones=_mid_zones, relative_zones=True))
+                _render_table(_table_rows(split_info["mid_current"], zones=_mid_zones, relative_zones=True, show_next=True))
                 st.caption(_tb_caption(_mid_tbs))
             if split_info.get("relg_current") and not cfg.get("champ_only"):
                 st.markdown("### ⚠️ Relegation Round")
                 st.markdown(_conf_progress_html(_relg_pf, _relg_rf), unsafe_allow_html=True)
                 st.caption(_relg_pts_note)
-                _render_table(_table_rows(split_info["relg_current"], zones=_relg_zones, relative_zones=True))
+                _render_table(_table_rows(split_info["relg_current"], zones=_relg_zones, relative_zones=True, show_next=True))
                 st.caption(_tb_caption(_relg_tbs))
                 if any(str(v).endswith("*") for v in (_relg_zones or {}).values()):
                     st.caption(_UECL_PO_FOOTNOTE)
@@ -1273,7 +1290,7 @@ def main_content():
                 _season_progress_html(played_rounds, total_rounds, len(played_fixtures), len(remaining_fixtures)),
                 unsafe_allow_html=True,
             )
-            _render_table(_table_rows(standings, zones=_main_zones, team_overrides=_team_overrides))
+            _render_table(_table_rows(standings, zones=_main_zones, team_overrides=_team_overrides, show_next=True))
             _tbs_non_split = cfg.get("tiebreakers", ["gd", "gf"])[:8]
             st.caption("Tiebreakers: " + "; ".join(f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(_tbs_non_split)))
             if cfg.get("team_status_note"):

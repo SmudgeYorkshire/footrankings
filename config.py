@@ -24,7 +24,6 @@ LEAGUES = {
                                          "As Manchester City won the 2025/26 EFL Cup and are predicted to secure a European place through their league position, "
                                          "the UECL – PO spot is projected to pass to the 8th-placed team."
                                      ),
-                                     "team_status_note": "*Crystal Palace are projected to qualify for the UEL – LS as the predicted winners of the 2025/26 Conference League.",
                                      "team_status_overrides": {"Crystal Palace": "UEL - LS*"}},
     "Italian Serie A":              {"id": 135, "provider": "api_football", "tsdb_id": 4332, "af_season": 2026, "cup_id": 137, "country": "Italy",       "flag": "🇮🇹", "season_type": "winter",
                                      "season_end": "24 May 2026",
