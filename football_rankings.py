@@ -24,79 +24,10 @@ _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
 # ---------------------------------------------------------------------------
 # Sidebar dropdown labels — "Country - League" (Top 5 first, then alphabetical
-# by country). The underlying LEAGUES key is untouched everywhere else (page
-# headers, admin, ratings files, etc. all keep showing the full league name).
+# by country), shared with opta_rankings.py via league_display.py so every
+# page's league dropdown looks and sorts the same way.
 # ---------------------------------------------------------------------------
-_TOP5_LEAGUES = {
-    "English Premier League", "Italian Serie A", "Spanish La Liga",
-    "German Bundesliga", "French Ligue 1",
-}
-
-_DROPDOWN_LABELS: dict[str, str] = {
-    "English Premier League":          "England - Premier League",
-    "Italian Serie A":                 "Italy - Serie A",
-    "Spanish La Liga":                 "Spain - La Liga",
-    "German Bundesliga":               "Germany - Bundesliga",
-    "French Ligue 1":                  "France - Ligue 1",
-    "Albanian Superliga":              "Albania - Superliga",
-    "Andorran 1a Divisió":             "Andorra - 1a Divisió",
-    "Armenian Premier League":         "Armenia - Premier League",
-    "Austrian Bundesliga":             "Austria - Bundesliga",
-    "Azerbaijani Premier League":      "Azerbaijan - Premier League",
-    "Belarus Vyscha Liga":             "Belarus - Vyscha Liga",
-    "Belgian Pro League":              "Belgium - Pro League",
-    "Bosnian Premier Liga":            "Bosnia and Herzegovina - Premier Liga",
-    "Bulgarian First League":          "Bulgaria - First League",
-    "Croatian First Football League":  "Croatia - First Football League",
-    "Czech First League":              "Czech Republic - First League",
-    "Cypriot First Division":          "Cyprus - First Division",
-    "Danish Superliga":                "Denmark - Superliga",
-    "Dutch Eredivisie":                "Netherlands - Eredivisie",
-    "Estonian Meistriliiga":           "Estonia - Meistriliiga",
-    "Faroe Islands Premier League":    "Faroe Islands - Premier League",
-    "Finnish Veikkausliiga":           "Finland - Veikkausliiga",
-    "Georgian Erovnuli Liga":          "Georgia - Erovnuli Liga",
-    "Gibraltarian National League":    "Gibraltar - National League",
-    "Greek Super League 1":            "Greece - Super League 1",
-    "Hungarian NB I":                  "Hungary - NB I",
-    "Icelandic Besta deild karla":     "Iceland - Besta deild karla",
-    "Irish Premier Division":          "Ireland - Premier Division",
-    "Israeli Premier League":          "Israel - Premier League",
-    "Kazakhstan Premier League":       "Kazakhstan - Premier League",
-    "Kosovan Superleague":             "Kosovo - Superleague",
-    "Latvian Higher League":           "Latvia - Higher League",
-    "Lithuanian TOPLYGA":              "Lithuania - TOPLYGA",
-    "Luxembourg National Division":    "Luxembourg - National Division",
-    "Macedonian First League":         "North Macedonia - First League",
-    "Maltese Premier League":          "Malta - Premier League",
-    "Moldovan National Division":      "Moldova - National Division",
-    "Montenegrin First League":        "Montenegro - First League",
-    "Northern Irish Premiership":      "Northern Ireland - Premiership",
-    "Norwegian Eliteserien":           "Norway - Eliteserien",
-    "Polish Ekstraklasa":              "Poland - Ekstraklasa",
-    "Portuguese Primeira Liga":        "Portugal - Primeira Liga",
-    "Romanian Liga I":                 "Romania - Liga I",
-    "Russian Football Premier League": "Russia - Football Premier League",
-    "San-Marino Campionato":           "San Marino - Campionato",
-    "Scottish Premiership":            "Scotland - Premiership",
-    "Serbian Super Liga":              "Serbia - Super Liga",
-    "Slovak First Football League":    "Slovakia - First Football League",
-    "Slovenian 1. SNL":                "Slovenia - 1. SNL",
-    "Swedish Allsvenskan":             "Sweden - Allsvenskan",
-    "Swiss Super League":              "Switzerland - Super League",
-    "Turkish Super Lig":               "Turkey - Süper Lig",
-    "Ukrainian Premier League":        "Ukraine - Premier League",
-    "Welsh Cymru Premier":             "Wales - Cymru Premier",
-}
-
-
-def _dropdown_sort_key(league_name: str) -> tuple:
-    label = _DROPDOWN_LABELS.get(league_name, league_name)
-    country = label.split(" - ", 1)[0]
-    return (0 if league_name in _TOP5_LEAGUES else 1, country)
-
-
-_DROPDOWN_ORDER = sorted(LEAGUES.keys(), key=_dropdown_sort_key)
+from league_display import DROPDOWN_LABELS as _DROPDOWN_LABELS, DROPDOWN_ORDER as _DROPDOWN_ORDER
 
 # ---------------------------------------------------------------------------
 # Helpers
