@@ -956,10 +956,8 @@ def main_content():
                 col_cfg["Form"] = st.column_config.TextColumn("Form", width=130)
             if "Next" in df.columns:
                 col_cfg["Next"] = st.column_config.ImageColumn("Next", width=32)
-            tbl_col, _ = st.columns([5, 1])
-            with tbl_col:
-                st.dataframe(style_obj, column_config=col_cfg, use_container_width=True,
-                             hide_index=True, height=len(rows) * 35 + 38)
+            st.dataframe(style_obj, column_config=col_cfg, use_container_width=True,
+                         hide_index=True, height=len(rows) * 35 + 38)
 
         _TB_LABELS = {
             "gd":                     "Goal difference",
@@ -1646,11 +1644,9 @@ def main_content():
                             _col_cfg[lbl] = st.column_config.TextColumn(lbl, width=52)
                         if status_map:
                             _col_cfg["Status"] = st.column_config.TextColumn("Status", width=130)
-                        _c, _ = st.columns([5, 1])
-                        with _c:
-                            st.dataframe(_styled, column_config=_col_cfg,
-                                         use_container_width=True, hide_index=True,
-                                         height=len(rows) * 35 + 38)
+                        st.dataframe(_styled, column_config=_col_cfg,
+                                     use_container_width=True, hide_index=True,
+                                     height=len(rows) * 35 + 38)
 
                     # Build group membership by summing P(positions in range)
                     champ_pos = [str(i) for i in range(1, _nc + 1) if str(i) in probs_df.columns]
@@ -2898,7 +2894,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     subset=["Team", "Pts"], **{"font-weight": "bold"})
                 st.dataframe(_hist_df, column_config={
                     "Badge": st.column_config.ImageColumn("", width="small"),
-                }, use_container_width=False, hide_index=True,
+                }, use_container_width=True, hide_index=True,
                     height=len(hist_rows) * 35 + 42)
 
             st.divider()

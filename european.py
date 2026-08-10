@@ -622,7 +622,7 @@ if tab_league is not None:
             }
             st.caption("🟢 Direct to Round of 16  🟡 Knockout Play-offs  🔴 Eliminated")
             st.dataframe(styled_lp, column_config=_lp_cfg,
-                         use_container_width=False, hide_index=True,
+                         use_container_width=True, hide_index=True,
                          height=len(lp_rows) * 35 + 42)
             st.caption(
                 "Tiebreakers: 1) Head-to-head points; 2) Head-to-head goal difference; "
