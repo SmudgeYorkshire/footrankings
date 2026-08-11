@@ -89,6 +89,7 @@ pages = [
     st.Page("football_rankings.py", title="European Leagues",       icon="⚽"),
     st.Page("european.py",          title="European Competitions",  icon="🏆"),
     st.Page("opta_rankings.py",     title="Opta Rankings",          icon="⭐"),
+    st.Page("coefficients.py",      title="Coefficients",           icon="📈"),
     st.Page("live.py",              title="Live",                   icon="🔴"),
 ]
 if is_admin:
