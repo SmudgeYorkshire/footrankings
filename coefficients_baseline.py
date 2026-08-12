@@ -87,9 +87,19 @@ COUNTRY_NAME_FIXUP: dict[str, str] = {
 }
 
 # Clubs not covered by config.py's LEAGUES (Liechtenstein has no domestic
-# league of its own — its clubs play in the Swiss system) — mapped by name.
+# league of its own — its clubs play in the Swiss system), plus explicit
+# resolutions for names shared by clubs in two different countries (see
+# _load_club_country_map's docstring) that are actually relevant this season.
 CLUB_COUNTRY_OVERRIDE: dict[str, str] = {
     "Vaduz": "Liechtenstein",
     "FC Vaduz": "Liechtenstein",
     "Vestri": "Iceland",  # Vestri Ísafjörður — not yet in ratings/4642.csv
+    "Arsenal": "England",  # also a Belarusian club (Arsenal Dzerzhinsk) — England's is the 2026-27 UCL entrant
+    # Names used in CONFIRMED_LEAGUE_PHASE (qualifying_bracket.py, sourced
+    # from Wikipedia) that don't match the domestic ratings CSV's team/alias
+    # spelling for the same club.
+    "Inter Milan": "Italy",       # ratings/4332.csv has "Internazionale" / alias "Inter"
+    "Atlético Madrid": "Spain",   # ratings/4335.csv has "Atlético de Madrid" / alias "Atletico Madrid"
+    "TSG Hoffenheim": "Germany",  # ratings/4331.csv has "Hoffenheim" / alias "1899 Hoffenheim"
+    "Torreense": "Portugal",      # not in ratings/4344.csv at all (not usually top-flight)
 }
