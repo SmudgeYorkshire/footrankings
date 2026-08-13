@@ -471,7 +471,12 @@ def _build_ranking_df(live_override: dict[str, float] | None = None) -> pd.DataF
         })
         current = round(live.get(country, 0.0), 3)
         total = round(base["22/23"] + base["23/24"] + base["24/25"] + base["25/26"] + current, 3)
-        active = max(0, base["clubs_active"] - ecl_out.get(country, 0))
+        # "clubs_entered" (fixed at season start) minus every Conference
+        # League elimination this site has tracked live — not kassiesa's own
+        # "clubs_active" baseline, which turned out to be stale for some
+        # countries (e.g. showed Wales at 4/4 active weeks after 3 of its 4
+        # clubs had already been eliminated).
+        active = max(0, base["clubs_entered"] - ecl_out.get(country, 0))
         rows.append({
             "Flag": _flag_url(country),
             "Country": country,
@@ -804,3 +809,58 @@ else:
         use_container_width=True, hide_index=True, height=len(_elim_df) * 35 + 38,
     )
     st.caption("Conference League eliminations only — see the note above on why.")
+
+st.divider()
+
+# ---------------------------------------------------------------------------
+# Nations left with 0 clubs this week — i.e. their last remaining club was
+# eliminated from the Conference League this week (had at least 1 club
+# still active going into the week, none left as of now).
+# ---------------------------------------------------------------------------
+st.markdown("### 🚫 Nations Eliminated This Week")
+_all_ecl_eliminations = _compute_ecl_eliminations(_API_KEY)
+_elims_before_week: dict[str, int] = {}
+_elims_total: dict[str, int] = {}
+_week_clubs_by_country: dict[str, list[str]] = {}
+for e in _all_ecl_eliminations:
+    _elims_total[e["country"]] = _elims_total.get(e["country"], 0) + 1
+    if (e["date"] or "") < _week_start:
+        _elims_before_week[e["country"]] = _elims_before_week.get(e["country"], 0) + 1
+    elif (e["date"] or "") <= _week_end:
+        _week_clubs_by_country.setdefault(e["country"], []).append(e["club"])
+
+_nations_out_rows = []
+for _country, _base in COUNTRY_BASELINE.items():
+    _entered = _base.get("clubs_entered", 0)
+    if _entered <= 0:
+        continue
+    _active_before = max(0, _entered - _elims_before_week.get(_country, 0))
+    _active_now = max(0, _entered - _elims_total.get(_country, 0))
+    if _active_before > 0 and _active_now == 0:
+        _nations_out_rows.append({
+            "Flag": _flag_url(_country),
+            "Country": _country,
+            "Clubs entered": _entered,
+            "Eliminated this week": ", ".join(sorted(_week_clubs_by_country.get(_country, []))),
+        })
+
+if not _nations_out_rows:
+    st.info("No nation has been eliminated entirely this week.")
+else:
+    _nations_out_df = pd.DataFrame(_nations_out_rows).sort_values("Country").reset_index(drop=True)
+    st.dataframe(
+        _nations_out_df,
+        column_config={
+            "Flag": st.column_config.ImageColumn("", width="small"),
+            "Country": st.column_config.TextColumn("Country", width="medium"),
+            "Clubs entered": st.column_config.NumberColumn("Clubs entered", width="small"),
+            "Eliminated this week": st.column_config.TextColumn("Eliminated this week", width="large"),
+        },
+        use_container_width=True, hide_index=True, height=len(_nations_out_df) * 35 + 38,
+    )
+    st.caption(
+        "Nations that had at least one club still active going into this week, and now "
+        "have none left in any UEFA competition — same Conference-League-only elimination "
+        "logic as above (Champions League/Europa League losers parachute down instead of "
+        "being fully out)."
+    )
