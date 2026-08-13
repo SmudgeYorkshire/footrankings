@@ -47,21 +47,46 @@ _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 _CET = ZoneInfo("Europe/Berlin")
 _SEASON = "2026-2027"
 
-_FLAGS: dict[str, str] = {
-    "England": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "Italy": "🇮🇹", "Spain": "🇪🇸", "Germany": "🇩🇪", "France": "🇫🇷",
-    "Portugal": "🇵🇹", "Belgium": "🇧🇪", "Netherlands": "🇳🇱", "Türkiye": "🇹🇷",
-    "Czechia": "🇨🇿", "Poland": "🇵🇱", "Greece": "🇬🇷", "Denmark": "🇩🇰", "Norway": "🇳🇴",
-    "Cyprus": "🇨🇾", "Switzerland": "🇨🇭", "Hungary": "🇭🇺", "Sweden": "🇸🇪",
-    "Austria": "🇦🇹", "Scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "Croatia": "🇭🇷", "Romania": "🇷🇴",
-    "Ukraine": "🇺🇦", "Israel": "🇮🇱", "Slovenia": "🇸🇮", "Azerbaijan": "🇦🇿",
-    "Bulgaria": "🇧🇬", "Slovakia": "🇸🇰", "Serbia": "🇷🇸", "Russia": "🇷🇺",
-    "Iceland": "🇮🇸", "Ireland": "🇮🇪", "Armenia": "🇦🇲", "Kosovo": "🇽🇰",
-    "Bosnia-Herzegovina": "🇧🇦", "Latvia": "🇱🇻", "Finland": "🇫🇮", "Kazakhstan": "🇰🇿",
-    "Liechtenstein": "🇱🇮", "Moldova": "🇲🇩", "Faroe Islands": "🇫🇴",
-    "North Macedonia": "🇲🇰", "Albania": "🇦🇱", "Belarus": "🇧🇾", "Lithuania": "🇱🇹",
-    "Malta": "🇲🇹", "Andorra": "🇦🇩", "Estonia": "🇪🇪", "Gibraltar": "🇬🇮",
-    "Northern Ireland": "🇬🇧", "Georgia": "🇬🇪", "Luxembourg": "🇱🇺",
-    "Montenegro": "🇲🇪", "Wales": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "San Marino": "🇸🇲",
+# flagcdn.com country codes — used instead of flag emoji, which fall back to
+# raw two-letter text (e.g. "NO", "KZ") on Windows browsers lacking flag glyphs.
+_FLAG_CODES: dict[str, str] = {
+    "England": "gb-eng", "Italy": "it", "Spain": "es", "Germany": "de", "France": "fr",
+    "Portugal": "pt", "Belgium": "be", "Netherlands": "nl", "Türkiye": "tr",
+    "Czechia": "cz", "Poland": "pl", "Greece": "gr", "Denmark": "dk", "Norway": "no",
+    "Cyprus": "cy", "Switzerland": "ch", "Hungary": "hu", "Sweden": "se",
+    "Austria": "at", "Scotland": "gb-sct", "Croatia": "hr", "Romania": "ro",
+    "Ukraine": "ua", "Israel": "il", "Slovenia": "si", "Azerbaijan": "az",
+    "Bulgaria": "bg", "Slovakia": "sk", "Serbia": "rs", "Russia": "ru",
+    "Iceland": "is", "Ireland": "ie", "Armenia": "am", "Kosovo": "xk",
+    "Bosnia-Herzegovina": "ba", "Latvia": "lv", "Finland": "fi", "Kazakhstan": "kz",
+    "Liechtenstein": "li", "Moldova": "md", "Faroe Islands": "fo",
+    "North Macedonia": "mk", "Albania": "al", "Belarus": "by", "Lithuania": "lt",
+    "Malta": "mt", "Andorra": "ad", "Estonia": "ee", "Gibraltar": "gi",
+    "Northern Ireland": "gb-nir", "Georgia": "ge", "Luxembourg": "lu",
+    "Montenegro": "me", "Wales": "gb-wls", "San Marino": "sm",
+}
+
+
+def _flag_url(country: str) -> str:
+    code = _FLAG_CODES.get(country)
+    return f"https://flagcdn.com/w40/{code}.png" if code else ""
+
+
+# Short display labels for qualifying-round strRound text, so tables don't
+# have to spend width on e.g. "3rd Qualifying Round".
+_SHORT_ROUND: dict[str, str] = {
+    "1st Qualifying Round": "QR1",
+    "2nd Qualifying Round": "QR2",
+    "3rd Qualifying Round": "QR3",
+    "Play-offs": "PO",
+}
+
+# Colour-coded dot per competition, used instead of the trophy/medal icons
+# so the "This Week's Matches" table stays compact.
+_COMP_DOT: dict[str, str] = {
+    "Champions League": "🔵",
+    "Europa League": "🟠",
+    "Conference League": "🟢",
 }
 
 # Exact strRound text that counts at the halved qualifying rate (D.3).
@@ -354,17 +379,55 @@ def _compute_live_raw_points(key: str) -> dict[str, float]:
     return points
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
-def _compute_live_coefficients(key: str) -> dict[str, float]:
+def _coefficients_from_raw(raw: dict[str, float]) -> dict[str, float]:
     """D.3: country coefficient = total points / clubs entered, truncated
     (not rounded) to 3 decimals."""
-    raw = _compute_live_raw_points(key)
     result: dict[str, float] = {}
     for country, pts in raw.items():
         entered = COUNTRY_BASELINE.get(country, {}).get("clubs_entered", 0)
         if entered > 0:
             result[country] = math.floor(pts / entered * 1000 + 1e-9) / 1000
     return result
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def _compute_live_coefficients(key: str) -> dict[str, float]:
+    return _coefficients_from_raw(_compute_live_raw_points(key))
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def _compute_todays_raw_points(key: str, today_str: str) -> dict[str, float]:
+    """Match points only (no bonus events expected on a single day at this
+    stage of the season) earned specifically on today_str — used to back out
+    a "yesterday" snapshot for rank-change tracking without having to
+    re-run every bonus calculation with a date filter."""
+    club_country = _load_club_country_map()
+    points: dict[str, float] = {}
+
+    def add(club, amount):
+        country = club_country.get(club)
+        if country:
+            points[country] = points.get(country, 0.0) + amount
+
+    for comp_name in EUROPEAN_COMPETITIONS:
+        played, _ = _fetch_comp_fixtures(comp_name, key)
+        for f in played:
+            if f.get("dateEvent", "") != today_str:
+                continue
+            hs, aws = f.get("intHomeScore"), f.get("intAwayScore")
+            if hs in (None, "") or aws in (None, ""):
+                continue
+            hs, aws = int(hs), int(aws)
+            win_pts, draw_pts = _round_points(f.get("strRound", ""))
+            home, away = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
+            if hs > aws:
+                add(home, win_pts)
+            elif aws > hs:
+                add(away, win_pts)
+            else:
+                add(home, draw_pts)
+                add(away, draw_pts)
+    return points
 
 
 @st.cache_data(ttl=3_600, show_spinner=False)
@@ -393,8 +456,8 @@ def _compute_ecl_eliminations(key: str) -> list[dict]:
     return eliminations
 
 
-def _build_ranking_df() -> pd.DataFrame:
-    live = _compute_live_coefficients(_API_KEY)
+def _build_ranking_df(live_override: dict[str, float] | None = None) -> pd.DataFrame:
+    live = live_override if live_override is not None else _compute_live_coefficients(_API_KEY)
     ecl_eliminations = _compute_ecl_eliminations(_API_KEY)
     ecl_out: dict[str, int] = {}
     for e in ecl_eliminations:
@@ -410,7 +473,7 @@ def _build_ranking_df() -> pd.DataFrame:
         total = round(base["22/23"] + base["23/24"] + base["24/25"] + base["25/26"] + current, 3)
         active = max(0, base["clubs_active"] - ecl_out.get(country, 0))
         rows.append({
-            "Flag": _FLAGS.get(country, "🏳️"),
+            "Flag": _flag_url(country),
             "Country": country,
             "22/23": base["22/23"], "23/24": base["23/24"],
             "24/25": base["24/25"], "25/26": base["25/26"],
@@ -434,6 +497,9 @@ def _week_range(today: datetime) -> tuple[str, str]:
 # ---------------------------------------------------------------------------
 # Page
 # ---------------------------------------------------------------------------
+_today = datetime.now(_CET)
+_today_str = _today.strftime("%Y-%m-%d")
+
 st.markdown("<h3 style='margin:0'>📈 Coefficients</h3>", unsafe_allow_html=True)
 st.caption(
     "UEFA Country Ranking — the sum of each association's national coefficient over the "
@@ -444,9 +510,34 @@ st.divider()
 
 st.markdown("### 🌍 Country Ranking")
 _df = _build_ranking_df()
+
+# Rank movement vs. yesterday: back today's match points out of the live
+# total to reconstruct where the table stood before today's results.
+_todays_raw = _compute_todays_raw_points(_API_KEY, _today_str)
+_all_raw = _compute_live_raw_points(_API_KEY)
+_yesterday_raw = {
+    c: _all_raw.get(c, 0.0) - _todays_raw.get(c, 0.0)
+    for c in set(_all_raw) | set(_todays_raw)
+}
+_df_yesterday = _build_ranking_df(live_override=_coefficients_from_raw(_yesterday_raw))
+_curr_rank = dict(zip(_df["Country"], _df["Rank"]))
+_prev_rank = dict(zip(_df_yesterday["Country"], _df_yesterday["Rank"]))
+
+
+def _delta_symbol(country: str) -> str:
+    pr, cr = _prev_rank.get(country), _curr_rank.get(country)
+    if pr is None or cr is None or pr == cr:
+        return "—"
+    diff = pr - cr
+    return f"▲{diff}" if diff > 0 else f"▼{abs(diff)}"
+
+
+_df.insert(1, "Δ", _df["Country"].map(_delta_symbol))
+
 _col_cfg = {
     "Rank":  st.column_config.NumberColumn("Rank", width="small"),
-    "Flag":  st.column_config.TextColumn("", width="small"),
+    "Δ":     st.column_config.TextColumn("Δ", width="small", help="Rank change vs. yesterday"),
+    "Flag":  st.column_config.ImageColumn("", width="small"),
     "Country": st.column_config.TextColumn("Country", width="medium"),
     "22/23": st.column_config.NumberColumn("22/23", format="%.3f", width="small"),
     "23/24": st.column_config.NumberColumn("23/24", format="%.3f", width="small"),
@@ -468,21 +559,41 @@ st.caption(
     "22/23–25/26: frozen snapshot from kassiesa.net (2026-08-11). "
     "26/27 onward: computed live by this site from every played match, per UEFA's "
     "official rules (Annex D of the Champions League regulations). "
-    "Click any column header to sort."
+    "Δ = rank change vs. yesterday. Click any column header to sort."
 )
+
+# ── Overtakes today ─────────────────────────────────────────────────────────
+_movers = []
+for _country in _curr_rank:
+    _pr, _cr = _prev_rank.get(_country), _curr_rank.get(_country)
+    if _pr is not None and _cr is not None and _cr < _pr:
+        _passed = sorted(
+            (b for b in _curr_rank
+             if b != _country and _prev_rank.get(b, 10**9) < _pr and _curr_rank.get(b, 10**9) > _cr),
+            key=lambda b: _curr_rank[b],
+        )
+        if _passed:
+            _movers.append((_country, _pr, _cr, _passed))
+
+if _movers:
+    st.markdown("**Overtakes today:**")
+    for _country, _pr, _cr, _passed in sorted(_movers, key=lambda m: m[2]):
+        _who = ", ".join(_passed)
+        st.markdown(f"🔼 **{_country}** moved from #{_pr} to #{_cr}, overtaking {_who}.")
+else:
+    st.caption("No rank changes yet today.")
 
 st.divider()
 
 # ---------------------------------------------------------------------------
 # This week's matches
 # ---------------------------------------------------------------------------
-_today = datetime.now(_CET)
 _week_start, _week_end = _week_range(_today)
 st.markdown(f"### 📅 This Week's Matches ({_week_start} to {_week_end})")
 
 club_country = _load_club_country_map()
 _week_rows = []
-for comp_name, comp_cfg in EUROPEAN_COMPETITIONS.items():
+for comp_name in EUROPEAN_COMPETITIONS:
     played, remaining = _fetch_comp_fixtures(comp_name, _API_KEY)
     played_ids = {f.get("idEvent") for f in played}
     for f in played + remaining:
@@ -491,27 +602,31 @@ for comp_name, comp_cfg in EUROPEAN_COMPETITIONS.items():
             continue
         home, away = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
         is_played = f.get("idEvent") in played_ids
-        h_country = club_country.get(home, "—")
-        a_country = club_country.get(away, "—")
         pts_str = ""
         if is_played:
             hs, aws = int(f.get("intHomeScore") or 0), int(f.get("intAwayScore") or 0)
             win_pts, draw_pts = _round_points(f.get("strRound", ""))
+            h_entered = COUNTRY_BASELINE.get(club_country.get(home, ""), {}).get("clubs_entered", 0)
+            a_entered = COUNTRY_BASELINE.get(club_country.get(away, ""), {}).get("clubs_entered", 0)
             if hs > aws:
-                pts_str = f"{home} +{win_pts:.1f}"
+                contrib = win_pts / h_entered if h_entered else 0.0
+                pts_str = f"{home} +{contrib:.3f}"
             elif aws > hs:
-                pts_str = f"{away} +{win_pts:.1f}"
+                contrib = win_pts / a_entered if a_entered else 0.0
+                pts_str = f"{away} +{contrib:.3f}"
             else:
-                pts_str = f"both +{draw_pts:.1f}"
+                h_contrib = draw_pts / h_entered if h_entered else 0.0
+                a_contrib = draw_pts / a_entered if a_entered else 0.0
+                pts_str = f"{home} +{h_contrib:.3f}, {away} +{a_contrib:.3f}"
         _week_rows.append({
             "_date": d, "_time": f.get("strTime", ""),
-            "Comp": comp_cfg["flag"],
-            "Date": d,
+            "Comp": _COMP_DOT.get(comp_name, "⚪"),
+            "Date": d[5:],
             "Time": _utc_to_cet(d, f.get("strTime", "")),
-            "Round": f.get("strRound", ""),
-            "Home": f"{_FLAGS.get(h_country, '')} {home}",
+            "Round": _SHORT_ROUND.get(f.get("strRound", ""), f.get("strRound", "")),
+            "Home": home,
             "Score": f"{f.get('intHomeScore','')}–{f.get('intAwayScore','')}" if is_played else "vs",
-            "Away": f"{away} {_FLAGS.get(a_country, '')}",
+            "Away": away,
             "Points": pts_str,
         })
 
@@ -520,19 +635,20 @@ if not _week_rows:
 else:
     _week_rows.sort(key=lambda r: (r["_date"], r["_time"]))
     _week_df = pd.DataFrame(_week_rows).drop(columns=["_date", "_time"])
+    st.caption("🔵 Champions League · 🟠 Europa League · 🟢 Conference League")
     st.dataframe(
         _week_df,
         column_config={
-            "Comp":   st.column_config.TextColumn("", width="small"),
-            "Date":   st.column_config.TextColumn("Date", width="small"),
-            "Time":   st.column_config.TextColumn("Time", width="small"),
-            "Round":  st.column_config.TextColumn("Round", width="medium"),
-            "Home":   st.column_config.TextColumn("Home", width="medium"),
-            "Score":  st.column_config.TextColumn("Score", width="small"),
-            "Away":   st.column_config.TextColumn("Away", width="medium"),
-            "Points": st.column_config.TextColumn("Points added", width="medium"),
+            "Comp":   st.column_config.TextColumn("", width=32),
+            "Date":   st.column_config.TextColumn("Date", width=48),
+            "Time":   st.column_config.TextColumn("Time", width=70),
+            "Round":  st.column_config.TextColumn("Round", width=48),
+            "Home":   st.column_config.TextColumn("Home", width=140),
+            "Score":  st.column_config.TextColumn("Score", width=56),
+            "Away":   st.column_config.TextColumn("Away", width=140),
+            "Points": st.column_config.TextColumn("Coefficient points added", width=220),
         },
-        use_container_width=True, hide_index=True, height=len(_week_df) * 35 + 38,
+        use_container_width=False, hide_index=True, height=len(_week_df) * 35 + 38,
     )
 
     # ── Points won this week by nation ──────────────────────────────────────
@@ -574,24 +690,30 @@ else:
                 if c:
                     countries_this_week.add(c)
 
-    _weekly_rows = [
-        {"Flag": _FLAGS.get(c, "🏳️"), "Country": c, "Points this week": round(weekly_totals.get(c, 0.0), 3)}
-        for c in countries_this_week
-    ]
+    _weekly_rows = []
+    for c in countries_this_week:
+        raw_pts = weekly_totals.get(c, 0.0)
+        clubs_entered = COUNTRY_BASELINE.get(c, {}).get("clubs_entered", 0)
+        contribution = round(raw_pts / clubs_entered, 3) if clubs_entered else 0.0
+        _weekly_rows.append({
+            "Flag": _flag_url(c), "Country": c,
+            "Coefficient points this week": contribution,
+        })
     _weekly_df = pd.DataFrame(_weekly_rows).sort_values(
-        "Points this week", ascending=False).reset_index(drop=True)
+        "Coefficient points this week", ascending=False).reset_index(drop=True)
+    st.caption(
+        "Points ÷ that country's total clubs entered this season (UEFA Annex D.3) — "
+        "the same division the season-long coefficient uses."
+    )
     st.dataframe(
         _weekly_df,
         column_config={
-            "Flag": st.column_config.TextColumn("", width="small"),
-            "Country": st.column_config.TextColumn("Country", width="medium"),
-            "Points this week": st.column_config.NumberColumn("Points this week", format="%.3f", width="small"),
+            "Flag": st.column_config.ImageColumn("", width=32),
+            "Country": st.column_config.TextColumn("Country", width=120),
+            "Coefficient points this week": st.column_config.NumberColumn(
+                "Coefficient points", format="%.3f", width=120),
         },
-        use_container_width=True, hide_index=True, height=len(_weekly_df) * 35 + 38,
-    )
-    st.caption(
-        "This table shows raw match points, not yet divided by clubs entered — see the "
-        "note above the main ranking table for why the Country Ranking above divides."
+        use_container_width=False, hide_index=True, height=len(_weekly_df) * 35 + 38,
     )
 
 st.divider()
@@ -662,7 +784,7 @@ else:
         _by_country.setdefault(e["country"], []).append(e["club"])
     _elim_rows = [
         {
-            "Flag": _FLAGS.get(country, "🏳️"),
+            "Flag": _flag_url(country),
             "Country": country,
             "Clubs lost": len(clubs),
             "Eliminated": ", ".join(sorted(clubs)),
@@ -674,7 +796,7 @@ else:
     st.dataframe(
         _elim_df,
         column_config={
-            "Flag": st.column_config.TextColumn("", width="small"),
+            "Flag": st.column_config.ImageColumn("", width="small"),
             "Country": st.column_config.TextColumn("Country", width="medium"),
             "Clubs lost": st.column_config.NumberColumn("Clubs lost", width="small"),
             "Eliminated": st.column_config.TextColumn("Eliminated", width="large"),
