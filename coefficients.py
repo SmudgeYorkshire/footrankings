@@ -145,7 +145,7 @@ def _load_club_country_map() -> dict[str, str]:
     return mapping
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def _fetch_comp_fixtures(comp_name: str, key: str):
     cid = EUROPEAN_COMPETITIONS[comp_name]["id"]
     client = ApiFootballClient(api_key=key)
@@ -165,27 +165,37 @@ def _group_ties(fixtures: list[dict]) -> list[list[dict]]:
 
 
 def _tie_result(legs: list[dict], played_ids: set) -> tuple[str | None, str | None]:
-    """(winner, loser) once a tie (1 or 2 legs) is decided on aggregate, else
-    (None, None). D.7: penalty shootouts don't show up in the score fields,
-    so a shootout-decided tie won't register a winner/loser here — a known
-    gap (shootouts don't count for points either, but they do decide who
-    advances in real life)."""
+    """(winner, loser) once a tie (1 or 2 legs) is decided, else (None, None).
+    D.7: penalty shootouts don't count for POINTS (a shootout-decided leg
+    still scores as a draw), but they do decide who advances — so an
+    aggregate tie falls back to the deciding leg's penalty score, which
+    API-Football reports separately from the goal score."""
     legs = sorted(legs, key=lambda x: x.get("dateEvent", ""))
     leg1 = legs[0]
     leg2 = legs[1] if len(legs) > 1 else None
     t1, t2 = leg1.get("strHomeTeam", ""), leg1.get("strAwayTeam", "")
     l1_played = leg1.get("idEvent") in played_ids
     l2_played = leg2 is not None and leg2.get("idEvent") in played_ids
+
+    def _pens(leg, home_team, away_team):
+        ph, pa = leg.get("intPenaltyHome"), leg.get("intPenaltyAway")
+        if ph is None or pa is None:
+            return None, None
+        return (home_team, away_team) if ph > pa else (away_team, home_team)
+
     if leg2 is not None and l1_played and l2_played:
         agg1 = int(leg1.get("intHomeScore") or 0) + int(leg2.get("intAwayScore") or 0)
         agg2 = int(leg1.get("intAwayScore") or 0) + int(leg2.get("intHomeScore") or 0)
         if agg1 > agg2: return t1, t2
         if agg2 > agg1: return t2, t1
-        return None, None
+        winner, loser = _pens(leg2, t2, t1)  # leg2: t2 home, t1 away
+        return (winner, loser) if winner else (None, None)
     if leg2 is None and l1_played:
         h, a = int(leg1.get("intHomeScore") or 0), int(leg1.get("intAwayScore") or 0)
         if h > a: return t1, t2
         if a > h: return t2, t1
+        winner, loser = _pens(leg1, t1, t2)
+        return (winner, loser) if winner else (None, None)
     return None, None
 
 
@@ -211,7 +221,7 @@ def _classify_knockout_round(round_str: str) -> str | None:
     return None
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def _final_league_phase_standings(comp_name: str, key: str) -> list[dict] | None:
     """Full 36-club League Stage table, sorted points/GD/GF. Returns None
     until every League Stage match has been played — the ranking bonus
@@ -259,7 +269,7 @@ def _league_phase_bonus(rank: int, comp_name: str) -> float:
     return 0.0
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def _compute_league_phase_bonus_points(key: str) -> dict[str, float]:
     """{club: bonus points} from D.5(b), for competitions whose League Phase
     has fully concluded."""
@@ -273,7 +283,7 @@ def _compute_league_phase_bonus_points(key: str) -> dict[str, float]:
     return bonus
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def _compute_secured_league_phase_bonus(key: str) -> dict[str, float]:
     """Every club guaranteed a League Phase spot gets the worst-case (rank
     36) league-phase-ranking bonus floor immediately, rather than waiting
@@ -304,7 +314,7 @@ def _compute_secured_league_phase_bonus(key: str) -> dict[str, float]:
     return bonus
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def _compute_round_reached_bonus(key: str) -> dict[str, float]:
     """{club: bonus points} from D.5(a) — reaching R16 (via League Phase
     top 8 or winning the knockout play-off round), QF, SF, or the Final."""
@@ -340,7 +350,7 @@ def _compute_round_reached_bonus(key: str) -> dict[str, float]:
     return bonus
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def _compute_live_raw_points(key: str) -> dict[str, float]:
     """Total points earned by each country's clubs this season — match
     points plus both bonus types — NOT yet divided by clubs entered."""
@@ -390,12 +400,12 @@ def _coefficients_from_raw(raw: dict[str, float]) -> dict[str, float]:
     return result
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def _compute_live_coefficients(key: str) -> dict[str, float]:
     return _coefficients_from_raw(_compute_live_raw_points(key))
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def _compute_todays_raw_points(key: str, today_str: str) -> dict[str, float]:
     """Match points only (no bonus events expected on a single day at this
     stage of the season) earned specifically on today_str — used to back out
@@ -430,7 +440,7 @@ def _compute_todays_raw_points(key: str, today_str: str) -> dict[str, float]:
     return points
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def _compute_ecl_eliminations(key: str) -> list[dict]:
     """Every Conference League club knocked out so far this season (aggregate
     loss, no further competition to drop into) — one entry per elimination,
@@ -469,7 +479,13 @@ def _build_ranking_df(live_override: dict[str, float] | None = None) -> pd.DataF
             "22/23": 0.0, "23/24": 0.0, "24/25": 0.0, "25/26": 0.0,
             "clubs_entered": 0, "clubs_active": 0,
         })
-        current = round(live.get(country, 0.0), 3)
+        if base["clubs_entered"] == 0:
+            # Suspended (no clubs entered this season, e.g. Russia) — UEFA
+            # carries the last computed coefficient forward rather than
+            # scoring 0, since there's nothing to divide by.
+            current = base["25/26"]
+        else:
+            current = round(live.get(country, 0.0), 3)
         total = round(base["22/23"] + base["23/24"] + base["24/25"] + base["25/26"] + current, 3)
         # "clubs_entered" (fixed at season start) minus every Conference
         # League elimination this site has tracked live — not kassiesa's own
