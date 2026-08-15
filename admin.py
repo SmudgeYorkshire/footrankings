@@ -17,7 +17,7 @@ from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_c
 from api_football_fetcher import ApiFootballClient
 from simulator import simulate_season, fixture_odds
 from ratings_manager import load_ratings, save_ratings, build_lookup, _defaults_from_standings
-from _split_season import get_split_info, conference_fixtures, compute_full_standings
+from _split_season import get_split_info, conference_fixtures, compute_full_standings, ensure_full_roster
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -208,6 +208,7 @@ def fetch_all(lid, ssn, key):
     roster = c.get_standings(lid, ssn)
     played, remaining = c.get_fixtures(lid, ssn)
     info = c.get_league_info(lid)
+    roster = ensure_full_roster(roster, played + remaining) if roster else roster
     standings = compute_full_standings(roster, played) if roster else roster
     return standings, played, remaining, info
 

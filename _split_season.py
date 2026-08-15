@@ -228,6 +228,27 @@ def recompute_conference_standings(
     return row_list
 
 
+def ensure_full_roster(roster_rows: list[dict], fixtures: list[dict]) -> list[dict]:
+    """Fill in any team missing from roster_rows using the fixture list.
+
+    API-Football's /standings endpoint has been observed to return only the
+    teams that have already played a match early in a season (e.g. day 1 of
+    18, with just one match kicked off) — a whole table would otherwise be
+    silently truncated to whichever handful of teams happened to have played
+    first. fixtures should be played + remaining so every scheduled team is
+    covered regardless of provider quirks.
+    """
+    known = {r["strTeam"] for r in roster_rows if r.get("strTeam")}
+    extra = []
+    for f in fixtures:
+        for team_key, badge_key in (("strHomeTeam", "strHomeTeamBadge"), ("strAwayTeam", "strAwayTeamBadge")):
+            name = f.get(team_key)
+            if name and name not in known:
+                extra.append({"strTeam": name, "strBadge": f.get(badge_key, "")})
+                known.add(name)
+    return roster_rows + extra
+
+
 def compute_full_standings(roster_rows: list[dict], played_fixtures: list[dict]) -> list[dict]:
     """
     Build a whole league's table from scratch: every team at 0 played, then

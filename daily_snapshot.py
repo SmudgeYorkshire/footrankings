@@ -30,7 +30,7 @@ load_dotenv()
 from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
 from api_football_fetcher import ApiFootballClient
 from ratings_manager import load_ratings
-from _split_season import get_split_info, compute_full_standings, conference_fixtures
+from _split_season import get_split_info, compute_full_standings, conference_fixtures, ensure_full_roster
 from simulator import simulate_season
 
 HISTORY_DIR = "history"
@@ -58,6 +58,7 @@ def snapshot_league(cfg: dict, key: str, client: ApiFootballClient):
     if not roster:
         return None
     played, remaining = client.get_fixtures(league_id, season)
+    roster = ensure_full_roster(roster, played + remaining)
     standings = compute_full_standings(roster, played)
     if not standings:
         return None

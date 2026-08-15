@@ -16,7 +16,7 @@ from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_c
 from api_football_fetcher import ApiFootballClient
 from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff
 from ratings_manager import load_ratings, build_lookup, check_coverage
-from _split_season import get_split_info, conference_fixtures, recompute_conference_standings, compute_full_standings
+from _split_season import get_split_info, conference_fixtures, recompute_conference_standings, compute_full_standings, ensure_full_roster
 from league_status import LEAGUE_STATUS
 from historical import fetch_historical_season
 
@@ -505,7 +505,10 @@ def fetch_all(lid, ssn, key):
     # Self-computed from scratch every time — the provider's own aggregated
     # standings table has been observed (on both providers) to lag actual
     # match results by anywhere from minutes to hours; the roster (team
-    # names + badges) is all we take from it.
+    # names + badges) is all we take from it. The roster endpoint has also
+    # been observed to only list teams that have already played early in a
+    # season, so it's padded out from the fixture list first.
+    roster = ensure_full_roster(roster, played + remaining) if roster else roster
     standings = compute_full_standings(roster, played) if roster else roster
     return standings, played, remaining, info
 
