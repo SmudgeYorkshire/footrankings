@@ -12,6 +12,7 @@ Endpoint reference (v3):
 
 import json
 import re
+import sys
 import time
 import requests
 from pathlib import Path
@@ -22,6 +23,7 @@ from config import (
     CACHE_TTL_STANDINGS,
     CACHE_TTL_FIXTURES,
     CACHE_TTL_META,
+    CACHE_STALE_FALLBACK_MAX_AGE,
 )
 
 CACHE_DIR = Path("cache")
@@ -240,8 +242,22 @@ class ApiFootballClient:
             data = resp.json()
         except (requests.RequestException, ValueError) as e:
             if cache_path.exists():
-                with open(cache_path, "r", encoding="utf-8") as f:
-                    return json.load(f)
+                fallback_age = time.time() - cache_path.stat().st_mtime
+                if fallback_age <= CACHE_STALE_FALLBACK_MAX_AGE:
+                    print(
+                        f"[api_football_fetcher] WARNING: live request for "
+                        f"{cache_key!r} failed ({e}); serving cached fallback "
+                        f"{fallback_age:.0f}s old.",
+                        file=sys.stderr,
+                    )
+                    with open(cache_path, "r", encoding="utf-8") as f:
+                        return json.load(f)
+                raise RuntimeError(
+                    f"API-Football request for {cache_key!r} failed ({e}) and "
+                    f"the cached fallback is {fallback_age / 60:.0f} min old, "
+                    f"past the {CACHE_STALE_FALLBACK_MAX_AGE / 60:.0f} min "
+                    f"limit — refusing to silently serve stale data"
+                ) from e
             raise RuntimeError(f"API-Football request failed: {e}") from e
 
         with open(cache_path, "w", encoding="utf-8") as f:

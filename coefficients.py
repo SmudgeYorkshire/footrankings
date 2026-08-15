@@ -604,6 +604,39 @@ if _movers:
 else:
     st.caption("No rank changes yet today.")
 
+# ── Race for an extra Champions League spot ─────────────────────────────────
+st.markdown("### 🏆 Race for an extra Champions League spot")
+st.caption(
+    "Since 2024/25, the two national associations with the best coefficient "
+    "for that season ALONE (not the 5-year total) are each awarded one extra "
+    "Champions League place the following season. Ranked here purely by "
+    "2026/27 points earned so far."
+)
+_race_df = _df[_df["Country"].map(
+    lambda c: COUNTRY_BASELINE.get(c, {}).get("clubs_entered", 0) > 0
+)][["Flag", "Country", "26/27", "Clubs"]].sort_values(
+    "26/27", ascending=False
+).reset_index(drop=True)
+_race_df.insert(0, "Rank", _race_df.index + 1)
+st.dataframe(
+    _race_df,
+    column_config={
+        "Rank": st.column_config.NumberColumn("Rank", width="small"),
+        "Flag": st.column_config.ImageColumn("", width="small"),
+        "Country": st.column_config.TextColumn("Country", width="medium"),
+        "26/27": st.column_config.NumberColumn("2026/27 points", format="%.3f", width="small"),
+        "Clubs": st.column_config.TextColumn("Clubs", width="small"),
+    },
+    use_container_width=True, hide_index=True, height=len(_race_df) * 35 + 38,
+)
+if len(_race_df) >= 2:
+    _gold, _silver = _race_df.iloc[0], _race_df.iloc[1]
+    st.caption(
+        f"If the season ended today: 🥇 **{_gold['Country']}** ({_gold['26/27']:.3f}) and "
+        f"🥈 **{_silver['Country']}** ({_silver['26/27']:.3f}) would each gain an extra "
+        f"Champions League place."
+    )
+
 st.divider()
 
 # ---------------------------------------------------------------------------

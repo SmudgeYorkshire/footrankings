@@ -701,3 +701,11 @@ CACHE_TTL_STANDINGS = 7_200     # 2 hours
 CACHE_TTL_FIXTURES = 60         # 1 minute — matches the page's own 60s auto-refresh
 CACHE_TTL_META = 86_400         # 24 hours
 CACHE_TTL_HISTORICAL = 30 * 86_400  # 30 days — completed past seasons never change
+
+# Ceiling on how old an on-disk cache file is allowed to be when served as a
+# fallback after a failed live request. Beyond this, the failure is raised
+# instead of silently returning data that's too old to be trustworthy —
+# without this cap, a single transient request failure (e.g. a rate limit)
+# could cause indefinitely stale data to be served with no visible sign
+# anything was wrong.
+CACHE_STALE_FALLBACK_MAX_AGE = 1_800  # 30 minutes
