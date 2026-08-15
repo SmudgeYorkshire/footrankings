@@ -37,6 +37,7 @@ from coefficients_baseline import (
     COUNTRY_BASELINE, COUNTRY_NAME_FIXUP, CLUB_COUNTRY_OVERRIDE,
 )
 from qualifying_bracket import CONFIRMED_LEAGUE_PHASE
+from flags import flag_url as _flag_url
 
 # D.5(b) floor — the worst possible league-phase-ranking bonus (rank 36),
 # guaranteed to every club that secures a League Phase spot regardless of
@@ -46,31 +47,6 @@ _SECURED_LP_FLOOR = {"Champions League": 6.0, "Europa League": 0.0, "Conference 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 _CET = ZoneInfo("Europe/Berlin")
 _SEASON = "2026-2027"
-
-# flagcdn.com country codes — used instead of flag emoji, which fall back to
-# raw two-letter text (e.g. "NO", "KZ") on Windows browsers lacking flag glyphs.
-_FLAG_CODES: dict[str, str] = {
-    "England": "gb-eng", "Italy": "it", "Spain": "es", "Germany": "de", "France": "fr",
-    "Portugal": "pt", "Belgium": "be", "Netherlands": "nl", "Türkiye": "tr",
-    "Czechia": "cz", "Poland": "pl", "Greece": "gr", "Denmark": "dk", "Norway": "no",
-    "Cyprus": "cy", "Switzerland": "ch", "Hungary": "hu", "Sweden": "se",
-    "Austria": "at", "Scotland": "gb-sct", "Croatia": "hr", "Romania": "ro",
-    "Ukraine": "ua", "Israel": "il", "Slovenia": "si", "Azerbaijan": "az",
-    "Bulgaria": "bg", "Slovakia": "sk", "Serbia": "rs", "Russia": "ru",
-    "Iceland": "is", "Ireland": "ie", "Armenia": "am", "Kosovo": "xk",
-    "Bosnia-Herzegovina": "ba", "Latvia": "lv", "Finland": "fi", "Kazakhstan": "kz",
-    "Liechtenstein": "li", "Moldova": "md", "Faroe Islands": "fo",
-    "North Macedonia": "mk", "Albania": "al", "Belarus": "by", "Lithuania": "lt",
-    "Malta": "mt", "Andorra": "ad", "Estonia": "ee", "Gibraltar": "gi",
-    "Northern Ireland": "gb-nir", "Georgia": "ge", "Luxembourg": "lu",
-    "Montenegro": "me", "Wales": "gb-wls", "San Marino": "sm",
-}
-
-
-def _flag_url(country: str) -> str:
-    code = _FLAG_CODES.get(country)
-    return f"https://flagcdn.com/w40/{code}.png" if code else ""
-
 
 # Short display labels for qualifying-round strRound text, so tables don't
 # have to spend width on e.g. "3rd Qualifying Round".

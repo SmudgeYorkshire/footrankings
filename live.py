@@ -1,170 +1,158 @@
 """
 Live — public page.
 
-Rich match detail (events, lineups, team & player statistics) pulled
-directly from API-Football for a couple of hand-picked matches, as a demo
-of the live data available on the site.
+Shows every match currently in progress, across all 54 tracked domestic
+leagues plus the Champions/Europa/Conference League, grouped by league in
+the site's own display order (matches within a league stacked one below
+another).
 
-Not auto-refreshing yet — reload the page for the latest snapshot.
+Fetched via API-Football's dedicated `live` filter, which returns every
+in-play fixture across every requested league in a single request no
+matter how many leagues are tracked — one API call per page load/refresh,
+regardless of how much is going on. Cached for 60s: no need for
+instant/second-by-second updates, so this deliberately doesn't poll any
+faster than that.
 """
 
 import os
-import requests
-import pandas as pd
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
 
-_API_FOOTBALL_KEY = os.getenv("API_FOOTBALL_KEY", "")
+from config import LEAGUES, EUROPEAN_COMPETITIONS
+from api_football_fetcher import ApiFootballClient
+from flags import flag_url
 
-# Hand-picked matches to showcase the live data available via API-Football.
-_TRACKED_MATCHES = [
-    {"label": "Sparta Rotterdam vs Feyenoord", "api_football_fixture_id": 1552122},
-    {"label": "Zorya Luhansk vs Kryvbas",      "api_football_fixture_id": 1565444},
-]
+_API_KEY = os.getenv("API_FOOTBALL_KEY", "")
+_CET = ZoneInfo("Europe/Berlin")
 
+# Domestic leagues first in the site's own order, then the 3 European
+# competitions — same order as the sidebar nav (European Leagues page
+# before European Competitions page). Domestic leagues get a real
+# flagcdn.com flag (via their country); the European competitions aren't
+# tied to one country, so they keep their trophy/medal emoji instead.
+_TRACKED: list[tuple[str, int, str]] = (
+    [(name, cfg["id"], flag_url(cfg.get("country", ""))) for name, cfg in LEAGUES.items()]
+    + [(name, cfg["id"], "") for name, cfg in EUROPEAN_COMPETITIONS.items()]
+)
+_LEAGUE_ORDER = {lid: i for i, (_name, lid, _flag) in enumerate(_TRACKED)}
+_LEAGUE_NAME = {lid: name for name, lid, _flag in _TRACKED}
+_LEAGUE_FLAG_URL = {lid: flag for _name, lid, flag in _TRACKED}
+_LEAGUE_EMOJI = {cfg["id"]: cfg.get("flag", "") for cfg in EUROPEAN_COMPETITIONS.values()}
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _fetch_live(key: str) -> tuple[list[dict], datetime]:
+    client = ApiFootballClient(api_key=key)
+    fixtures = client.get_live_fixtures([lid for _name, lid, _flag in _TRACKED])
+    return fixtures, datetime.now(_CET)
+
+
+def _status_label(short: str | None, elapsed, extra) -> str:
+    mins = str(elapsed) if elapsed is not None else "?"
+    if short in ("1H", "2H"):
+        return f"{mins}+{extra}'" if extra else f"{mins}'"
+    if short == "HT":
+        return "HT"
+    if short == "ET":
+        return f"ET {mins}+{extra}'" if extra else f"ET {mins}'"
+    if short == "BT":
+        return "Break"
+    if short == "P":
+        return "Penalties"
+    if short == "SUSP":
+        return "Suspended"
+    if short == "INT":
+        return "Interrupted"
+    return short or "Live"
+
+
+def _img(url: str, side: str) -> str:
+    if not url:
+        return ""
+    return f"<img src='{url}' height='20' style='margin-{side}:8px;vertical-align:middle'>"
+
+
+def _match_row_html(f: dict) -> str:
+    home, away = f.get("strHomeTeam") or "—", f.get("strAwayTeam") or "—"
+    hs, aws = f.get("intHomeScore"), f.get("intAwayScore")
+    score = f"{hs if hs is not None else 0}–{aws if aws is not None else 0}"
+    status = _status_label(f.get("strStatusShort") or f.get("strStatus"),
+                            f.get("intElapsed"), f.get("intExtraTime"))
+    round_str = f.get("strRound") or ""
+    round_html = (f"<div style='font-size:10px;color:#999;text-align:center;"
+                  f"margin-top:2px'>{round_str}</div>") if round_str else ""
+
+    return f"""
+<div style="display:flex;align-items:center;justify-content:space-between;
+            border:1px solid #dee2e6;border-radius:8px;padding:8px 14px;
+            margin-bottom:6px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+  <div style="display:flex;align-items:center;flex:1;min-width:0">
+    {_img(f.get("strHomeTeamBadge", ""), "right")}<span style="font-weight:600;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{home}</span>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:0 10px">
+    <span style="font-size:17px;font-weight:700;color:#212529">{score}</span>
+    <span style="font-size:11px;font-weight:700;color:#d32f2f">\U0001f534 {status}</span>
+    {round_html}
+  </div>
+  <div style="display:flex;align-items:center;flex:1;min-width:0;justify-content:flex-end;text-align:right">
+    <span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap">{away}</span>{_img(f.get("strAwayTeamBadge", ""), "left")}
+  </div>
+</div>"""
+
+
+# ---------------------------------------------------------------------------
+# Page
+# ---------------------------------------------------------------------------
 st.markdown("<h3 style='margin:0'>🔴 Live</h3>", unsafe_allow_html=True)
-st.caption("Live match data pulled directly from API-Football.")
+st.caption(
+    "Every match being played right now, across all tracked leagues and the "
+    "Champions/Europa/Conference League, grouped by league. Refreshes at "
+    "most once a minute to keep API usage low — reopen or refresh the page "
+    "for the latest."
+)
+
+_col_title, _col_btn = st.columns([5, 1])
+with _col_btn:
+    if st.button("🔄 Refresh", use_container_width=True):
+        _fetch_live.clear()
+        st.rerun()
+
+try:
+    _live_fixtures, _fetched_at = _fetch_live(_API_KEY)
+except RuntimeError as e:
+    st.error(f"Couldn't load live matches: {e}")
+    st.stop()
+
+st.caption(f"As of {_fetched_at.strftime('%H:%M:%S')} CET.")
 st.divider()
 
+if not _live_fixtures:
+    st.info("No matches are currently being played.")
+else:
+    _by_league: dict[int, list[dict]] = {}
+    for _f in _live_fixtures:
+        _by_league.setdefault(_f.get("idLeague"), []).append(_f)
 
-def _fetch_api_football(fixture_id: int) -> dict:
-    try:
-        r = requests.get(
-            "https://v3.football.api-sports.io/fixtures",
-            headers={"x-apisports-key": _API_FOOTBALL_KEY},
-            params={"id": fixture_id}, timeout=10,
-        )
-        resp = r.json().get("response") or []
-        return resp[0] if resp else {}
-    except Exception as e:
-        return {"_error": str(e)}
+    _ordered_ids = sorted(_by_league, key=lambda lid: _LEAGUE_ORDER.get(lid, 10**9))
+    _n_matches = len(_live_fixtures)
+    st.markdown(
+        f"**\U0001f534 {_n_matches} match{'es' if _n_matches != 1 else ''} live "
+        f"right now, across {len(_ordered_ids)} league{'s' if len(_ordered_ids) != 1 else ''}.**"
+    )
 
-
-def _player_stats_df(team_block: dict) -> pd.DataFrame:
-    rows = []
-    for p in team_block.get("players", []):
-        info = p["player"]
-        stat = (p.get("statistics") or [{}])[0]
-        games = stat.get("games") or {}
-        goals = stat.get("goals") or {}
-        passes = stat.get("passes") or {}
-        tackles = stat.get("tackles") or {}
-        duels = stat.get("duels") or {}
-        cards = stat.get("cards") or {}
-        rows.append({
-            "#": games.get("number"),
-            "Player": info.get("name"),
-            "Pos": games.get("position"),
-            "Min": games.get("minutes"),
-            "Rating": games.get("rating"),
-            "Goals": goals.get("total"),
-            "Assists": goals.get("assists"),
-            "Shots": (stat.get("shots") or {}).get("total"),
-            "Passes": passes.get("total"),
-            "Pass Acc%": passes.get("accuracy"),
-            "Tackles": tackles.get("total"),
-            "Duels Won": duels.get("won"),
-            "Y": cards.get("yellow"),
-            "R": cards.get("red"),
-        })
-    return pd.DataFrame(rows)
-
-
-for match in _TRACKED_MATCHES:
-    st.markdown(f"### ⚽ {match['label']}")
-
-    fx = _fetch_api_football(match["api_football_fixture_id"])
-    if fx.get("_error"):
-        st.error(f"Error: {fx['_error']}")
-    elif not fx:
-        st.warning("No data returned.")
-    else:
-        teams = fx["teams"]
-        goals = fx["goals"]
-        fixture = fx["fixture"]
-        status = fixture["status"]
-        home_name, away_name = teams["home"]["name"], teams["away"]["name"]
-
-        st.metric(
-            label=f"{home_name} vs {away_name}",
-            value=f"{goals.get('home') or 0} - {goals.get('away') or 0}",
-        )
-        extra_suffix = f"+{status['extra']}" if status.get("extra") else ""
-        st.write(f"**Status:** {status.get('long') or '—'}  "
-                 f"({status.get('elapsed') or '?'}{extra_suffix}')")
-        st.write(f"**League:** {fx['league']['name']} (round {fx['league'].get('round') or '—'})")
-        venue = fixture.get("venue") or {}
-        st.write(f"**Venue:** {venue.get('name') or '—'}, {venue.get('city') or '—'}")
-        st.write(f"**Kickoff:** {fixture.get('date') or '—'}")
-        st.write(f"**Referee:** {fixture.get('referee') or '—'}")
-
-        score = fx.get("score", {})
-        ht = score.get("halftime") or {}
-        ft = score.get("fulltime") or {}
-        st.write(f"**Half-time:** {ht.get('home')} - {ht.get('away')}  "
-                 f"&nbsp;&nbsp; **Full-time:** {ft.get('home') if ft.get('home') is not None else '—'} - "
-                 f"{ft.get('away') if ft.get('away') is not None else '—'}")
-
-        # Events timeline
-        events = fx.get("events") or []
-        if events:
-            st.markdown("**Events**")
-            ev_rows = [{
-                "Min": f"{e['time']['elapsed']}{'+' + str(e['time']['extra']) if e['time'].get('extra') else ''}",
-                "Team": e["team"]["name"],
-                "Player": (e.get("player") or {}).get("name"),
-                "Type": e.get("type"),
-                "Detail": e.get("detail"),
-            } for e in events]
-            st.dataframe(pd.DataFrame(ev_rows), hide_index=True, use_container_width=True)
-
-        # Team statistics
-        stats = fx.get("statistics") or []
-        if stats and len(stats) == 2:
-            st.markdown("**Match Statistics**")
-            t0, t1 = stats[0], stats[1]
-            types = [s["type"] for s in t0["statistics"]]
-            stat_rows = []
-            for i, t in enumerate(types):
-                v0 = t0["statistics"][i]["value"]
-                v1 = t1["statistics"][i]["value"]
-                stat_rows.append({
-                    t0["team"]["name"]: "—" if v0 is None else str(v0),
-                    "Stat": t,
-                    t1["team"]["name"]: "—" if v1 is None else str(v1),
-                })
-            df = pd.DataFrame(stat_rows)[[t0["team"]["name"], "Stat", t1["team"]["name"]]]
-            st.dataframe(df, hide_index=True, use_container_width=True)
-
-        # Lineups
-        lineups = fx.get("lineups") or []
-        if lineups:
-            st.markdown("**Lineups**")
-            for lu in lineups:
-                with st.expander(f"{lu['team']['name']} — {lu['formation']} (coach: {(lu.get('coach') or {}).get('name') or '—'})"):
-                    starters = ", ".join(
-                        f"{p['player']['number']}. {p['player']['name']} ({p['player']['pos']})"
-                        for p in lu.get("startXI", [])
-                    )
-                    subs = ", ".join(
-                        f"{p['player']['number']}. {p['player']['name']} ({p['player']['pos']})"
-                        for p in lu.get("substitutes", [])
-                    )
-                    st.write(f"**Starting XI:** {starters or '—'}")
-                    st.write(f"**Substitutes:** {subs or '—'}")
-
-        # Player statistics
-        players = fx.get("players") or []
-        if players:
-            st.markdown("**Player Statistics**")
-            for team_block in players:
-                with st.expander(f"{team_block['team']['name']} — player stats"):
-                    df = _player_stats_df(team_block)
-                    st.dataframe(df, hide_index=True, use_container_width=True)
-
-        with st.expander("Full raw response"):
-            st.json(fx)
-
-    st.divider()
+    for _lid in _ordered_ids:
+        _matches = sorted(_by_league[_lid], key=lambda f: (f.get("dateEvent", ""), f.get("strTime", "")))
+        _name = _LEAGUE_NAME.get(_lid) or _matches[0].get("strLeague") or f"League {_lid}"
+        _flag_url = _LEAGUE_FLAG_URL.get(_lid, "")
+        _emoji = _LEAGUE_EMOJI.get(_lid, "")
+        _icon = (f"<img src='{_flag_url}' height='22' style='vertical-align:middle;"
+                 f"margin-right:8px;border-radius:2px'>") if _flag_url else f"{_emoji} "
+        st.markdown(f"<h4>{_icon}{_name}</h4>", unsafe_allow_html=True)
+        st.markdown("".join(_match_row_html(f) for f in _matches), unsafe_allow_html=True)

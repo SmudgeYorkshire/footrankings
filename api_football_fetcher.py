@@ -187,6 +187,30 @@ class ApiFootballClient:
                 played.append(norm)
         return played, remaining
 
+    def get_live_fixtures(self, league_ids: list[int], ttl: int = CACHE_TTL_FIXTURES) -> list[dict]:
+        """Every fixture currently in-play across the given leagues, in a
+        single request — API-Football's `live` filter takes a dash-joined
+        list of league IDs, so tracking dozens of leagues still costs one
+        call instead of one per league. Adds intElapsed/intExtraTime/
+        idLeague on top of the normal normalized fixture shape, since those
+        only matter for in-play matches."""
+        ids_param = "-".join(str(i) for i in sorted(set(league_ids)))
+        data = self._cached_get(
+            "fixtures", {"live": ids_param},
+            cache_key="af_live_tracked", ttl=ttl,
+        )
+        resp = (data or {}).get("response") or []
+        fixtures = []
+        for fx in resp:
+            norm = _normalize_fixture(fx)
+            status = (fx.get("fixture") or {}).get("status") or {}
+            norm["intElapsed"] = status.get("elapsed")
+            norm["intExtraTime"] = status.get("extra")
+            norm["strStatusShort"] = status.get("short")
+            norm["idLeague"] = (fx.get("league") or {}).get("id")
+            fixtures.append(norm)
+        return fixtures
+
     def get_available_seasons(self, league_id: int) -> list[int]:
         """Past season years (excludes the current/in-progress one) this
         league has fixture data for, most recent first. Cached long-term —
