@@ -4,7 +4,6 @@ Access restricted to role: admin via the entrypoint (app.py).
 """
 
 import os
-import yaml
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
@@ -203,20 +202,21 @@ with st.sidebar:
 # Data fetching
 # ---------------------------------------------------------------------------
 @st.cache_data(ttl=3_600, show_spinner=False)
-def fetch_all(lid, ssn, key):
+def fetch_all(lid, ssn, key, league_name_=None):
     c = ApiFootballClient(api_key=key)
     roster = c.get_standings(lid, ssn)
     played, remaining = c.get_fixtures(lid, ssn)
     info = c.get_league_info(lid)
     roster = ensure_full_roster(roster, played + remaining) if roster else roster
-    standings = compute_full_standings(roster, played) if roster else roster
+    tiebreakers = LEAGUES.get(league_name_, {}).get("tiebreakers")
+    standings = compute_full_standings(roster, played, tiebreakers=tiebreakers) if roster else roster
     return standings, played, remaining, info
 
 
 with st.spinner("Loading data…"):
     try:
         standings, played_fixtures, remaining_fixtures, league_info = fetch_all(
-            league_id, season, api_key
+            league_id, season, api_key, league_name
         )
     except RuntimeError as e:
         st.error(f"Failed to load data: {e}")
@@ -512,16 +512,25 @@ with tab_ratings:
             st.session_state.pop("admin_sim_results", None)
             st.success("Ratings saved. Re-run the simulation to update projections.")
     with col_reset:
-        if st.button("↺ Reset to estimated ratings", use_container_width=True):
+        _confirm_reset = st.checkbox(
+            f"Confirm — permanently overwrite ratings/{ratings_id}.csv with estimated values",
+            key="admin_confirm_reset",
+        )
+        if st.button(
+            "↺ Reset to estimated ratings", use_container_width=True, disabled=not _confirm_reset,
+        ):
             csv_path = Path("ratings") / f"{ratings_id}.csv"
             ratings_df = _defaults_from_standings(standings, csv_path)
             st.session_state.pop("admin_sim_results", None)
+            st.session_state.pop("admin_confirm_reset", None)
             st.rerun()
 
 # ── Users ─────────────────────────────────────────────────────────────────────
 with tab_users:
-    with open("auth.yaml", encoding="utf-8") as f:
-        auth_data = yaml.safe_load(f)
+    # Reuse the config app.py already loaded (local auth.yaml, or
+    # st.secrets on the deployed site where auth.yaml is gitignored and
+    # doesn't exist on disk) rather than re-reading the file directly here.
+    auth_data = st.session_state.get("_auth_config", {})
 
     users = auth_data.get("credentials", {}).get("usernames", {})
     user_rows = [

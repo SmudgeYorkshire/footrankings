@@ -59,13 +59,13 @@ def snapshot_league(cfg: dict, key: str, client: ApiFootballClient):
         return None
     played, remaining = client.get_fixtures(league_id, season)
     roster = ensure_full_roster(roster, played + remaining)
-    standings = compute_full_standings(roster, played)
+    tiebreakers = cfg.get("tiebreakers")
+    standings = compute_full_standings(roster, played, tiebreakers=tiebreakers)
     if not standings:
         return None
 
     ratings_df = load_ratings(ratings_id, standings)
     home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
-    tiebreakers = cfg.get("tiebreakers")
 
     split_round = cfg.get("split_round")
     split_info = None
@@ -190,6 +190,13 @@ def main():
             print(f"  {arrow} {league_name}: {team}  {old_p:.0%} -> {new_p:.0%}")
     else:
         print("\nNo big title-probability swings today (>=10pp).")
+
+    # Total failure (e.g. an expired/rotated API key) should fail the
+    # scheduled job loudly rather than exit 0 with nothing snapshotted —
+    # isolated single-league failures don't, since those are usually a
+    # transient provider hiccup for that one league.
+    if failed and ok == 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

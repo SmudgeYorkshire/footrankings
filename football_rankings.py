@@ -7,7 +7,7 @@ environment only (not user-editable). Opta ratings are hidden.
 
 import os
 import json
-from pathlib import Path
+import sys
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
 from api_football_fetcher import ApiFootballClient
 from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff
-from ratings_manager import load_ratings, build_lookup, check_coverage
+from ratings_manager import load_ratings, check_coverage
 from _split_season import get_split_info, conference_fixtures, recompute_conference_standings, compute_full_standings, ensure_full_roster
 from league_status import LEAGUE_STATUS
 from historical import fetch_historical_season
@@ -38,6 +38,34 @@ from zoneinfo import ZoneInfo
 
 _CET = ZoneInfo("Europe/Berlin")
 
+# Every tiebreaker token this site's league configs use, human-readable.
+# Defined once here rather than duplicated per-tab.
+_TB_LABELS = {
+    "gd":                     "Goal difference",
+    "gf":                     "Goals scored",
+    "away_gf":                "Away goals scored",
+    "away_wins":              "Away matches won",
+    "wins":                   "Matches won",
+    "less_losses":            "Fewer losses",
+    "h2h_pts":                "Head-to-head points",
+    "h2h_gd":                 "Head-to-head goal difference",
+    "h2h_gf":                 "Head-to-head goals scored",
+    "h2h_away_gf":            "Head-to-head away goals scored",
+    "h2h_wins":               "Head-to-head matches won",
+    "disciplinary":           "Disciplinary points (fewest)",
+    "less_red_cards":         "Fewer red cards",
+    "less_yellow_cards":      "Fewer yellow cards",
+    "pts_no_round":           "Points (without half-point rounding)",
+    "regular_pts":            "Regular season points",
+    "regular_position":       "Regular season finishing position",
+    "playoffs":               "Play-offs",
+    "playoffs_champion":      "Play-off (for championship only)",
+    "playoffs_title_or_rel3": "Play-off (for championship or third relegation place)",
+    "draw":                   "Draw",
+    "fair_play":              "Fair-play points",
+}
+
+
 def _utc_to_cet(date_str: str, time_str: str) -> str:
     """Convert a UTC date+time to CET/CEST. Returns 'HH:MM CET/CEST'."""
     if not date_str or not time_str or time_str.startswith("00:00"):
@@ -45,7 +73,7 @@ def _utc_to_cet(date_str: str, time_str: str) -> str:
     try:
         dt = datetime.strptime(f"{date_str} {time_str[:8]}", "%Y-%m-%d %H:%M:%S")
         dt = dt.replace(tzinfo=timezone.utc).astimezone(_CET)
-        return f"{dt.strftime('%H:%M')} CET"
+        return f"{dt.strftime('%H:%M')} {dt.strftime('%Z')}"
     except ValueError:
         return time_str[:5]
 
@@ -60,39 +88,6 @@ def _next_opponent_badges(fixtures: list[dict], badge_lookup: dict) -> dict[str,
             if team and team not in result:
                 result[team] = badge_lookup.get(opp) or opp_badge or ""
     return result
-
-
-def render_heatmap(probs: pd.DataFrame):
-    n_teams = len(probs)
-    z = probs.values
-    text   = [[f"{v:.0%}" if v >= 0.005 else "" for v in row] for row in z]
-    hover  = [[f"{v:.1%}" if v >= 0.005 else "<0.5%" for v in row] for row in z]
-    cell   = 30          # px — keeps % readable; width = height per cell ≈ square
-    l, r, t, b = 160, 90, 50, 50
-    fig = go.Figure(go.Heatmap(
-        z=z,
-        x=[f"#{p}" for p in probs.columns],
-        y=probs.index.tolist(),
-        text=text,
-        customdata=hover,
-        texttemplate="%{text}",
-        textfont={"size": 9},
-        hovertemplate="<b>%{y}</b><br>Position %{x}<br>%{customdata}<extra></extra>",
-        colorscale="Greens",
-        zmin=0, zmax=1,
-        showscale=True,
-        colorbar=dict(title="Prob.", tickformat=".0%", thickness=12, len=0.8),
-    ))
-    fig.update_layout(
-        title="Season finish probabilities",
-        xaxis_title="Final league position",
-        yaxis_title="",
-        yaxis=dict(autorange="reversed"),
-        width=l + n_teams * cell + r,
-        height=t + n_teams * cell + b,
-        margin=dict(l=l, r=r, t=t, b=b),
-    )
-    st.plotly_chart(fig, use_container_width=False)
 
 
 def render_title_probability_history(tsdb_id: int):
@@ -131,40 +126,6 @@ def render_title_probability_history(tsdb_id: int):
     )
     st.markdown("#### 📈 Title Probability History")
     st.plotly_chart(fig, use_container_width=True)
-
-
-def _clean_desc(desc: str) -> str:
-    """Normalise strDescription: strip tier/league name prefixes, shorten relegation labels."""
-    if desc.startswith("Promotion - "):
-        return desc[len("Promotion - "):]
-    dl = desc.lower()
-    if "relegation play-off" in dl or "relegation playoff" in dl:
-        return "Relegation - PO"
-    if dl.startswith("relegation"):
-        return "Relegation"
-    # Strip "League Name (Round Type)" pattern — e.g. "Jupiler Pro League (Relegation round)"
-    if " (" in desc and desc.endswith(")"):
-        inner = desc[desc.rfind(" (") + 2:-1]
-        if "relegation" in inner.lower():
-            return "Relegation"
-        return ""   # championship/conference round — let euro_spots or zones handle it
-    return desc
-
-
-def _zones_from_standings(standings: list[dict]) -> dict:
-    """Build {label: [int positions]} from strDescription in standings rows."""
-    pos_desc: dict[int, str] = {}
-    for row in standings:
-        rank = int(row.get("intRank", 0) or 0)
-        desc = _clean_desc((row.get("strDescription") or "").strip())
-        if rank and desc:
-            pos_desc[rank] = desc
-    if not pos_desc:
-        return {}
-    zones: dict[str, list[int]] = {}
-    for pos in sorted(pos_desc):
-        zones.setdefault(pos_desc[pos], []).append(pos)
-    return zones
 
 
 def _season_progress_html(played_r: int, total_r: int, n_played_m: int, n_remaining_m: int) -> str:
@@ -497,7 +458,7 @@ home_advantage = DEFAULT_HOME_ADVANTAGE
 # Data fetching — 60-second cache for live feel
 # ---------------------------------------------------------------------------
 @st.cache_data(ttl=60, show_spinner=False)
-def fetch_all(lid, ssn, key):
+def fetch_all(lid, ssn, key, league_name_=None):
     c = ApiFootballClient(api_key=key)
     roster = c.get_standings(lid, ssn)
     played, remaining = c.get_fixtures(lid, ssn)
@@ -509,7 +470,8 @@ def fetch_all(lid, ssn, key):
     # been observed to only list teams that have already played early in a
     # season, so it's padded out from the fixture list first.
     roster = ensure_full_roster(roster, played + remaining) if roster else roster
-    standings = compute_full_standings(roster, played) if roster else roster
+    tiebreakers = LEAGUES.get(league_name_, {}).get("tiebreakers")
+    standings = compute_full_standings(roster, played, tiebreakers=tiebreakers) if roster else roster
     return standings, played, remaining, info
 
 
@@ -587,7 +549,10 @@ def render_cup_details(cfg: dict, key: str):
         return
     try:
         cup = fetch_cup_status(cup_id, season, key)
-    except RuntimeError:
+    except RuntimeError as e:
+        # A real fetch failure looks identical to "nothing scheduled yet"
+        # in the UI either way, but at least log it so it's not invisible.
+        print(f"[football_rankings] WARNING: cup status fetch failed for cup {cup_id}: {e}", file=sys.stderr)
         cup = None
     if not cup:
         st.caption("Fixtures will be released soon.")
@@ -640,7 +605,7 @@ def main_content():
     with st.spinner("Loading…"):
         try:
             standings, played_fixtures, remaining_fixtures, league_info = fetch_all(
-                league_id, season, _API_KEY
+                league_id, season, _API_KEY, league_name
             )
         except RuntimeError as e:
             st.error(f"Failed to load data: {e}")
@@ -685,8 +650,8 @@ def main_content():
                     with open(_path) as _f:
                         _presplit_snapshot = json.load(_f)
                     break
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"[football_rankings] WARNING: presplit snapshot at {_path} unreadable: {e}", file=sys.stderr)
         if _presplit_snapshot is None and standings and all(
             int(r.get("intPlayed", 0)) == split_round for r in standings
         ):
@@ -695,8 +660,8 @@ def main_content():
                 with open(_presplit_cache, "w") as _f:
                     json.dump(standings, _f)
                 _presplit_snapshot = list(standings)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[football_rankings] WARNING: couldn't write presplit snapshot {_presplit_cache}: {e}", file=sys.stderr)
 
     split_info = get_split_info(standings, split_round, n_champ=n_champ, n_mid=cfg.get("n_mid", 0), pts_factor=pts_factor, presplit=_presplit_snapshot) if split_round else None
 
@@ -755,6 +720,10 @@ def main_content():
             _base = [_presplit_by_tm[t] for t in _conf_teams if t in _presplit_by_tm]
             if not _base:
                 continue
+            _conf_tb_key = {"champ_current": "champ_tiebreakers", "relg_current": "relg_tiebreakers"}.get(_conf_key)
+            _conf_tiebreakers = cfg.get(_conf_tb_key) if _conf_tb_key else None
+            if _conf_tiebreakers is None:
+                _conf_tiebreakers = cfg.get("tiebreakers")
 
             if _h2h_pts_only and _h2h_cutoff:
                 # Post-split games identified by date (round numbers reset in TSDB)
@@ -779,7 +748,8 @@ def main_content():
                         for r in _base
                     ]
                     split_info[_conf_key] = recompute_conference_standings(
-                        _base, _conf_played, pts_factor=1.0, pts_round="down"
+                        _base, _conf_played, pts_factor=1.0, pts_round="down",
+                        tiebreakers=_conf_tiebreakers,
                     )
                     continue
             else:
@@ -790,7 +760,7 @@ def main_content():
                 _conf_played = conference_fixtures(_post_split_played, _conf_teams)
 
             split_info[_conf_key] = recompute_conference_standings(
-                _base, _conf_played, pts_factor, _pts_round
+                _base, _conf_played, pts_factor, _pts_round, tiebreakers=_conf_tiebreakers,
             )
 
     # Override pre_split with the accurate Round N snapshot if available
@@ -823,14 +793,15 @@ def main_content():
         remaining_rounds = len(rounds_with_remaining)
         played_rounds = len(rounds_with_played - rounds_with_remaining)
         total_rounds = played_rounds + remaining_rounds
-        current_round = min((r for r in rounds_with_remaining if r), default=total_rounds)
         # Last-updated from cache file mtime
         _af_season = ApiFootballClient._season_year(season)
         _cache_path = Path("cache") / f"af_fixtures_{league_id}_{_af_season}.json"
         _updated_str = ""
         if _cache_path.exists():
             _mtime = _cache_path.stat().st_mtime
-            _updated_str = "  \nLast updated: **" + datetime.fromtimestamp(_mtime, tz=_CET).strftime("%b %d, %H:%M") + " CET**"
+            _updated_dt = datetime.fromtimestamp(_mtime, tz=_CET)
+            _updated_str = ("  \nLast updated: **" + _updated_dt.strftime("%b %d, %H:%M")
+                             + " " + _updated_dt.strftime("%Z") + "**")
         st.caption(
             f"Rounds: **{total_rounds}** total · **{played_rounds}** played · **{remaining_rounds}** remaining  \n"
             f"Matches: **{total}** total · **{len(played_fixtures)}** played · **{len(remaining_fixtures)}** remaining"
@@ -961,31 +932,6 @@ def main_content():
                 col_cfg["Next"] = st.column_config.ImageColumn("Next", width=32)
             st.dataframe(style_obj, column_config=col_cfg, use_container_width=True,
                          hide_index=True, height=len(rows) * 35 + 38)
-
-        _TB_LABELS = {
-            "gd":                     "Goal difference",
-            "gf":                     "Goals scored",
-            "away_gf":                "Away goals scored",
-            "away_wins":              "Away matches won",
-            "wins":                   "Matches won",
-            "less_losses":            "Fewer losses",
-            "h2h_pts":                "Head-to-head points",
-            "h2h_gd":                 "Head-to-head goal difference",
-            "h2h_gf":                 "Head-to-head goals scored",
-            "h2h_away_gf":            "Head-to-head away goals scored",
-            "h2h_wins":               "Head-to-head matches won",
-            "disciplinary":           "Disciplinary points (fewest)",
-            "less_red_cards":         "Fewer red cards",
-            "less_yellow_cards":      "Fewer yellow cards",
-            "pts_no_round":           "Points (without half-point rounding)",
-            "regular_pts":            "Regular season points",
-            "regular_position":       "Regular season finishing position",
-            "playoffs":               "Play-offs",
-            "playoffs_champion":      "Play-off (for championship only)",
-            "playoffs_title_or_rel3": "Play-off (for championship or third relegation place)",
-            "draw":                   "Draw",
-            "fair_play":              "Fair-play points",
-        }
 
         if split_info:
             _pf       = split_info.get("pts_factor", 1.0)
@@ -1429,7 +1375,7 @@ def main_content():
             relg_fix = conference_fixtures(remaining_fixtures, split_info["relg_teams"])
             if not relg_fix and split_info.get("relg_teams"):
                 relg_fix = _roundrobin_fixtures(sorted(split_info["relg_teams"]))
-            sim_key = (league_id, season, n_sim, home_advantage, len(champ_fix))
+            sim_key = (league_id, season, n_sim, home_advantage, len(champ_fix), len(mid_fix), len(relg_fix))
             if st.session_state.get("sim_key") != sim_key:
                 with st.spinner(f"Running {n_sim:,} simulations…"):
                     _tiebreakers = cfg.get("tiebreakers")
@@ -1582,7 +1528,7 @@ def main_content():
                                 unsafe_allow_html=True,
                             )
         else:
-            sim_key = (league_id, season, n_sim, home_advantage)
+            sim_key = (league_id, season, n_sim, home_advantage, len(played_fixtures))
             if st.session_state.get("sim_key") != sim_key:
                 with st.spinner(f"Running {n_sim:,} simulations…"):
                     probs = simulate_season(
@@ -1664,7 +1610,8 @@ def main_content():
                         _pts_note = {0.0: "points reset to 0", 0.5: "points halved"}.get(_pf, "points carried over")
                         _st_lookup = {r["strTeam"]: r for r in standings}
                         _zone_notes = cfg.get("zone_notes", {})
-                        _po_sim_key = ("playoff", league_id, season, n_sim, home_advantage)
+                        _po_sim_key = ("playoff", league_id, season, n_sim, home_advantage,
+                                       len(champ_fix), len(mid_fix), len(relg_fix))
                         if st.session_state.get("po_sim_key") != _po_sim_key:
                             st.session_state["po_sims"] = {}
                             st.session_state["po_sim_key"] = _po_sim_key
@@ -2109,92 +2056,10 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                 st.info("Enter predictions above then press **▶ Run simulations**.")
 
         def _simple_editor(fix_list, st_list, sim_zones):
-            """Full fixture editor + simulation for a non-split or regular-season view."""
-            ver_key   = f"manual_pred_ver_{league_id}_{season}"
-            sim_store = f"manual_sim_{league_id}_{season}"
-            if ver_key not in st.session_state:
-                st.session_state[ver_key] = 0
-
-            base_df    = _build_fix_df(fix_list)
-            editor_key = f"pred_editor_{league_id}_{season}_{st.session_state[ver_key]}"
-            height_reg = len(st_list) * 35 + 38
-            styled_base = base_df.style.apply(_style_rounds, axis=None).set_properties(
-                subset=["Home", "Away"], **{"font-weight": "bold"})
-
-            hdr_col, btn_col, _ = st.columns([2, 1, 3], vertical_alignment="center")
-            metric_ph = hdr_col.empty()
-            clear_ph  = btn_col.empty()
-            edited_df = st.data_editor(
-                styled_base, column_config=_pred_col_cfg,
-                disabled=["Rd", "HB", "Home", "Away", "AB"],
-                use_container_width=True, hide_index=True,
-                height=height_reg, key=editor_key,
-            )
-
-            filled_mask = edited_df[["HG", "AG"]].notna().all(axis=1)
-            metric_ph.markdown(f"### Predicted: {int(filled_mask.sum())} / {len(fix_list)}")
-            if clear_ph.button("🗑 Clear", use_container_width=True):
-                st.session_state[ver_key] += 1
-                st.session_state.pop(sim_store, None)
-                st.rerun()
-
-            fix_by_pair  = {(f.get("strHomeTeam"), f.get("strAwayTeam")): f for f in fix_list}
-            pred_applied = []
-            for _, row in edited_df[filled_mask].iterrows():
-                pair = (row["Home"], row["Away"])
-                if pair in fix_by_pair:
-                    entry = dict(fix_by_pair[pair])
-                    entry["pred_hg"] = int(row["HG"])
-                    entry["pred_ag"] = int(row["AG"])
-                    pred_applied.append(entry)
-
-            predicted_pairs = {(f["strHomeTeam"], f["strAwayTeam"]) for f in pred_applied}
-            unpredicted_fix = [f for f in fix_list
-                               if (f.get("strHomeTeam"), f.get("strAwayTeam"))
-                               not in predicted_pairs]
-            updated_st = _apply_predictions(st_list, pred_applied)
-
-            st.divider()
-            st.markdown("### Updated standings")
-            upd_df = pd.DataFrame(_upd_st_rows(st_list, updated_st))
-            upd_styled = upd_df.style.set_properties(
-                subset=["Team", "Pts"], **{"font-weight": "bold"}
-            ).set_properties(**{"font-size": "12px", "padding": "2px 6px"})
-            st.dataframe(upd_styled, column_config=_upd_col_cfg,
-                         use_container_width=True, hide_index=True, height=height_reg)
-
-            pred_fingerprint = (
-                tuple(sorted((f["strHomeTeam"], f["strAwayTeam"], f["pred_hg"], f["pred_ag"])
-                             for f in pred_applied)),
-                n_sim, home_advantage,
-            )
-            st.divider()
-            st.markdown("### Projected final standings")
-            cached = st.session_state.get(sim_store)
-            if st.button(f"▶  Run {n_sim:,} simulations with predictions",
-                         type="primary", use_container_width=True):
-                with st.spinner(f"Running {n_sim:,} simulations…"):
-                    manual_probs = simulate_season(
-                        standings=updated_st, remaining_fixtures=unpredicted_fix,
-                        ratings=ratings_df, n_sim=n_sim, home_advantage=home_advantage,
-                        tiebreakers=cfg.get("tiebreakers"), played_fixtures=played_fixtures,
-                    )
-                st.session_state[sim_store] = {"probs": manual_probs, "fingerprint": pred_fingerprint}
-                cached = st.session_state[sim_store]
-
-            if cached:
-                if cached["fingerprint"] != pred_fingerprint:
-                    st.warning("⚠ Predictions changed since last run — press ▶ to update.")
-                if not cached["probs"].empty:
-                    manual_exp_pts = _compute_expected_pts(
-                        updated_st, unpredicted_fix, ratings_df, home_advantage)
-                    render_prob_table(cached["probs"], badge_lookup, manual_exp_pts,
-                                      status_map=sim_zones)
-                    render_zone_table(cached["probs"], updated_st,
-                                      cfg.get("zones") or _auto_zones(
-                                          cfg.get("european_spots"), _main_zones))
-            else:
-                st.info("Enter predictions above then press **▶ Run simulations**.")
+            """Full fixture editor + simulation for a non-split or regular-season
+            view — both call sites only ever invoke this when fix_list is
+            non-empty, so it's exactly _conf_editor's "main" conference case."""
+            _conf_editor("main", fix_list, st_list, sim_zones)
 
         # ── Main tab dispatch ─────────────────────────────────────────────────
         if split_info:
@@ -2682,31 +2547,6 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
 
     # ── Format ───────────────────────────────────────────────────────────────
     with tab_format:
-        _TB_LABELS_FMT = {
-            "gd":                     "Goal difference",
-            "gf":                     "Goals scored",
-            "away_gf":                "Away goals scored",
-            "away_wins":              "Away matches won",
-            "wins":                   "Matches won",
-            "less_losses":            "Fewer losses",
-            "h2h_pts":                "Head-to-head points",
-            "h2h_gd":                 "Head-to-head goal difference",
-            "h2h_gf":                 "Head-to-head goals scored",
-            "h2h_away_gf":            "Head-to-head away goals scored",
-            "h2h_wins":               "Head-to-head matches won",
-            "disciplinary":           "Disciplinary points (fewest)",
-            "less_red_cards":         "Fewer red cards",
-            "less_yellow_cards":      "Fewer yellow cards",
-            "pts_no_round":           "Points (without half-point rounding)",
-            "regular_pts":            "Regular season points",
-            "regular_position":       "Regular season finishing position",
-            "playoffs":               "Play-offs",
-            "playoffs_champion":      "Play-off (for championship only)",
-            "playoffs_title_or_rel3": "Play-off (for championship or third relegation place)",
-            "draw":                   "Draw",
-            "fair_play":              "Fair-play points",
-        }
-
         # ── Season overview ──────────────────────────────────────────────────
         st.markdown("### 📅 Season Overview")
         all_dates = sorted([
@@ -2715,8 +2555,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
         ])
         def _fmt_date(d):
             try:
-                import datetime
-                dt = datetime.datetime.strptime(d, "%Y-%m-%d")
+                dt = datetime.strptime(d, "%Y-%m-%d")
                 return f"{dt.day} {dt.strftime('%B')} {dt.year}"
             except Exception:
                 return d
@@ -2865,7 +2704,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
         st.markdown("### ⚖️ Tiebreakers")
         st.markdown("*Applied in order when clubs are level on points:*")
         for i, rule in enumerate(cfg.get("tiebreakers", ["gd", "gf"]), 1):
-            st.markdown(f"**{i}.** {_TB_LABELS_FMT.get(rule, rule)}")
+            st.markdown(f"**{i}.** {_TB_LABELS.get(rule, rule)}")
 
     # ── History ──────────────────────────────────────────────────────────────
     with tab_history:
@@ -2893,7 +2732,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     "L":    int(r.get("intLoss", 0)),
                     "GF":   int(r.get("intGoalsFor", 0)),
                     "GA":   int(r.get("intGoalsAgainst", 0)),
-                    "GD":   int(r.get("intGoalDifference", 0)),
+                    "GD":   (lambda gd: f"+{gd}" if gd > 0 else str(gd))(int(r.get("intGoalDifference", 0))),
                     "Pts":  int(r.get("intPoints", 0)),
                 } for r in group["rows"]]
                 _hist_df = pd.DataFrame(hist_rows).style.set_properties(

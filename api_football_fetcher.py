@@ -10,6 +10,7 @@ Endpoint reference (v3):
     Auth     : x-apisports-key header (not embedded in the URL)
 """
 
+import hashlib
 import json
 import re
 import sys
@@ -23,13 +24,14 @@ from config import (
     CACHE_TTL_STANDINGS,
     CACHE_TTL_FIXTURES,
     CACHE_TTL_META,
+    CACHE_TTL_HISTORICAL,
     CACHE_STALE_FALLBACK_MAX_AGE,
 )
 
 CACHE_DIR = Path("cache")
 BASE_URL = "https://v3.football.api-sports.io"
 
-_FINISHED_SHORT = {"FT", "AET", "PEN"}
+_FINISHED_SHORT = {"FT", "AET", "PEN", "AWD", "WO"}  # AWD/WO: technical loss / walkover — final result, no further play
 
 
 def _round_number(round_str: str) -> str:
@@ -195,9 +197,13 @@ class ApiFootballClient:
         idLeague on top of the normal normalized fixture shape, since those
         only matter for in-play matches."""
         ids_param = "-".join(str(i) for i in sorted(set(league_ids)))
+        # Keyed by a short hash of the exact league set, not a fixed name —
+        # two calls with different league sets within the same TTL window
+        # must not silently share (and overwrite) one cache entry.
+        ids_digest = hashlib.sha1(ids_param.encode()).hexdigest()[:16]
         data = self._cached_get(
             "fixtures", {"live": ids_param},
-            cache_key="af_live_tracked", ttl=ttl,
+            cache_key=f"af_live_{ids_digest}", ttl=ttl,
         )
         resp = (data or {}).get("response") or []
         fixtures = []
@@ -217,7 +223,7 @@ class ApiFootballClient:
         a league's historical season list barely ever changes."""
         data = self._cached_get(
             "leagues", {"id": league_id},
-            cache_key=f"af_league_{league_id}", ttl=CACHE_TTL_META,
+            cache_key=f"af_league_{league_id}", ttl=CACHE_TTL_HISTORICAL,
         )
         resp = (data or {}).get("response") or []
         if not resp:

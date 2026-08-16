@@ -64,6 +64,7 @@ _MAX_GOALS    = 10    # upper bound for goal grid (captures >99.9% of probabilit
 OVERDISPERSION = 0.15 # NegBin overdispersion φ: Var[goals] = λ(1+φ)
 FORM_GAMES     = 5    # number of recent results used for form adjustment
 FORM_STRENGTH  = 0.05 # max ±5% attack multiplier from form
+EXTRA_TIME_FRACTION = 1 / 3  # 30 min extra time is 1/3 of a 90 min regulation lambda
 
 # Dixon-Coles (1997) low-score correlation correction. Independent
 # Poisson/NegBin systematically under-predicts 0-0 and 1-1 and
@@ -596,6 +597,12 @@ def simulate_season(
 
     needs_h2h   = any(r.startswith("h2h") for r in tiebreakers)
     needs_away  = "away_gf" in tiebreakers
+    # The vectorized fast path below only implements the exact gd-then-gf
+    # rule order; anything else (H2H/away_gf rules, or a different order
+    # like ["gf", "gd"]) needs the general per-simulation ranking path,
+    # which is the only place the H2H/away-goals accumulation arrays are
+    # built — so both must agree on the same condition.
+    use_fast_path = not (needs_h2h or needs_away) and tiebreakers == ["gd", "gf"]
 
     # Convert Opta ratings → attack/defense if needed
     if "opta_rating" in ratings.columns and "attack" not in ratings.columns:
@@ -608,9 +615,8 @@ def simulate_season(
     team_idx = {t: i for i, t in enumerate(teams)}
 
     # Build ratings lookup (supports both primary name and alias)
-    avg_attack = ratings["attack"].mean() if not ratings.empty else DEFAULT_BASE_GOALS
     rat_lookup, league_avg = _build_rat_lookup(ratings, DEFAULT_BASE_GOALS)
-    default_rating = (avg_attack, avg_attack)
+    default_rating = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
 
     def get_rating(team: str) -> tuple[float, float]:
         return rat_lookup.get(team, default_rating)
@@ -712,10 +718,10 @@ def simulate_season(
     _phi  = OVERDISPERSION
     _p_nb = 1.0 / (1.0 + _phi)
     home_goals = rng.negative_binomial(
-        home_lambdas[:, None] / _phi * np.ones((F, n_sim)), _p_nb
+        home_lambdas[:, None] / _phi, _p_nb, size=(F, n_sim)
     )
     away_goals = rng.negative_binomial(
-        away_lambdas[:, None] / _phi * np.ones((F, n_sim)), _p_nb
+        away_lambdas[:, None] / _phi, _p_nb, size=(F, n_sim)
     )
     if use_dixon_coles:
         home_goals, away_goals = _apply_dixon_coles_mc(
@@ -731,8 +737,9 @@ def simulate_season(
     gd_matrix  = np.tile(base_gd[:, None],     n_sim).astype(np.int64)
     gf_matrix  = np.tile(base_gf[:, None],     n_sim).astype(np.int64)
 
-    # H2H / away_gf matrices (n_teams, n_teams, n_sim) — only built when needed
-    if needs_h2h or needs_away:
+    # H2H / away_gf matrices (n_teams, n_teams, n_sim) — only built when the
+    # slow per-simulation ranking path (which reads them) will actually run.
+    if not use_fast_path:
         sim_h2h_pts  = np.zeros((n_teams, n_teams, n_sim), dtype=np.int64)
         sim_h2h_gd   = np.zeros((n_teams, n_teams, n_sim), dtype=np.int64)
         sim_h2h_gf   = np.zeros((n_teams, n_teams, n_sim), dtype=np.int64)
@@ -749,7 +756,7 @@ def simulate_season(
         gf_matrix[h] += home_goals[i]
         gf_matrix[a] += away_goals[i]
 
-        if needs_h2h or needs_away:
+        if not use_fast_path:
             sim_h2h_pts[h, a]  += home_pts[i]
             sim_h2h_pts[a, h]  += away_pts[i]
             sim_h2h_gd[h, a]   += gd_delta
@@ -762,9 +769,15 @@ def simulate_season(
     # ── Rank teams for each simulation ──────────────────────────────────────
     position_counts = np.zeros((n_teams, n_teams), dtype=np.int64)
 
-    if not (needs_h2h or needs_away):
-        # Fast vectorized path (no H2H needed)
-        sort_key = pts_matrix * 100_000 + (gd_matrix + 200) * 100 + gf_matrix
+    if use_fast_path:
+        # Fast vectorized path — only valid for the exact gd-then-gf rule
+        # order; any other H2H-free combination (e.g. "gf" before "gd")
+        # falls through to the general per-simulation path below instead
+        # of silently applying the wrong order.
+        # Bucket widths give 1,000 goals of headroom each for GF and |GD| —
+        # comfortably above any realistic single-season total — so neither
+        # can spill into the next digit and invert the sort order.
+        sort_key = pts_matrix * 10_000_000 + (gd_matrix + 1_000) * 1_000 + gf_matrix
         ranks = np.argsort(-sort_key, axis=0)
         for pos in range(n_teams):
             counts = np.bincount(ranks[pos], minlength=n_teams)
@@ -841,6 +854,8 @@ def simulate_final_four(
 
     rat_lookup, l_avg = _build_rat_lookup(ratings, DEFAULT_BASE_GOALS)
     default_r = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+    _phi  = OVERDISPERSION
+    _p_nb = 1.0 / (1.0 + _phi)
 
     def get_lams(ta: str, tb: str) -> tuple[float, float]:
         a_att, a_def = rat_lookup.get(ta, default_r)
@@ -848,6 +863,9 @@ def simulate_final_four(
         return a_att * max(b_def, 0.01) / l_avg, b_att * max(a_def, 0.01) / l_avg
 
     rng = np.random.default_rng()
+
+    def draw(lam: float, n: int) -> np.ndarray:
+        return rng.negative_binomial(np.maximum(lam / _phi, 1e-6), _p_nb, n)
     s1, s2, u1, u2 = teams_4[0], teams_4[1], teams_4[2], teams_4[3]
 
     sf_wins    = {t: 0 for t in teams_4}
@@ -866,14 +884,14 @@ def simulate_final_four(
 
         # ── Semi-finals: tie → higher-ranked (seeded) team wins ─────────────
         lam_s1h, lam_s1a = get_lams(s1, opp_for_s1)
-        g_s1  = rng.poisson(lam_s1h, n)
-        g_op1 = rng.poisson(lam_s1a, n)
+        g_s1  = draw(lam_s1h, n)
+        g_op1 = draw(lam_s1a, n)
         # tie → s1 wins (higher rank)
         sf1_s1_wins = g_s1 >= g_op1
 
         lam_s2h, lam_s2a = get_lams(s2, opp_for_s2)
-        g_s2  = rng.poisson(lam_s2h, n)
-        g_op2 = rng.poisson(lam_s2a, n)
+        g_s2  = draw(lam_s2h, n)
+        g_op2 = draw(lam_s2a, n)
         sf2_s2_wins = g_s2 >= g_op2
 
         sf_wins[s1]        += int(sf1_s1_wins.sum())
@@ -896,13 +914,13 @@ def simulate_final_four(
             if n_m == 0:
                 continue
             la, lb = get_lams(ta, tb)
-            ga = rng.poisson(la, n_m)
-            gb = rng.poisson(lb, n_m)
+            ga = draw(la, n_m)
+            gb = draw(lb, n_m)
             # Extra time (30 min ≈ 1/3 of 90 min)
             tied = ga == gb
             if tied.any():
-                ga = np.where(tied, ga + rng.poisson(la * 0.767, n_m), ga)
-                gb = np.where(tied, gb + rng.poisson(lb * 0.767, n_m), gb)
+                ga = np.where(tied, ga + draw(la * EXTRA_TIME_FRACTION, n_m), ga)
+                gb = np.where(tied, gb + draw(lb * EXTRA_TIME_FRACTION, n_m), gb)
                 # Penalties
                 still = ga == gb
                 coin  = rng.integers(0, 2, n_m).astype(bool)
@@ -973,8 +991,8 @@ def simulate_uecl_playoff(
     gb_sf = draw(lam_ba, n_sim)
     tied_sf = ga_sf == gb_sf
     if tied_sf.any():
-        ga_sf = np.where(tied_sf, ga_sf + draw(lam_ah * 0.767, n_sim), ga_sf)
-        gb_sf = np.where(tied_sf, gb_sf + draw(lam_ba * 0.767, n_sim), gb_sf)
+        ga_sf = np.where(tied_sf, ga_sf + draw(lam_ah * EXTRA_TIME_FRACTION, n_sim), ga_sf)
+        gb_sf = np.where(tied_sf, gb_sf + draw(lam_ba * EXTRA_TIME_FRACTION, n_sim), gb_sf)
         still_sf = ga_sf == gb_sf
         coin_sf  = rng.integers(0, 2, n_sim).astype(bool)
         ga_sf = np.where(still_sf, ga_sf + coin_sf.astype(int),    ga_sf)
@@ -1005,8 +1023,8 @@ def simulate_uecl_playoff(
         # If level on aggregate → ET at bye_team's ground → pens
         tied_f = agg_sf == agg_bye
         if tied_f.any():
-            agg_sf  = np.where(tied_f, agg_sf  + draw(lam_sf_a  * 0.767, n_m), agg_sf)
-            agg_bye = np.where(tied_f, agg_bye + draw(lam_bye_h * 0.767, n_m), agg_bye)
+            agg_sf  = np.where(tied_f, agg_sf  + draw(lam_sf_a  * EXTRA_TIME_FRACTION, n_m), agg_sf)
+            agg_bye = np.where(tied_f, agg_bye + draw(lam_bye_h * EXTRA_TIME_FRACTION, n_m), agg_bye)
             still_f = agg_sf == agg_bye
             coin_f  = rng.integers(0, 2, n_m).astype(bool)
             agg_sf  = np.where(still_f, agg_sf  + coin_f.astype(int),    agg_sf)
@@ -1090,8 +1108,8 @@ def simulate_uecl_3team_playoff(
         g_a = draw(lam_a, n)
         tied = g_h == g_a
         if tied.any():
-            g_h = np.where(tied, g_h + draw(lam_h * 0.767, n), g_h)
-            g_a = np.where(tied, g_a + draw(lam_a * 0.767, n), g_a)
+            g_h = np.where(tied, g_h + draw(lam_h * EXTRA_TIME_FRACTION, n), g_h)
+            g_a = np.where(tied, g_a + draw(lam_a * EXTRA_TIME_FRACTION, n), g_a)
             still = g_h == g_a
             coin = rng.integers(0, 2, n).astype(bool)
             g_h = np.where(still, g_h + coin.astype(int),    g_h)
@@ -1187,8 +1205,8 @@ def simulate_uecl_8team_playoff(
         g_h = rng.negative_binomial(np.maximum(lh / _phi, 1e-6), _p_nb)
         g_a = rng.negative_binomial(np.maximum(la / _phi, 1e-6), _p_nb)
         tied = g_h == g_a
-        g_h = np.where(tied, g_h + rng.negative_binomial(np.maximum(lh * 0.767 / _phi, 1e-6), _p_nb), g_h)
-        g_a = np.where(tied, g_a + rng.negative_binomial(np.maximum(la * 0.767 / _phi, 1e-6), _p_nb), g_a)
+        g_h = np.where(tied, g_h + rng.negative_binomial(np.maximum(lh * EXTRA_TIME_FRACTION / _phi, 1e-6), _p_nb), g_h)
+        g_a = np.where(tied, g_a + rng.negative_binomial(np.maximum(la * EXTRA_TIME_FRACTION / _phi, 1e-6), _p_nb), g_a)
         still = g_h == g_a
         coin = rng.integers(0, 2, g_h.shape[0]).astype(bool)
         g_h = np.where(still, g_h + coin.astype(int),    g_h)
@@ -1314,8 +1332,8 @@ def simulate_uecl_5team_playoff(
         g_a = draw(lam_a, n)
         tied = g_h == g_a
         if tied.any():
-            g_h = np.where(tied, g_h + draw(lam_h * 0.767, n), g_h)
-            g_a = np.where(tied, g_a + draw(lam_a * 0.767, n), g_a)
+            g_h = np.where(tied, g_h + draw(lam_h * EXTRA_TIME_FRACTION, n), g_h)
+            g_a = np.where(tied, g_a + draw(lam_a * EXTRA_TIME_FRACTION, n), g_a)
             still = g_h == g_a
             coin = rng.integers(0, 2, n).astype(bool)
             g_h = np.where(still, g_h + coin.astype(int),    g_h)
@@ -1436,8 +1454,8 @@ def simulate_uecl_4team_playoff(
         ga = draw(lam_a, n)
         tied = gh == ga
         if tied.any():
-            gh = np.where(tied, gh + draw(lam_h * 0.767, n), gh)
-            ga = np.where(tied, ga + draw(lam_a * 0.767, n), ga)
+            gh = np.where(tied, gh + draw(lam_h * EXTRA_TIME_FRACTION, n), gh)
+            ga = np.where(tied, ga + draw(lam_a * EXTRA_TIME_FRACTION, n), ga)
             still = gh == ga
             coin = rng.integers(0, 2, n).astype(bool)
             gh = np.where(still, gh + coin.astype(int),    gh)

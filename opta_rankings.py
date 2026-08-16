@@ -8,6 +8,7 @@ Shows Opta Power Ranking ratings (0-100 scale) used to project match outcomes:
 """
 
 import os
+import sys
 import time
 
 import streamlit as st
@@ -53,7 +54,11 @@ def _fetch_team_badges(league_id: int, season, key: str) -> dict[str, str]:
     try:
         client = ApiFootballClient(api_key=key)
         roster = client.get_standings(league_id, season)
-    except Exception:
+    except Exception as e:
+        # A real failure (bad key, rate limit, provider outage) looks
+        # identical to "no badges available" in the UI either way, but at
+        # least log it so it's not completely invisible.
+        print(f"[opta_rankings] WARNING: badge fetch failed for league {league_id}: {e}", file=sys.stderr)
         return {}
     return {r["strTeam"]: r["strBadge"] for r in roster if r.get("strTeam") and r.get("strBadge")}
 

@@ -26,6 +26,7 @@ load_dotenv()
 from config import LEAGUES, EUROPEAN_COMPETITIONS
 from api_football_fetcher import ApiFootballClient
 from flags import flag_url
+from coefficients_baseline import COUNTRY_NAME_FIXUP
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 _CET = ZoneInfo("Europe/Berlin")
@@ -35,8 +36,13 @@ _CET = ZoneInfo("Europe/Berlin")
 # before European Competitions page). Domestic leagues get a real
 # flagcdn.com flag (via their country); the European competitions aren't
 # tied to one country, so they keep their trophy/medal emoji instead.
+# A handful of leagues use an abbreviated country spelling in LEAGUES
+# ("Bosnia", "Czech Rep.", ...) that flags.py's FLAG_CODES doesn't have —
+# COUNTRY_NAME_FIXUP (already used by the Coefficients page) maps those to
+# the canonical spelling flags.py expects.
 _TRACKED: list[tuple[str, int, str]] = (
-    [(name, cfg["id"], flag_url(cfg.get("country", ""))) for name, cfg in LEAGUES.items()]
+    [(name, cfg["id"], flag_url(COUNTRY_NAME_FIXUP.get(cfg.get("country", ""), cfg.get("country", ""))))
+     for name, cfg in LEAGUES.items()]
     + [(name, cfg["id"], "") for name, cfg in EUROPEAN_COMPETITIONS.items()]
 )
 _LEAGUE_ORDER = {lid: i for i, (_name, lid, _flag) in enumerate(_TRACKED)}

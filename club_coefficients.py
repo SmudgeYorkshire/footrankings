@@ -427,7 +427,6 @@ CLUB_COEFFICIENTS: dict[str, float] = {
     "Gagra Tbilisi": 1.000,
     "Cosmos": 1.000,
     "Crystal Palace": 10.380,
-    "Brighton & Hove Albion": 16.000,
     "Leicester City": 13.000,
 }
 
@@ -562,7 +561,6 @@ CLUB_ALIASES: dict[str, str] = {
     "Vllaznia": "Vllaznia Shkodër",
     "Teuta": "Teuta Durrës",
     "Egnatia": "Egnatia Rrogozhinë",
-    "Ballkani": "FC Ballkani",
     # Georgia
     "Dinamo Tbilisi": "Dinamo Tbilisi",
     "Torpedo": "Torpedo Kutaisi",
@@ -645,6 +643,7 @@ NATION_COEFFICIENTS: dict[str, float] = {
     "Netherlands": 13.469,
     "Belgium": 12.450,
     "Turkey": 10.295,
+    "Türkiye": 10.295,
     "Ukraine": 4.982,
     "Austria": 6.770,
     "Czechia": 9.705,

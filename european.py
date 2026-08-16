@@ -19,11 +19,13 @@ from zoneinfo import ZoneInfo
 
 from config import EUROPEAN_COMPETITIONS, LEAGUES
 from api_football_fetcher import ApiFootballClient
+from _split_season import build_h2h, rank_tied_group
 from simulator import two_leg_advance_odds
 from qualifying_bracket import PLAYOFF_BRACKET, CONFIRMED_LEAGUE_PHASE
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 _CET = ZoneInfo("Europe/Berlin")
+_CURRENT_EURO_SEASON = "2026-2027"  # only the current season is tracked
 
 
 def _utc_to_cet(date_str: str, time_str: str) -> str:
@@ -59,6 +61,13 @@ def _intround(f: dict) -> int:
     return int(f.get("intRound", 0) or 0)
 
 
+# UEFA's own official League Phase tiebreak order (ahead of the Article
+# governing the Champions/Europa/Conference League format): head-to-head
+# points, then head-to-head GD, then head-to-head GF, then head-to-head
+# away GF, then overall GD, then overall GF.
+_LEAGUE_PHASE_TIEBREAKERS = ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"]
+
+
 def _compute_league_standings(matches: list[dict], badge_lookup: dict) -> list[dict]:
     """Build W/D/L/Pts standings from completed match results."""
     teams: dict[str, dict] = {}
@@ -86,15 +95,43 @@ def _compute_league_standings(matches: list[dict], badge_lookup: dict) -> list[d
         else:
             teams[home]["D"] += 1; teams[home]["Pts"] += 1
             teams[away]["D"] += 1; teams[away]["Pts"] += 1
-    rows = sorted(teams.values(), key=lambda r: (-r["Pts"], -r["GD"], -r["GF"]))
-    for i, r in enumerate(rows):
+
+    # rank_tied_group (shared with _split_season.py) reads intGoalDifference/
+    # intGoalsFor — alias them onto these Pts/GD/GF-keyed rows rather than
+    # keeping a second, independently-maintained tiebreak implementation.
+    for row in teams.values():
+        row["intGoalDifference"] = row["GD"]
+        row["intGoalsFor"] = row["GF"]
+
+    h2h = build_h2h(matches)
+    row_list = sorted(teams.values(), key=lambda r: -r["Pts"])
+    ranked: list[dict] = []
+    i = 0
+    while i < len(row_list):
+        j = i + 1
+        while j < len(row_list) and row_list[j]["Pts"] == row_list[i]["Pts"]:
+            j += 1
+        group = row_list[i:j]
+        ranked.extend(
+            rank_tied_group(group, _LEAGUE_PHASE_TIEBREAKERS, h2h) if len(group) > 1 else group
+        )
+        i = j
+
+    for i, r in enumerate(ranked):
         r["intRank"] = i + 1
-    return rows
+    return ranked
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def _load_combined_ratings() -> pd.DataFrame:
-    """Merge all domestic league ratings CSVs into one DataFrame."""
+    """Merge all domestic league ratings CSVs into one DataFrame.
+
+    Short TTL (matches the sitewide live-data convention) rather than the
+    1h this used to have — this only reads local CSVs (cheap, no API
+    quota at stake), and a long TTL meant Qualifying Predictions odds
+    could keep using a rating for up to an hour after admin.py saved a
+    new one.
+    """
     rows = []
     for league_cfg in LEAGUES.values():
         csv_path = Path("ratings") / f"{league_cfg.get('tsdb_id', league_cfg['id'])}.csv"
@@ -144,6 +181,19 @@ def _img(url: str, height: int = 14) -> str:
             f"style='margin-right:4px;vertical-align:middle'>") if url else ""
 
 
+def _leg_aggregate_winner(t1: str, t2: str, l1h: int, l1a: int, l2h: int, l2a: int) -> str | None:
+    """Two-leg aggregate winner (t1 was leg1's home team, t2 leg1's away
+    team; leg2 has them swapped). None if level on aggregate (decided by
+    penalties, which this site doesn't track a winner for)."""
+    agg_t1 = l1h + l2a
+    agg_t2 = l1a + l2h
+    if agg_t1 > agg_t2:
+        return t1
+    if agg_t2 > agg_t1:
+        return t2
+    return None
+
+
 def _tie_card_html(legs: list[dict], badge_lookup: dict, played_set: set) -> str:
     """One card per tie (1 or 2 legs). Shows leg scores + aggregate, winner highlighted."""
     legs = sorted(legs, key=lambda x: x.get("dateEvent", ""))
@@ -181,8 +231,7 @@ def _tie_card_html(legs: list[dict], badge_lookup: dict, played_set: set) -> str
     if l1_played and l2_played:
         agg_t1 = l1h + l2a
         agg_t2 = l1a + l2h
-        if agg_t1 > agg_t2:   winner = t1
-        elif agg_t2 > agg_t1: winner = t2
+        winner = _leg_aggregate_winner(t1, t2, l1h, l1a, l2h, l2a) or ""
         col = "#2e7d32" if winner else "#555"
         agg_html = (f"<div style='text-align:center;font-size:11px;color:{col};"
                     f"font-weight:bold;margin-top:3px'>Agg: {agg_t1}–{agg_t2}</div>")
@@ -216,7 +265,7 @@ def _fetch_comp_fixtures(comp_name: str, key: str):
     """played, remaining fixtures for any of the 3 competitions, by name."""
     cid = EUROPEAN_COMPETITIONS[comp_name]["id"]
     client = ApiFootballClient(api_key=key)
-    return client.get_fixtures(cid, "2026-2027")
+    return client.get_fixtures(cid, _CURRENT_EURO_SEASON)
 
 
 def _resolve_bracket_side(side: tuple, ratings_df: pd.DataFrame) -> dict:
@@ -258,9 +307,11 @@ def _resolve_bracket_side(side: tuple, ratings_df: pd.DataFrame) -> dict:
     l2_played = leg2 is not None and leg2.get("idEvent") in played_ids
 
     if l1_played and l2_played:
-        agg1 = int(leg1["intHomeScore"] or 0) + int(leg2["intAwayScore"] or 0)
-        agg2 = int(leg1["intAwayScore"] or 0) + int(leg2["intHomeScore"] or 0)
-        winner = t1 if agg1 > agg2 else (t2 if agg2 > agg1 else None)
+        winner = _leg_aggregate_winner(
+            t1, t2,
+            int(leg1["intHomeScore"] or 0), int(leg1["intAwayScore"] or 0),
+            int(leg2["intHomeScore"] or 0), int(leg2["intAwayScore"] or 0),
+        )
         loser  = t2 if winner == t1 else (t1 if winner == t2 else None)
         chosen = winner if which == "winner" else loser
         return {"label": chosen or "TBD (penalties)", "status": "confirmed", "pct": None}
@@ -306,7 +357,7 @@ with st.sidebar:
     )
     cfg     = EUROPEAN_COMPETITIONS[comp_name]
     comp_id = cfg["id"]
-    season  = "2026-2027"   # only the current season is tracked
+    season  = _CURRENT_EURO_SEASON
 
 
 # ---------------------------------------------------------------------------

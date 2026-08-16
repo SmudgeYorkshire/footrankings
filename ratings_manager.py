@@ -13,8 +13,8 @@ When looking up a team from the live-data provider's standings/fixtures,
 the code checks `alias` first (if set), then `team`.
 
 Default ratings (when no CSV exists yet) are estimated from season stats:
-a composite score based on points, goal difference, and goals scored,
-scaled to roughly the 70–100 range.
+a composite score based on goal difference and goals scored per game,
+scaled to roughly the 68–82 range.
 """
 
 import pandas as pd
@@ -38,10 +38,21 @@ def load_ratings(league_id: int, standings: list[dict]) -> pd.DataFrame:
             if "alias" not in df.columns:
                 df["alias"] = ""
             df["opta_rating"] = pd.to_numeric(df["opta_rating"], errors="coerce")
+            # A malformed cell (typo, stray text) would otherwise reach the
+            # simulator as NaN and crash the whole league's page outright
+            # (numpy's negative_binomial rejects a NaN n) — fall back to the
+            # default rating for just that row instead.
+            if df["opta_rating"].isna().any():
+                df["opta_rating"] = df["opta_rating"].fillna(DEFAULT_OPTA)
             df["alias"] = df["alias"].fillna("")
             return df[["team", "alias", "opta_rating"]]
+        # File exists but doesn't look like a ratings CSV (bad header, a
+        # mid-edit save, ...) — return usable estimates for this page load
+        # without persisting over whatever's actually on disk; a human
+        # should fix or intentionally reset the file (see admin.py).
+        return _defaults_from_standings(standings, csv_path, persist=False)
 
-    return _defaults_from_standings(standings, csv_path)
+    return _defaults_from_standings(standings, csv_path, persist=True)
 
 
 def save_ratings(league_id: int, ratings: pd.DataFrame) -> None:
@@ -87,20 +98,25 @@ def check_coverage(standings: list[dict], ratings: pd.DataFrame) -> list[str]:
     ]
 
 
-def _defaults_from_standings(standings: list[dict], csv_path: Path) -> pd.DataFrame:
+def _defaults_from_standings(standings: list[dict], csv_path: Path, persist: bool = True) -> pd.DataFrame:
     """
-    Generate default Opta-like ratings from season stats and save to CSV.
-    Uses a composite score (points + goal diff + goals for) scaled to 70-100.
+    Generate default Opta-like ratings from season stats, optionally saving
+    to CSV. Uses a composite score (goal diff + goals for per game) scaled
+    to roughly 68-82.
+
+    persist=False computes the same estimates without writing csv_path —
+    used when an existing file couldn't be read as ratings, so a bad file
+    isn't silently clobbered by a page load; only the "no file yet" path
+    and an explicit admin reset actually persist.
     """
     rows = []
     for row in standings:
         played = int(row.get("intPlayed") or 0)
-        pts    = int(row.get("intPoints") or 0)
         gd     = int(row.get("intGoalDifference") or 0)
         gf     = int(row.get("intGoalsFor") or 0)
         # Use goal difference per game as the primary signal (less circular than pts).
         # Goals for per game added as a secondary signal to break GD ties.
-        score  = (gd * 10 + gf) / max(played, 1) if played > 0 else 0
+        score  = (gd * 10 + gf) / played if played > 0 else 0
         rows.append({"team": row["strTeam"], "_score": score})
 
     if not rows:
@@ -116,5 +132,6 @@ def _defaults_from_standings(standings: list[dict], csv_path: Path) -> pd.DataFr
     df = df[["team", "opta_rating"]].copy()
     df["alias"] = ""
     df["opta_rating"] = df["opta_rating"].round(1)
-    df[["team", "alias", "opta_rating"]].to_csv(csv_path, index=False)
+    if persist:
+        df[["team", "alias", "opta_rating"]].to_csv(csv_path, index=False)
     return df[["team", "alias", "opta_rating"]]

@@ -71,6 +71,7 @@ is_admin = get_role(auth_config, username) == "admin"
 # Logout in sidebar (appears above the page navigation)
 # ---------------------------------------------------------------------------
 st.session_state["_authenticator"] = authenticator
+st.session_state["_auth_config"] = auth_config
 
 # ---------------------------------------------------------------------------
 # Global header

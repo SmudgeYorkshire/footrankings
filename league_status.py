@@ -564,12 +564,3 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         },
     },
 }
-
-
-def get_status(league_name: str, pos: int, phase: str = "regular") -> str:
-    """Return the status label for a given league, position, and phase.
-
-    phase: "regular" | "champ" | "relg"
-    Returns empty string if no label is defined.
-    """
-    return LEAGUE_STATUS.get(league_name, {}).get(phase, {}).get(pos, "")

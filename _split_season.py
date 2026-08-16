@@ -143,18 +143,124 @@ def conference_fixtures(fixtures: list[dict], teams: set[str]) -> list[dict]:
     ]
 
 
+_DEFAULT_TIEBREAKERS = ["gd", "gf"]
+
+# Tokens this function knows how to resolve purely from tracked match data.
+# Anything else a league's config lists (fair_play, disciplinary,
+# less_red_cards, less_yellow_cards, draw, playoffs, playoffs_champion,
+# pts_no_round, regular_pts, ...) needs data this site doesn't fetch (card
+# counts) or is a literal one-off outcome no formula can resolve (a coin
+# toss, an actual playoff match) — those are treated as still-tied and
+# skipped, same as if they weren't listed, rather than guessed at.
+_KNOWN_TIEBREAK_RULES = {
+    "gd", "gf", "away_gf", "wins", "away_wins", "less_losses",
+    "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "h2h_wins",
+}
+
+
+def build_h2h(played_fixtures: list[dict]) -> dict[tuple[str, str], dict]:
+    """h2h[(team, opponent)] = accumulated points/GD/GF/away-GF/wins from
+    every meeting between exactly that pair, for head-to-head tiebreakers."""
+    h2h: dict[tuple[str, str], dict] = {}
+
+    def bump(team, opp, **kw):
+        d = h2h.setdefault((team, opp), {"pts": 0, "gd": 0, "gf": 0, "away_gf": 0, "wins": 0})
+        for k, v in kw.items():
+            d[k] += v
+
+    for f in played_fixtures:
+        home, away = f.get("strHomeTeam"), f.get("strAwayTeam")
+        if not home or not away:
+            continue
+        try:
+            hg, ag = int(f.get("intHomeScore")), int(f.get("intAwayScore"))
+        except (TypeError, ValueError):
+            continue
+        if hg > ag:
+            bump(home, away, pts=3, wins=1)
+        elif hg < ag:
+            bump(away, home, pts=3, wins=1)
+        else:
+            bump(home, away, pts=1)
+            bump(away, home, pts=1)
+        bump(home, away, gd=hg - ag, gf=hg)
+        bump(away, home, gd=ag - hg, gf=ag, away_gf=ag)
+    return h2h
+
+
+def rank_tied_group(group: list[dict], rules: list[str], h2h: dict[tuple[str, str], dict]) -> list[dict]:
+    """Rank standings rows tied on points using the given tiebreaker rules,
+    recursively re-applying the next rule to any still-tied subgroup — same
+    recursive-split approach as simulator.py's Monte Carlo `_rank_group`,
+    but reading each team's already-known season totals + head-to-head
+    instead of a simulated one."""
+    if len(group) <= 1:
+        return list(group)
+
+    for idx, rule in enumerate(rules):
+        if rule not in _KNOWN_TIEBREAK_RULES:
+            continue
+
+        def score(row, rule=rule):
+            team = row["strTeam"]
+            if rule.startswith("h2h_"):
+                field = rule[len("h2h_"):]
+                if field == "away_gf":
+                    field = "away_gf"
+                return sum(
+                    h2h.get((team, o["strTeam"]), {}).get(field, 0)
+                    for o in group if o is not row
+                )
+            if rule == "gd":
+                return row.get("intGoalDifference", 0)
+            if rule == "gf":
+                return row.get("intGoalsFor", 0)
+            if rule == "away_gf":
+                return row.get("intAwayGoalsFor", 0)
+            if rule == "wins":
+                return row.get("intWin", 0)
+            if rule == "away_wins":
+                return row.get("intAwayWin", 0)
+            if rule == "less_losses":
+                return -row.get("intLoss", 0)
+            return 0
+
+        scores = {id(row): score(row) for row in group}
+        if len(set(scores.values())) == 1:
+            continue  # still all tied on this rule, try the next one
+
+        remaining_rules = rules[idx + 1:]
+        sorted_group = sorted(group, key=lambda r: scores[id(r)], reverse=True)
+
+        result = []
+        i = 0
+        while i < len(sorted_group):
+            j = i + 1
+            while j < len(sorted_group) and scores[id(sorted_group[j])] == scores[id(sorted_group[i])]:
+                j += 1
+            subgroup = sorted_group[i:j]
+            result.extend(rank_tied_group(subgroup, remaining_rules, h2h) if len(subgroup) > 1 else subgroup)
+            i = j
+        return result
+
+    return list(group)  # every known rule exhausted, still tied — keep as-is
+
+
 def recompute_conference_standings(
     base_rows: list[dict],
     played_fixtures: list[dict],
     pts_factor: float = 1.0,
     pts_round: str = "down",
+    tiebreakers: list[str] | None = None,
 ) -> list[dict]:
     """
     Build conference standings from scratch using the presplit snapshot as
     the base and applying played post-split fixtures on top.
 
-    Applies pts_factor to starting points, then adds W/D/L/GF/GA from
-    each played fixture, then re-ranks by points → GD → GF.
+    Applies pts_factor to starting points, then adds W/D/L/GF/GA from each
+    played fixture, then re-ranks by points → tiebreakers (the league's own
+    configured rule order — see rank_tied_group — defaulting to GD → GF
+    when not supplied, matching simulator.py's own default).
     Called for every conference (champ / mid / relg) because the provider
     does not update split-league tables post-split.
     """
@@ -171,13 +277,15 @@ def recompute_conference_standings(
             adj_pts = math.ceil(raw_pts * pts_factor)
         else:
             adj_pts = math.floor(raw_pts * pts_factor)
-        row["intPoints"]       = adj_pts
-        row["intWin"]          = int(r.get("intWin")          or 0)
-        row["intDraw"]         = int(r.get("intDraw")         or 0)
-        row["intLoss"]         = int(r.get("intLoss")         or 0)
-        row["intGoalsFor"]     = int(r.get("intGoalsFor")     or 0)
-        row["intGoalsAgainst"] = int(r.get("intGoalsAgainst") or 0)
-        row["intPlayed"]       = int(r.get("intPlayed")       or 0)
+        row["intPoints"]         = adj_pts
+        row["intWin"]            = int(r.get("intWin")            or 0)
+        row["intDraw"]           = int(r.get("intDraw")           or 0)
+        row["intLoss"]           = int(r.get("intLoss")           or 0)
+        row["intGoalsFor"]       = int(r.get("intGoalsFor")       or 0)
+        row["intGoalsAgainst"]   = int(r.get("intGoalsAgainst")   or 0)
+        row["intPlayed"]         = int(r.get("intPlayed")         or 0)
+        row["intAwayGoalsFor"]   = int(r.get("intAwayGoalsFor")   or 0)
+        row["intAwayWin"]        = int(r.get("intAwayWin")        or 0)
         # Store rounding bonus: when pts_factor=0.5 and pre-split pts were odd,
         # the team lost 0.5 pts to flooring — credited back as tiebreaker
         row["_half_pts_bonus"] = (
@@ -201,14 +309,16 @@ def recompute_conference_standings(
         rows[home]["intGoalsAgainst"] += ag
         rows[away]["intGoalsFor"]     += ag
         rows[away]["intGoalsAgainst"] += hg
+        rows[away]["intAwayGoalsFor"] += ag
         if hg > ag:
             rows[home]["intWin"]    += 1
             rows[home]["intPoints"] += 3
             rows[away]["intLoss"]   += 1
         elif hg < ag:
-            rows[away]["intWin"]    += 1
-            rows[away]["intPoints"] += 3
-            rows[home]["intLoss"]   += 1
+            rows[away]["intWin"]     += 1
+            rows[away]["intAwayWin"] += 1
+            rows[away]["intPoints"]  += 3
+            rows[home]["intLoss"]    += 1
         else:
             rows[home]["intDraw"]   += 1
             rows[home]["intPoints"] += 1
@@ -218,14 +328,28 @@ def recompute_conference_standings(
     row_list = list(rows.values())
     for row in row_list:
         row["intGoalDifference"] = row["intGoalsFor"] - row["intGoalsAgainst"]
-    row_list.sort(key=lambda r: (
-        -(int(r["intPoints"]) + r.get("_half_pts_bonus", 0.0)),  # pts + rounding credit
-        -int(r["intGoalDifference"]),
-        -int(r["intGoalsFor"]),
-    ))
-    for i, row in enumerate(row_list, start=1):
+
+    rules = tiebreakers if tiebreakers else _DEFAULT_TIEBREAKERS
+    h2h = build_h2h(played_fixtures) if any(r.startswith("h2h") for r in rules) else {}
+
+    row_list.sort(key=lambda r: -(int(r["intPoints"]) + r.get("_half_pts_bonus", 0.0)))
+    ranked: list[dict] = []
+    i = 0
+    while i < len(row_list):
+        j = i + 1
+        while j < len(row_list) and (
+            int(row_list[j]["intPoints"]) + row_list[j].get("_half_pts_bonus", 0.0)
+        ) == (
+            int(row_list[i]["intPoints"]) + row_list[i].get("_half_pts_bonus", 0.0)
+        ):
+            j += 1
+        group = row_list[i:j]
+        ranked.extend(rank_tied_group(group, rules, h2h) if len(group) > 1 else group)
+        i = j
+
+    for i, row in enumerate(ranked, start=1):
         row["intRank"] = i
-    return row_list
+    return ranked
 
 
 def ensure_full_roster(roster_rows: list[dict], fixtures: list[dict]) -> list[dict]:
@@ -249,7 +373,9 @@ def ensure_full_roster(roster_rows: list[dict], fixtures: list[dict]) -> list[di
     return roster_rows + extra
 
 
-def compute_full_standings(roster_rows: list[dict], played_fixtures: list[dict]) -> list[dict]:
+def compute_full_standings(
+    roster_rows: list[dict], played_fixtures: list[dict], tiebreakers: list[str] | None = None,
+) -> list[dict]:
     """
     Build a whole league's table from scratch: every team at 0 played, then
     every played fixture applied on top. Used as the site's primary standings
@@ -260,6 +386,10 @@ def compute_full_standings(roster_rows: list[dict], played_fixtures: list[dict])
 
     roster_rows only needs to supply the team list + badges (typically the
     provider's own get_standings() result) — its stats are zeroed and ignored.
+
+    tiebreakers should be the league's own configured rule order (e.g.
+    cfg["tiebreakers"]) so ties resolve the same way here as they do on the
+    Predictions tab's simulation — defaults to GD → GF when not supplied.
     """
     zeroed = []
     for r in roster_rows:
@@ -270,4 +400,6 @@ def compute_full_standings(roster_rows: list[dict], played_fixtures: list[dict])
             "intPoints": 0,
         })
         zeroed.append(row)
-    return recompute_conference_standings(zeroed, played_fixtures, pts_factor=1.0, pts_round="down")
+    return recompute_conference_standings(
+        zeroed, played_fixtures, pts_factor=1.0, pts_round="down", tiebreakers=tiebreakers,
+    )
