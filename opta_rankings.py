@@ -5,11 +5,15 @@ Shows Opta Power Ranking ratings (0-100 scale) used to project match outcomes:
   • Overall — every club from every league, ranked on one global table
   • By League — per-league ratings table
   • Non-Top 5 — every club except those from the Top 5 leagues, ranked on one table
+  • Complete Rankings — the full global Opta list (~13,800 teams from every
+    country, not just the 54 we track), scraped separately by
+    scrape_opta_power_rankings.py, with our tracked clubs flagged
 """
 
 import os
 import sys
 import time
+from pathlib import Path
 
 import streamlit as st
 import pandas as pd
@@ -23,6 +27,7 @@ from api_football_fetcher import ApiFootballClient
 from league_display import TOP5_LEAGUES as _TOP5_LEAGUES, DROPDOWN_LABELS, DROPDOWN_ORDER
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
+_GLOBAL_RANKINGS_PATH = "opta_power_rankings.csv"
 
 st.markdown(
     "<h3 style='margin:0'>⭐ Opta Rankings</h3>",
@@ -31,7 +36,9 @@ st.markdown(
 st.caption("Opta Power Ranking ratings used to project match outcomes across all European leagues.")
 st.divider()
 
-tab_overall, tab_league, tab_non_top5 = st.tabs(["🌍 Overall", "🏆 By League", "🌐 Non-Top 5"])
+tab_overall, tab_league, tab_non_top5, tab_global = st.tabs(
+    ["🌍 Overall", "🏆 By League", "🌐 Non-Top 5", "🗺️ Complete Rankings"]
+)
 
 _RATING_COL_CFG = {
     "Rank":          st.column_config.NumberColumn("Rank", width="small"),
@@ -151,3 +158,85 @@ with tab_non_top5:
         use_container_width=True,
         hide_index=True,
     )
+
+# ---------------------------------------------------------------------------
+# Complete Rankings — the full global Opta list, our tracked clubs flagged
+# ---------------------------------------------------------------------------
+with tab_global:
+    if not Path(_GLOBAL_RANKINGS_PATH).exists():
+        st.info(
+            "No global rankings scrape found yet. Run `scrape_opta_power_rankings.py` "
+            "(scheduled weekdaily via the Update Opta Ratings workflow) to generate "
+            f"{_GLOBAL_RANKINGS_PATH}."
+        )
+    else:
+        from update_ratings_from_opta import _normalize
+
+        @st.cache_data(ttl=3_600, show_spinner=False)
+        def _load_global_rankings_df(mtime: float) -> pd.DataFrame:
+            df = pd.read_csv(_GLOBAL_RANKINGS_PATH)
+            df["rating"] = pd.to_numeric(df["rating"], errors="coerce")
+            return df
+
+        _global_df = _load_global_rankings_df(Path(_GLOBAL_RANKINGS_PATH).stat().st_mtime)
+
+        # Tag every globally-ranked team that matches one of our tracked
+        # clubs with which league we track it in. Matches against both the
+        # `team` and `alias` columns of each league's ratings CSV (not the
+        # single alias-preferred display name _all_df uses) -- e.g. Brighton
+        # & Hove Albion's alias is the short "Brighton", so matching only
+        # the display name would miss the full name this scrape uses.
+        _tracked_by_norm: dict[str, str] = {}
+        for _league_name, _cfg in LEAGUES.items():
+            _label = f"{_cfg['flag']} {_league_name}"
+            _csv_path = Path("ratings") / f"{_cfg.get('tsdb_id', _cfg['id'])}.csv"
+            if not _csv_path.exists():
+                continue
+            _rdf = pd.read_csv(_csv_path, dtype=str)
+            for _, _rrow in _rdf.iterrows():
+                for _col in ("team", "alias"):
+                    _name = str(_rrow.get(_col, "")).strip()
+                    if _name and _name.lower() != "nan":
+                        _tracked_by_norm.setdefault(_normalize(_name), _label)
+        _global_df["Tracked League"] = _global_df["team"].map(
+            lambda t: _tracked_by_norm.get(_normalize(t), "")
+        )
+
+        _updated_at = time.strftime("%Y-%m-%d", time.localtime(Path(_GLOBAL_RANKINGS_PATH).stat().st_mtime))
+        st.caption(
+            f"Every men's team Opta rates worldwide ({len(_global_df):,} teams), not just the 54 "
+            f"leagues this site tracks in detail. Refreshed {_updated_at}. Rows highlighted with a "
+            f"league name are one of our tracked clubs."
+        )
+
+        col_search, col_toggle = st.columns([3, 1])
+        with col_search:
+            _search = st.text_input("Search team", key="global_rankings_search", placeholder="e.g. Boca Juniors")
+        with col_toggle:
+            _tracked_only = st.checkbox("Tracked clubs only", key="global_rankings_tracked_only")
+
+        _view = _global_df
+        if _search:
+            _view = _view[_view["team"].str.contains(_search, case=False, na=False)]
+        if _tracked_only:
+            _view = _view[_view["Tracked League"] != ""]
+
+        _view = _view.rename(columns={
+            "rank": "Rank", "team": "Team", "rating": "Rating",
+            "change_7d": "7-Day Change", "badge_url": "Badge",
+        })[["Rank", "Badge", "Team", "Rating", "7-Day Change", "Tracked League"]]
+
+        st.dataframe(
+            _view,
+            column_config={
+                "Rank":           st.column_config.NumberColumn("Rank", width="small"),
+                "Badge":          st.column_config.ImageColumn("", width="small"),
+                "Team":           st.column_config.TextColumn("Team", width="medium"),
+                "Rating":         st.column_config.NumberColumn("Rating", format="%.1f", width="small"),
+                "7-Day Change":   st.column_config.NumberColumn("7-Day Change", width="small"),
+                "Tracked League": st.column_config.TextColumn("Tracked League", width="medium"),
+            },
+            use_container_width=True,
+            hide_index=True,
+            height=600,
+        )

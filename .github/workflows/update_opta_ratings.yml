@@ -1,0 +1,38 @@
+name: Update Opta Ratings
+
+on:
+  schedule:
+    - cron: '0 6 * * 1-5'   # 06:00 UTC, weekdays -- after Opta's own daily (Mon-Fri) refresh
+  workflow_dispatch:        # allow manual "Run workflow" trigger too
+
+permissions:
+  contents: write
+
+jobs:
+  update-ratings:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-scraper.txt
+          playwright install --with-deps chromium
+
+      - name: Scrape the complete global Opta Power Rankings
+        run: python scrape_opta_power_rankings.py
+
+      - name: Update our 54 tracked leagues' ratings from the scrape
+        run: python update_ratings_from_opta.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add opta_power_rankings.csv ratings/
+          git diff --staged --quiet || git commit -m "Update Opta ratings $(date -u +%Y-%m-%d)"
+          git push
