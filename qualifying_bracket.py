@@ -20,8 +20,8 @@ A "side" is one of:
 # Clubs already confirmed for the 2026-27 League Phase, entering directly
 # (not through qualifying) — sourced from Wikipedia's "Teams" section for
 # each competition. Champions League: 29 of 36 slots confirmed, the other 7
-# go to Play-off round winners. Europa League: 13 of 36 slots confirmed, the
-# rest fill via its own qualifying plus Champions League play-off/QR3 drop-downs.
+# go to Play-off round winners. Europa League: 17 of 36 slots confirmed, the
+# rest fill via its own qualifying plus Champions League Play-off drop-downs.
 CONFIRMED_LEAGUE_PHASE: dict[str, list[tuple[str, str, str]]] = {
     "Champions League": [
         ("Paris Saint-Germain", "France", "🇫🇷"),
@@ -50,7 +50,7 @@ CONFIRMED_LEAGUE_PHASE: dict[str, list[tuple[str, str, str]]] = {
         ("Porto", "Portugal", "🇵🇹"),
         ("Sporting CP", "Portugal", "🇵🇹"),
         ("Club Brugge", "Belgium", "🇧🇪"),
-        ("Slavia Prague", "Czech Republic", "🇨🇿"),
+        ("Slavia Prague", "Czech Rep.", "🇨🇿"),
         ("Galatasaray", "Turkey", "🇹🇷"),
         ("Shakhtar Donetsk", "Ukraine", "🇺🇦"),
     ],
@@ -68,6 +68,10 @@ CONFIRMED_LEAGUE_PHASE: dict[str, list[tuple[str, str, str]]] = {
         ("Rennes", "France", "🇫🇷"),
         ("AZ Alkmaar", "Netherlands", "🇳🇱"),
         ("Torreense", "Portugal", "🇵🇹"),
+        ("Olympiacos", "Greece", "🇬🇷"),
+        ("Union Saint-Gilloise", "Belgium", "🇧🇪"),
+        ("Sparta Prague", "Czech Rep.", "🇨🇿"),
+        ("Sturm Graz", "Austria", "🇦🇹"),
     ],
 }
 
@@ -153,5 +157,12 @@ PLAYOFF_BRACKET: dict[str, list[tuple]] = {
          ("tie", "Conference League", {"FK Partizan", "FK Tobol Kostanay"}, "winner")),
         (("tie", "Conference League", {"FC Lugano", "NSI Runavik"}, "winner"),
          ("tie", "Europa League", {"CSKA Sofia", "Maccabi Tel Aviv"}, "loser")),
+        # Champions Path ties -- both sides already confirmed teams (no QR3
+        # resolution needed) by the time the Play-off round is reached.
+        (("team", "Borac Banja Luka"), ("team", "Vikingur Reykjavik")),
+        (("team", "Drita"), ("team", "Inter Club d'Escaldes")),
+        (("team", "KI Klaksvik"), ("team", "Riga")),
+        (("team", "KuPS"), ("team", "Shamrock Rovers")),
+        (("team", "Larne"), ("team", "Lincoln Red Imps FC")),
     ],
 }

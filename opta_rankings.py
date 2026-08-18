@@ -10,9 +10,11 @@ Shows Opta Power Ranking ratings (0-100 scale) used to project match outcomes:
     scrape_opta_power_rankings.py, with our tracked clubs flagged
 """
 
+import json
 import os
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 import streamlit as st
@@ -28,12 +30,40 @@ from league_display import TOP5_LEAGUES as _TOP5_LEAGUES, DROPDOWN_LABELS, DROPD
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 _GLOBAL_RANKINGS_PATH = "opta_power_rankings.csv"
+_GLOBAL_RANKINGS_META_PATH = "opta_power_rankings_meta.json"
+
+
+def _load_opta_meta() -> dict:
+    if not Path(_GLOBAL_RANKINGS_META_PATH).exists():
+        return {}
+    try:
+        with open(_GLOBAL_RANKINGS_META_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _fmt_date(iso_date: str | None) -> str | None:
+    if not iso_date:
+        return None
+    try:
+        dt = datetime.strptime(iso_date, "%Y-%m-%d")
+    except ValueError:
+        return iso_date
+    return f"{dt.strftime('%B')} {dt.day}, {dt.year}"  # avoids %-d, not portable on Windows
+
 
 st.markdown(
     "<h3 style='margin:0'>⭐ Opta Rankings</h3>",
     unsafe_allow_html=True,
 )
 st.caption("Opta Power Ranking ratings used to project match outcomes across all European leagues.")
+
+_opta_meta = _load_opta_meta()
+_opta_updated = _fmt_date(_opta_meta.get("opta_last_updated"))
+if _opta_updated:
+    st.caption(f"📅 Opta data last updated **{_opta_updated}** — synced to this site's ratings below.")
+
 st.divider()
 
 tab_overall, tab_league, tab_non_top5, tab_global = st.tabs(
@@ -202,11 +232,10 @@ with tab_global:
             lambda t: _tracked_by_norm.get(_normalize(t), "")
         )
 
-        _updated_at = time.strftime("%Y-%m-%d", time.localtime(Path(_GLOBAL_RANKINGS_PATH).stat().st_mtime))
         st.caption(
             f"Every men's team Opta rates worldwide ({len(_global_df):,} teams), not just the 54 "
-            f"leagues this site tracks in detail. Refreshed {_updated_at}. Rows highlighted with a "
-            f"league name are one of our tracked clubs."
+            f"leagues this site tracks in detail (Opta data last updated {_opta_updated or 'unknown'}). "
+            f"Rows highlighted with a league name are one of our tracked clubs."
         )
 
         col_search, col_toggle = st.columns([3, 1])
