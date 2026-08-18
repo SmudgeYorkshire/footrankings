@@ -586,6 +586,80 @@ def render_cup_details(cfg: dict, key: str):
             unsafe_allow_html=True,
         )
 
+    render_cup_fixture_browser(cup_id, season, key, current_round=cup.get("round"))
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def fetch_cup_fixtures(cup_id, season, key):
+    """Every fixture (played + remaining) for a cup's current season."""
+    return ApiFootballClient(api_key=key).get_fixtures(cup_id, season)
+
+
+def render_cup_fixture_browser(cup_id, season, key, current_round: str | None = None):
+    """Collapsed-by-default round-by-round fixture/results browser for a
+    domestic cup. Rounds are ordered by each round's earliest fixture date
+    rather than parsed from the round name -- naming schemes vary wildly
+    between cups ("Round of 128" vs "1st Round" vs "1/128-finals"), but
+    every one of them still plays out in chronological order."""
+    try:
+        played, remaining = fetch_cup_fixtures(cup_id, season, key)
+    except RuntimeError:
+        return
+    all_fixtures = played + remaining
+    if not all_fixtures:
+        return
+    played_ids = {f.get("idEvent") for f in played}
+
+    rounds_map: dict[str, list] = {}
+    for f in all_fixtures:
+        rounds_map.setdefault(f.get("strRound", ""), []).append(f)
+    ordered_rounds = sorted(
+        rounds_map,
+        key=lambda r: min(f.get("dateEvent", "9999") for f in rounds_map[r]),
+    )
+
+    default_idx = ordered_rounds.index(current_round) if current_round in ordered_rounds else len(ordered_rounds) - 1
+
+    with st.expander("📋 All Fixtures & Results"):
+        selected_round = st.selectbox(
+            "Round", options=ordered_rounds, index=default_idx,
+            key=f"cup_round_select_{cup_id}_{season}",
+        )
+        rows = []
+        for f in sorted(rounds_map[selected_round], key=lambda x: (x.get("dateEvent", ""), x.get("strTime", ""))):
+            is_played = f.get("idEvent") in played_ids
+            if is_played:
+                score = f"{f.get('intHomeScore', '')} – {f.get('intAwayScore', '')}"
+                ph, pa = f.get("intPenaltyHome"), f.get("intPenaltyAway")
+                if ph is not None and pa is not None:
+                    score += f" (pens {ph}–{pa})"
+            else:
+                score = "vs"
+            rows.append({
+                "Date":  f.get("dateEvent", ""),
+                "Time":  _utc_to_cet(f.get("dateEvent", ""), f.get("strTime", "")),
+                "HB":    f.get("strHomeTeamBadge", ""),
+                "Home":  f.get("strHomeTeam", ""),
+                "Score": score,
+                "Away":  f.get("strAwayTeam", ""),
+                "AB":    f.get("strAwayTeamBadge", ""),
+            })
+        _cup_df = pd.DataFrame(rows).style.set_properties(
+            subset=["Home", "Away"], **{"font-weight": "bold"})
+        st.dataframe(
+            _cup_df,
+            column_config={
+                "Date":  st.column_config.TextColumn("Date",  width=110),
+                "Time":  st.column_config.TextColumn("Time",  width="small"),
+                "HB":    st.column_config.ImageColumn("",     width="small"),
+                "Home":  st.column_config.TextColumn("Home",  width="medium"),
+                "Score": st.column_config.TextColumn("Score", width="small"),
+                "Away":  st.column_config.TextColumn("Away",  width="medium"),
+                "AB":    st.column_config.ImageColumn("",     width="small"),
+            },
+            use_container_width=False, hide_index=True,
+        )
+
 
 @st.cache_data(ttl=86_400, show_spinner=False)
 def fetch_available_seasons(lid, key):
@@ -1611,7 +1685,7 @@ def main_content():
                         _st_lookup = {r["strTeam"]: r for r in standings}
                         _zone_notes = cfg.get("zone_notes", {})
                         _po_sim_key = ("playoff", league_id, season, n_sim, home_advantage,
-                                       len(champ_fix), len(mid_fix), len(relg_fix))
+                                       len(played_fixtures))
                         if st.session_state.get("po_sim_key") != _po_sim_key:
                             st.session_state["po_sims"] = {}
                             st.session_state["po_sim_key"] = _po_sim_key
@@ -1691,10 +1765,11 @@ def main_content():
                                 and _po_r in st.session_state.get("po_sims", {})):
                             _champ_sim = st.session_state["po_sims"][_po_c]
                             _relg_sim  = st.session_state["po_sims"][_po_r]
-                            # Bye = current 5th in championship (avoids duplicate picks)
-                            _cc2 = sorted(split_info.get("champ_current", []),
-                                          key=lambda r: int(r.get("intRank", 99)))
-                            _pred_bye  = (_cc2[4]["strTeam"] if len(_cc2) >= 5 else None)
+                            # Bye = predicted 5th in championship group (avoids duplicate
+                            # picks). No actual split has happened yet in this branch, so
+                            # top_champ (predicted rank order, computed above) stands in for
+                            # split_info["champ_current"]'s role in the post-split case.
+                            _pred_bye = top_champ[4] if len(top_champ) >= 5 else None
                             _pred_sf_a = (_relg_sim["1"].idxmax()
                                           if "1" in _relg_sim.columns else None)
                             # Exclude sf_a from pool when picking 2nd to avoid duplicates
