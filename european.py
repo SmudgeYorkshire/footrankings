@@ -11,20 +11,24 @@ Shows:
 """
 
 import os
-import unicodedata
 import streamlit as st
 import pandas as pd
-from pathlib import Path
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
-from config import EUROPEAN_COMPETITIONS, LEAGUES
+from config import EUROPEAN_COMPETITIONS
 from api_football_fetcher import ApiFootballClient
 from _split_season import build_h2h, rank_tied_group
 from simulator import two_leg_advance_odds
 from qualifying_bracket import PLAYOFF_BRACKET, CONFIRMED_LEAGUE_PHASE
 from club_coefficients import CLUB_COEFFICIENTS, get_coeff
-from league_phase_simulator import simulate_competition_winner
+from league_phase_simulator import simulate_competition_winner, build_predicted_bracket
+from qualifying_projection import (
+    _PLAYOFF_ROUND_NAMES,
+    _load_combined_ratings, _resolve_field_ratings,
+    _leg_aggregate_winner, _resolve_bracket_side,
+    _resolve_playoff_tie_odds, _project_league_phase_field,
+)
 
 # Real pot sizing per competition (see league_phase_simulator's docstring):
 # Champions/Europa League: 4 pots of 9, 2 opponents each = 8 League Phase
@@ -139,205 +143,6 @@ def _compute_league_standings(matches: list[dict], badge_lookup: dict) -> list[d
 
 
 @st.cache_data(ttl=60, show_spinner=False)
-def _load_combined_ratings() -> pd.DataFrame:
-    """Merge all domestic league ratings CSVs into one DataFrame.
-
-    Short TTL (matches the sitewide live-data convention) rather than the
-    1h this used to have — this only reads local CSVs (cheap, no API
-    quota at stake), and a long TTL meant Qualifying Predictions odds
-    could keep using a rating for up to an hour after admin.py saved a
-    new one.
-    """
-    rows = []
-    for league_cfg in LEAGUES.values():
-        csv_path = Path("ratings") / f"{league_cfg.get('tsdb_id', league_cfg['id'])}.csv"
-        if csv_path.exists():
-            df = pd.read_csv(csv_path, dtype=str)
-            if "team" in df.columns and "opta_rating" in df.columns:
-                if "alias" not in df.columns:
-                    df["alias"] = ""
-                df["alias"] = df["alias"].fillna("")
-                df["opta_rating"] = pd.to_numeric(df["opta_rating"], errors="coerce")
-                rows.append(df[["team", "alias", "opta_rating"]].dropna(subset=["opta_rating"]))
-    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=["team", "alias", "opta_rating"])
-
-
-@st.cache_data(ttl=86_400, show_spinner=False)
-def _load_club_country_map() -> dict[str, str]:
-    """{club or alias name: country}, from every domestic league's ratings
-    CSV -- same source/approach as opta_rankings.py's Complete Rankings
-    tab. A name that maps to more than one country is dropped rather than
-    guessed at (e.g. "Arsenal" is both English and Belarusian)."""
-    name_countries: dict[str, set] = {}
-    for league_cfg in LEAGUES.values():
-        country = league_cfg.get("country", "")
-        csv_path = Path("ratings") / f"{league_cfg.get('tsdb_id', league_cfg['id'])}.csv"
-        if not csv_path.exists():
-            continue
-        df = pd.read_csv(csv_path, dtype=str)
-        if "team" not in df.columns:
-            continue
-        for _, row in df.iterrows():
-            for col in ("team", "alias"):
-                name = str(row.get(col, "")).strip()
-                if name and name.lower() != "nan":
-                    name_countries.setdefault(name, set()).add(country)
-    return {name: next(iter(countries)) for name, countries in name_countries.items() if len(countries) == 1}
-
-
-def _normalize_club_name(s: str) -> str:
-    """Accent/case-insensitive form for fuzzy club-name matching."""
-    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
-    return s.lower().strip()
-
-
-@st.cache_data(ttl=60, show_spinner=False)
-def _load_ratings_by_country() -> dict[str, pd.DataFrame]:
-    """{country: DataFrame[team, alias, opta_rating]}, scoped per country
-    rather than one global name-keyed table. A flat global lookup (as
-    _load_combined_ratings gives) collides whenever two clubs in different
-    countries share a literal name -- e.g. English Arsenal vs a Belarusian
-    club also named "Arsenal" -- silently overwriting one with the other's
-    rating. Scoping by country (known for every League Phase field entry)
-    avoids that entirely."""
-    by_country: dict[str, list[pd.DataFrame]] = {}
-    for league_cfg in LEAGUES.values():
-        country = league_cfg.get("country", "")
-        csv_path = Path("ratings") / f"{league_cfg.get('tsdb_id', league_cfg['id'])}.csv"
-        if not csv_path.exists():
-            continue
-        df = pd.read_csv(csv_path, dtype=str)
-        if "team" not in df.columns or "opta_rating" not in df.columns:
-            continue
-        if "alias" not in df.columns:
-            df["alias"] = ""
-        df["alias"] = df["alias"].fillna("")
-        df["opta_rating"] = pd.to_numeric(df["opta_rating"], errors="coerce")
-        by_country.setdefault(country, []).append(
-            df[["team", "alias", "opta_rating"]].dropna(subset=["opta_rating"])
-        )
-    return {c: pd.concat(dfs, ignore_index=True) for c, dfs in by_country.items()}
-
-
-def _resolve_field_ratings(field: list[dict]) -> pd.DataFrame:
-    """One opta_rating per League Phase field club, matched only within
-    that club's own country's ratings CSV(s) -- collision-proof (see
-    _load_ratings_by_country) and tolerant of naming drift between
-    qualifying_bracket.py's display names and the ratings/alias columns
-    (e.g. "Inter Milan" vs the CSV's "Internazionale"/"Inter") via a
-    normalized, then substring, fallback match. Any club that still can't
-    be resolved gets the mean rating of the clubs that could -- a safer
-    default than the mean of a random cross-section of every domestic
-    league (including part-time minnows), which is what falling through
-    to the flat global lookup would otherwise silently produce."""
-    by_country = _load_ratings_by_country()
-    resolved: list[dict] = []
-    unresolved: list[dict] = []
-    for f in field:
-        team, country = f["team"], f["country"]
-        df = by_country.get(country)
-        rating = None
-        if df is not None and not df.empty:
-            exact = df[(df["team"] == team) | (df["alias"] == team)]
-            if not exact.empty:
-                rating = float(exact.iloc[0]["opta_rating"])
-            else:
-                norm_team = _normalize_club_name(team)
-                norm_team_series = df["team"].map(_normalize_club_name)
-                norm_alias_series = df["alias"].map(_normalize_club_name)
-                exact_norm = df[(norm_team_series == norm_team) | (norm_alias_series == norm_team)]
-                if not exact_norm.empty:
-                    rating = float(exact_norm.iloc[0]["opta_rating"])
-                else:
-                    contains = df[
-                        norm_team_series.apply(lambda n: n in norm_team or norm_team in n)
-                        | norm_alias_series.apply(lambda n: bool(n) and (n in norm_team or norm_team in n))
-                    ]
-                    if not contains.empty:
-                        rating = float(contains.iloc[0]["opta_rating"])
-        row = {"team": team, "alias": "", "opta_rating": rating}
-        (resolved if rating is not None else unresolved).append(row)
-    if unresolved and resolved:
-        fallback = sum(r["opta_rating"] for r in resolved) / len(resolved)
-        for row in unresolved:
-            row["opta_rating"] = fallback
-    return pd.DataFrame(resolved + unresolved)
-
-
-# Since the 2024-27 reformed "Swiss model" format, a club eliminated in
-# one competition's Play-off round doesn't drop out of Europe -- it's
-# parachuted straight into the NEXT competition down's League Phase (not
-# its qualifying). Champions League Play-off losers -> Europa League
-# League Phase; Europa League Play-off losers -> Conference League League
-# Phase. _project_league_phase_field below folds these in for EL/ECL.
-_CASCADE_FROM = {"Europa League": "Champions League", "Conference League": "Europa League"}
-
-
-def _resolve_bracket_tie(
-    side_a: tuple, side_b: tuple, comp_name: str, ratings_df: pd.DataFrame,
-) -> tuple[str | None, str | None]:
-    """(winner, loser) for one Play-off bracket pairing -- the tie's real
-    advance odds when both sides are confirmed teams (using the favoured
-    side immediately, without waiting for a leg to be played), falling
-    back to each slot's own reaching-this-slot favourite otherwise."""
-    ra = _resolve_bracket_side(side_a, ratings_df)
-    rb = _resolve_bracket_side(side_b, ratings_df)
-    winner = loser = None
-    if ra["status"] == "confirmed" and rb["status"] == "confirmed" and ra["label"] and rb["label"]:
-        tie = _resolve_playoff_tie_odds(ra["label"], rb["label"], comp_name, ratings_df)
-        if tie:
-            if tie["status"] == "decided":
-                winner = tie["winner"]
-                loser = tie["team2"] if winner == tie["team1"] else tie["team1"]
-            elif tie["team1_adv"] >= tie["team2_adv"]:
-                winner, loser = tie["team1"], tie["team2"]
-            else:
-                winner, loser = tie["team2"], tie["team1"]
-    if winner is None:
-        a_pct, b_pct = ra.get("pct") or 0.0, rb.get("pct") or 0.0
-        if a_pct >= b_pct:
-            winner, loser = ra["label"], rb["label"]
-        else:
-            winner, loser = rb["label"], ra["label"]
-        winner = winner or ra["label"] or rb["label"]
-    return winner, loser
-
-
-def _project_league_phase_field(comp_name: str, ratings_df: pd.DataFrame) -> list[dict]:
-    """Confirmed direct League Phase entrants + this competition's own
-    Play-off winners + (for Europa/Conference League) the Play-off losers
-    parachuted down from the competition above. Returns
-    [{"team", "country"}, ...] -- fewer than 36 entries means some data
-    (confirmed entrant lists, Play-off bracket pairings) isn't available
-    yet for this competition."""
-    club_country = _load_club_country_map()
-    field: list[dict] = []
-    seen: set[str] = set()
-
-    def _add(team: str | None) -> None:
-        if team and team not in seen:
-            field.append({"team": team, "country": club_country.get(team, "Unknown")})
-            seen.add(team)
-
-    for team, country, _flag in CONFIRMED_LEAGUE_PHASE.get(comp_name, []):
-        if team not in seen:
-            field.append({"team": team, "country": country})
-            seen.add(team)
-
-    for side_a, side_b in PLAYOFF_BRACKET.get(comp_name, []):
-        winner, _loser = _resolve_bracket_tie(side_a, side_b, comp_name, ratings_df)
-        _add(winner)
-
-    upstream = _CASCADE_FROM.get(comp_name)
-    if upstream:
-        for side_a, side_b in PLAYOFF_BRACKET.get(upstream, []):
-            _winner, loser = _resolve_bracket_tie(side_a, side_b, upstream, ratings_df)
-            _add(loser)
-
-    return field
-
-
-@st.cache_data(ttl=60, show_spinner=False)
 def fetch_all(lid, ssn, key):
     c = ApiFootballClient(api_key=key)
     standings         = c.get_standings(lid, ssn)
@@ -370,19 +175,6 @@ def _group_ties(fixtures: list[dict]) -> list[list[dict]]:
 def _img(url: str, height: int = 14) -> str:
     return (f"<img src='{url}' height='{height}' "
             f"style='margin-right:4px;vertical-align:middle'>") if url else ""
-
-
-def _leg_aggregate_winner(t1: str, t2: str, l1h: int, l1a: int, l2h: int, l2a: int) -> str | None:
-    """Two-leg aggregate winner (t1 was leg1's home team, t2 leg1's away
-    team; leg2 has them swapped). None if level on aggregate (decided by
-    penalties, which this site doesn't track a winner for)."""
-    agg_t1 = l1h + l2a
-    agg_t2 = l1a + l2h
-    if agg_t1 > agg_t2:
-        return t1
-    if agg_t2 > agg_t1:
-        return t2
-    return None
 
 
 def _tie_card_html(legs: list[dict], badge_lookup: dict, played_set: set) -> str:
@@ -451,132 +243,6 @@ def _tie_card_html(legs: list[dict], badge_lookup: dict, played_set: set) -> str
 # ---------------------------------------------------------------------------
 # Play-off bracket resolution
 # ---------------------------------------------------------------------------
-@st.cache_data(ttl=60, show_spinner=False)
-def _fetch_comp_fixtures(comp_name: str, key: str):
-    """played, remaining fixtures for any of the 3 competitions, by name."""
-    cid = EUROPEAN_COMPETITIONS[comp_name]["id"]
-    client = ApiFootballClient(api_key=key)
-    return client.get_fixtures(cid, _CURRENT_EURO_SEASON)
-
-
-def _resolve_bracket_side(side: tuple, ratings_df: pd.DataFrame) -> dict:
-    """Resolve one side of a projected Play-off tie.
-
-    Returns {"label": str|None, "status": "confirmed"|"predicted"|"tbd",
-             "pct": float|None}.
-    """
-    if side[0] == "team":
-        return {"label": side[1], "status": "confirmed", "pct": None}
-
-    _, comp, name_set, which = side
-    played, remaining = _fetch_comp_fixtures(comp, _API_KEY)
-    qr3_played    = [f for f in played    if f.get("strRound") == "3rd Qualifying Round"]
-    qr3_remaining = [f for f in remaining if f.get("strRound") == "3rd Qualifying Round"]
-    played_ids = {f.get("idEvent") for f in qr3_played}
-    all_qr3 = qr3_played + qr3_remaining
-
-    tie_map: dict[frozenset, list[dict]] = {}
-    for f in all_qr3:
-        pair = frozenset({f.get("strHomeTeam", ""), f.get("strAwayTeam", "")})
-        tie_map.setdefault(pair, []).append(f)
-
-    match_legs = tie_map.get(frozenset(name_set))
-    if match_legs is None:
-        for pair, legs in tie_map.items():
-            if pair & name_set:
-                match_legs = legs
-                break
-    if match_legs is None:
-        return {"label": None, "status": "tbd", "pct": None}
-
-    legs = sorted(match_legs, key=lambda x: x.get("dateEvent", ""))
-    leg1 = legs[0]
-    leg2 = legs[1] if len(legs) > 1 else None
-    t1 = leg1.get("strHomeTeam", "")
-    t2 = leg1.get("strAwayTeam", "")
-    l1_played = leg1.get("idEvent") in played_ids
-    l2_played = leg2 is not None and leg2.get("idEvent") in played_ids
-
-    if l1_played and l2_played:
-        winner = _leg_aggregate_winner(
-            t1, t2,
-            int(leg1["intHomeScore"] or 0), int(leg1["intAwayScore"] or 0),
-            int(leg2["intHomeScore"] or 0), int(leg2["intAwayScore"] or 0),
-        )
-        loser  = t2 if winner == t1 else (t1 if winner == t2 else None)
-        chosen = winner if which == "winner" else loser
-        return {"label": chosen or "TBD (penalties)", "status": "confirmed", "pct": None}
-
-    leg1_score = None
-    if l1_played:
-        leg1_score = (int(leg1.get("intHomeScore") or 0), int(leg1.get("intAwayScore") or 0))
-    odds = two_leg_advance_odds(t1, t2, ratings_df, leg1_score=leg1_score)
-    t1_pct, t2_pct = odds["team1_adv"], odds["team2_adv"]
-    if which == "winner":
-        chosen, pct = (t1, t1_pct) if t1_pct >= t2_pct else (t2, t2_pct)
-    else:
-        chosen, pct = (t2, t2_pct) if t1_pct >= t2_pct else (t1, t1_pct)
-    return {"label": chosen, "status": "predicted", "pct": pct}
-
-
-def _resolve_playoff_tie_odds(team_a: str, team_b: str, comp_name: str, ratings_df: pd.DataFrame) -> dict | None:
-    """Once both sides of a projected Play-off tie are confirmed real
-    clubs, find their actual scheduled Play-off fixture(s) and compute
-    THIS tie's own two-leg advance odds -- not the probability of having
-    reached the slot (that's _resolve_bracket_side's job), but the
-    probability of winning the Play-off tie itself. Incorporates leg 1's
-    real result once it's played. Returns None if no such fixture exists
-    yet (e.g. one side is still only a prediction, so there's nothing
-    scheduled to look up)."""
-    played, remaining = _fetch_comp_fixtures(comp_name, _API_KEY)
-    po_played    = [f for f in played    if f.get("strRound") in _PLAYOFF_ROUND_NAMES]
-    po_remaining = [f for f in remaining if f.get("strRound") in _PLAYOFF_ROUND_NAMES]
-    played_ids = {f.get("idEvent") for f in po_played}
-    all_po = po_played + po_remaining
-
-    # Team names sometimes drift slightly between rounds in the provider's
-    # own data (e.g. "LASK" earlier vs "Lask Linz" here, "AEK Athens" vs
-    # "AEK Athens FC") -- try an exact pair match first, then fall back to
-    # any fixture sharing at least one of the two names, same pattern
-    # _resolve_bracket_side already uses for this.
-    tie_map: dict[frozenset, list[dict]] = {}
-    for f in all_po:
-        tie_map.setdefault(frozenset({f.get("strHomeTeam", ""), f.get("strAwayTeam", "")}), []).append(f)
-
-    pair = frozenset({team_a, team_b})
-    legs = tie_map.get(pair)
-    if legs is None:
-        for fpair, flegs in tie_map.items():
-            if fpair & pair:
-                legs = flegs
-                break
-    if legs is None:
-        return None
-    legs = sorted(legs, key=lambda x: x.get("dateEvent", ""))
-    leg1 = legs[0]
-    leg2 = legs[1] if len(legs) > 1 else None
-    t1, t2 = leg1.get("strHomeTeam", ""), leg1.get("strAwayTeam", "")
-    l1_played = leg1.get("idEvent") in played_ids
-    l2_played = leg2 is not None and leg2.get("idEvent") in played_ids
-
-    if l1_played and l2_played:
-        winner = _leg_aggregate_winner(
-            t1, t2,
-            int(leg1["intHomeScore"] or 0), int(leg1["intAwayScore"] or 0),
-            int(leg2["intHomeScore"] or 0), int(leg2["intAwayScore"] or 0),
-        )
-        return {"status": "decided", "team1": t1, "team2": t2, "winner": winner}
-
-    leg1_score = None
-    if l1_played:
-        leg1_score = (int(leg1.get("intHomeScore") or 0), int(leg1.get("intAwayScore") or 0))
-    odds = two_leg_advance_odds(t1, t2, ratings_df, leg1_score=leg1_score)
-    return {
-        "status": "predicted", "team1": t1, "team2": t2,
-        "team1_adv": odds["team1_adv"], "team2_adv": odds["team2_adv"],
-        "leg1_played": l1_played, "leg1_score": leg1_score,
-    }
-
 
 def _playoff_tie_odds_html(resolved: dict, badge_lookup: dict) -> str:
     """Renders a resolved Play-off tie: either the decided winner
@@ -612,6 +278,28 @@ def _playoff_tie_odds_html(resolved: dict, badge_lookup: dict) -> str:
         f"<div style='padding:2px 5px'>{_img(b2)}{t2} "
         f"<span style='color:#856404;font-size:10px'>({t2_pct:.0%})</span></div>"
         f"{leg1_note}"
+    )
+
+
+def _bracket_tie_html(tie: dict, badge_lookup: dict) -> str:
+    """Renders one tie of a predicted knockout bracket (build_predicted_
+    bracket's output): the favoured side highlighted, each side's own
+    advance % for this specific matchup -- same visual language as
+    _playoff_tie_odds_html's undecided-tie case."""
+    a, b = tie["team_a"], tie["team_b"]
+    pa, pb = tie["pct_a"], tie["pct_b"]
+    ba, bb = badge_lookup.get(a, ""), badge_lookup.get(b, "")
+    winner = tie["winner"]
+    as_ = ("font-weight:700;background:#d4edda;border-radius:3px;padding:2px 5px;"
+           if winner == a else "padding:2px 5px;")
+    bs_ = ("font-weight:700;background:#d4edda;border-radius:3px;padding:2px 5px;"
+           if winner == b else "padding:2px 5px;")
+    return (
+        f"<div style='{as_}'>{_img(ba)}{a} "
+        f"<span style='color:#856404;font-size:10px'>({pa:.0%})</span></div>"
+        f"<div style='text-align:center;color:#888;font-size:11px;margin:3px 0'>vs</div>"
+        f"<div style='{bs_}'>{_img(bb)}{b} "
+        f"<span style='color:#856404;font-size:10px'>({pb:.0%})</span></div>"
     )
 
 
@@ -1030,3 +718,37 @@ with tab_qual_pred:
             _ls_df, column_config=_ls_col_cfg, use_container_width=True,
             hide_index=True, height=len(_ls_df) * 35 + 38,
         )
+
+        # ── Predicted Knockout Bracket ───────────────────────────────────────
+        st.markdown("#### Predicted Knockout Bracket")
+        st.caption(
+            "One concrete predicted path through the knockout stage, picking the favoured "
+            "side at every tie from the Knockout Play-off round through the Final — not the "
+            "same thing as the reach-probability table above, which shows each club's *own* "
+            "chances across every possible bracket outcome, not just this one favourites-only path."
+        )
+        with st.spinner("Building the predicted bracket…"):
+            _bracket = build_predicted_bracket(
+                field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
+                n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=3_000,
+                home_advantage=1.05,
+            )
+        _round_labels = [
+            ("ko_playoff", "Knockout Play-off (9th–24th)"),
+            ("r16", "Round of 16"),
+            ("qf", "Quarter-finals"),
+            ("sf", "Semi-finals"),
+            ("final", "Final"),
+        ]
+        for _key, _label in _round_labels:
+            st.markdown(f"**{_label}**")
+            _cards = []
+            for _tie in _bracket[_key]:
+                _cards.append(f"""
+<div style="border:1px solid #dee2e6;border-radius:8px;padding:8px 10px;
+            margin:0 8px 8px 0;background:#fff;width:230px;box-shadow:0 1px 3px rgba(0,0,0,.07)">
+  {_bracket_tie_html(_tie, badge_lookup)}
+</div>""")
+            st.markdown(f"<div style='display:flex;flex-wrap:wrap'>{''.join(_cards)}</div>",
+                        unsafe_allow_html=True)
+        st.markdown(f"🏆 **Predicted champion: {_bracket['champion']}**")

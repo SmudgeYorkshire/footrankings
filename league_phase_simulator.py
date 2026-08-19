@@ -49,6 +49,47 @@ from simulator import (
 _MAX_SCHEDULE_ATTEMPTS = 200
 _MAX_COUNTRY_OPPONENTS = 2
 
+# ---------------------------------------------------------------------------
+# UEFA association (country) coefficient points -- verified against both
+# en.wikipedia.org/wiki/UEFA_coefficient's "Bonus Points" table (2024-25
+# through 2026-27 seasons) and kassiesa.net/uefa/calc.html's "Max match
+# points" table, which cross-check exactly (e.g. Champions League max
+# points per club = League Stage 16 + 3*(R16/QF/SF two-legged max 4) +
+# Final max 2 = 30 match points, + 6 participation + 6 ranking-bonus-at-
+# rank-1 + 4*1.5 knockout-round bonus = 18 bonus points, totalling the
+# documented 48-point maximum).
+#
+# Match points: 2 for a win, 1 for a draw, in the League Phase, Knockout
+# Play-off round, and Round of 16 onward. Qualifying rounds (Q1-Q3) AND the
+# Play-off round itself are "qualifying" for country-coefficient purposes
+# and get HALF this rate (1 win / 0.5 draw) -- see country_ranking_simulator.
+# Penalty-shootout results don't affect points beyond the draw itself.
+COEFF_WIN, COEFF_DRAW = 2.0, 1.0
+
+# Knockout-round-reached bonus (flat, once per round actually played).
+_KNOCKOUT_ROUND_BONUS = {"Champions League": 1.5, "Europa League": 1.0, "Conference League": 0.5}
+
+# League Phase bonus = flat participation (Champions League only) + a
+# final-ranking bonus that increases per rank climbed, in two bands (9-24,
+# then 1-8) at a different rate each. Verified exact: this formula
+# reproduces the documented rank-1 maximums (12/6/4) precisely.
+_LP_PARTICIPATION = {"Champions League": 6.0, "Europa League": 0.0, "Conference League": 0.0}
+_LP_INC_9_24 = {"Champions League": 0.25, "Europa League": 0.25, "Conference League": 0.125}
+_LP_INC_1_8 = {"Champions League": 0.25, "Europa League": 0.25, "Conference League": 0.25}
+
+
+def league_phase_bonus(rank: int, comp_name: str) -> float:
+    """UEFA coefficient bonus points for finishing League Phase at `rank`
+    (1-36) in `comp_name`. 0 for ranks 25-36 (eliminated, no bonus)."""
+    if rank > 24:
+        return 0.0
+    inc_9_24 = _LP_INC_9_24[comp_name]
+    if rank >= 9:
+        ranking_bonus = (25 - rank) * inc_9_24
+    else:
+        ranking_bonus = 16 * inc_9_24 + (9 - rank) * _LP_INC_1_8[comp_name]
+    return _LP_PARTICIPATION[comp_name] + ranking_bonus
+
 
 def assign_pots(teams: list[str], club_coeff: dict[str, float], n_pots: int) -> list[list[str]]:
     """Splits teams into n_pots equal-ish pots by descending coefficient
@@ -314,6 +355,89 @@ def _neutral_final_odds(teams: list[str], ratings_df: pd.DataFrame, n_draws: int
     return odds
 
 
+def _load_pairwise_expected_points(
+    teams: list[str], ratings_df: pd.DataFrame, home_advantage: float, n_draws: int = 8_000,
+) -> dict:
+    """Expected UEFA-coefficient match points (2 win/1 draw per leg) each
+    side of a two-legged tie earns from playing it -- an unconditional
+    expectation over the goal distribution (mixing both the "this side
+    advances" and "this side is eliminated" outcomes in their true
+    proportions), not a further simulated draw. Reused at every knockout
+    round (Knockout Play-off, R16, QF, SF) since match points only depend
+    on the pairing, not the round. Keyed both ways, like
+    _load_pairwise_advance_odds."""
+    if "attack" not in ratings_df.columns:
+        ratings_df = _opta_to_attack_defense(ratings_df)
+    rat_lookup, league_avg = _build_rat_lookup(ratings_df, DEFAULT_BASE_GOALS)
+    default = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+    att, dfc = _pair_lambdas(teams, rat_lookup, league_avg, default)
+
+    i_idx, j_idx = np.triu_indices(len(teams), k=1)
+    a_att, a_def = att[i_idx], dfc[i_idx]
+    b_att, b_def = att[j_idx], dfc[j_idx]
+
+    lam_l1_a = a_att * np.maximum(b_def, 0.01) / league_avg * home_advantage
+    lam_l1_b = b_att * np.maximum(a_def, 0.01) / league_avg
+    lam_l2_b = b_att * np.maximum(a_def, 0.01) / league_avg * home_advantage
+    lam_l2_a = a_att * np.maximum(b_def, 0.01) / league_avg
+
+    rng = np.random.default_rng()
+    phi = OVERDISPERSION
+    p_nb = 1.0 / (1.0 + phi)
+    n_pairs = len(i_idx)
+    g_l1_a = rng.negative_binomial(np.maximum(lam_l1_a[:, None] / phi, 1e-9), p_nb, size=(n_pairs, n_draws))
+    g_l1_b = rng.negative_binomial(np.maximum(lam_l1_b[:, None] / phi, 1e-9), p_nb, size=(n_pairs, n_draws))
+    g_l2_a = rng.negative_binomial(np.maximum(lam_l2_a[:, None] / phi, 1e-9), p_nb, size=(n_pairs, n_draws))
+    g_l2_b = rng.negative_binomial(np.maximum(lam_l2_b[:, None] / phi, 1e-9), p_nb, size=(n_pairs, n_draws))
+
+    def _leg_points(gh, ga):
+        return np.where(gh > ga, COEFF_WIN, np.where(gh == ga, COEFF_DRAW, 0.0))
+
+    a_pts = (_leg_points(g_l1_a, g_l1_b) + _leg_points(g_l2_a, g_l2_b)).mean(axis=1)
+    b_pts = (_leg_points(g_l1_b, g_l1_a) + _leg_points(g_l2_b, g_l2_a)).mean(axis=1)
+
+    expected: dict[tuple, float] = {}
+    for k in range(n_pairs):
+        a, b = teams[i_idx[k]], teams[j_idx[k]]
+        expected[(a, b)] = float(a_pts[k])
+        expected[(b, a)] = float(b_pts[k])
+    return expected
+
+
+def _neutral_final_expected_points(teams: list[str], ratings_df: pd.DataFrame, n_draws: int = 8_000) -> dict:
+    """Expected UEFA-coefficient points from the single-match Final (no
+    second leg, no home advantage) for every pair -- same unconditional-
+    expectation approach as _load_pairwise_expected_points."""
+    if "attack" not in ratings_df.columns:
+        ratings_df = _opta_to_attack_defense(ratings_df)
+    rat_lookup, league_avg = _build_rat_lookup(ratings_df, DEFAULT_BASE_GOALS)
+    default = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+    att, dfc = _pair_lambdas(teams, rat_lookup, league_avg, default)
+
+    i_idx, j_idx = np.triu_indices(len(teams), k=1)
+    a_att, a_def = att[i_idx], dfc[i_idx]
+    b_att, b_def = att[j_idx], dfc[j_idx]
+    lam_a = a_att * np.maximum(b_def, 0.01) / league_avg
+    lam_b = b_att * np.maximum(a_def, 0.01) / league_avg
+
+    rng = np.random.default_rng()
+    phi = OVERDISPERSION
+    p_nb = 1.0 / (1.0 + phi)
+    n_pairs = len(i_idx)
+    ga = rng.negative_binomial(np.maximum(lam_a[:, None] / phi, 1e-9), p_nb, size=(n_pairs, n_draws))
+    gb = rng.negative_binomial(np.maximum(lam_b[:, None] / phi, 1e-9), p_nb, size=(n_pairs, n_draws))
+
+    a_pts = np.where(ga > gb, COEFF_WIN, np.where(ga == gb, COEFF_DRAW, 0.0)).mean(axis=1)
+    b_pts = np.where(gb > ga, COEFF_WIN, np.where(ga == gb, COEFF_DRAW, 0.0)).mean(axis=1)
+
+    expected: dict[tuple, float] = {}
+    for k in range(n_pairs):
+        a, b = teams[i_idx[k]], teams[j_idx[k]]
+        expected[(a, b)] = float(a_pts[k])
+        expected[(b, a)] = float(b_pts[k])
+    return expected
+
+
 def simulate_competition_winner(
     field: list[dict],
     club_coeff: dict[str, float],
@@ -322,7 +446,9 @@ def simulate_competition_winner(
     opponents_per_pot: int,
     n_sim: int = 3_000,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
-) -> pd.DataFrame:
+    comp_name: str | None = None,
+    track_points: bool = False,
+) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, np.ndarray]]:
     """Full Monte Carlo simulation of a 36-team UEFA League Phase
     competition through to a champion.
 
@@ -341,6 +467,209 @@ def simulate_competition_winner(
     Returns a DataFrame indexed by team with columns: country,
     reached_top8, reached_playoff_zone (9-24), reached_r16, reached_qf,
     reached_sf, reached_final, won_competition (all probabilities, 0-1).
+
+    If track_points is True (comp_name required), ALSO returns a second
+    value: {team: np.ndarray of shape (n_sim,)} of each club's total UEFA
+    coefficient points earned in this run of the League Phase + Knockout
+    stage -- match points (League Phase from real simulated scorelines;
+    Knockout Play-off/R16/QF/SF/Final from each tie's *expected* points
+    given the pairing, not a further simulated scoreline -- see
+    _load_pairwise_expected_points) plus League Phase and knockout-round
+    bonus points. Used by country_ranking_simulator to project each
+    association's season coefficient.
+    """
+    teams = [f["team"] for f in field]
+    team_country = {f["team"]: f["country"] for f in field}
+    n_teams = len(teams)
+
+    pots = assign_pots(teams, club_coeff, n_pots)
+    schedule = generate_league_phase_schedule(pots, team_country, opponents_per_pot)
+
+    if "attack" not in ratings_df.columns:
+        ratings_df = _opta_to_attack_defense(ratings_df)
+    rat_lookup, league_avg = _build_rat_lookup(ratings_df, DEFAULT_BASE_GOALS)
+    default = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+
+    team_idx = {t: i for i, t in enumerate(teams)}
+    F = len(schedule)
+    home_idx = np.array([team_idx[f["strHomeTeam"]] for f in schedule])
+    away_idx = np.array([team_idx[f["strAwayTeam"]] for f in schedule])
+
+    home_lambdas = np.empty(F)
+    away_lambdas = np.empty(F)
+    for i, f in enumerate(schedule):
+        h_att, h_def = rat_lookup.get(f["strHomeTeam"], default)
+        a_att, a_def = rat_lookup.get(f["strAwayTeam"], default)
+        home_lambdas[i] = h_att * max(a_def, 0.01) / league_avg * home_advantage
+        away_lambdas[i] = a_att * max(h_def, 0.01) / league_avg
+
+    rng = np.random.default_rng()
+    phi = OVERDISPERSION
+    p_nb = 1.0 / (1.0 + phi)
+    home_goals = rng.negative_binomial(np.maximum(home_lambdas[:, None] / phi, 1e-9), p_nb, size=(F, n_sim))
+    away_goals = rng.negative_binomial(np.maximum(away_lambdas[:, None] / phi, 1e-9), p_nb, size=(F, n_sim))
+
+    home_pts = np.where(home_goals > away_goals, 3, np.where(home_goals == away_goals, 1, 0))
+    away_pts = np.where(away_goals > home_goals, 3, np.where(home_goals == away_goals, 1, 0))
+
+    pts_matrix = np.zeros((n_teams, n_sim), dtype=np.int64)
+    gd_matrix = np.zeros((n_teams, n_sim), dtype=np.int64)
+    gf_matrix = np.zeros((n_teams, n_sim), dtype=np.int64)
+    coeff_matrix = np.zeros((n_teams, n_sim), dtype=np.float64) if track_points else None
+    if track_points:
+        home_coeff = np.where(home_goals > away_goals, COEFF_WIN, np.where(home_goals == away_goals, COEFF_DRAW, 0.0))
+        away_coeff = np.where(away_goals > home_goals, COEFF_WIN, np.where(home_goals == away_goals, COEFF_DRAW, 0.0))
+    for i in range(F):
+        h, a = home_idx[i], away_idx[i]
+        pts_matrix[h] += home_pts[i]
+        pts_matrix[a] += away_pts[i]
+        gd_delta = home_goals[i] - away_goals[i]
+        gd_matrix[h] += gd_delta
+        gd_matrix[a] -= gd_delta
+        gf_matrix[h] += home_goals[i]
+        gf_matrix[a] += away_goals[i]
+        if track_points:
+            coeff_matrix[h] += home_coeff[i]
+            coeff_matrix[a] += away_coeff[i]
+
+    pairwise_odds = _load_pairwise_advance_odds(teams, ratings_df, home_advantage)
+    final_odds = _neutral_final_odds(teams, ratings_df)
+    if track_points:
+        pairwise_expected_pts = _load_pairwise_expected_points(teams, ratings_df, home_advantage)
+        final_expected_pts = _neutral_final_expected_points(teams, ratings_df)
+        ko_bonus = _KNOCKOUT_ROUND_BONUS[comp_name]
+
+    reached_top8 = {t: 0 for t in teams}
+    reached_playoff_zone = {t: 0 for t in teams}
+    reached_r16 = {t: 0 for t in teams}
+    reached_qf = {t: 0 for t in teams}
+    reached_sf = {t: 0 for t in teams}
+    reached_final = {t: 0 for t in teams}
+    won = {t: 0 for t in teams}
+
+    def _draw_winner(a: str, b: str, odds: dict) -> str:
+        return a if random.random() < odds[(a, b)] else b
+
+    for sim in range(n_sim):
+        order = sorted(range(n_teams), key=lambda i: (-pts_matrix[i, sim], -gd_matrix[i, sim], -gf_matrix[i, sim]))
+        ranked_teams = [teams[i] for i in order]  # rank 1 first
+        rank_of = {t: r + 1 for r, t in enumerate(ranked_teams)}
+
+        top8 = ranked_teams[:8]
+        playoff_zone = ranked_teams[8:24]
+        for t in top8:
+            reached_top8[t] += 1
+        for t in playoff_zone:
+            reached_playoff_zone[t] += 1
+
+        team_by_rank = {rank_of[t]: t for t in ranked_teams}
+
+        if track_points:
+            for t in teams:
+                coeff_matrix[team_idx[t], sim] += league_phase_bonus(rank_of[t], comp_name)
+
+        # Knockout play-off (9-24)
+        ko_winner_by_pair = {}
+        for seeded_rank, unseeded_rank in _KO_PLAYOFF_PAIRS:
+            a, b = team_by_rank[seeded_rank], team_by_rank[unseeded_rank]
+            ko_winner_by_pair[(seeded_rank, unseeded_rank)] = _draw_winner(a, b, pairwise_odds)
+            if track_points:
+                coeff_matrix[team_idx[a], sim] += pairwise_expected_pts[(a, b)]
+                coeff_matrix[team_idx[b], sim] += pairwise_expected_pts[(b, a)]
+
+        # Round of 16: seed N vs winner of its assigned KO pair
+        r16_winner_by_seed = {}
+        for seed_rank in range(1, 9):
+            seed_team = team_by_rank[seed_rank]
+            ko_pair = _R16_SEED_TO_KO_PAIR[seed_rank]
+            opponent = ko_winner_by_pair[ko_pair]
+            winner = _draw_winner(seed_team, opponent, pairwise_odds)
+            r16_winner_by_seed[seed_rank] = winner
+            reached_r16[seed_team] += 1
+            reached_r16[opponent] += 1
+            if track_points:
+                coeff_matrix[team_idx[seed_team], sim] += pairwise_expected_pts[(seed_team, opponent)] + ko_bonus
+                coeff_matrix[team_idx[opponent], sim] += pairwise_expected_pts[(opponent, seed_team)] + ko_bonus
+
+        # Quarter-finals
+        qf_winner_by_group = {}
+        for gi, (s1, s2) in enumerate(_QF_SEED_PAIRS):
+            a, b = r16_winner_by_seed[s1], r16_winner_by_seed[s2]
+            reached_qf[a] += 1
+            reached_qf[b] += 1
+            qf_winner_by_group[gi] = _draw_winner(a, b, pairwise_odds)
+            if track_points:
+                coeff_matrix[team_idx[a], sim] += pairwise_expected_pts[(a, b)] + ko_bonus
+                coeff_matrix[team_idx[b], sim] += pairwise_expected_pts[(b, a)] + ko_bonus
+
+        # Semi-finals
+        sf_winners = []
+        for g1, g2 in _SF_QF_GROUPS:
+            a, b = qf_winner_by_group[g1], qf_winner_by_group[g2]
+            reached_sf[a] += 1
+            reached_sf[b] += 1
+            sf_winners.append(_draw_winner(a, b, pairwise_odds))
+            if track_points:
+                coeff_matrix[team_idx[a], sim] += pairwise_expected_pts[(a, b)] + ko_bonus
+                coeff_matrix[team_idx[b], sim] += pairwise_expected_pts[(b, a)] + ko_bonus
+
+        # Final (single match, neutral venue)
+        a, b = sf_winners
+        reached_final[a] += 1
+        reached_final[b] += 1
+        champion = a if random.random() < final_odds[(a, b)] else b
+        won[champion] += 1
+        if track_points:
+            coeff_matrix[team_idx[a], sim] += final_expected_pts[(a, b)] + ko_bonus
+            coeff_matrix[team_idx[b], sim] += final_expected_pts[(b, a)] + ko_bonus
+
+    rows = []
+    for t in teams:
+        rows.append({
+            "team": t,
+            "country": team_country[t],
+            "reached_top8": reached_top8[t] / n_sim,
+            "reached_playoff_zone": reached_playoff_zone[t] / n_sim,
+            "reached_r16": reached_r16[t] / n_sim,
+            "reached_qf": reached_qf[t] / n_sim,
+            "reached_sf": reached_sf[t] / n_sim,
+            "reached_final": reached_final[t] / n_sim,
+            "won_competition": won[t] / n_sim,
+        })
+    result = pd.DataFrame(rows).set_index("team").sort_values("won_competition", ascending=False)
+    if track_points:
+        points_by_team = {t: coeff_matrix[team_idx[t]] for t in teams}
+        return result, points_by_team
+    return result
+
+
+def build_predicted_bracket(
+    field: list[dict],
+    club_coeff: dict[str, float],
+    ratings_df: pd.DataFrame,
+    n_pots: int,
+    opponents_per_pot: int,
+    n_sim: int = 3_000,
+    home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+) -> dict:
+    """A single, concrete predicted knockout bracket -- Knockout Play-off
+    through Final -- rather than per-team reach probabilities.
+
+    Draws the same representative League Phase schedule and simulates it
+    the same way as simulate_competition_winner, but instead of tallying
+    probabilities across every simulation run, ranks teams by their MEAN
+    points/GD/GF across all n_sim runs to get one "expected" final League
+    Phase table, then walks the real fixed bracket exactly once from that
+    table, picking the favoured (>=50%) side at each tie using the same
+    precomputed two-leg advance odds simulate_competition_winner uses --
+    a "chalk" bracket, the standard way to present a single predicted
+    tournament path. Each tie's percentages are that tie's own two-leg
+    (or, for the Final, single-match) advance probability, not the
+    probability of the *bracket path itself* playing out.
+
+    Returns {"ko_playoff": [...], "r16": [...], "qf": [...], "sf": [...],
+    "final": [...], "champion": str}, where each round is a list of
+    {"team_a", "team_b", "pct_a", "pct_b", "winner"} dicts.
     """
     teams = [f["team"] for f in field]
     team_country = {f["team"]: f["country"] for f in field}
@@ -389,85 +718,56 @@ def simulate_competition_winner(
         gf_matrix[h] += home_goals[i]
         gf_matrix[a] += away_goals[i]
 
+    mean_pts = pts_matrix.mean(axis=1)
+    mean_gd = gd_matrix.mean(axis=1)
+    mean_gf = gf_matrix.mean(axis=1)
+    order = sorted(range(n_teams), key=lambda i: (-mean_pts[i], -mean_gd[i], -mean_gf[i]))
+    ranked_teams = [teams[i] for i in order]
+    rank_of = {t: r + 1 for r, t in enumerate(ranked_teams)}
+    team_by_rank = {rank_of[t]: t for t in ranked_teams}
+
     pairwise_odds = _load_pairwise_advance_odds(teams, ratings_df, home_advantage)
     final_odds = _neutral_final_odds(teams, ratings_df)
 
-    reached_top8 = {t: 0 for t in teams}
-    reached_playoff_zone = {t: 0 for t in teams}
-    reached_r16 = {t: 0 for t in teams}
-    reached_qf = {t: 0 for t in teams}
-    reached_sf = {t: 0 for t in teams}
-    reached_final = {t: 0 for t in teams}
-    won = {t: 0 for t in teams}
+    def _tie(a: str, b: str, odds: dict) -> dict:
+        pa = odds[(a, b)]
+        winner = a if pa >= 0.5 else b
+        return {"team_a": a, "team_b": b, "pct_a": pa, "pct_b": 1.0 - pa, "winner": winner}
 
-    def _draw_winner(a: str, b: str, odds: dict) -> str:
-        return a if random.random() < odds[(a, b)] else b
+    bracket: dict = {"ko_playoff": [], "r16": [], "qf": [], "sf": [], "final": []}
 
-    for sim in range(n_sim):
-        order = sorted(range(n_teams), key=lambda i: (-pts_matrix[i, sim], -gd_matrix[i, sim], -gf_matrix[i, sim]))
-        ranked_teams = [teams[i] for i in order]  # rank 1 first
-        rank_of = {t: r + 1 for r, t in enumerate(ranked_teams)}
+    ko_winner_by_pair = {}
+    for seeded_rank, unseeded_rank in _KO_PLAYOFF_PAIRS:
+        a, b = team_by_rank[seeded_rank], team_by_rank[unseeded_rank]
+        tie = _tie(a, b, pairwise_odds)
+        bracket["ko_playoff"].append(tie)
+        ko_winner_by_pair[(seeded_rank, unseeded_rank)] = tie["winner"]
 
-        top8 = ranked_teams[:8]
-        playoff_zone = ranked_teams[8:24]
-        for t in top8:
-            reached_top8[t] += 1
-        for t in playoff_zone:
-            reached_playoff_zone[t] += 1
+    r16_winner_by_seed = {}
+    for seed_rank in range(1, 9):
+        seed_team = team_by_rank[seed_rank]
+        opponent = ko_winner_by_pair[_R16_SEED_TO_KO_PAIR[seed_rank]]
+        tie = _tie(seed_team, opponent, pairwise_odds)
+        bracket["r16"].append(tie)
+        r16_winner_by_seed[seed_rank] = tie["winner"]
 
-        team_by_rank = {rank_of[t]: t for t in ranked_teams}
+    qf_winner_by_group = {}
+    for gi, (s1, s2) in enumerate(_QF_SEED_PAIRS):
+        a, b = r16_winner_by_seed[s1], r16_winner_by_seed[s2]
+        tie = _tie(a, b, pairwise_odds)
+        bracket["qf"].append(tie)
+        qf_winner_by_group[gi] = tie["winner"]
 
-        # Knockout play-off (9-24)
-        ko_winner_by_pair = {}
-        for seeded_rank, unseeded_rank in _KO_PLAYOFF_PAIRS:
-            a, b = team_by_rank[seeded_rank], team_by_rank[unseeded_rank]
-            ko_winner_by_pair[(seeded_rank, unseeded_rank)] = _draw_winner(a, b, pairwise_odds)
+    sf_winners = []
+    for g1, g2 in _SF_QF_GROUPS:
+        a, b = qf_winner_by_group[g1], qf_winner_by_group[g2]
+        tie = _tie(a, b, pairwise_odds)
+        bracket["sf"].append(tie)
+        sf_winners.append(tie["winner"])
 
-        # Round of 16: seed N vs winner of its assigned KO pair
-        r16_winner_by_seed = {}
-        for seed_rank in range(1, 9):
-            seed_team = team_by_rank[seed_rank]
-            ko_pair = _R16_SEED_TO_KO_PAIR[seed_rank]
-            opponent = ko_winner_by_pair[ko_pair]
-            winner = _draw_winner(seed_team, opponent, pairwise_odds)
-            r16_winner_by_seed[seed_rank] = winner
-            reached_r16[seed_team] += 1
-            reached_r16[opponent] += 1
+    a, b = sf_winners
+    final_tie = _tie(a, b, final_odds)
+    bracket["final"].append(final_tie)
+    bracket["champion"] = final_tie["winner"]
 
-        # Quarter-finals
-        qf_winner_by_group = {}
-        for gi, (s1, s2) in enumerate(_QF_SEED_PAIRS):
-            a, b = r16_winner_by_seed[s1], r16_winner_by_seed[s2]
-            reached_qf[a] += 1
-            reached_qf[b] += 1
-            qf_winner_by_group[gi] = _draw_winner(a, b, pairwise_odds)
-
-        # Semi-finals
-        sf_winners = []
-        for g1, g2 in _SF_QF_GROUPS:
-            a, b = qf_winner_by_group[g1], qf_winner_by_group[g2]
-            reached_sf[a] += 1
-            reached_sf[b] += 1
-            sf_winners.append(_draw_winner(a, b, pairwise_odds))
-
-        # Final (single match, neutral venue)
-        a, b = sf_winners
-        reached_final[a] += 1
-        reached_final[b] += 1
-        champion = a if random.random() < final_odds[(a, b)] else b
-        won[champion] += 1
-
-    rows = []
-    for t in teams:
-        rows.append({
-            "team": t,
-            "country": team_country[t],
-            "reached_top8": reached_top8[t] / n_sim,
-            "reached_playoff_zone": reached_playoff_zone[t] / n_sim,
-            "reached_r16": reached_r16[t] / n_sim,
-            "reached_qf": reached_qf[t] / n_sim,
-            "reached_sf": reached_sf[t] / n_sim,
-            "reached_final": reached_final[t] / n_sim,
-            "won_competition": won[t] / n_sim,
-        })
-    return pd.DataFrame(rows).set_index("team").sort_values("won_competition", ascending=False)
+    return bracket

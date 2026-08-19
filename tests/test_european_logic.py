@@ -1,16 +1,18 @@
 """
-Tests for the pure-logic pieces of european.py. european.py is a
-Streamlit page script (it fetches live data and renders UI at import
-time), so it can't be imported directly in a test process — instead we
-extract just the target function's source via ast and exec it with a
-minimal namespace. This mirrors the manual verification done while
-building the fix, formalized so it runs in CI instead of by hand.
+Tests for the pure-logic pieces of european.py. Play-off bracket
+resolution lives in qualifying_projection.py (a plain importable module)
+and is imported directly. european.py itself is still a Streamlit page
+script (it fetches live data and renders UI at import time), so functions
+that remain there (like _compute_league_standings) still need ast
+-extraction into a minimal namespace instead.
 """
 
 import ast
 from pathlib import Path
 
 import pytest
+
+from qualifying_projection import _leg_aggregate_winner as _leg_aggregate_winner_impl
 
 
 def _extract_function(file_path: str, func_name: str, namespace: dict) -> callable:
@@ -25,7 +27,7 @@ def _extract_function(file_path: str, func_name: str, namespace: dict) -> callab
 
 @pytest.fixture()
 def leg_aggregate_winner():
-    return _extract_function("european.py", "_leg_aggregate_winner", {})
+    return _leg_aggregate_winner_impl
 
 
 def test_leg_aggregate_winner_first_team_wins_on_aggregate(leg_aggregate_winner):
