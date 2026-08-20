@@ -102,4 +102,10 @@ CLUB_COUNTRY_OVERRIDE: dict[str, str] = {
     "Atlético Madrid": "Spain",   # ratings/4335.csv has "Atlético de Madrid" / alias "Atletico Madrid"
     "TSG Hoffenheim": "Germany",  # ratings/4331.csv has "Hoffenheim" / alias "1899 Hoffenheim"
     "Torreense": "Portugal",      # not in ratings/4344.csv at all (not usually top-flight)
+    # ratings/4638.csv has team="Iberia 1999" / alias="Saburtalo" (its old
+    # name) for this club, but its actual European fixture data (Champions
+    # League then Europa League after being parachuted down) uses a third
+    # spelling, "FC Iberia 1999", matching neither -- silently dropping all
+    # of its points from Georgia's country coefficient without this.
+    "FC Iberia 1999": "Georgia",
 }
