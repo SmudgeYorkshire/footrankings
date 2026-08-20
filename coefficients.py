@@ -49,6 +49,7 @@ _SHORT_ROUND: dict[str, str] = {
     "2nd Qualifying Round": "QR2",
     "3rd Qualifying Round": "QR3",
     "Play-offs": "PO",
+    "Playoff round": "PO",  # Conference League's own spelling for the same round
 }
 
 # Colour-coded dot per competition, used instead of the trophy/medal icons
@@ -177,9 +178,9 @@ st.caption(
 )
 _race_df = _df[_df["Country"].map(
     lambda c: COUNTRY_BASELINE.get(c, {}).get("clubs_entered", 0) > 0
-)][["Flag", "Country", "26/27", "Clubs"]].sort_values(
-    "26/27", ascending=False
-).reset_index(drop=True)
+)].sort_values(
+    ["26/27", "5-Year Total"], ascending=[False, False]
+)[["Flag", "Country", "26/27", "Clubs"]].reset_index(drop=True)
 _race_df.insert(0, "Rank", _race_df.index + 1)
 st.dataframe(
     _race_df,
@@ -378,6 +379,7 @@ else:
                 if c:
                     countries_this_week.add(c)
 
+    _five_yr_total = dict(zip(_df["Country"], _df["5-Year Total"]))
     _weekly_rows = []
     for c in countries_this_week:
         raw_pts = weekly_totals.get(c, 0.0)
@@ -386,9 +388,11 @@ else:
         _weekly_rows.append({
             "Flag": _flag_url(c), "Country": c,
             "Coefficient points this week": contribution,
+            "_5yr": _five_yr_total.get(c, 0.0),
         })
     _weekly_df = pd.DataFrame(_weekly_rows).sort_values(
-        "Coefficient points this week", ascending=False).reset_index(drop=True)
+        ["Coefficient points this week", "_5yr"], ascending=[False, False]
+    ).drop(columns=["_5yr"]).reset_index(drop=True)
     st.caption(
         "Points ÷ that country's total clubs entered this season (UEFA Annex D.3) — "
         "the same division the season-long coefficient uses."

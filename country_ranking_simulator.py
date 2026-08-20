@@ -7,14 +7,15 @@ combining:
      (coefficients_baseline.COUNTRY_BASELINE) plus its known number of
      clubs entered this season (the fixed divisor UEFA's Annex D.3 uses).
   2. Real points already earned this season from qualifying-round matches
-     played so far (Q1-Q3) -- exact, no simulation, halved qualifying rate.
-     Nothing else has happened yet this season (the Play-off round hasn't
-     started), so this is the *entire* real component right now; it will
-     naturally grow to cover the Play-off round too once those matches
-     start being played for real.
-  3. A Monte Carlo projection of everything not yet decided: the Play-off
-     round itself (halved rate), then League Phase + Knockout stage (full
-     rate + bonus points) for whichever clubs reach the League Phase, via
+     played so far -- Q1-Q3 in full, plus whichever Play-off round legs
+     have actually been played -- exact, no simulation, halved qualifying
+     rate throughout (Q1-Q3 and the Play-off round are both "qualifying"
+     for country-coefficient purposes).
+  3. A Monte Carlo projection of everything not yet decided: whichever
+     Play-off leg(s) haven't been played yet (halved rate -- see
+     simulate_remaining_playoff_points, which skips any leg already
+     covered by #2), then League Phase + Knockout stage (full rate +
+     bonus points) for whichever clubs reach the League Phase, via
      league_phase_simulator.simulate_competition_winner's track_points
      mode.
 
@@ -43,6 +44,7 @@ from config import EUROPEAN_COMPETITIONS
 from coefficients_baseline import COUNTRY_BASELINE
 from coefficients_live import (
     _load_club_country_map, _fetch_comp_fixtures, _group_ties, _tie_result,
+    _PLAYOFF_ROUND_NAMES,
 )
 from qualifying_bracket import PLAYOFF_BRACKET
 from league_phase_simulator import simulate_competition_winner
@@ -85,20 +87,34 @@ def real_points_from_played(played_fixtures: list[dict], club_country: dict[str,
     return points
 
 
-def resolve_current_playoff_ties(comp_name: str, key: str) -> list[tuple[str, str]]:
-    """The real team-vs-team pairing for every Play-off round tie in
-    `comp_name`, resolved from PLAYOFF_BRACKET plus already-played
-    Qualifying Round results. Simpler than european.py's general-purpose
+def resolve_current_playoff_ties(comp_name: str, key: str) -> list[dict]:
+    """Every Play-off round tie in `comp_name`, resolved from
+    PLAYOFF_BRACKET plus already-played Qualifying Round results, with each
+    leg's real play status. Simpler than european.py's general-purpose
     bracket resolver (which also has to handle a QR3 tie still being
     undecided) because right now, with all of Q1-Q3 already complete,
     every QR3 tie this feeds from IS decided -- so a side is always either
-    a literal confirmed team, or a real, already-known QR3 winner/loser."""
+    a literal confirmed team, or a real, already-known QR3 winner/loser.
+
+    Returns [{"team_a", "team_b", "leg1_played", "leg2_played"}, ...] --
+    team_a/team_b are leg 1's home/away teams (in whichever spelling the
+    real Play-off fixture itself uses, which can drift slightly from the
+    QR3-resolved name, e.g. "LASK" vs "Lask Linz" -- same drift
+    qualifying_projection.py's resolvers already correct for). A tie whose
+    real Play-off fixture can't be found yet (not yet scheduled) is
+    reported as neither leg played, so callers simulate it fully."""
     played, remaining = _fetch_comp_fixtures(comp_name, key)
     played_ids = {f.get("idEvent") for f in played}
-    tie_map: dict[frozenset, list[dict]] = {}
+    qr3_tie_map: dict[frozenset, list[dict]] = {}
     for f in played:
         key_ = frozenset({f.get("strHomeTeam", ""), f.get("strAwayTeam", "")})
-        tie_map.setdefault(key_, []).append(f)
+        qr3_tie_map.setdefault(key_, []).append(f)
+    po_tie_map: dict[frozenset, list[dict]] = {}
+    for f in played + remaining:
+        if f.get("strRound") not in _PLAYOFF_ROUND_NAMES:
+            continue
+        k = frozenset({f.get("strHomeTeam", ""), f.get("strAwayTeam", "")})
+        po_tie_map.setdefault(k, []).append(f)
 
     def _resolve_side(side: tuple) -> str | None:
         if side[0] == "team":
@@ -124,9 +140,9 @@ def resolve_current_playoff_ties(comp_name: str, key: str) -> list[tuple[str, st
                 return None
             winner, loser = _tie_result(legs, other_played_ids)
             return winner if which == "winner" else loser
-        legs = tie_map.get(frozenset(name_pair))
+        legs = qr3_tie_map.get(frozenset(name_pair))
         if legs is None:
-            for fpair, flegs in tie_map.items():
+            for fpair, flegs in qr3_tie_map.items():
                 if fpair & name_pair:
                     legs = flegs
                     break
@@ -135,60 +151,106 @@ def resolve_current_playoff_ties(comp_name: str, key: str) -> list[tuple[str, st
         winner, loser = _tie_result(legs, played_ids)
         return winner if which == "winner" else loser
 
-    ties: list[tuple[str, str]] = []
+    ties: list[dict] = []
     for side_a, side_b in PLAYOFF_BRACKET.get(comp_name, []):
         a, b = _resolve_side(side_a), _resolve_side(side_b)
-        if a and b:
-            ties.append((a, b))
+        if not (a and b):
+            continue
+        pair = frozenset({a, b})
+        legs = po_tie_map.get(pair)
+        if legs is None:
+            for fpair, flegs in po_tie_map.items():
+                if fpair & pair:
+                    legs = flegs
+                    break
+        if legs is None:
+            ties.append({"team_a": a, "team_b": b, "leg1_played": False, "leg2_played": False})
+            continue
+        legs = sorted(legs, key=lambda x: x.get("dateEvent", ""))
+        leg1 = legs[0]
+        leg2 = legs[1] if len(legs) > 1 else None
+        ties.append({
+            "team_a": leg1.get("strHomeTeam", a), "team_b": leg1.get("strAwayTeam", b),
+            "leg1_played": leg1.get("idEvent") in played_ids,
+            "leg2_played": leg2 is not None and leg2.get("idEvent") in played_ids,
+        })
     return ties
 
 
 def simulate_remaining_playoff_points(
-    po_ties: list[tuple[str, str]],
+    ties: list[dict],
     ratings_df: pd.DataFrame,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
     n_sim: int = 3_000,
 ) -> dict[str, np.ndarray]:
-    """Monte Carlo two-leg goal simulation (halved qualifying rate: 1 win /
-    0.5 draw per leg) of every Play-off tie, vectorized across all ties at
-    once. Returns {club: array(n_sim)} of points earned from the tie -- for
-    BOTH sides of every tie, not just winners."""
-    if not po_ties:
+    """Monte Carlo goal simulation (halved qualifying rate: 1 win / 0.5
+    draw per leg) of whichever leg(s) of each Play-off tie haven't
+    actually been played yet -- a tie already fully decided (both legs
+    played for real) contributes nothing here, since its points are
+    already in real_points_from_played's real total; a tie with a real
+    leg 1 result only has leg 2 simulated (leg 2's own points don't depend
+    on leg 1's score, so no conditioning is needed, unlike advance-
+    probability elsewhere on this site). Returns {club: array(n_sim)} for
+    BOTH sides of every not-fully-decided tie."""
+    if not ties:
         return {}
     if "attack" not in ratings_df.columns:
         ratings_df = _opta_to_attack_defense(ratings_df)
     rat_lookup, league_avg = _build_rat_lookup(ratings_df, DEFAULT_BASE_GOALS)
     default = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
-
-    n_ties = len(po_ties)
-    a_att = np.array([rat_lookup.get(a, default)[0] for a, _ in po_ties])
-    a_def = np.array([rat_lookup.get(a, default)[1] for a, _ in po_ties])
-    b_att = np.array([rat_lookup.get(b, default)[0] for _, b in po_ties])
-    b_def = np.array([rat_lookup.get(b, default)[1] for _, b in po_ties])
-
-    lam_l1_a = a_att * np.maximum(b_def, 0.01) / league_avg * home_advantage
-    lam_l1_b = b_att * np.maximum(a_def, 0.01) / league_avg
-    lam_l2_b = b_att * np.maximum(a_def, 0.01) / league_avg * home_advantage
-    lam_l2_a = a_att * np.maximum(b_def, 0.01) / league_avg
-
     rng = np.random.default_rng()
     phi = OVERDISPERSION
     p_nb = 1.0 / (1.0 + phi)
-    g_l1_a = rng.negative_binomial(np.maximum(lam_l1_a[:, None] / phi, 1e-9), p_nb, size=(n_ties, n_sim))
-    g_l1_b = rng.negative_binomial(np.maximum(lam_l1_b[:, None] / phi, 1e-9), p_nb, size=(n_ties, n_sim))
-    g_l2_a = rng.negative_binomial(np.maximum(lam_l2_a[:, None] / phi, 1e-9), p_nb, size=(n_ties, n_sim))
-    g_l2_b = rng.negative_binomial(np.maximum(lam_l2_b[:, None] / phi, 1e-9), p_nb, size=(n_ties, n_sim))
 
     def _leg_pts(gh, ga):
         return np.where(gh > ga, QUAL_WIN, np.where(gh == ga, QUAL_DRAW, 0.0))
 
-    a_pts = _leg_pts(g_l1_a, g_l1_b) + _leg_pts(g_l2_a, g_l2_b)
-    b_pts = _leg_pts(g_l1_b, g_l1_a) + _leg_pts(g_l2_b, g_l2_a)
+    def _lambdas(batch):
+        a_att = np.array([rat_lookup.get(t["team_a"], default)[0] for t in batch])
+        a_def = np.array([rat_lookup.get(t["team_a"], default)[1] for t in batch])
+        b_att = np.array([rat_lookup.get(t["team_b"], default)[0] for t in batch])
+        b_def = np.array([rat_lookup.get(t["team_b"], default)[1] for t in batch])
+        return a_att, a_def, b_att, b_def
 
     result: dict[str, np.ndarray] = {}
-    for i, (a, b) in enumerate(po_ties):
-        result[a] = a_pts[i]
-        result[b] = b_pts[i]
+
+    def _add(team, pts):
+        result[team] = result.get(team, np.zeros(n_sim)) + pts
+
+    fresh = [t for t in ties if not t["leg1_played"] and not t["leg2_played"]]
+    if fresh:
+        n = len(fresh)
+        a_att, a_def, b_att, b_def = _lambdas(fresh)
+        lam_l1_a = a_att * np.maximum(b_def, 0.01) / league_avg * home_advantage
+        lam_l1_b = b_att * np.maximum(a_def, 0.01) / league_avg
+        lam_l2_b = b_att * np.maximum(a_def, 0.01) / league_avg * home_advantage
+        lam_l2_a = a_att * np.maximum(b_def, 0.01) / league_avg
+        g_l1_a = rng.negative_binomial(np.maximum(lam_l1_a[:, None] / phi, 1e-9), p_nb, size=(n, n_sim))
+        g_l1_b = rng.negative_binomial(np.maximum(lam_l1_b[:, None] / phi, 1e-9), p_nb, size=(n, n_sim))
+        g_l2_a = rng.negative_binomial(np.maximum(lam_l2_a[:, None] / phi, 1e-9), p_nb, size=(n, n_sim))
+        g_l2_b = rng.negative_binomial(np.maximum(lam_l2_b[:, None] / phi, 1e-9), p_nb, size=(n, n_sim))
+        a_pts = _leg_pts(g_l1_a, g_l1_b) + _leg_pts(g_l2_a, g_l2_b)
+        b_pts = _leg_pts(g_l1_b, g_l1_a) + _leg_pts(g_l2_b, g_l2_a)
+        for i, t in enumerate(fresh):
+            _add(t["team_a"], a_pts[i])
+            _add(t["team_b"], b_pts[i])
+
+    leg2_only = [t for t in ties if t["leg1_played"] and not t["leg2_played"]]
+    if leg2_only:
+        n = len(leg2_only)
+        a_att, a_def, b_att, b_def = _lambdas(leg2_only)
+        lam_l2_b = b_att * np.maximum(a_def, 0.01) / league_avg * home_advantage
+        lam_l2_a = a_att * np.maximum(b_def, 0.01) / league_avg
+        g_l2_a = rng.negative_binomial(np.maximum(lam_l2_a[:, None] / phi, 1e-9), p_nb, size=(n, n_sim))
+        g_l2_b = rng.negative_binomial(np.maximum(lam_l2_b[:, None] / phi, 1e-9), p_nb, size=(n, n_sim))
+        a_pts = _leg_pts(g_l2_a, g_l2_b)
+        b_pts = _leg_pts(g_l2_b, g_l2_a)
+        for i, t in enumerate(leg2_only):
+            _add(t["team_a"], a_pts[i])
+            _add(t["team_b"], b_pts[i])
+
+    # Both legs already played -- fully decided, already counted in
+    # real_points_from_played -- nothing to simulate.
     return result
 
 

@@ -34,10 +34,16 @@ _SEASON = "2026-2027"
 
 # Exact strRound text that counts at the halved qualifying rate (D.3).
 # Everything else that's a real match round (League Stage onward, incl. the
-# Round-of-16 knockout play-off round) counts at full rate.
+# Round-of-16 knockout play-off round) counts at full rate. The Play-off
+# round's own name isn't consistent across competitions -- Champions/Europa
+# League use "Play-offs", Conference League uses "Playoff round" -- so both
+# spellings need to be in this set, or Conference League Play-off matches
+# silently fall through to the full (non-qualifying) rate and get double
+# -counted.
+_PLAYOFF_ROUND_NAMES = frozenset({"Play-offs", "Playoff round"})
 _QUALIFYING_ROUNDS = {
-    "1st Qualifying Round", "2nd Qualifying Round", "3rd Qualifying Round", "Play-offs",
-}
+    "1st Qualifying Round", "2nd Qualifying Round", "3rd Qualifying Round",
+} | _PLAYOFF_ROUND_NAMES
 _QUAL_POINTS = (1.0, 0.5)   # (win, draw)
 _FULL_POINTS = (2.0, 1.0)
 
@@ -235,7 +241,7 @@ def _compute_secured_league_phase_bonus(key: str) -> dict[str, float]:
         secured: set[str] = {club for club, _c, _f in CONFIRMED_LEAGUE_PHASE.get(comp_name, [])}
         played, remaining = _fetch_comp_fixtures(comp_name, key)
         played_ids = {f.get("idEvent") for f in played}
-        po_fixtures = [f for f in played + remaining if f.get("strRound") == "Play-offs"]
+        po_fixtures = [f for f in played + remaining if f.get("strRound") in _PLAYOFF_ROUND_NAMES]
         for legs in _group_ties(po_fixtures):
             winner, _loser = _tie_result(legs, played_ids)
             if winner:
