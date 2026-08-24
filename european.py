@@ -389,13 +389,14 @@ st.divider()
 # Tabs
 # ---------------------------------------------------------------------------
 if has_lp:
-    tab_league, tab_lp_results, tab_qual, tab_qual_pred = st.tabs(
-        ["📊 Standings", "📋 League Stage", "🔍 Qualifying", "🔮 Qualifying Predictions"]
+    tab_league, tab_lp_results, tab_lp_pred, tab_qual, tab_qual_pred = st.tabs(
+        ["📊 Standings", "📋 League Stage", "📈 League Stage Predictions", "🔍 Qualifying", "🔮 Qualifying Predictions"]
     )
 else:
     tab_qual, tab_qual_pred = st.tabs(["🔍 Qualifying", "🔮 Qualifying Predictions"])
     tab_league = None
     tab_lp_results = None
+    tab_lp_pred = None
 
 
 # ---------------------------------------------------------------------------
@@ -500,6 +501,103 @@ if tab_lp_results is not None:
                     subset=["Home", "Away"], **{"font-weight": "bold"})
                 st.dataframe(_lpr_styled, column_config=_lpr_cfg,
                              use_container_width=True, hide_index=True)
+
+
+# ---------------------------------------------------------------------------
+# Tab — League Stage Predictions (Monte Carlo, works before the phase starts)
+# ---------------------------------------------------------------------------
+if tab_lp_pred is not None:
+    with tab_lp_pred:
+        _field = _project_league_phase_field(comp_name, ratings_df)
+        _cascade_note = {
+            "Europa League": " + Champions League Play-off losers (parachuted down)",
+            "Conference League": " + Europa League Play-off losers (parachuted down)",
+        }.get(comp_name, "")
+        if len(_field) < 36:
+            st.info(
+                f"Only {len(_field)} of 36 League Phase clubs are known for the {comp_name} so far "
+                f"(confirmed direct entrants + each Play-off tie's favoured side{_cascade_note}) — "
+                "competition-winner predictions need the full field and will appear once the rest are confirmed."
+            )
+        else:
+            st.caption(
+                "Simulates the full 36-club League Phase through to a champion, using each Play-off "
+                f"tie's currently favoured side{_cascade_note} — no waiting for legs to actually be "
+                "played. UEFA's real League Phase draw only happens after the Play-off round finishes, "
+                "so each run draws its own representative schedule following the *real* pot-based draw "
+                "rules (coefficient-ranked pots, no same-country pairings) rather than the actual "
+                "fixture list — then applies the real, fixed knockout bracket (top 8 direct to the "
+                "Round of 16, 9th-24th via a knockout play-off, 25th-36th eliminated). Recomputes when "
+                "the page cache refreshes."
+            )
+            _n_pots, _opp_per_pot = _LEAGUE_PHASE_POTS[comp_name]
+            _club_coeff = {f["team"]: get_coeff(f["team"], f["country"]) for f in _field}
+            _field_ratings_df = _resolve_field_ratings(_field)
+            with st.spinner("Simulating the League Phase and knockout stage…"):
+                _ls_result = simulate_competition_winner(
+                    field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
+                    n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=3_000,
+                    home_advantage=1.05,
+                )
+            _ls_rows = []
+            for _team, _r in _ls_result.iterrows():
+                _ls_rows.append({
+                    "Badge": badge_lookup.get(_team, ""),
+                    "Team": _team,
+                    "Top 8": round(_r["reached_top8"] * 100, 1),
+                    "9th-24th": round(_r["reached_playoff_zone"] * 100, 1),
+                    "Reach R16": round(_r["reached_r16"] * 100, 1),
+                    "Reach QF": round(_r["reached_qf"] * 100, 1),
+                    "Reach SF": round(_r["reached_sf"] * 100, 1),
+                    "Reach Final": round(_r["reached_final"] * 100, 1),
+                    "Win it all": round(_r["won_competition"] * 100, 1),
+                })
+            _ls_df = pd.DataFrame(_ls_rows)
+            _pct_cols = ["Top 8", "9th-24th", "Reach R16", "Reach QF", "Reach SF", "Reach Final", "Win it all"]
+            _ls_col_cfg = {
+                "Badge": st.column_config.ImageColumn("", width="small"),
+                "Team": st.column_config.TextColumn("Team", width="medium"),
+            }
+            for _c in _pct_cols:
+                _ls_col_cfg[_c] = st.column_config.NumberColumn(_c, format="%.1f%%", width="small")
+            st.dataframe(
+                _ls_df, column_config=_ls_col_cfg, use_container_width=True,
+                hide_index=True, height=len(_ls_df) * 35 + 38,
+            )
+
+            # ── Predicted Knockout Bracket ───────────────────────────────────
+            st.markdown("#### Predicted Knockout Bracket")
+            st.caption(
+                "One concrete predicted path through the knockout stage, picking the favoured "
+                "side at every tie from the Knockout Play-off round through the Final — not the "
+                "same thing as the reach-probability table above, which shows each club's *own* "
+                "chances across every possible bracket outcome, not just this one favourites-only path."
+            )
+            with st.spinner("Building the predicted bracket…"):
+                _bracket = build_predicted_bracket(
+                    field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
+                    n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=3_000,
+                    home_advantage=1.05,
+                )
+            _round_labels = [
+                ("ko_playoff", "Knockout Play-off (9th–24th)"),
+                ("r16", "Round of 16"),
+                ("qf", "Quarter-finals"),
+                ("sf", "Semi-finals"),
+                ("final", "Final"),
+            ]
+            for _key, _label in _round_labels:
+                st.markdown(f"**{_label}**")
+                _cards = []
+                for _tie in _bracket[_key]:
+                    _cards.append(f"""
+<div style="border:1px solid #dee2e6;border-radius:8px;padding:8px 10px;
+            margin:0 8px 8px 0;background:#fff;width:230px;box-shadow:0 1px 3px rgba(0,0,0,.07)">
+  {_bracket_tie_html(_tie, badge_lookup)}
+</div>""")
+                st.markdown(f"<div style='display:flex;flex-wrap:wrap'>{''.join(_cards)}</div>",
+                            unsafe_allow_html=True)
+            st.markdown(f"🏆 **Predicted champion: {_bracket['champion']}**")
 
 
 # ---------------------------------------------------------------------------
@@ -659,96 +757,3 @@ with tab_qual_pred:
         st.markdown(f"<div style='display:flex;flex-wrap:wrap'>{''.join(po_cards)}</div>",
                     unsafe_allow_html=True)
 
-    # ── League Stage Predictions ─────────────────────────────────────────────
-    st.divider()
-    st.markdown("### League Stage Predictions")
-    _field = _project_league_phase_field(comp_name, ratings_df)
-    _cascade_note = {
-        "Europa League": " + Champions League Play-off losers (parachuted down)",
-        "Conference League": " + Europa League Play-off losers (parachuted down)",
-    }.get(comp_name, "")
-    if len(_field) < 36:
-        st.info(
-            f"Only {len(_field)} of 36 League Phase clubs are known for the {comp_name} so far "
-            f"(confirmed direct entrants + each Play-off tie's favoured side{_cascade_note}) — "
-            "competition-winner predictions need the full field and will appear once the rest are confirmed."
-        )
-    else:
-        st.caption(
-            "Simulates the full 36-club League Phase through to a champion, using each Play-off "
-            f"tie's currently favoured side{_cascade_note} — no waiting for legs to actually be "
-            "played. UEFA's real League Phase draw only happens after the Play-off round finishes, "
-            "so each run draws its own representative schedule following the *real* pot-based draw "
-            "rules (coefficient-ranked pots, no same-country pairings) rather than the actual "
-            "fixture list — then applies the real, fixed knockout bracket (top 8 direct to the "
-            "Round of 16, 9th-24th via a knockout play-off, 25th-36th eliminated). Recomputes when "
-            "the page cache refreshes."
-        )
-        _n_pots, _opp_per_pot = _LEAGUE_PHASE_POTS[comp_name]
-        _club_coeff = {f["team"]: get_coeff(f["team"], f["country"]) for f in _field}
-        _field_ratings_df = _resolve_field_ratings(_field)
-        with st.spinner("Simulating the League Phase and knockout stage…"):
-            _ls_result = simulate_competition_winner(
-                field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
-                n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=3_000,
-                home_advantage=1.05,
-            )
-        _ls_rows = []
-        for _team, _r in _ls_result.iterrows():
-            _ls_rows.append({
-                "Badge": badge_lookup.get(_team, ""),
-                "Team": _team,
-                "Top 8": round(_r["reached_top8"] * 100, 1),
-                "9th-24th": round(_r["reached_playoff_zone"] * 100, 1),
-                "Reach R16": round(_r["reached_r16"] * 100, 1),
-                "Reach QF": round(_r["reached_qf"] * 100, 1),
-                "Reach SF": round(_r["reached_sf"] * 100, 1),
-                "Reach Final": round(_r["reached_final"] * 100, 1),
-                "Win it all": round(_r["won_competition"] * 100, 1),
-            })
-        _ls_df = pd.DataFrame(_ls_rows)
-        _pct_cols = ["Top 8", "9th-24th", "Reach R16", "Reach QF", "Reach SF", "Reach Final", "Win it all"]
-        _ls_col_cfg = {
-            "Badge": st.column_config.ImageColumn("", width="small"),
-            "Team": st.column_config.TextColumn("Team", width="medium"),
-        }
-        for _c in _pct_cols:
-            _ls_col_cfg[_c] = st.column_config.NumberColumn(_c, format="%.1f%%", width="small")
-        st.dataframe(
-            _ls_df, column_config=_ls_col_cfg, use_container_width=True,
-            hide_index=True, height=len(_ls_df) * 35 + 38,
-        )
-
-        # ── Predicted Knockout Bracket ───────────────────────────────────────
-        st.markdown("#### Predicted Knockout Bracket")
-        st.caption(
-            "One concrete predicted path through the knockout stage, picking the favoured "
-            "side at every tie from the Knockout Play-off round through the Final — not the "
-            "same thing as the reach-probability table above, which shows each club's *own* "
-            "chances across every possible bracket outcome, not just this one favourites-only path."
-        )
-        with st.spinner("Building the predicted bracket…"):
-            _bracket = build_predicted_bracket(
-                field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
-                n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=3_000,
-                home_advantage=1.05,
-            )
-        _round_labels = [
-            ("ko_playoff", "Knockout Play-off (9th–24th)"),
-            ("r16", "Round of 16"),
-            ("qf", "Quarter-finals"),
-            ("sf", "Semi-finals"),
-            ("final", "Final"),
-        ]
-        for _key, _label in _round_labels:
-            st.markdown(f"**{_label}**")
-            _cards = []
-            for _tie in _bracket[_key]:
-                _cards.append(f"""
-<div style="border:1px solid #dee2e6;border-radius:8px;padding:8px 10px;
-            margin:0 8px 8px 0;background:#fff;width:230px;box-shadow:0 1px 3px rgba(0,0,0,.07)">
-  {_bracket_tie_html(_tie, badge_lookup)}
-</div>""")
-            st.markdown(f"<div style='display:flex;flex-wrap:wrap'>{''.join(_cards)}</div>",
-                        unsafe_allow_html=True)
-        st.markdown(f"🏆 **Predicted champion: {_bracket['champion']}**")
