@@ -23,9 +23,7 @@ from simulator import two_leg_advance_odds
 from qualifying_bracket import PLAYOFF_BRACKET, CONFIRMED_LEAGUE_PHASE
 from club_coefficients import CLUB_COEFFICIENTS, get_coeff
 from league_phase_simulator import simulate_competition_winner, build_predicted_bracket, single_match_outcome_probs
-from league_phase_fixtures import (
-    LEAGUE_PHASE_MATCHDAYS, is_fixture_list_complete, is_matchday_complete, flatten_schedule,
-)
+from league_phase_fixtures import is_opponent_list_complete, derive_fixtures, partial_opponents_by_team
 from qualifying_projection import (
     _PLAYOFF_ROUND_NAMES,
     _load_combined_ratings, _resolve_field_ratings,
@@ -604,15 +602,14 @@ if tab_lp_pred is not None:
                 "competition-winner predictions need the full field and will appear once the rest are confirmed."
             )
         else:
-            _n_md = LEAGUE_PHASE_MATCHDAYS[comp_name]
-            _real_schedule_ready = is_fixture_list_complete(comp_name)
-            _real_schedule = flatten_schedule(comp_name) if _real_schedule_ready else None
+            _real_schedule_ready = is_opponent_list_complete(comp_name, [f["team"] for f in _field])
+            _real_schedule = derive_fixtures(comp_name) if _real_schedule_ready else None
             if _real_schedule_ready:
                 st.caption(
                     "Simulates the full 36-club League Phase through to a champion, using the **real, "
-                    f"confirmed {_n_md}-matchday draw** below — then applies the real, fixed knockout "
-                    "bracket (top 8 direct to the Round of 16, 9th-24th via a knockout play-off, "
-                    "25th-36th eliminated). Recomputes when the page cache refreshes."
+                    "confirmed opponent list and home/away legs** below — then applies the real, fixed "
+                    "knockout bracket (top 8 direct to the Round of 16, 9th-24th via a knockout "
+                    "play-off, 25th-36th eliminated). Recomputes when the page cache refreshes."
                 )
             else:
                 st.caption(
@@ -622,9 +619,9 @@ if tab_lp_pred is not None:
                     "own representative schedule following the *real* pot-based draw rules "
                     "(coefficient-ranked pots, no same-country pairings) rather than the actual fixture "
                     "list — then applies the real, fixed knockout bracket (top 8 direct to the Round of "
-                    "16, 9th-24th via a knockout play-off, 25th-36th eliminated). Once the real draw is "
-                    "entered below, this switches over to it automatically. Recomputes when the page "
-                    "cache refreshes."
+                    "16, 9th-24th via a knockout play-off, 25th-36th eliminated). Once the real opponent "
+                    "list is entered below, this switches over to it automatically. Recomputes when the "
+                    "page cache refreshes."
                 )
             _n_pots, _opp_per_pot = _LEAGUE_PHASE_POTS[comp_name]
             _club_coeff = {f["team"]: get_coeff(f["team"], f["country"]) for f in _field}
@@ -696,68 +693,69 @@ if tab_lp_pred is not None:
                             unsafe_allow_html=True)
             st.markdown(f"🏆 **Predicted champion: {_bracket['champion']}**")
 
-            # ── Matchday Fixtures ─────────────────────────────────────────
-            st.markdown("#### Matchday Fixtures")
+            # ── League Phase Fixtures ─────────────────────────────────────
+            st.markdown("#### League Phase Fixtures")
             if _real_schedule_ready:
-                st.caption("The real League Phase draw, with each match's outcome probability.")
-                _md_probs = single_match_outcome_probs(_real_schedule, _field_ratings_df, home_advantage=1.05)
-                _md_probs_by_md: dict[int, list[dict]] = {}
-                for _fx in _md_probs:
-                    _md_probs_by_md.setdefault(_fx["matchday"], []).append(_fx)
+                st.caption(
+                    "The real League Phase opponent list, with each match's outcome probability. "
+                    "UEFA doesn't publish matchday-by-matchday order/dates alongside the opponent "
+                    "list itself, so these aren't grouped or dated — home/away legs are real, though."
+                )
+                _fx_probs = single_match_outcome_probs(_real_schedule, _field_ratings_df, home_advantage=1.05)
+                _fx_rows = [{
+                    "HB": badge_lookup.get(_fx["strHomeTeam"], ""),
+                    "Home": _fx["strHomeTeam"],
+                    "Home Win": round(_fx["pct_home"] * 100, 1),
+                    "Draw": round(_fx["pct_draw"] * 100, 1),
+                    "Away Win": round(_fx["pct_away"] * 100, 1),
+                    "Away": _fx["strAwayTeam"],
+                    "AB": badge_lookup.get(_fx["strAwayTeam"], ""),
+                } for _fx in sorted(_fx_probs, key=lambda f: f["strHomeTeam"])]
+                st.dataframe(
+                    pd.DataFrame(_fx_rows),
+                    column_config={
+                        "HB": st.column_config.ImageColumn("", width="small"),
+                        "AB": st.column_config.ImageColumn("", width="small"),
+                        "Home Win": st.column_config.NumberColumn("Home Win", format="%.1f%%"),
+                        "Draw": st.column_config.NumberColumn("Draw", format="%.1f%%"),
+                        "Away Win": st.column_config.NumberColumn("Away Win", format="%.1f%%"),
+                    },
+                    use_container_width=True, hide_index=True, height=len(_fx_rows) * 35 + 38,
+                )
             else:
                 st.caption(
-                    "UEFA's real League Phase draw hasn't been made yet. Once it has, each matchday's "
-                    "fixtures go here (and the predictions above switch to using the real schedule)."
+                    "UEFA's real League Phase draw hasn't been made yet. Once each club's opponent "
+                    "list is entered, the real fixture list (with outcome probabilities) goes here "
+                    "and the predictions above switch to using it."
                 )
-                _md_probs_by_md = {}
-            for _md in range(1, _n_md + 1):
-                st.markdown(f"**Matchday {_md}**")
-                if is_matchday_complete(comp_name, _md):
-                    _md_rows = [{
-                        "HB": badge_lookup.get(_fx["strHomeTeam"], ""),
-                        "Home": _fx["strHomeTeam"],
-                        "Home Win": round(_fx["pct_home"] * 100, 1),
-                        "Draw": round(_fx["pct_draw"] * 100, 1),
-                        "Away Win": round(_fx["pct_away"] * 100, 1),
-                        "Away": _fx["strAwayTeam"],
-                        "AB": badge_lookup.get(_fx["strAwayTeam"], ""),
-                    } for _fx in _md_probs_by_md.get(_md, [])]
-                    st.dataframe(
-                        pd.DataFrame(_md_rows),
-                        column_config={
-                            "HB": st.column_config.ImageColumn("", width="small"),
-                            "AB": st.column_config.ImageColumn("", width="small"),
-                            "Home Win": st.column_config.NumberColumn("Home Win", format="%.1f%%"),
-                            "Draw": st.column_config.NumberColumn("Draw", format="%.1f%%"),
-                            "Away Win": st.column_config.NumberColumn("Away Win", format="%.1f%%"),
-                        },
-                        use_container_width=True, hide_index=True, height=len(_md_rows) * 35 + 38,
-                    )
-                else:
-                    st.caption("Fixtures not yet confirmed.")
 
             # ── Fixture Difficulty ────────────────────────────────────────
             st.markdown("#### Fixture Difficulty")
-            if _real_schedule_ready:
-                st.caption(
-                    "Each club's League Phase opponents ranked by average Opta power rating — "
-                    "higher average = tougher group of 8."
-                )
+            _opponents_by_team = partial_opponents_by_team(comp_name)
+            _known_field = [f for f in _field if f["team"] in _opponents_by_team]
+            if _known_field:
+                if len(_known_field) < len(_field):
+                    st.caption(
+                        "Each confirmed club's League Phase opponents ranked by average Opta power "
+                        f"rating — higher average = tougher group of 8. {len(_known_field)} of "
+                        f"{len(_field)} clubs confirmed so far; the rest join as they're entered."
+                    )
+                else:
+                    st.caption(
+                        "Each club's League Phase opponents ranked by average Opta power rating — "
+                        "higher average = tougher group of 8."
+                    )
                 _opta_by_team = dict(zip(_field_ratings_df["team"], _field_ratings_df["opta_rating"]))
-                _opponents_by_team: dict[str, list[str]] = {t: [] for t in _opta_by_team}
-                for _fx in _real_schedule:
-                    _opponents_by_team.setdefault(_fx["strHomeTeam"], []).append(_fx["strAwayTeam"])
-                    _opponents_by_team.setdefault(_fx["strAwayTeam"], []).append(_fx["strHomeTeam"])
                 _diff_rows = []
-                for _f in _field:
+                for _f in _known_field:
                     _team = _f["team"]
-                    _opps = _opponents_by_team.get(_team, [])
-                    _avg_opp_rating = (sum(_opta_by_team.get(o, 0.0) for o in _opps) / len(_opps)) if _opps else None
+                    _opps = _opponents_by_team[_team]
+                    _avg_opp_rating = sum(_opta_by_team.get(o, 0.0) for o in _opps) / len(_opps)
                     _diff_rows.append({
                         "Badge": badge_lookup.get(_team, ""),
                         "Team": _team,
                         "Country": _f["country"],
-                        "Avg Opponent Opta Rating": round(_avg_opp_rating, 1) if _avg_opp_rating is not None else None,
+                        "Avg Opponent Opta Rating": round(_avg_opp_rating, 1),
                     })
                 _diff_df = pd.DataFrame(_diff_rows).sort_values(
                     "Avg Opponent Opta Rating", ascending=False).reset_index(drop=True)
