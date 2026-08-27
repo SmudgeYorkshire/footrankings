@@ -189,6 +189,28 @@ class ApiFootballClient:
                 played.append(norm)
         return played, remaining
 
+    def get_teams(self, league_id: int, season, ttl: int = CACHE_TTL_META) -> dict[str, str]:
+        """{team name: badge URL} for every team API-Football has already
+        confirmed into this league/season -- populated as soon as a club is
+        drawn in, well before it has played (or even been scheduled for) a
+        fixture in the competition. Use this to fill in badges for clubs
+        that get_fixtures()'s played/remaining lists don't cover yet, e.g.
+        League Phase direct entrants before the League Phase draw/fixture
+        list exists."""
+        af_season = self._season_year(season)
+        data = self._cached_get(
+            "teams", {"league": league_id, "season": af_season},
+            cache_key=f"af_teams_{league_id}_{af_season}", ttl=ttl,
+        )
+        resp = (data or {}).get("response") or []
+        lookup: dict[str, str] = {}
+        for row in resp:
+            team = row.get("team") or {}
+            name, logo = team.get("name"), team.get("logo")
+            if name and logo:
+                lookup[name] = logo
+        return lookup
+
     def get_live_fixtures(self, league_ids: list[int], ttl: int = CACHE_TTL_FIXTURES) -> list[dict]:
         """Every fixture currently in-play across the given leagues, in a
         single request — API-Football's `live` filter takes a dash-joined

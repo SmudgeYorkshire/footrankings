@@ -49,6 +49,17 @@ from simulator import (
 _MAX_SCHEDULE_ATTEMPTS = 200
 _MAX_COUNTRY_OPPONENTS = 2
 
+# Shakhtar Donetsk have played their UEFA "home" matches at neutral venues
+# (outside Ukraine) since 2014 -- no true home crowd/pitch-familiarity
+# advantage, so their nominal home leg should be modelled at parity (1.0)
+# rather than getting the normal home-advantage boost, in both the League
+# Phase schedule and any two-legged knockout tie.
+NEUTRAL_VENUE_TEAMS = {"Shakhtar Donetsk"}
+
+
+def _home_advantage_for(team: str, base: float) -> float:
+    return 1.0 if team in NEUTRAL_VENUE_TEAMS else base
+
 # ---------------------------------------------------------------------------
 # UEFA association (country) coefficient points -- verified against both
 # en.wikipedia.org/wiki/UEFA_coefficient's "Bonus Points" table (2024-25
@@ -296,11 +307,13 @@ def _load_pairwise_advance_odds(
     i_idx, j_idx = np.triu_indices(len(teams), k=1)
     a_att, a_def = att[i_idx], dfc[i_idx]
     b_att, b_def = att[j_idx], dfc[j_idx]
+    ha_a = np.array([_home_advantage_for(teams[i], home_advantage) for i in i_idx])
+    ha_b = np.array([_home_advantage_for(teams[j], home_advantage) for j in j_idx])
 
     # Leg 1: a at home. Leg 2: b at home.
-    lam_l1_a = a_att * np.maximum(b_def, 0.01) / league_avg * home_advantage
+    lam_l1_a = a_att * np.maximum(b_def, 0.01) / league_avg * ha_a
     lam_l1_b = b_att * np.maximum(a_def, 0.01) / league_avg
-    lam_l2_b = b_att * np.maximum(a_def, 0.01) / league_avg * home_advantage
+    lam_l2_b = b_att * np.maximum(a_def, 0.01) / league_avg * ha_b
     lam_l2_a = a_att * np.maximum(b_def, 0.01) / league_avg
 
     rng = np.random.default_rng()
@@ -377,10 +390,12 @@ def _load_pairwise_expected_points(
     i_idx, j_idx = np.triu_indices(len(teams), k=1)
     a_att, a_def = att[i_idx], dfc[i_idx]
     b_att, b_def = att[j_idx], dfc[j_idx]
+    ha_a = np.array([_home_advantage_for(teams[i], home_advantage) for i in i_idx])
+    ha_b = np.array([_home_advantage_for(teams[j], home_advantage) for j in j_idx])
 
-    lam_l1_a = a_att * np.maximum(b_def, 0.01) / league_avg * home_advantage
+    lam_l1_a = a_att * np.maximum(b_def, 0.01) / league_avg * ha_a
     lam_l1_b = b_att * np.maximum(a_def, 0.01) / league_avg
-    lam_l2_b = b_att * np.maximum(a_def, 0.01) / league_avg * home_advantage
+    lam_l2_b = b_att * np.maximum(a_def, 0.01) / league_avg * ha_b
     lam_l2_a = a_att * np.maximum(b_def, 0.01) / league_avg
 
     rng = np.random.default_rng()
@@ -440,6 +455,47 @@ def _neutral_final_expected_points(teams: list[str], ratings_df: pd.DataFrame, n
     return expected
 
 
+def single_match_outcome_probs(
+    fixtures: list[dict], ratings_df: pd.DataFrame, home_advantage: float, n_draws: int = 20_000,
+) -> list[dict]:
+    """Home win / draw / away win probabilities for a specific, already-
+    known list of single League Phase matches -- e.g. one real matchday's
+    18 fixtures once the League Phase draw is known. Each fixture dict
+    needs strHomeTeam/strAwayTeam (any other keys, e.g. matchday, are
+    passed through unchanged); results add pct_home, pct_draw, pct_away."""
+    if "attack" not in ratings_df.columns:
+        ratings_df = _opta_to_attack_defense(ratings_df)
+    rat_lookup, league_avg = _build_rat_lookup(ratings_df, DEFAULT_BASE_GOALS)
+    default = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+
+    home_teams = [f["strHomeTeam"] for f in fixtures]
+    away_teams = [f["strAwayTeam"] for f in fixtures]
+    h_att = np.array([rat_lookup.get(t, default)[0] for t in home_teams])
+    h_def = np.array([rat_lookup.get(t, default)[1] for t in home_teams])
+    a_att = np.array([rat_lookup.get(t, default)[0] for t in away_teams])
+    a_def = np.array([rat_lookup.get(t, default)[1] for t in away_teams])
+    ha = np.array([_home_advantage_for(t, home_advantage) for t in home_teams])
+
+    lam_h = h_att * np.maximum(a_def, 0.01) / league_avg * ha
+    lam_a = a_att * np.maximum(h_def, 0.01) / league_avg
+
+    rng = np.random.default_rng()
+    phi = OVERDISPERSION
+    p_nb = 1.0 / (1.0 + phi)
+    n = len(fixtures)
+    gh = rng.negative_binomial(np.maximum(lam_h[:, None] / phi, 1e-9), p_nb, size=(n, n_draws))
+    ga = rng.negative_binomial(np.maximum(lam_a[:, None] / phi, 1e-9), p_nb, size=(n, n_draws))
+
+    pct_home = (gh > ga).mean(axis=1)
+    pct_draw = (gh == ga).mean(axis=1)
+    pct_away = (gh < ga).mean(axis=1)
+
+    results = []
+    for i, f in enumerate(fixtures):
+        results.append({**f, "pct_home": float(pct_home[i]), "pct_draw": float(pct_draw[i]), "pct_away": float(pct_away[i])})
+    return results
+
+
 def simulate_competition_winner(
     field: list[dict],
     club_coeff: dict[str, float],
@@ -450,6 +506,7 @@ def simulate_competition_winner(
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
     comp_name: str | None = None,
     track_points: bool = False,
+    schedule: list[dict] | None = None,
 ) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, np.ndarray]]:
     """Full Monte Carlo simulation of a 36-team UEFA League Phase
     competition through to a champion.
@@ -458,17 +515,23 @@ def simulate_competition_winner(
     36-club League Phase lineup (confirmed entrants + currently-favoured
     Play-off winners).
 
-    Draws ONE representative League Phase schedule (see module docstring
-    for why), simulates its 144 (or 108, for the Conference League)
-    matches with the same NegBin goals model used across the rest of the
-    site, then for each of n_sim simulation runs: ranks the resulting
-    table, sends 1-8 direct to the Round of 16, runs the 9-24 knockout
-    play-off and the rest of the bracket via precomputed two-leg advance
-    odds, and tallies who wins.
+    schedule: if given (a list of {"strHomeTeam", "strAwayTeam"} covering
+    all 144/108 games), simulates the REAL League Phase draw instead of
+    drawing a synthetic pot-based one -- pass this once
+    league_phase_fixtures.is_fixture_list_complete() is True for this
+    competition. Otherwise draws ONE representative League Phase schedule
+    (see module docstring for why), simulates its 144 (or 108, for the
+    Conference League) matches with the same NegBin goals model used
+    across the rest of the site, then for each of n_sim simulation runs:
+    ranks the resulting table, sends 1-8 direct to the Round of 16, runs
+    the 9-24 knockout play-off and the rest of the bracket via precomputed
+    two-leg advance odds, and tallies who wins.
 
     Returns a DataFrame indexed by team with columns: country,
-    reached_top8, reached_playoff_zone (9-24), reached_r16, reached_qf,
-    reached_sf, reached_final, won_competition (all probabilities, 0-1).
+    reached_top8, reached_top16, reached_top24 (all cumulative -- e.g.
+    reached_top24 includes clubs that finished in the top 8), reached_r16,
+    reached_qf, reached_sf, reached_final, won_competition (all
+    probabilities, 0-1).
 
     If track_points is True (comp_name required), ALSO returns a second
     value: {team: np.ndarray of shape (n_sim,)} of each club's total UEFA
@@ -484,8 +547,9 @@ def simulate_competition_winner(
     team_country = {f["team"]: f["country"] for f in field}
     n_teams = len(teams)
 
-    pots = assign_pots(teams, club_coeff, n_pots)
-    schedule = generate_league_phase_schedule(pots, team_country, opponents_per_pot)
+    if schedule is None:
+        pots = assign_pots(teams, club_coeff, n_pots)
+        schedule = generate_league_phase_schedule(pots, team_country, opponents_per_pot)
 
     if "attack" not in ratings_df.columns:
         ratings_df = _opta_to_attack_defense(ratings_df)
@@ -502,7 +566,8 @@ def simulate_competition_winner(
     for i, f in enumerate(schedule):
         h_att, h_def = rat_lookup.get(f["strHomeTeam"], default)
         a_att, a_def = rat_lookup.get(f["strAwayTeam"], default)
-        home_lambdas[i] = h_att * max(a_def, 0.01) / league_avg * home_advantage
+        ha = _home_advantage_for(f["strHomeTeam"], home_advantage)
+        home_lambdas[i] = h_att * max(a_def, 0.01) / league_avg * ha
         away_lambdas[i] = a_att * max(h_def, 0.01) / league_avg
 
     rng = np.random.default_rng()
@@ -542,7 +607,8 @@ def simulate_competition_winner(
         ko_bonus = _KNOCKOUT_ROUND_BONUS[comp_name]
 
     reached_top8 = {t: 0 for t in teams}
-    reached_playoff_zone = {t: 0 for t in teams}
+    reached_top16 = {t: 0 for t in teams}
+    reached_top24 = {t: 0 for t in teams}
     reached_r16 = {t: 0 for t in teams}
     reached_qf = {t: 0 for t in teams}
     reached_sf = {t: 0 for t in teams}
@@ -557,12 +623,12 @@ def simulate_competition_winner(
         ranked_teams = [teams[i] for i in order]  # rank 1 first
         rank_of = {t: r + 1 for r, t in enumerate(ranked_teams)}
 
-        top8 = ranked_teams[:8]
-        playoff_zone = ranked_teams[8:24]
-        for t in top8:
+        for t in ranked_teams[:8]:
             reached_top8[t] += 1
-        for t in playoff_zone:
-            reached_playoff_zone[t] += 1
+        for t in ranked_teams[:16]:
+            reached_top16[t] += 1
+        for t in ranked_teams[:24]:
+            reached_top24[t] += 1
 
         team_by_rank = {rank_of[t]: t for t in ranked_teams}
 
@@ -631,7 +697,8 @@ def simulate_competition_winner(
             "team": t,
             "country": team_country[t],
             "reached_top8": reached_top8[t] / n_sim,
-            "reached_playoff_zone": reached_playoff_zone[t] / n_sim,
+            "reached_top16": reached_top16[t] / n_sim,
+            "reached_top24": reached_top24[t] / n_sim,
             "reached_r16": reached_r16[t] / n_sim,
             "reached_qf": reached_qf[t] / n_sim,
             "reached_sf": reached_sf[t] / n_sim,
@@ -653,6 +720,7 @@ def build_predicted_bracket(
     opponents_per_pot: int,
     n_sim: int = 3_000,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+    schedule: list[dict] | None = None,
 ) -> dict:
     """A single, concrete predicted knockout bracket -- Knockout Play-off
     through Final -- rather than per-team reach probabilities.
@@ -677,8 +745,9 @@ def build_predicted_bracket(
     team_country = {f["team"]: f["country"] for f in field}
     n_teams = len(teams)
 
-    pots = assign_pots(teams, club_coeff, n_pots)
-    schedule = generate_league_phase_schedule(pots, team_country, opponents_per_pot)
+    if schedule is None:
+        pots = assign_pots(teams, club_coeff, n_pots)
+        schedule = generate_league_phase_schedule(pots, team_country, opponents_per_pot)
 
     if "attack" not in ratings_df.columns:
         ratings_df = _opta_to_attack_defense(ratings_df)
@@ -695,7 +764,8 @@ def build_predicted_bracket(
     for i, f in enumerate(schedule):
         h_att, h_def = rat_lookup.get(f["strHomeTeam"], default)
         a_att, a_def = rat_lookup.get(f["strAwayTeam"], default)
-        home_lambdas[i] = h_att * max(a_def, 0.01) / league_avg * home_advantage
+        ha = _home_advantage_for(f["strHomeTeam"], home_advantage)
+        home_lambdas[i] = h_att * max(a_def, 0.01) / league_avg * ha
         away_lambdas[i] = a_att * max(h_def, 0.01) / league_avg
 
     rng = np.random.default_rng()
