@@ -80,9 +80,11 @@ _LP_INC_1_8 = {"Champions League": 0.25, "Europa League": 0.25, "Conference Leag
 
 def league_phase_bonus(rank: int, comp_name: str) -> float:
     """UEFA coefficient bonus points for finishing League Phase at `rank`
-    (1-36) in `comp_name`. 0 for ranks 25-36 (eliminated, no bonus)."""
+    (1-36) in `comp_name`. Ranks 25-36 (eliminated) still earn the
+    participation floor -- 6.0 for Champions League, 0.0 for Europa/
+    Conference League -- just no ranking bonus on top."""
     if rank > 24:
-        return 0.0
+        return _LP_PARTICIPATION[comp_name]
     inc_9_24 = _LP_INC_9_24[comp_name]
     if rank >= 9:
         ranking_bonus = (25 - rank) * inc_9_24

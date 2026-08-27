@@ -37,6 +37,7 @@ from coefficients_live import (
     _group_ties, _tie_result, _compute_live_coefficients,
     _compute_live_raw_points, _coefficients_from_raw,
     _compute_todays_raw_points, _compute_ecl_eliminations, _build_ranking_df,
+    _SECURED_LP_FLOOR, _BONUS_PER_STAGE, _PLAYOFF_ROUND_NAMES, _classify_knockout_round,
 )
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
@@ -77,6 +78,56 @@ def _week_range(today: datetime) -> tuple[str, str]:
     monday = today - timedelta(days=today.weekday())
     sunday = monday + timedelta(days=6)
     return monday.strftime("%Y-%m-%d"), sunday.strftime("%Y-%m-%d")
+
+
+def _tie_bonus_this_week(comp_name: str, key: str, week_start: str, week_end: str) -> dict[str, tuple[str, float]]:
+    """{deciding_leg_event_id: (winning_club, bonus_raw_points)} for every
+    two-legged tie that gets DECIDED by a leg played within week_start..
+    week_end and whose winner earns a D.5 bonus for it: winning a Play-off
+    round tie secures a League Phase spot (D.5's floor -- only nonzero for
+    the Champions League, since the Europa/Conference League floor is
+    0.000), and winning a Knockout Play-off/R16/QF/SF tie earns that
+    round's "reached" bonus (D.5a). Keyed by the deciding fixture's id so
+    "This Week's Matches" can show the bonus against the right row.
+
+    Doesn't cover the two bonus types tied to the League Phase's single
+    concluding date rather than an individual tie (the top-8-to-R16
+    "reached" bonus, and D.5b's final-ranking bonus) -- irrelevant until
+    the League Phase actually finishes, and not worth the extra plumbing
+    until then."""
+    result: dict[str, tuple[str, float]] = {}
+    played, remaining = _fetch_comp_fixtures(comp_name, key)
+    played_ids = {f.get("idEvent") for f in played}
+    all_fixtures = played + remaining
+
+    def _credit_deciding_leg(legs: list[dict], bonus: float) -> None:
+        winner, _loser = _tie_result(legs, played_ids)
+        if not winner:
+            return
+        played_legs = [l for l in legs if l.get("idEvent") in played_ids]
+        if not played_legs:
+            return
+        deciding = max(played_legs, key=lambda l: l.get("dateEvent", ""))
+        if week_start <= deciding.get("dateEvent", "") <= week_end:
+            result[deciding.get("idEvent")] = (winner, bonus)
+
+    floor = _SECURED_LP_FLOOR.get(comp_name, 0.0)
+    if floor > 0.0:
+        po_fixtures = [f for f in all_fixtures if f.get("strRound") in _PLAYOFF_ROUND_NAMES]
+        for legs in _group_ties(po_fixtures):
+            _credit_deciding_leg(legs, floor)
+
+    per_stage = _BONUS_PER_STAGE[comp_name]
+    rounds_map: dict[str, list] = {}
+    for f in all_fixtures:
+        cls = _classify_knockout_round(f.get("strRound", ""))
+        if cls:
+            rounds_map.setdefault(cls, []).append(f)
+    for stage in ("KPO", "R16", "QF", "SF"):
+        for legs in _group_ties(rounds_map.get(stage, [])):
+            _credit_deciding_leg(legs, per_stage)
+
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -275,6 +326,58 @@ st.caption(
 st.divider()
 
 # ---------------------------------------------------------------------------
+# Predicted race for an extra Champions League spot
+# ---------------------------------------------------------------------------
+st.markdown("### 🔮 Predicted Race for an extra Champions League spot")
+st.caption(
+    "The same simulation as above, but ranked purely by this SEASON's coefficient alone "
+    "(not the 5-season total) — the actual metric the European Performance Spot race uses. "
+    "\"Top 1\" and \"Top 2\" are each association's probability of finishing 1st or in the "
+    "top 2 respectively once the season plays out, across every simulation run. Suspended "
+    "associations with no clubs entered (e.g. Russia) can't earn anything new this season, "
+    "so aren't part of the race."
+)
+_eps_pred_rows = []
+for _country, _r in _pred_table.iterrows():
+    if _r["clubs"] <= 0 or _r["season_mean_rank"] is None:
+        continue
+    _eps_pred_rows.append({
+        "Flag": _flag_url(_country),
+        "Country": _country,
+        "Clubs": _r["clubs"],
+        "Projected 2026/27 points": _r["mean_season_coeff"],
+        "Top 1": _r["season_pct_top1"] * 100,
+        "Top 2": _r["season_pct_top2"] * 100,
+    })
+_eps_pred_df = pd.DataFrame(_eps_pred_rows).sort_values(
+    "Projected 2026/27 points", ascending=False
+).reset_index(drop=True)
+_eps_pred_df.insert(0, "Rank", _eps_pred_df.index + 1)
+st.dataframe(
+    _eps_pred_df,
+    column_config={
+        "Rank": st.column_config.NumberColumn("Rank", width="small"),
+        "Flag": st.column_config.ImageColumn("", width="small"),
+        "Country": st.column_config.TextColumn("Country", width="medium"),
+        "Clubs": st.column_config.NumberColumn("Clubs", width="small"),
+        "Projected 2026/27 points": st.column_config.NumberColumn(
+            "Projected 2026/27 points", format="%.3f", width="small"),
+        "Top 1": st.column_config.NumberColumn("Top 1", format="%.1f%%", width="small"),
+        "Top 2": st.column_config.NumberColumn("Top 2", format="%.1f%%", width="small"),
+    },
+    use_container_width=True, hide_index=True, height=len(_eps_pred_df) * 35 + 38,
+)
+if len(_eps_pred_df) >= 2:
+    _pred_gold, _pred_silver = _eps_pred_df.iloc[0], _eps_pred_df.iloc[1]
+    st.caption(
+        f"Most likely outcome: 🥇 **{_pred_gold['Country']}** ({_pred_gold['Top 1']:.1f}% to finish 1st) "
+        f"and 🥈 **{_pred_silver['Country']}** would gain the two extra Champions League places — "
+        f"but check the Top 2 column for how contested it actually is further down the table."
+    )
+
+st.divider()
+
+# ---------------------------------------------------------------------------
 # This week's matches
 # ---------------------------------------------------------------------------
 _week_start, _week_end = _week_range(_today)
@@ -285,6 +388,7 @@ _week_rows = []
 for comp_name in EUROPEAN_COMPETITIONS:
     played, remaining = _fetch_comp_fixtures(comp_name, _API_KEY)
     played_ids = {f.get("idEvent") for f in played}
+    bonus_this_week = _tie_bonus_this_week(comp_name, _API_KEY, _week_start, _week_end)
     for f in played + remaining:
         d = f.get("dateEvent", "")
         if not (_week_start <= d <= _week_end):
@@ -307,6 +411,13 @@ for comp_name in EUROPEAN_COMPETITIONS:
                 h_contrib = draw_pts / h_entered if h_entered else 0.0
                 a_contrib = draw_pts / a_entered if a_entered else 0.0
                 pts_str = f"{home} +{h_contrib:.3f}, {away} +{a_contrib:.3f}"
+        bonus_str = ""
+        bonus_hit = bonus_this_week.get(f.get("idEvent"))
+        if bonus_hit:
+            bonus_club, bonus_raw = bonus_hit
+            bonus_entered = COUNTRY_BASELINE.get(club_country.get(bonus_club, ""), {}).get("clubs_entered", 0)
+            if bonus_entered:
+                bonus_str = f"{bonus_club} +{bonus_raw / bonus_entered:.3f}"
         _week_rows.append({
             "_date": d, "_time": f.get("strTime", ""),
             "Comp": _COMP_DOT.get(comp_name, "⚪"),
@@ -317,6 +428,7 @@ for comp_name in EUROPEAN_COMPETITIONS:
             "Score": f"{f.get('intHomeScore','')}–{f.get('intAwayScore','')}" if is_played else "vs",
             "Away": away,
             "Points": pts_str,
+            "Bonus": bonus_str,
         })
 
 if not _week_rows:
@@ -336,6 +448,13 @@ else:
             "Score":  st.column_config.TextColumn("Score", width=56),
             "Away":   st.column_config.TextColumn("Away", width=140),
             "Points": st.column_config.TextColumn("Coefficient points added", width=220),
+            "Bonus":  st.column_config.TextColumn(
+                "Bonus points added", width=200,
+                help="D.5 bonus points earned by winning a tie decided this week -- "
+                     "securing a League Phase spot (Champions League Play-off winners "
+                     "only -- the Europa/Conference League floor is 0), or reaching a "
+                     "knockout-stage round.",
+            ),
         },
         use_container_width=False, hide_index=True, height=len(_week_df) * 35 + 38,
     )
@@ -366,6 +485,10 @@ else:
                 weekly_totals[h_country] = weekly_totals.get(h_country, 0.0) + h_add
             if a_country:
                 weekly_totals[a_country] = weekly_totals.get(a_country, 0.0) + a_add
+        for bonus_club, bonus_raw in _tie_bonus_this_week(comp_name, _API_KEY, _week_start, _week_end).values():
+            bonus_country = club_country.get(bonus_club)
+            if bonus_country:
+                weekly_totals[bonus_country] = weekly_totals.get(bonus_country, 0.0) + bonus_raw
     # Include every nation with a club playing this week, even at 0.0 so far
     countries_this_week = set()
     for comp_name in EUROPEAN_COMPETITIONS:

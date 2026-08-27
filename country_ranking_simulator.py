@@ -283,9 +283,15 @@ def build_country_rank_table(
     Returns a DataFrame indexed by country with columns: clubs,
     baseline_4yr, mean_season_coeff, mean_total, mean_rank, and pct_topN
     for N in (1, 4, 6, 10, 15, 20) -- probability of finishing at or above
-    that rank (band cutoffs that matter in practice: title-race context,
-    European Performance Spot contention, guaranteed extra Champions
-    League berths, etc).
+    that rank in the 5-SEASON total (band cutoffs that matter in practice:
+    title-race context, guaranteed extra Champions League berths, etc) --
+    plus season_mean_rank, season_pct_top1, and season_pct_top2, ranked by
+    THIS season's coefficient alone (not the 5-year total) among countries
+    with clubs_entered > 0 only, matching how UEFA's real European
+    Performance Spot race works (the two best single-season coefficients
+    each get an extra Champions League place the following season) --
+    suspended associations with no clubs entered can't earn anything new
+    so are excluded, same as the live EPS race on this page.
     """
     season_raw: dict[str, np.ndarray] = {c: np.full(n_sim, p) for c, p in real_points.items()}
     for comp in simulated_points:
@@ -320,6 +326,27 @@ def build_country_rank_table(
     for s in range(n_sim):
         ranks[order[:, s], s] = np.arange(1, n_countries + 1)
 
+    # EPS race: rank by THIS season's coefficient alone, active countries
+    # only. totals[i] - baselines[i] recovers season_coeff without storing
+    # it separately (see the loop above -- totals[i] = baselines[i] +
+    # season_coeff for every country, active or suspended).
+    active_idx = [i for i in range(n_countries) if clubs_entered[i] > 0]
+    season_mean_rank: dict[str, float] = {}
+    season_pct_top1: dict[str, float] = {}
+    season_pct_top2: dict[str, float] = {}
+    if active_idx:
+        season_coeff_matrix = totals[active_idx] - baselines[active_idx][:, None]
+        season_order = np.argsort(-season_coeff_matrix, axis=0)
+        season_ranks = np.empty_like(season_order)
+        n_active = len(active_idx)
+        for s in range(n_sim):
+            season_ranks[season_order[:, s], s] = np.arange(1, n_active + 1)
+        for j, i in enumerate(active_idx):
+            c = countries[i]
+            season_mean_rank[c] = float(season_ranks[j].mean())
+            season_pct_top1[c] = float((season_ranks[j] <= 1).mean())
+            season_pct_top2[c] = float((season_ranks[j] <= 2).mean())
+
     bands = [1, 4, 6, 10, 15, 20]
     rows = []
     for i, c in enumerate(countries):
@@ -330,6 +357,9 @@ def build_country_rank_table(
             "mean_season_coeff": round(float((totals[i] - baselines[i]).mean()), 3),
             "mean_total": round(float(totals[i].mean()), 3),
             "mean_rank": round(float(ranks[i].mean()), 2),
+            "season_mean_rank": round(season_mean_rank[c], 2) if c in season_mean_rank else None,
+            "season_pct_top1": season_pct_top1.get(c, 0.0),
+            "season_pct_top2": season_pct_top2.get(c, 0.0),
         }
         for b in bands:
             row[f"pct_top{b}"] = float((ranks[i] <= b).mean())
