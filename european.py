@@ -626,10 +626,15 @@ if tab_lp_pred is not None:
             _n_pots, _opp_per_pot = _LEAGUE_PHASE_POTS[comp_name]
             _club_coeff = {f["team"]: get_coeff(f["team"], f["country"]) for f in _field}
             _field_ratings_df = _resolve_field_ratings(_field)
+            # A fixed real schedule holds still across reruns, so more simulations
+            # buys real precision -- for the synthetic pot-based schedule (which is
+            # freshly re-drawn every rerun), that variance dominates instead, so
+            # there's less to gain from raising n_sim there.
+            _n_sim = 10_000 if _real_schedule_ready else 3_000
             with st.spinner("Simulating the League Phase and knockout stage…"):
                 _ls_result = simulate_competition_winner(
                     field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
-                    n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=3_000,
+                    n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=_n_sim,
                     home_advantage=1.05, schedule=_real_schedule,
                 )
             _ls_rows = []
@@ -670,7 +675,7 @@ if tab_lp_pred is not None:
             with st.spinner("Building the predicted bracket…"):
                 _bracket = build_predicted_bracket(
                     field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
-                    n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=3_000,
+                    n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=_n_sim,
                     home_advantage=1.05, schedule=_real_schedule,
                 )
             _round_labels = [
