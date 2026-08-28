@@ -140,17 +140,34 @@ def _resolve_field_ratings(field: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(resolved + unresolved)
 
 
-def _leg_aggregate_winner(t1: str, t2: str, l1h: int, l1a: int, l2h: int, l2a: int) -> str | None:
+def _leg_aggregate_winner(
+    t1: str, t2: str, l1h: int, l1a: int, l2h: int, l2a: int,
+    l1_pen: tuple[int, int] | None = None, l2_pen: tuple[int, int] | None = None,
+) -> str | None:
     """Two-leg aggregate winner (t1 was leg1's home team, t2 leg1's away
-    team; leg2 has them swapped). None if level on aggregate (decided by
-    penalties, which this site doesn't track a winner for)."""
+    team; leg2 has them swapped). If level on aggregate, falls back to
+    whichever leg's penalty shootout is recorded -- l1_pen/l2_pen are that
+    leg's own (home_pens, away_pens), so l1_pen's home side is t1 and
+    l2_pen's home side is t2. None only if level on aggregate with no
+    penalty data available."""
     agg_t1 = l1h + l2a
     agg_t2 = l1a + l2h
     if agg_t1 > agg_t2:
         return t1
     if agg_t2 > agg_t1:
         return t2
+    if l2_pen is not None and l2_pen[0] != l2_pen[1]:
+        return t2 if l2_pen[0] > l2_pen[1] else t1
+    if l1_pen is not None and l1_pen[0] != l1_pen[1]:
+        return t1 if l1_pen[0] > l1_pen[1] else t2
     return None
+
+
+def _leg_penalty_score(leg: dict) -> tuple[int, int] | None:
+    ph, pa = leg.get("intPenaltyHome"), leg.get("intPenaltyAway")
+    if ph is None or pa is None:
+        return None
+    return (int(ph), int(pa))
 
 
 @st.cache_data(ttl=60, show_spinner=False)
@@ -204,6 +221,7 @@ def _resolve_bracket_side(side: tuple, ratings_df: pd.DataFrame) -> dict:
             t1, t2,
             int(leg1["intHomeScore"] or 0), int(leg1["intAwayScore"] or 0),
             int(leg2["intHomeScore"] or 0), int(leg2["intAwayScore"] or 0),
+            l1_pen=_leg_penalty_score(leg1), l2_pen=_leg_penalty_score(leg2),
         )
         loser  = t2 if winner == t1 else (t1 if winner == t2 else None)
         chosen = winner if which == "winner" else loser
@@ -266,6 +284,7 @@ def _resolve_playoff_tie_odds(team_a: str, team_b: str, comp_name: str, ratings_
             t1, t2,
             int(leg1["intHomeScore"] or 0), int(leg1["intAwayScore"] or 0),
             int(leg2["intHomeScore"] or 0), int(leg2["intAwayScore"] or 0),
+            l1_pen=_leg_penalty_score(leg1), l2_pen=_leg_penalty_score(leg2),
         )
         return {"status": "decided", "team1": t1, "team2": t2, "winner": winner}
 
