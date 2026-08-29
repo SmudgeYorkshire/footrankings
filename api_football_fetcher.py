@@ -292,7 +292,17 @@ class ApiFootballClient:
             )
             resp.raise_for_status()
             data = resp.json()
-        except (requests.RequestException, ValueError) as e:
+            # API-Football sometimes returns HTTP 200 with an empty result
+            # set AND a populated "errors" field reporting an outage on
+            # their end (e.g. {"bug": "This is on our side...", "error":
+            # "5xEr"}) -- raise_for_status() doesn't catch this since the
+            # HTTP status itself is 200. Left unchecked, that "successful"
+            # empty response gets cached and served as if it were
+            # genuinely zero fixtures/standings, silently zeroing out
+            # every downstream table instead of erroring or falling back.
+            if isinstance(data, dict) and data.get("errors"):
+                raise RuntimeError(f"API-Football returned an error payload: {data['errors']}")
+        except (requests.RequestException, ValueError, RuntimeError) as e:
             if cache_path.exists():
                 fallback_age = time.time() - cache_path.stat().st_mtime
                 if fallback_age <= CACHE_STALE_FALLBACK_MAX_AGE:

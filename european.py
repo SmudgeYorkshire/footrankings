@@ -23,7 +23,9 @@ from simulator import two_leg_advance_odds
 from qualifying_bracket import PLAYOFF_BRACKET, CONFIRMED_LEAGUE_PHASE
 from club_coefficients import CLUB_COEFFICIENTS, get_coeff
 from league_phase_simulator import simulate_competition_winner, build_predicted_bracket, single_match_outcome_probs
-from league_phase_fixtures import is_opponent_list_complete, derive_fixtures, partial_opponents_by_team
+from league_phase_fixtures import (
+    is_opponent_list_complete, derive_fixtures, partial_opponents_by_team, dated_schedule,
+)
 from qualifying_projection import (
     _PLAYOFF_ROUND_NAMES,
     _load_combined_ratings, _resolve_field_ratings,
@@ -700,7 +702,46 @@ if tab_lp_pred is not None:
 
             # ── League Phase Fixtures ─────────────────────────────────────
             st.markdown("#### League Phase Fixtures")
-            if _real_schedule_ready:
+            _cl_dated = dated_schedule(comp_name)
+            if _cl_dated:
+                st.caption(
+                    "UEFA's real, dated League Phase calendar, with each match's outcome probability."
+                )
+                _probs_by_pair = {
+                    (_fx["strHomeTeam"], _fx["strAwayTeam"]): _fx
+                    for _fx in single_match_outcome_probs(_real_schedule, _field_ratings_df, home_advantage=1.05)
+                }
+                _by_md: dict[int, list[dict]] = {}
+                for _fx in _cl_dated:
+                    _by_md.setdefault(_fx["matchday"], []).append(_fx)
+                for _md in sorted(_by_md):
+                    st.markdown(f"**Matchday {_md}**")
+                    _md_rows = []
+                    for _fx in sorted(_by_md[_md], key=lambda f: (f["date"], f["time"])):
+                        _p = _probs_by_pair.get((_fx["home"], _fx["away"]), {})
+                        _dt = datetime.strptime(_fx["date"], "%Y-%m-%d")
+                        _md_rows.append({
+                            "Date": f"{_dt.strftime('%a %d %b %Y')} {_fx['time']}",
+                            "HB": badge_lookup.get(_fx["home"], ""),
+                            "Home": _fx["home"],
+                            "Home Win": round(_p.get("pct_home", 0.0) * 100, 1),
+                            "Draw": round(_p.get("pct_draw", 0.0) * 100, 1),
+                            "Away Win": round(_p.get("pct_away", 0.0) * 100, 1),
+                            "Away": _fx["away"],
+                            "AB": badge_lookup.get(_fx["away"], ""),
+                        })
+                    st.dataframe(
+                        pd.DataFrame(_md_rows),
+                        column_config={
+                            "HB": st.column_config.ImageColumn("", width="small"),
+                            "AB": st.column_config.ImageColumn("", width="small"),
+                            "Home Win": st.column_config.NumberColumn("Home Win", format="%.1f%%"),
+                            "Draw": st.column_config.NumberColumn("Draw", format="%.1f%%"),
+                            "Away Win": st.column_config.NumberColumn("Away Win", format="%.1f%%"),
+                        },
+                        use_container_width=True, hide_index=True, height=len(_md_rows) * 35 + 38,
+                    )
+            elif _real_schedule_ready:
                 st.caption(
                     "The real League Phase opponent list, with each match's outcome probability. "
                     "UEFA doesn't publish matchday-by-matchday order/dates alongside the opponent "
