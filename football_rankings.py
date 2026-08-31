@@ -698,6 +698,13 @@ def main_content():
     # provider's own aggregated standings table is.
 
     ratings_df = load_ratings(ratings_id, standings)
+    # Included in every simulation cache key below so a mid-session Opta
+    # ratings refresh (load_ratings() itself isn't cached, so it always
+    # reads the current CSV) actually invalidates the cached sim results
+    # instead of silently continuing to show a run from before the
+    # refresh -- length alone doesn't catch a rating value changing for
+    # an existing team.
+    _ratings_fingerprint = hash(tuple(sorted(zip(ratings_df["team"], ratings_df["opta_rating"]))))
     _missing_ratings = check_coverage(standings, ratings_df)
     if _missing_ratings:
         st.warning(
@@ -1449,7 +1456,7 @@ def main_content():
             relg_fix = conference_fixtures(remaining_fixtures, split_info["relg_teams"])
             if not relg_fix and split_info.get("relg_teams"):
                 relg_fix = _roundrobin_fixtures(sorted(split_info["relg_teams"]))
-            sim_key = (league_id, season, n_sim, home_advantage, len(champ_fix), len(mid_fix), len(relg_fix))
+            sim_key = (league_id, season, n_sim, home_advantage, len(champ_fix), len(mid_fix), len(relg_fix), _ratings_fingerprint)
             if st.session_state.get("sim_key") != sim_key:
                 with st.spinner(f"Running {n_sim:,} simulations…"):
                     _tiebreakers = cfg.get("tiebreakers")
@@ -1602,7 +1609,7 @@ def main_content():
                                 unsafe_allow_html=True,
                             )
         else:
-            sim_key = (league_id, season, n_sim, home_advantage, len(played_fixtures))
+            sim_key = (league_id, season, n_sim, home_advantage, len(played_fixtures), _ratings_fingerprint)
             if st.session_state.get("sim_key") != sim_key:
                 with st.spinner(f"Running {n_sim:,} simulations…"):
                     probs = simulate_season(
@@ -1685,7 +1692,7 @@ def main_content():
                         _st_lookup = {r["strTeam"]: r for r in standings}
                         _zone_notes = cfg.get("zone_notes", {})
                         _po_sim_key = ("playoff", league_id, season, n_sim, home_advantage,
-                                       len(played_fixtures))
+                                       len(played_fixtures), _ratings_fingerprint)
                         if st.session_state.get("po_sim_key") != _po_sim_key:
                             st.session_state["po_sims"] = {}
                             st.session_state["po_sim_key"] = _po_sim_key
