@@ -26,6 +26,7 @@ from league_phase_simulator import simulate_competition_winner, build_predicted_
 from league_phase_fixtures import (
     is_opponent_list_complete, derive_fixtures, partial_opponents_by_team, dated_schedule,
 )
+from competition_trivia import competition_trivia, overall_trivia
 from qualifying_projection import (
     _PLAYOFF_ROUND_NAMES,
     _load_combined_ratings, _resolve_field_ratings,
@@ -472,11 +473,12 @@ st.divider()
 # Tabs
 # ---------------------------------------------------------------------------
 if has_lp:
-    tab_league, tab_lp_results, tab_lp_pred, tab_qual, tab_qual_pred = st.tabs(
-        ["📊 Standings", "📋 League Stage", "📈 League Stage Predictions", "🔍 Qualifying", "🔮 Qualifying Predictions"]
+    tab_league, tab_lp_results, tab_lp_pred, tab_qual, tab_qual_pred, tab_trivia = st.tabs(
+        ["📊 Standings", "📋 League Stage", "📈 League Stage Predictions", "🔍 Qualifying",
+         "🔮 Qualifying Predictions", "🎲 Trivia"]
     )
 else:
-    tab_qual, tab_qual_pred = st.tabs(["🔍 Qualifying", "🔮 Qualifying Predictions"])
+    tab_qual, tab_qual_pred, tab_trivia = st.tabs(["🔍 Qualifying", "🔮 Qualifying Predictions", "🎲 Trivia"])
     tab_league = None
     tab_lp_results = None
     tab_lp_pred = None
@@ -978,4 +980,65 @@ with tab_qual_pred:
 </div>""")
         st.markdown(f"<div style='display:flex;flex-wrap:wrap'>{''.join(po_cards)}</div>",
                     unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------------------------
+# Tab — Trivia
+# ---------------------------------------------------------------------------
+with tab_trivia:
+    st.markdown(f"### {comp_name} — Nations & Clubs")
+    with st.spinner("Crunching this competition's numbers…"):
+        _trivia = competition_trivia(comp_name, _API_KEY)
+
+    _lp_by_country = _trivia["league_phase"]
+    _elim_by_country = _trivia["eliminated"]
+    _lp_clubs = sum(len(v) for v in _lp_by_country.values())
+    _elim_clubs = sum(len(v) for v in _elim_by_country.values())
+
+    def _country_table(by_country: dict) -> pd.DataFrame:
+        rows = [{"Country": c, "Clubs": len(teams), "Teams": ", ".join(teams)}
+                for c, teams in by_country.items()]
+        return pd.DataFrame(rows).sort_values(["Clubs", "Country"], ascending=[False, True]).reset_index(drop=True)
+
+    st.markdown(f"#### 🏆 League Phase — {_lp_clubs} clubs from {len(_lp_by_country)} nations")
+    _lp_df = _country_table(_lp_by_country)
+    st.dataframe(
+        _lp_df, use_container_width=True, hide_index=True,
+        column_config={"Clubs": st.column_config.NumberColumn("Clubs", width="small")},
+        height=len(_lp_df) * 35 + 38,
+    )
+
+    st.markdown(f"#### 🚪 Eliminated in Qualifying — {_elim_clubs} clubs from {len(_elim_by_country)} nations")
+    _cascade_note = {
+        "Champions League": " (including Play-off losers who cascaded into the Europa League's League Phase instead of dropping out of Europe entirely)",
+        "Europa League": " (including Play-off losers who cascaded into the Conference League's League Phase instead of dropping out of Europe entirely)",
+    }.get(comp_name, "")
+    st.caption(
+        f"Clubs knocked out of {comp_name}'s own qualifying bracket (First Qualifying Round through "
+        f"the Play-off round) before reaching its League Phase{_cascade_note}."
+    )
+    _elim_df = _country_table(_elim_by_country)
+    st.dataframe(
+        _elim_df, use_container_width=True, hide_index=True,
+        column_config={"Clubs": st.column_config.NumberColumn("Clubs", width="small")},
+        height=min(len(_elim_df) * 35 + 38, 700),
+    )
+
+    st.divider()
+    st.markdown("### 🌍 General Trivia — All Three Competitions Combined")
+    with st.spinner("Crunching season-wide numbers…"):
+        _overall = overall_trivia(_API_KEY)
+    _c1, _c2, _c3 = st.columns(3)
+    _c1.metric("Total clubs entered Europe", _overall["total_clubs"])
+    _c1.metric("Total nations represented", _overall["total_nations"])
+    _c2.metric("Reached a League Phase", _overall["league_phase_clubs"])
+    _c2.metric("...from nations", _overall["league_phase_nations"])
+    _c3.metric("Eliminated in qualifying", _overall["eliminated_clubs"])
+    _c3.metric("...from nations", _overall["eliminated_nations"])
+    st.caption(
+        "\"Eliminated\" here means genuinely out of Europe this season — a club that lost a "
+        "Play-off tie but cascaded into a lower competition's League Phase (Champions League → "
+        "Europa League, Europa League → Conference League) counts as having reached a League "
+        "Phase, not as eliminated, unlike the per-competition figures above."
+    )
 

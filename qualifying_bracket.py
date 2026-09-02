@@ -50,8 +50,8 @@ CONFIRMED_LEAGUE_PHASE: dict[str, list[tuple[str, str, str]]] = {
         ("Porto", "Portugal", "🇵🇹"),
         ("Sporting CP", "Portugal", "🇵🇹"),
         ("Club Brugge", "Belgium", "🇧🇪"),
-        ("Slavia Prague", "Czech Rep.", "🇨🇿"),
-        ("Galatasaray", "Turkey", "🇹🇷"),
+        ("Slavia Prague", "Czechia", "🇨🇿"),
+        ("Galatasaray", "Türkiye", "🇹🇷"),
         ("Shakhtar Donetsk", "Ukraine", "🇺🇦"),
     ],
     "Europa League": [
@@ -70,7 +70,7 @@ CONFIRMED_LEAGUE_PHASE: dict[str, list[tuple[str, str, str]]] = {
         ("Torreense", "Portugal", "🇵🇹"),
         ("Olympiacos", "Greece", "🇬🇷"),
         ("Union Saint-Gilloise", "Belgium", "🇧🇪"),
-        ("Sparta Prague", "Czech Rep.", "🇨🇿"),
+        ("Sparta Prague", "Czechia", "🇨🇿"),
         ("Sturm Graz", "Austria", "🇦🇹"),
     ],
 }
