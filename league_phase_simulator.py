@@ -507,6 +507,7 @@ def simulate_competition_winner(
     comp_name: str | None = None,
     track_points: bool = False,
     schedule: list[dict] | None = None,
+    real_results: dict[tuple[str, str], tuple[int, int]] | None = None,
 ) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, np.ndarray]]:
     """Full Monte Carlo simulation of a 36-team UEFA League Phase
     competition through to a champion.
@@ -519,7 +520,17 @@ def simulate_competition_winner(
     all 144/108 games), simulates the REAL League Phase draw instead of
     drawing a synthetic pot-based one -- pass this once
     league_phase_fixtures.is_fixture_list_complete() is True for this
-    competition. Otherwise draws ONE representative League Phase schedule
+    competition.
+
+    real_results: {(home, away): (home_goals, away_goals)} for any of
+    `schedule`'s fixtures that have already been played -- their real
+    scoreline is locked in identically across every simulation run
+    instead of being drawn at random, same principle as simulator.py's
+    domestic-league played_fixtures handling. Only the genuinely
+    remaining fixtures stay randomly simulated. Get this from
+    qualifying_projection.real_league_phase_results().
+
+    Otherwise draws ONE representative League Phase schedule
     (see module docstring for why), simulates its 144 (or 108, for the
     Conference League) matches with the same NegBin goals model used
     across the rest of the site, then for each of n_sim simulation runs:
@@ -575,6 +586,13 @@ def simulate_competition_winner(
     p_nb = 1.0 / (1.0 + phi)
     home_goals = rng.negative_binomial(np.maximum(home_lambdas[:, None] / phi, 1e-9), p_nb, size=(F, n_sim))
     away_goals = rng.negative_binomial(np.maximum(away_lambdas[:, None] / phi, 1e-9), p_nb, size=(F, n_sim))
+
+    if real_results:
+        for i, f in enumerate(schedule):
+            real = real_results.get((f["strHomeTeam"], f["strAwayTeam"]))
+            if real is not None:
+                home_goals[i, :] = real[0]
+                away_goals[i, :] = real[1]
 
     home_pts = np.where(home_goals > away_goals, 3, np.where(home_goals == away_goals, 1, 0))
     away_pts = np.where(away_goals > home_goals, 3, np.where(home_goals == away_goals, 1, 0))
@@ -721,6 +739,7 @@ def build_predicted_bracket(
     n_sim: int = 3_000,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
     schedule: list[dict] | None = None,
+    real_results: dict[tuple[str, str], tuple[int, int]] | None = None,
 ) -> dict:
     """A single, concrete predicted knockout bracket -- Knockout Play-off
     through Final -- rather than per-team reach probabilities.
@@ -773,6 +792,13 @@ def build_predicted_bracket(
     p_nb = 1.0 / (1.0 + phi)
     home_goals = rng.negative_binomial(np.maximum(home_lambdas[:, None] / phi, 1e-9), p_nb, size=(F, n_sim))
     away_goals = rng.negative_binomial(np.maximum(away_lambdas[:, None] / phi, 1e-9), p_nb, size=(F, n_sim))
+
+    if real_results:
+        for i, f in enumerate(schedule):
+            real = real_results.get((f["strHomeTeam"], f["strAwayTeam"]))
+            if real is not None:
+                home_goals[i, :] = real[0]
+                away_goals[i, :] = real[1]
 
     home_pts = np.where(home_goals > away_goals, 3, np.where(home_goals == away_goals, 1, 0))
     away_pts = np.where(away_goals > home_goals, 3, np.where(home_goals == away_goals, 1, 0))

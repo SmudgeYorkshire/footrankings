@@ -32,7 +32,7 @@ from qualifying_projection import (
     _load_combined_ratings, _resolve_field_ratings,
     _leg_aggregate_winner, _resolve_bracket_side,
     _resolve_playoff_tie_odds, _project_league_phase_field,
-    _normalize_club_name,
+    _normalize_club_name, _fuzzy_key, real_league_phase_results,
 )
 
 # Real pot sizing per competition (see league_phase_simulator's docstring):
@@ -186,23 +186,6 @@ def _domestic_league_badges(league_id: int, af_season: int, key: str) -> dict[st
         if row.get("strBadge") and row.get("strTeam"):
             lookup[row["strTeam"]] = row["strBadge"]
     return lookup
-
-
-_NAME_FILLER_TOKENS = {"fc", "cf", "sc", "as", "ac", "kv", "sv", "afc", "cfc", "ss", "tsg"}
-# English exonym -> API-Football's local-language spelling, for city names
-# that show up as part of a club name (our static entrant lists sometimes
-# use the English form, API-Football's domestic-league data the local one).
-_CITY_EXONYMS = {"munich": "munchen", "prague": "praha", "milan": "milano", "st": "saint"}
-
-
-def _fuzzy_key(name: str) -> str:
-    """Accent/case-folded name with common club-name filler tokens (FC, AS,
-    KV, ...) dropped and known city exonyms normalized, for matching e.g.
-    our "Porto" against API-Football's "FC Porto", or "Bayern Munich"
-    against "Bayern München"."""
-    tokens = [_CITY_EXONYMS.get(t, t) for t in _normalize_club_name(name).replace("-", " ").replace(".", " ").split()
-              if t not in _NAME_FILLER_TOKENS]
-    return " ".join(tokens)
 
 
 def _fill_missing_badges(teams_and_countries: list[tuple[str, str]], badge_lookup: dict, key: str) -> None:
@@ -608,12 +591,21 @@ if tab_lp_pred is not None:
         else:
             _real_schedule_ready = is_opponent_list_complete(comp_name, [f["team"] for f in _field])
             _real_schedule = derive_fixtures(comp_name) if _real_schedule_ready else None
+            _real_results = (
+                real_league_phase_results(comp_name, _API_KEY, tuple(f["team"] for f in _field))
+                if _real_schedule_ready else {}
+            )
             if _real_schedule_ready:
+                _decided_note = (
+                    f" **{len(_real_results)} of {len(_real_schedule)} matches are already decided** and "
+                    "locked in at their real scoreline — only the rest are simulated."
+                    if _real_results else " No League Phase matches have been played yet, so all of them are simulated."
+                )
                 st.caption(
                     "Simulates the full 36-club League Phase through to a champion, using the **real, "
                     "confirmed opponent list and home/away legs** below — then applies the real, fixed "
                     "knockout bracket (top 8 direct to the Round of 16, 9th-24th via a knockout "
-                    "play-off, 25th-36th eliminated). Recomputes when the page cache refreshes."
+                    f"play-off, 25th-36th eliminated).{_decided_note} Recomputes when the page cache refreshes."
                 )
             else:
                 st.caption(
@@ -639,7 +631,7 @@ if tab_lp_pred is not None:
                 _ls_result = simulate_competition_winner(
                     field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
                     n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=_n_sim,
-                    home_advantage=1.05, schedule=_real_schedule,
+                    home_advantage=1.05, schedule=_real_schedule, real_results=_real_results,
                 )
             _ls_rows = []
             for _team, _r in _ls_result.iterrows():
@@ -680,7 +672,7 @@ if tab_lp_pred is not None:
                 _bracket = build_predicted_bracket(
                     field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
                     n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=_n_sim,
-                    home_advantage=1.05, schedule=_real_schedule,
+                    home_advantage=1.05, schedule=_real_schedule, real_results=_real_results,
                 )
             _round_labels = [
                 ("ko_playoff", "Knockout Play-off (9th–24th)"),
@@ -721,11 +713,13 @@ if tab_lp_pred is not None:
                     _md_rows = []
                     for _fx in sorted(_by_md[_md], key=lambda f: (f["date"], f["time"])):
                         _p = _probs_by_pair.get((_fx["home"], _fx["away"]), {})
+                        _real = _real_results.get((_fx["home"], _fx["away"]))
                         _dt = datetime.strptime(_fx["date"], "%Y-%m-%d")
                         _md_rows.append({
                             "Date": f"{_dt.strftime('%a %d %b %Y')} {_fx['time']}",
                             "HB": badge_lookup.get(_fx["home"], ""),
                             "Home": _fx["home"],
+                            "Score": f"{_real[0]}–{_real[1]}" if _real else "—",
                             "Home Win": round(_p.get("pct_home", 0.0) * 100, 1),
                             "Draw": round(_p.get("pct_draw", 0.0) * 100, 1),
                             "Away Win": round(_p.get("pct_away", 0.0) * 100, 1),
@@ -737,9 +731,9 @@ if tab_lp_pred is not None:
                         column_config={
                             "HB": st.column_config.ImageColumn("", width="small"),
                             "AB": st.column_config.ImageColumn("", width="small"),
-                            "Home Win": st.column_config.NumberColumn("Home Win", format="%.1f%%"),
-                            "Draw": st.column_config.NumberColumn("Draw", format="%.1f%%"),
-                            "Away Win": st.column_config.NumberColumn("Away Win", format="%.1f%%"),
+                            "Home Win": st.column_config.NumberColumn("Home Win (pre-match)", format="%.1f%%"),
+                            "Draw": st.column_config.NumberColumn("Draw (pre-match)", format="%.1f%%"),
+                            "Away Win": st.column_config.NumberColumn("Away Win (pre-match)", format="%.1f%%"),
                         },
                         use_container_width=True, hide_index=True, height=len(_md_rows) * 35 + 38,
                     )
@@ -753,6 +747,8 @@ if tab_lp_pred is not None:
                 _fx_rows = [{
                     "HB": badge_lookup.get(_fx["strHomeTeam"], ""),
                     "Home": _fx["strHomeTeam"],
+                    "Score": (lambda _r: f"{_r[0]}–{_r[1]}" if _r else "—")(
+                        _real_results.get((_fx["strHomeTeam"], _fx["strAwayTeam"]))),
                     "Home Win": round(_fx["pct_home"] * 100, 1),
                     "Draw": round(_fx["pct_draw"] * 100, 1),
                     "Away Win": round(_fx["pct_away"] * 100, 1),
@@ -764,9 +760,9 @@ if tab_lp_pred is not None:
                     column_config={
                         "HB": st.column_config.ImageColumn("", width="small"),
                         "AB": st.column_config.ImageColumn("", width="small"),
-                        "Home Win": st.column_config.NumberColumn("Home Win", format="%.1f%%"),
-                        "Draw": st.column_config.NumberColumn("Draw", format="%.1f%%"),
-                        "Away Win": st.column_config.NumberColumn("Away Win", format="%.1f%%"),
+                        "Home Win": st.column_config.NumberColumn("Home Win (pre-match)", format="%.1f%%"),
+                        "Draw": st.column_config.NumberColumn("Draw (pre-match)", format="%.1f%%"),
+                        "Away Win": st.column_config.NumberColumn("Away Win (pre-match)", format="%.1f%%"),
                     },
                     use_container_width=True, hide_index=True, height=len(_fx_rows) * 35 + 38,
                 )

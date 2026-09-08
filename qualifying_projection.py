@@ -67,6 +67,42 @@ def _normalize_club_name(s: str) -> str:
     return s.lower().strip()
 
 
+_NAME_FILLER_TOKENS = {"fc", "cf", "sc", "as", "ac", "kv", "sv", "afc", "cfc", "ss", "tsg"}
+# English exonym -> API-Football's local-language spelling, for city names
+# that show up as part of a club name (our static entrant lists sometimes
+# use the English form, API-Football's domestic-league data the local one).
+_CITY_EXONYMS = {"munich": "munchen", "prague": "praha", "milan": "milano", "st": "saint"}
+
+
+def _fuzzy_key(name: str) -> str:
+    """Accent/case-folded name with common club-name filler tokens (FC, AS,
+    KV, ...) dropped and known city exonyms normalized, for matching e.g.
+    our "Porto" against API-Football's "FC Porto", or "Bayern Munich"
+    against "Bayern München"."""
+    tokens = [_CITY_EXONYMS.get(t, t) for t in _normalize_club_name(name).replace("-", " ").replace(".", " ").split()
+              if t not in _NAME_FILLER_TOKENS]
+    return " ".join(tokens)
+
+
+def resolve_to_team(raw_name: str, candidate_teams: set[str] | list[str]) -> str | None:
+    """Fuzzy-match a raw team name (e.g. from live API-Football fixture
+    data, whose spelling doesn't always match this site's own naming) to
+    one of `candidate_teams`, or None if nothing lines up. Exact match
+    first, then accent/filler/exonym-folded match, then a scoped
+    containment fallback (safe here since candidate_teams is normally a
+    single competition's 36-club field, not the whole club universe)."""
+    if raw_name in candidate_teams:
+        return raw_name
+    fuzzy_index = {_fuzzy_key(t): t for t in candidate_teams}
+    key = _fuzzy_key(raw_name)
+    if key in fuzzy_index:
+        return fuzzy_index[key]
+    for other_key, team in fuzzy_index.items():
+        if len(other_key) >= 4 and (other_key in key or key in other_key):
+            return team
+    return None
+
+
 @st.cache_data(ttl=60, show_spinner=False)
 def _load_ratings_by_country() -> dict[str, pd.DataFrame]:
     """{country: DataFrame[team, alias, opta_rating]}, scoped per country
@@ -361,3 +397,35 @@ def _project_league_phase_field(comp_name: str, ratings_df: pd.DataFrame) -> lis
             _add(loser)
 
     return field
+
+
+def real_league_phase_results(comp_name: str, api_key: str, field_teams) -> dict[tuple[str, str], tuple[int, int]]:
+    """{(home, away): (home_goals, away_goals)} for every League Phase
+    fixture already finished, keyed by this site's own canonical team
+    names (matching league_phase_fixtures.derive_fixtures()'s schedule).
+    Resolved from live API-Football data, whose own team-name spelling
+    doesn't always match ours (e.g. "Slavia Praha" vs our "Slavia
+    Prague") -- a name that can't be resolved is skipped rather than
+    raising, so one naming gap doesn't take the whole prediction down.
+
+    Feed this into league_phase_simulator's real_results= parameter so
+    already-decided matches are locked in instead of being re-simulated
+    from scratch on every rerun, same principle as simulator.py's
+    domestic-league played_fixtures handling."""
+    played, _remaining = _fetch_comp_fixtures(comp_name, api_key)
+    field_set = set(field_teams)
+    results: dict[tuple[str, str], tuple[int, int]] = {}
+    for f in played:
+        if not (f.get("strRound") or "").startswith("League Stage"):
+            continue
+        if f.get("strStatus") != "FT":
+            continue
+        hs, as_ = f.get("intHomeScore"), f.get("intAwayScore")
+        if hs is None or as_ is None or hs == "" or as_ == "":
+            continue
+        home = resolve_to_team(f.get("strHomeTeam", ""), field_set)
+        away = resolve_to_team(f.get("strAwayTeam", ""), field_set)
+        if home is None or away is None:
+            continue
+        results[(home, away)] = (int(hs), int(as_))
+    return results
