@@ -325,8 +325,25 @@ def two_leg_advance_odds(
     }
 
 
-# Exponent for Opta → attack/defense conversion
-OPTA_K = 2.0
+# Exponent for Opta → attack/defense conversion. Raised from 2.0 to 4.0
+# after validating against real closing bookmaker odds (odds_validation.py,
+# ~8,500 real matches): k=2.0 under-differentiated strong leagues badly
+# (e.g. Coventry vs Brighton came out near 50/50 despite Brighton being a
+# clear favourite everywhere else -- Opta's own match odds, EuroClubIndex,
+# and the betting market). k=4.0 nearly eliminates the gap to real market
+# odds on the current season specifically (+0.0127 -> +0.0009 mean Brier
+# gap) and reproduces Opta's own Premier League expected-points table
+# almost exactly (their Arsenal/Coventry spread of ~79.5/39.0 vs our
+# 79.9/38.6, up from 69.5/42.5 at k=2.0). backtest.py's older-season RPS
+# comparison prefers a lower k, but that's very likely an artifact of its
+# own documented hindsight-bias caveat (using TODAY's ratings for a team's
+# 2023-24/2024-25 form) compounding across a whole simulated season
+# specifically because k controls how much any rating signal -- including
+# that drift error -- gets amplified; the same effect doesn't apply to
+# on-the-day match odds, which is exactly where k=4.0 checks out almost
+# perfectly. See conversation history around 2026-09-13 for the full
+# investigation if this needs revisiting.
+OPTA_K = 4.0
 
 
 def _opta_to_attack_defense(
