@@ -279,7 +279,6 @@ with st.spinner("Simulating the rest of the season for every association…"):
         get_coeff=get_coeff,
         api_key=_API_KEY,
         n_sim=2_000,
-        home_advantage=1.05,
     )
 
 for _w in _pred_warnings:

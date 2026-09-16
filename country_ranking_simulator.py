@@ -377,7 +377,6 @@ def project_country_predicted_ranking(
     get_coeff,
     api_key: str,
     n_sim: int = 3_000,
-    home_advantage: float = DEFAULT_HOME_ADVANTAGE,
 ) -> tuple[pd.DataFrame, list[str]]:
     """Orchestrates the full predicted country ranking: real Q1-Q3 points +
     simulated Play-off/League Phase/Knockout points for all three
@@ -401,6 +400,7 @@ def project_country_predicted_ranking(
     warnings: list[str] = []
 
     for comp_name in EUROPEAN_COMPETITIONS:
+        home_advantage = EUROPEAN_COMPETITIONS[comp_name]["home_advantage"]
         played, _remaining = _fetch_comp_fixtures(comp_name, api_key)
         all_played_fixtures.extend(played)
 

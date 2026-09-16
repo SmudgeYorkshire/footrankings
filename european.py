@@ -631,7 +631,8 @@ if tab_lp_pred is not None:
                 _ls_result = simulate_competition_winner(
                     field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
                     n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=_n_sim,
-                    home_advantage=1.05, schedule=_real_schedule, real_results=_real_results,
+                    home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"],
+                    schedule=_real_schedule, real_results=_real_results,
                 )
             _ls_rows = []
             for _team, _r in _ls_result.iterrows():
@@ -672,7 +673,8 @@ if tab_lp_pred is not None:
                 _bracket = build_predicted_bracket(
                     field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
                     n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=_n_sim,
-                    home_advantage=1.05, schedule=_real_schedule, real_results=_real_results,
+                    home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"],
+                    schedule=_real_schedule, real_results=_real_results,
                 )
             _round_labels = [
                 ("ko_playoff", "Knockout Play-off (9th–24th)"),
@@ -703,7 +705,10 @@ if tab_lp_pred is not None:
                 )
                 _probs_by_pair = {
                     (_fx["strHomeTeam"], _fx["strAwayTeam"]): _fx
-                    for _fx in single_match_outcome_probs(_real_schedule, _field_ratings_df, home_advantage=1.05)
+                    for _fx in single_match_outcome_probs(
+                        _real_schedule, _field_ratings_df,
+                        home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"],
+                    )
                 }
                 _by_md: dict[int, list[dict]] = {}
                 for _fx in _cl_dated:
@@ -743,7 +748,10 @@ if tab_lp_pred is not None:
                     "UEFA doesn't publish matchday-by-matchday order/dates alongside the opponent "
                     "list itself, so these aren't grouped or dated — home/away legs are real, though."
                 )
-                _fx_probs = single_match_outcome_probs(_real_schedule, _field_ratings_df, home_advantage=1.05)
+                _fx_probs = single_match_outcome_probs(
+                    _real_schedule, _field_ratings_df,
+                    home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"],
+                )
                 _fx_rows = [{
                     "HB": badge_lookup.get(_fx["strHomeTeam"], ""),
                     "Home": _fx["strHomeTeam"],
@@ -849,10 +857,11 @@ with tab_qual:
 # Tab — Qualifying Predictions
 # ---------------------------------------------------------------------------
 with tab_qual_pred:
+    _qual_home_adv = EUROPEAN_COMPETITIONS[comp_name]["home_advantage"]
     st.caption(
         "**Model:** Opta ratings → attack/defence via power transform → "
         "Negative-Binomial goal distribution → analytical two-leg advance probability.  "
-        "Home advantage: 1.05×.  Penalties modelled as 50/50."
+        f"Home advantage: {_qual_home_adv}×.  Penalties modelled as 50/50."
     )
 
     # ── Third Qualifying Round — undecided ties ─────────────────────────────
@@ -879,7 +888,7 @@ with tab_qual_pred:
             if l1_played:
                 leg1_score = (int(leg1.get("intHomeScore") or 0), int(leg1.get("intAwayScore") or 0))
 
-            odds = two_leg_advance_odds(team1, team2, ratings_df, leg1_score=leg1_score)
+            odds = two_leg_advance_odds(team1, team2, ratings_df, home_advantage=_qual_home_adv, leg1_score=leg1_score)
             t1_adv, t2_adv = odds["team1_adv"], odds["team2_adv"]
             l1o, l2o = odds["leg1"], odds["leg2"]
             b1 = badge_lookup.get(team1, "")

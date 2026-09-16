@@ -297,7 +297,9 @@ def _resolve_bracket_side(side: tuple, ratings_df: pd.DataFrame) -> dict:
     leg1_score = None
     if l1_played:
         leg1_score = (int(leg1.get("intHomeScore") or 0), int(leg1.get("intAwayScore") or 0))
-    odds = two_leg_advance_odds(t1, t2, ratings_df, leg1_score=leg1_score)
+    odds = two_leg_advance_odds(
+        t1, t2, ratings_df, home_advantage=EUROPEAN_COMPETITIONS[comp]["home_advantage"], leg1_score=leg1_score,
+    )
     t1_pct, t2_pct = odds["team1_adv"], odds["team2_adv"]
     if which == "winner":
         chosen, pct = (t1, t1_pct) if t1_pct >= t2_pct else (t2, t2_pct)
@@ -358,7 +360,9 @@ def _resolve_playoff_tie_odds(team_a: str, team_b: str, comp_name: str, ratings_
     leg1_score = None
     if l1_played:
         leg1_score = (int(leg1.get("intHomeScore") or 0), int(leg1.get("intAwayScore") or 0))
-    odds = two_leg_advance_odds(t1, t2, ratings_df, leg1_score=leg1_score)
+    odds = two_leg_advance_odds(
+        t1, t2, ratings_df, home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"], leg1_score=leg1_score,
+    )
     return {
         "status": "predicted", "team1": t1, "team2": t2,
         "team1_adv": odds["team1_adv"], "team2_adv": odds["team2_adv"],

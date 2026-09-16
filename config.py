@@ -667,24 +667,41 @@ def get_current_season(season_type: str) -> str:
 # Round classification (qualifying / league phase / knockout) is done in
 # european.py from API-Football's strRound text, not from numeric IDs here.
 # ---------------------------------------------------------------------------
+# home_advantage below (replacing a single flat 1.05 for all three
+# competitions) is fit from real closing 1X2 odds vs our model, 2026-09-16
+# (18 Champions League Matchday 2 fixtures, 18 Europa League Matchday 1,
+# 15 clean Conference League Matchday 1 fixtures -- 3 more excluded as
+# oddsportal table-parsing artifacts with mathematically impossible draw
+# odds). Champions League's fields are almost entirely elite clubs with
+# heavy European away-day experience, so the market prices in a smaller
+# extra home edge than in the Europa/Conference Leagues, where a big club
+# regularly visits a small, unfamiliar, sometimes very loud home ground
+# (Panathinaikos, Twente, Mjallby, Brann, Hajduk Split all showed 12-27pp
+# home-win gaps at the old 1.05). Sample sizes are still just 1-2
+# matchdays per competition -- revisit once more of the season's odds
+# are available. See conversation history around 2026-09-16 for the full
+# per-competition Brier sweep.
 EUROPEAN_COMPETITIONS = {
     "Champions League": {
         "id": 2, "flag": "🏆",
         "n_direct": 8, "n_playoff": 16,
         "league_phase_rounds": 8,
         "has_league_phase": True,
+        "home_advantage": 1.15,
     },
     "Europa League": {
         "id": 3, "flag": "🥈",
         "n_direct": 8, "n_playoff": 16,
         "league_phase_rounds": 8,
         "has_league_phase": True,
+        "home_advantage": 1.30,
     },
     "Conference League": {
         "id": 848, "flag": "🏅",
         "n_direct": 8, "n_playoff": 16,
         "league_phase_rounds": 8,
         "has_league_phase": True,
+        "home_advantage": 1.30,
     },
 }
 
