@@ -131,18 +131,43 @@ def _load_ratings_by_country() -> dict[str, pd.DataFrame]:
     return {c: pd.concat(dfs, ignore_index=True) for c, dfs in by_country.items()}
 
 
+@st.cache_data(ttl=60, show_spinner=False)
+def _load_global_rankings_lookup() -> tuple[dict[str, list[float]], dict[str, list[float]]]:
+    """Cached wrapper around update_ratings_from_opta.load_global_rankings()
+    -- the full worldwide scrape (~14,200 clubs), used as a second-chance
+    lookup for a field club with no entry in any tracked top-flight
+    ratings CSV. Returns empty lookups if the scrape file isn't present."""
+    if not Path("opta_power_rankings.csv").exists():
+        return {}, {}
+    from update_ratings_from_opta import load_global_rankings
+    return load_global_rankings()
+
+
 def _resolve_field_ratings(field: list[dict]) -> pd.DataFrame:
     """One opta_rating per League Phase field club, matched only within
     that club's own country's ratings CSV(s) -- collision-proof (see
     _load_ratings_by_country) and tolerant of naming drift between
     qualifying_bracket.py's display names and the ratings/alias columns
     (e.g. "Inter Milan" vs the CSV's "Internazionale"/"Inter") via a
-    normalized, then substring, fallback match. Any club that still can't
-    be resolved gets the mean rating of the clubs that could -- a safer
-    default than the mean of a random cross-section of every domestic
-    league (including part-time minnows), which is what falling through
-    to the flat global lookup would otherwise silently produce."""
+    normalized, then substring, fallback match.
+
+    A club that isn't in any of the 54 tracked top-flight ratings CSVs at
+    all -- e.g. Torreense, who play in Portugal's 2nd tier -- gets a
+    second chance against the full global scrape (opta_power_rankings.csv,
+    ~14,200 clubs worldwide), which has no per-league split but does cover
+    lower divisions. Only applied when the name resolves to exactly one
+    club there; a handful of common club names (Arsenal, Rangers,
+    Barcelona) exist in several countries in that flat list with no column
+    to disambiguate by, so an ambiguous name is left unresolved rather than
+    risking the wrong club's rating.
+
+    Anything still unresolved after that gets the mean rating of the
+    clubs that could be resolved -- a safer default than the mean of a
+    random cross-section of every domestic league (including part-time
+    minnows), which is what falling through to the flat global lookup
+    would otherwise silently produce for a name with no match anywhere."""
     by_country = _load_ratings_by_country()
+    global_exact, global_norm = _load_global_rankings_lookup()
     resolved: list[dict] = []
     unresolved: list[dict] = []
     for f in field:
@@ -167,6 +192,12 @@ def _resolve_field_ratings(field: list[dict]) -> pd.DataFrame:
                     ]
                     if not contains.empty:
                         rating = float(contains.iloc[0]["opta_rating"])
+        if rating is None:
+            candidates = global_exact.get(team.lower())
+            if candidates is None:
+                candidates = global_norm.get(_normalize_club_name(team))
+            if candidates is not None and len(set(candidates)) == 1:
+                rating = candidates[0]
         row = {"team": team, "alias": "", "opta_rating": rating}
         (resolved if rating is not None else unresolved).append(row)
     if unresolved and resolved:
