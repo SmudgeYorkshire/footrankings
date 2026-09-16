@@ -837,6 +837,19 @@ def _build_dataframe(probs: np.ndarray, teams: list[str]) -> pd.DataFrame:
     return pd.DataFrame(probs, index=teams, columns=[str(i + 1) for i in range(n)])
 
 
+def _sort_cascade(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
+    """Sort by every column in cols (most-selective stage first), breaking
+    ties on one column using the next -- e.g. two teams both on 0.0%
+    Winner % land in the order set by their Final %/SF Win % instead of
+    arbitrary insertion order. Columns may contain a "-" placeholder (a
+    team that never reached that stage, e.g. a bye); coerced to NaN and
+    sorted last within its tie group rather than raising or comparing
+    against real values."""
+    key_df = pd.DataFrame({c: pd.to_numeric(df[c], errors="coerce") for c in cols})
+    order = key_df.sort_values(cols, ascending=False, na_position="last").index
+    return df.loc[order].reset_index(drop=True)
+
+
 def simulate_final_four(
     teams_4: list[str],
     ratings: pd.DataFrame,
@@ -951,8 +964,8 @@ def simulate_final_four(
         "SF Win %":   [round(sf_wins[t]    / n_sim * 100, 1) for t in teams_4],
         "Final %":    [round(final_apps[t] / n_sim / 2 * 100, 1) for t in teams_4],
         "Title %":    [round(titles[t]     / n_sim * 100, 1) for t in teams_4],
-    }).sort_values("Title %", ascending=False).reset_index(drop=True)
-    return df
+    })
+    return _sort_cascade(df, ["Title %", "Final %", "SF Win %"])
 
 
 def simulate_uecl_playoff(
@@ -1070,8 +1083,8 @@ def simulate_uecl_playoff(
                       else round(sf_win[t] / n_sim * 100, 1)         for t in teams_3],
         "Final %":   [round(final_apps[t] / n_sim * 100, 1)          for t in teams_3],
         "Winner %":  [round(final_wins[t] / n_sim * 100, 1)          for t in teams_3],
-    }).sort_values("Winner %", ascending=False).reset_index(drop=True)
-    return df
+    })
+    return _sort_cascade(df, ["Winner %", "Final %", "SF Win %"])
 
 
 def simulate_uecl_3team_playoff(
@@ -1160,8 +1173,8 @@ def simulate_uecl_3team_playoff(
                      else round(sf_win[t] / n_sim * 100, 1)           for t in teams_3],
         "Final %":  [round(final_apps[t] / n_sim * 100, 1)            for t in teams_3],
         "Winner %": [round(final_wins[t] / n_sim * 100, 1)            for t in teams_3],
-    }).sort_values("Winner %", ascending=False).reset_index(drop=True)
-    return df
+    })
+    return _sort_cascade(df, ["Winner %", "Final %", "SF Win %"])
 
 
 def simulate_uecl_8team_playoff(
@@ -1287,9 +1300,7 @@ def simulate_uecl_8team_playoff(
             "SF Win %":  pct(sf_w),
             "Win %":     pct(int((fin_win == i).sum())),
         })
-    return (pd.DataFrame(rows)
-            .sort_values("Win %", ascending=False)
-            .reset_index(drop=True))
+    return _sort_cascade(pd.DataFrame(rows), ["Win %", "SF Win %", "QF Win %", "R1 Win %"])
 
 
 def simulate_uecl_5team_playoff(
@@ -1412,8 +1423,8 @@ def simulate_uecl_5team_playoff(
         "SF Win %": ["-" if t == pos3 else round(sf_wins[t] / n_sim * 100, 1)
                      for t in all_teams],
         "Winner %": [round(winner_cnt[t] / n_sim * 100, 1) for t in all_teams],
-    }).sort_values("Winner %", ascending=False).reset_index(drop=True)
-    return df
+    })
+    return _sort_cascade(df, ["Winner %", "SF Win %", "QF Win %"])
 
 
 def simulate_uecl_4team_playoff(
@@ -1522,5 +1533,5 @@ def simulate_uecl_4team_playoff(
         "Role":      [roles[t]                                    for t in teams],
         "SF Win %":  [round(sf_wins[t]    / n_sim * 100, 1)      for t in teams],
         "Winner %":  [round(final_wins[t] / n_sim * 100, 1)      for t in teams],
-    }).sort_values("Winner %", ascending=False).reset_index(drop=True)
-    return df
+    })
+    return _sort_cascade(df, ["Winner %", "SF Win %"])

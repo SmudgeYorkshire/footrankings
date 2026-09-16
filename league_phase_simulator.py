@@ -723,7 +723,17 @@ def simulate_competition_winner(
             "reached_final": reached_final[t] / n_sim,
             "won_competition": won[t] / n_sim,
         })
-    result = pd.DataFrame(rows).set_index("team").sort_values("won_competition", ascending=False)
+    # Cascading tie-break: most clubs are tied at 0.0% on "won_competition"
+    # (and often on several of the later knockout stages too), so sorting
+    # by that column alone leaves ties in arbitrary insertion order --
+    # e.g. Torreense could land above clubs with clearly better reach-R16
+    # odds. Sorting by every stage, furthest first, breaks each tie using
+    # the next-most-advanced stage instead, all the way down to reached_top8.
+    _tie_break_cols = [
+        "won_competition", "reached_final", "reached_sf", "reached_qf",
+        "reached_r16", "reached_top24", "reached_top16", "reached_top8",
+    ]
+    result = pd.DataFrame(rows).set_index("team").sort_values(_tie_break_cols, ascending=False)
     if track_points:
         points_by_team = {t: coeff_matrix[team_idx[t]] for t in teams}
         return result, points_by_team
