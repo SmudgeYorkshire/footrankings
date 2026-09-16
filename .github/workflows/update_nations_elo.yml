@@ -1,0 +1,35 @@
+name: Update Nations League Elo Ratings
+
+on:
+  schedule:
+    - cron: '0 7 * * 1'   # 07:00 UTC, Mondays -- national teams only play real
+                           # matches on internationals windows, so ratings move
+                           # far less often than club Opta ratings (daily cron).
+  workflow_dispatch:       # allow manual "Run workflow" trigger too
+
+permissions:
+  contents: write
+
+jobs:
+  update-elo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests pandas
+
+      - name: Fetch current Elo ratings from eloratings.net
+        run: python scrape_elo_ratings.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ratings/nations_league_elo.csv
+          git diff --staged --quiet || git commit -m "Update Nations League Elo ratings $(date -u +%Y-%m-%d)"
+          git push
