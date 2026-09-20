@@ -63,3 +63,35 @@ NL_FLAG_ALIASES = {
 }
 
 ALL_NL_TEAMS: list[str] = [t for league in NL_GROUPS.values() for group in league.values() for t in group]
+
+# Ukraine (since Russia's 2022 invasion) and Israel (since the war
+# triggered by the October 2023 Hamas-led attack) play their UEFA "home"
+# matches at a neutral venue outside their own country -- Ukraine's own
+# football association confirmed Trnava, Slovakia for their 2026-27
+# Nations League "home" games; Israel's are split across Hungary/Serbia/
+# Cyprus depending on opponent. No real home crowd/pitch-familiarity
+# advantage applies, so their nominal home fixtures should be modelled at
+# parity (1.0) rather than the normal home-advantage boost -- see
+# nations_league_simulator.py's home_advantage_overrides usage. Checked
+# directly against real closing odds for Israel's actual Sep 27 2026
+# "home" fixture vs Republic of Ireland (at Debrecen, Hungary): the
+# match's odds looked internally inconsistent (summed to well under
+# 100%, an oddsportal cross-bookmaker-best-price artifact rather than one
+# book's own prices, the same kind of parsing noise seen elsewhere), so
+# treat this as a reasoned default rather than a market-validated one --
+# revisit once cleaner odds data is available for one of these fixtures.
+NEUTRAL_VENUE_NATIONS = {"Ukraine", "Israel"}
+
+# A handful of UEFA associations have privately refused to host Israel at
+# all, relocating THEIR OWN home fixture against Israel specifically --
+# not a blanket neutral-venue status the way Ukraine/Israel's own "home"
+# games are (their other home fixtures, vs a different opponent, are
+# played normally at their real ground). Republic of Ireland's home leg
+# vs Israel (originally 4 Oct 2026 at the Aviv Stadium, Dublin) has been
+# moved behind closed doors to a neutral venue in Serbia; Spain, Scotland,
+# Slovenia and Norway have reportedly made the same private refusal but
+# aren't drawn against Israel this Nations League cycle (different
+# groups), so there's nothing to add for them yet. Keyed (home, away) --
+# see NL_GROUPS: Israel's own reciprocal "home" leg vs Ireland is already
+# covered by NEUTRAL_VENUE_NATIONS above regardless of this set.
+NEUTRAL_VENUE_FIXTURES = {("Republic of Ireland", "Israel")}

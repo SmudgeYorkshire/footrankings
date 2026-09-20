@@ -45,20 +45,10 @@ from simulator import (
     _opta_to_attack_defense,
     _build_rat_lookup,
 )
+from qualifying_projection import home_advantage_for as _home_advantage_for
 
 _MAX_SCHEDULE_ATTEMPTS = 200
 _MAX_COUNTRY_OPPONENTS = 2
-
-# Shakhtar Donetsk have played their UEFA "home" matches at neutral venues
-# (outside Ukraine) since 2014 -- no true home crowd/pitch-familiarity
-# advantage, so their nominal home leg should be modelled at parity (1.0)
-# rather than getting the normal home-advantage boost, in both the League
-# Phase schedule and any two-legged knockout tie.
-NEUTRAL_VENUE_TEAMS = {"Shakhtar Donetsk"}
-
-
-def _home_advantage_for(team: str, base: float) -> float:
-    return 1.0 if team in NEUTRAL_VENUE_TEAMS else base
 
 # ---------------------------------------------------------------------------
 # UEFA association (country) coefficient points -- verified against both

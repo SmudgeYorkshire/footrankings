@@ -26,7 +26,7 @@ from config import DEFAULT_HOME_ADVANTAGE
 from simulator import (
     _opta_to_attack_defense, simulate_season, fixture_odds, two_leg_advance_odds, _sort_cascade,
 )
-from nations_league_data import NL_GROUPS, ALL_NL_TEAMS
+from nations_league_data import NL_GROUPS, ALL_NL_TEAMS, NEUTRAL_VENUE_NATIONS, NEUTRAL_VENUE_FIXTURES
 
 RATINGS_PATH = "ratings/nations_league_elo.csv"
 
@@ -101,11 +101,31 @@ def _blank_standings(teams: list[str]) -> list[dict]:
     ]
 
 
+def _home_advantage_overrides(teams: list[str], home_advantage: float) -> dict[tuple[str, str], float]:
+    """{(home, away): 1.0} for every one of `teams`' home fixtures that's
+    actually played at a neutral venue -- either because the home team
+    itself never gets to host at all (NEUTRAL_VENUE_NATIONS, e.g. every
+    one of Israel's "home" games), or because this specific matchup was
+    relocated even though the home team's other fixtures are normal
+    (NEUTRAL_VENUE_FIXTURES, e.g. Ireland hosting Israel specifically).
+    Any (home, away) pair not in this dict uses the normal home_advantage."""
+    overrides = {}
+    for h in teams:
+        for a in teams:
+            if h == a:
+                continue
+            if h in NEUTRAL_VENUE_NATIONS or (h, a) in NEUTRAL_VENUE_FIXTURES:
+                overrides[(h, a)] = 1.0
+    return overrides
+
+
 def _expected_points(fixtures: list[dict], ratings_df: pd.DataFrame, home_advantage: float) -> dict[str, float]:
     """Projected total points from a blank start: 3*P(win) + 1*P(draw)
     summed across every fixture the team plays, home or away."""
-    odds = fixture_odds(fixtures, ratings_df, home_advantage=home_advantage)
-    pts = {t: 0.0 for f in fixtures for t in (f["strHomeTeam"], f["strAwayTeam"])}
+    teams = sorted({t for f in fixtures for t in (f["strHomeTeam"], f["strAwayTeam"])})
+    overrides = _home_advantage_overrides(teams, home_advantage)
+    odds = fixture_odds(fixtures, ratings_df, home_advantage=home_advantage, home_advantage_overrides=overrides)
+    pts = {t: 0.0 for t in teams}
     for f, o in zip(fixtures, odds):
         pts[f["strHomeTeam"]] += 3 * o["home_win"] + o["draw"]
         pts[f["strAwayTeam"]] += 3 * o["away_win"] + o["draw"]
@@ -124,9 +144,11 @@ def simulate_group(
     group_ratings = _scoped_attack_defense(teams, ratings_df)
     fixtures = _round_robin_fixtures(teams)
     standings = _blank_standings(teams)
+    overrides = _home_advantage_overrides(teams, home_advantage)
     probs = simulate_season(
         standings=standings, remaining_fixtures=fixtures, ratings=group_ratings,
         n_sim=n_sim, home_advantage=home_advantage, tiebreakers=["gd", "gf"],
+        home_advantage_overrides=overrides,
     )
     exp_pts = _expected_points(fixtures, group_ratings, home_advantage)
     return probs, exp_pts
@@ -179,11 +201,19 @@ def simulate_league_a_knockouts(
     # unusably slow (thousands of replicates x 4 QF ties x 14k grid cells).
     qf_odds: dict[tuple[str, str], float] = {}
     sf_odds: dict[tuple[str, str], dict] = {}
+    ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
     for i, t1 in enumerate(all_teams):
         for t2 in all_teams[i + 1:]:
-            adv = two_leg_advance_odds(t1, t2, ko_ratings, home_advantage=home_advantage)
+            adv = two_leg_advance_odds(
+                t1, t2, ko_ratings,
+                home_advantage_team1=ha_pairs.get((t1, t2), home_advantage),
+                home_advantage_team2=ha_pairs.get((t2, t1), home_advantage),
+            )
             qf_odds[(t1, t2)] = adv["team1_adv"]
             qf_odds[(t2, t1)] = adv["team2_adv"]
+            # Finals Four is already single-venue/host-determined for every
+            # team regardless of country, so home_advantage=1.0 here is
+            # unrelated to NEUTRAL_VENUE_NATIONS -- it's neutral for everyone.
             o = fixture_odds([{"strHomeTeam": t1, "strAwayTeam": t2}], ko_ratings, home_advantage=1.0)[0]
             sf_odds[(t1, t2)] = o
             sf_odds[(t2, t1)] = {"home_win": o["away_win"], "draw": o["draw"], "away_win": o["home_win"]}

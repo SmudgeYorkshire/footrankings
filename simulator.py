@@ -185,11 +185,19 @@ def fixture_odds(
     fixtures: list[dict],
     ratings: pd.DataFrame,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+    home_advantage_overrides: dict[tuple[str, str], float] | None = None,
 ) -> list[dict]:
     """
     Compute home-win / draw / away-win probabilities analytically for each fixture.
 
     Uses the same Poisson model as simulate_season — no simulation needed.
+    home_advantage_overrides: {(home, away): their home_advantage for just
+    that fixture}, for a home team that doesn't get the normal boost for
+    this particular opponent (e.g. its "home" fixture is actually played
+    at a neutral venue) -- keyed by the (home, away) pair rather than home
+    team alone, since that neutral-venue status can depend on the specific
+    opponent (e.g. Ireland hosting Israel) rather than applying to every
+    one of the home team's fixtures.
     Returns a list of dicts (parallel to `fixtures`) with keys:
         home_win, draw, away_win  (floats, sum ≈ 1.0)
     """
@@ -205,7 +213,10 @@ def fixture_odds(
         h_att, h_def = rat_lookup.get(f.get("strHomeTeam", ""), default)
         a_att, a_def = rat_lookup.get(f.get("strAwayTeam", ""), default)
 
-        lam_h = h_att * max(a_def, 0.01) / league_avg * home_advantage
+        ha = (home_advantage_overrides or {}).get(
+            (f.get("strHomeTeam", ""), f.get("strAwayTeam", "")), home_advantage
+        )
+        lam_h = h_att * max(a_def, 0.01) / league_avg * ha
         lam_a = a_att * max(h_def, 0.01) / league_avg
 
         pmf_h = _goals_pmf(lam_h)
@@ -233,6 +244,8 @@ def two_leg_advance_odds(
     ratings: pd.DataFrame,
     home_advantage: float = 1.05,
     leg1_score: tuple | None = None,
+    home_advantage_team1: float | None = None,
+    home_advantage_team2: float | None = None,
 ) -> dict:
     """
     Analytical two-leg knockout tie odds using the same NegBin Poisson model.
@@ -242,6 +255,11 @@ def two_leg_advance_odds(
     leg1_score = (team1_goals, team2_goals) if the first leg is known;
                  when provided, only leg 2 is simulated and leg 1 odds are
                  returned as empty (no longer relevant).
+    home_advantage_team1/team2 = override home_advantage for just that
+                 team's own home leg (e.g. a team that plays its "home"
+                 leg at a neutral venue gets no real boost there even
+                 though its opponent's home leg is a normal one) --
+                 defaults to home_advantage when not given.
 
     Returns dict with keys:
       leg1      – {home_win, draw, away_win, xg_home, xg_away}
@@ -258,11 +276,14 @@ def two_leg_advance_odds(
     t1_att, t1_def = rat_lookup.get(team1, default)
     t2_att, t2_def = rat_lookup.get(team2, default)
 
+    ha1 = home_advantage if home_advantage_team1 is None else home_advantage_team1
+    ha2 = home_advantage if home_advantage_team2 is None else home_advantage_team2
+
     # Expected goals per leg (all four values)
-    xg_l1_t1 = t1_att * max(t2_def, 0.01) / league_avg * home_advantage  # team1 at home, leg1
-    xg_l1_t2 = t2_att * max(t1_def, 0.01) / league_avg                   # team2 away,  leg1
-    xg_l2_t2 = t2_att * max(t1_def, 0.01) / league_avg * home_advantage  # team2 at home, leg2
-    xg_l2_t1 = t1_att * max(t2_def, 0.01) / league_avg                   # team1 away,  leg2
+    xg_l1_t1 = t1_att * max(t2_def, 0.01) / league_avg * ha1  # team1 at home, leg1
+    xg_l1_t2 = t2_att * max(t1_def, 0.01) / league_avg               # team2 away,  leg1
+    xg_l2_t2 = t2_att * max(t1_def, 0.01) / league_avg * ha2  # team2 at home, leg2
+    xg_l2_t1 = t1_att * max(t2_def, 0.01) / league_avg               # team1 away,  leg2
 
     pmf_l1_t1 = _goals_pmf(xg_l1_t1)
     pmf_l1_t2 = _goals_pmf(xg_l1_t2)
@@ -578,6 +599,7 @@ def simulate_season(
     played_fixtures: list[dict] | None = None,
     use_dixon_coles: bool = True,
     apply_form: bool = True,
+    home_advantage_overrides: dict[tuple[str, str], float] | None = None,
 ) -> pd.DataFrame:
     """
     Run a Monte Carlo simulation of the remaining season.
@@ -598,6 +620,15 @@ def simulate_season(
                          exposed mainly so backtest.py can check whether it still
                          earns its keep now that Opta ratings refresh weekly and
                          are themselves already form-sensitive)
+    home_advantage_overrides : {(home, away): their home_advantage for just that
+                         fixture}, for a home team that doesn't get the normal
+                         boost against this particular opponent -- e.g. its
+                         "home" fixture is actually played at a neutral venue.
+                         Keyed by the (home, away) pair rather than home team
+                         alone, since that status can depend on the specific
+                         opponent (e.g. Ireland hosting Israel) rather than
+                         applying to every one of the home team's fixtures.
+                         Any fixture not in the dict uses home_advantage.
 
     Returns
     -------
@@ -719,7 +750,8 @@ def simulate_season(
     for i, f in enumerate(valid_fixtures):
         h_att, h_def = get_rating(f["strHomeTeam"])
         a_att, a_def = get_rating(f["strAwayTeam"])
-        home_lambdas[i] = h_att * max(a_def, 0.01) / league_avg * home_advantage
+        ha = (home_advantage_overrides or {}).get((f["strHomeTeam"], f["strAwayTeam"]), home_advantage)
+        home_lambdas[i] = h_att * max(a_def, 0.01) / league_avg * ha
         away_lambdas[i] = a_att * max(h_def, 0.01) / league_avg
 
     # Simulate all goals at once: shape (F, n_sim)

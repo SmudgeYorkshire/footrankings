@@ -33,6 +33,7 @@ from qualifying_projection import (
     _leg_aggregate_winner, _resolve_bracket_side,
     _resolve_playoff_tie_odds, _project_league_phase_field,
     _normalize_club_name, _fuzzy_key, real_league_phase_results,
+    home_advantage_for,
 )
 
 # Real pot sizing per competition (see league_phase_simulator's docstring):
@@ -861,7 +862,9 @@ with tab_qual_pred:
     st.caption(
         "**Model:** Opta ratings → attack/defence via power transform → "
         "Negative-Binomial goal distribution → analytical two-leg advance probability.  "
-        f"Home advantage: {_qual_home_adv}×.  Penalties modelled as 50/50."
+        f"Home advantage: {_qual_home_adv}×.  Penalties modelled as 50/50.  "
+        "Clubs that play their UEFA \"home\" matches at a neutral venue (currently Ukrainian and "
+        "Israeli clubs) get no home-advantage boost on their nominal home leg."
     )
 
     # ── Third Qualifying Round — undecided ties ─────────────────────────────
@@ -888,7 +891,11 @@ with tab_qual_pred:
             if l1_played:
                 leg1_score = (int(leg1.get("intHomeScore") or 0), int(leg1.get("intAwayScore") or 0))
 
-            odds = two_leg_advance_odds(team1, team2, ratings_df, home_advantage=_qual_home_adv, leg1_score=leg1_score)
+            odds = two_leg_advance_odds(
+                team1, team2, ratings_df, leg1_score=leg1_score,
+                home_advantage_team1=home_advantage_for(team1, _qual_home_adv),
+                home_advantage_team2=home_advantage_for(team2, _qual_home_adv),
+            )
             t1_adv, t2_adv = odds["team1_adv"], odds["team2_adv"]
             l1o, l2o = odds["leg1"], odds["leg2"]
             b1 = badge_lookup.get(team1, "")

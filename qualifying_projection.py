@@ -36,6 +36,40 @@ _PLAYOFF_ROUND_NAMES = frozenset({"Play-offs", "Playoff round"})
 # Phase. _project_league_phase_field below folds these in for EL/ECL.
 _CASCADE_FROM = {"Europa League": "Champions League", "Conference League": "Europa League"}
 
+# Clubs from these UEFA associations play their UEFA "home" matches at a
+# neutral venue outside their own country -- Ukraine since Russia's 2022
+# invasion, Israel since the war triggered by the October 2023 Hamas-led
+# attack -- so no real home crowd/pitch-familiarity advantage applies to
+# their nominal home leg. Keyed by country (via the same club->country
+# map used everywhere else here) rather than a fixed list of club names,
+# so it automatically covers whichever Ukrainian/Israeli clubs qualify
+# for Europe each season without needing an edit here -- 2026-27's set is
+# Shakhtar Donetsk (Champions League), Hapoel Beer Sheva (Europa League),
+# and Maccabi Tel Aviv/Hapoel Tel Aviv/Beitar Jerusalem/Dynamo Kyiv (mid
+# Play-off ties as of 2026-09-20). See home_advantage_for()'s callers for
+# where this actually gets applied (League Phase sim, Play-off tie odds,
+# single-match displays) -- checked directly against real market odds for
+# both Shakhtar (already neutral-venue since 2014, so a useful check of
+# the *mechanism*) and Hapoel Beer Sheva: even at full parity (1.0) our
+# model still landed a few points off the market on both, but that gap
+# tracks a plain rating-accuracy question (Opta's domestic-league-based
+# rating potentially lagging a team's true current level), not home
+# advantage -- removing the neutral-venue boost closed most of the gap
+# either way.
+NEUTRAL_VENUE_COUNTRIES = {"Ukraine", "Israel"}
+
+
+@st.cache_data(ttl=86_400, show_spinner=False)
+def _neutral_venue_teams() -> frozenset[str]:
+    club_country = _load_club_country_map()
+    return frozenset(team for team, country in club_country.items() if country in NEUTRAL_VENUE_COUNTRIES)
+
+
+def home_advantage_for(team: str, base: float) -> float:
+    """`base`, or 1.0 (parity) if `team` plays its UEFA "home" matches at
+    a neutral venue -- see NEUTRAL_VENUE_COUNTRIES."""
+    return 1.0 if team in _neutral_venue_teams() else base
+
 
 @st.cache_data(ttl=60, show_spinner=False)
 def _load_combined_ratings() -> pd.DataFrame:
@@ -297,8 +331,11 @@ def _resolve_bracket_side(side: tuple, ratings_df: pd.DataFrame) -> dict:
     leg1_score = None
     if l1_played:
         leg1_score = (int(leg1.get("intHomeScore") or 0), int(leg1.get("intAwayScore") or 0))
+    _base_ha = EUROPEAN_COMPETITIONS[comp]["home_advantage"]
     odds = two_leg_advance_odds(
-        t1, t2, ratings_df, home_advantage=EUROPEAN_COMPETITIONS[comp]["home_advantage"], leg1_score=leg1_score,
+        t1, t2, ratings_df, leg1_score=leg1_score,
+        home_advantage_team1=home_advantage_for(t1, _base_ha),
+        home_advantage_team2=home_advantage_for(t2, _base_ha),
     )
     t1_pct, t2_pct = odds["team1_adv"], odds["team2_adv"]
     if which == "winner":
@@ -360,8 +397,11 @@ def _resolve_playoff_tie_odds(team_a: str, team_b: str, comp_name: str, ratings_
     leg1_score = None
     if l1_played:
         leg1_score = (int(leg1.get("intHomeScore") or 0), int(leg1.get("intAwayScore") or 0))
+    _base_ha = EUROPEAN_COMPETITIONS[comp_name]["home_advantage"]
     odds = two_leg_advance_odds(
-        t1, t2, ratings_df, home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"], leg1_score=leg1_score,
+        t1, t2, ratings_df, leg1_score=leg1_score,
+        home_advantage_team1=home_advantage_for(t1, _base_ha),
+        home_advantage_team2=home_advantage_for(t2, _base_ha),
     )
     return {
         "status": "predicted", "team1": t1, "team2": t2,
