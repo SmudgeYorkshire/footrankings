@@ -301,18 +301,19 @@ def simulate_league_a_knockouts(
     return df.set_index("team")
 
 
-# UEFA's own criteria for ranking the four 3rd-placed (or four 4th-placed)
-# League A teams against each other -- since they never play one another,
-# there's no head-to-head to break ties with, just Pts/GD/GF.
+# UEFA's own criteria for ranking one finishing position's four (or
+# fewer) representatives -- one per group -- against each other: since
+# they never play one another, there's no head-to-head to break ties
+# with, just Pts/GD/GF.
 _CROSS_GROUP_SORT_KEY = ("intPoints", "intGoalDifference", "intGoalsFor")
 
 
 def cross_group_ranking(group_standings: dict[str, list[dict]], position: int) -> list[dict]:
-    """League A's "Ranking of Nth-placed teams" table (position=3 or 4):
-    pulls that finishing position's row out of each of the 4 groups'
-    current standings, then ranks those 4 rows against each other by
-    Pts/GD/GF. Each returned row is the group's standings row plus
-    "group" (which group it came from)."""
+    """A league's "Ranking of Nth-placed teams" table: pulls that
+    finishing position's row out of each group's current standings, then
+    ranks those rows against each other by Pts/GD/GF. Each returned row
+    is the group's standings row plus "group" (which group it came
+    from)."""
     reps = []
     for gname, standings in group_standings.items():
         row = next((r for r in standings if int(r.get("intRank", 0)) == position), None)
@@ -322,17 +323,24 @@ def cross_group_ranking(group_standings: dict[str, list[dict]], position: int) -
     return reps
 
 
-def simulate_league_a_relegation_pool(
+def _rule_labels(rule: tuple) -> list[str]:
+    return [rule[2]] if rule[0] == "direct" else [lbl for lbl in (rule[3], rule[5]) if lbl]
+
+
+def simulate_league_outcomes(
     group_states: dict[str, dict],
+    outcome_rules: list[tuple],
     ratings_df: pd.DataFrame,
     n_sim: int = 8_000,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
 ) -> pd.DataFrame:
-    """Monte Carlo League A's relegation play-off pool: all four 3rd-
-    placed teams (one per group) plus the two highest-ranked 4th-placed
-    teams (by Pts/GD/GF, cross-group -- see cross_group_ranking) go into
-    the March 2027 relegation play-offs; the two lowest-ranked 4th-placed
-    teams go straight down to League B.
+    """Monte Carlo every team's chance of landing in each of its
+    league's group-stage outcome buckets (Quarterfinals, Promotion,
+    Relegation Play-offs, direct relegation, ... -- see
+    nations_league_data.LEAGUE_OUTCOME_RULES), jointly simulating every
+    group in the league per replicate so a cross-group-ranked rule (e.g.
+    League A's 3rd/4th-place pools) is correctly correlated rather than
+    computed from independent per-group marginals.
 
     group_states: {group_name: {"teams": [...], "base_stats": {team:
     {"pts","gd","gf"}}, "remaining": [fixture dicts]}} -- base_stats is
@@ -340,12 +348,17 @@ def simulate_league_a_relegation_pool(
     or reflecting manually-entered results too), remaining is whatever
     hasn't been locked in yet and gets simulated here.
 
-    Returns a DataFrame indexed by team with columns playoff_pct
-    (P(land in the relegation play-off pool)) and relegated_pct
-    (P(direct relegation to League B)) -- both 0 for any team not
-    currently projected to finish 3rd or 4th in a single simulation run,
-    which is most of them most of the time; only 3rd/4th finishers ever
-    contribute to either column.
+    outcome_rules: ordered list of either
+      ("direct", position, label) -- every team finishing `position` in
+        its own group gets `label`, no cross-group ranking needed.
+      ("ranked", position, n_top, label_top, n_bottom, label_bottom) --
+        the teams finishing `position` (one per group) are ranked
+        against each other by Pts/GD/GF; the top n_top get label_top,
+        the bottom n_bottom get label_bottom. Either label may be None
+        for "no bucket" (the team is simply safe).
+
+    Returns a DataFrame indexed by team with one probability column per
+    distinct label across all rules.
     """
     all_teams = [t for g in group_states.values() for t in g["teams"]]
     pts = {t: np.zeros(n_sim) for t in all_teams}
@@ -385,31 +398,44 @@ def simulate_league_a_relegation_pool(
             gf[h] += gh
             gf[a] += ga
 
+    labels = sorted({lbl for rule in outcome_rules for lbl in _rule_labels(rule)})
+    counts = {lbl: {t: 0 for t in all_teams} for lbl in labels}
+
     # n_sim is only ever a few thousand and each group has just 3-4 teams,
     # so a plain per-replicate Python loop for the ranking step (goal
     # simulation above is the only part that actually needs vectorizing)
     # is simplest and still runs in a fraction of a second.
-    playoff_count = {t: 0 for t in all_teams}
-    relegated_count = {t: 0 for t in all_teams}
     group_items = list(group_states.items())
     for i in range(n_sim):
-        third_reps, fourth_reps = [], []
-        for gname, state in group_items:
-            teams = state["teams"]
-            ranked = sorted(teams, key=lambda t: (-pts[t][i], -gd[t][i], -gf[t][i]))
-            third, fourth = ranked[2], ranked[3]
-            third_reps.append(third)
-            fourth_reps.append((fourth, pts[fourth][i], gd[fourth][i], gf[fourth][i]))
-        for t in third_reps:
-            playoff_count[t] += 1
-        fourth_reps.sort(key=lambda r: (-r[1], -r[2], -r[3]))
-        for t, *_ in fourth_reps[:2]:
-            playoff_count[t] += 1
-        for t, *_ in fourth_reps[2:]:
-            relegated_count[t] += 1
+        order_by_group = {
+            gname: sorted(state["teams"], key=lambda t: (-pts[t][i], -gd[t][i], -gf[t][i]))
+            for gname, state in group_items
+        }
+        for rule in outcome_rules:
+            if rule[0] == "direct":
+                _, position, label = rule
+                for order in order_by_group.values():
+                    if position <= len(order):
+                        counts[label][order[position - 1]] += 1
+            else:
+                _, position, n_top, label_top, n_bottom, label_bottom = rule
+                reps = []
+                for order in order_by_group.values():
+                    if position <= len(order):
+                        t = order[position - 1]
+                        reps.append((t, pts[t][i], gd[t][i], gf[t][i]))
+                reps.sort(key=lambda r: (-r[1], -r[2], -r[3]))
+                if label_top:
+                    for t, *_ in reps[:n_top]:
+                        counts[label_top][t] += 1
+                if label_bottom:
+                    for t, *_ in reps[len(reps) - n_bottom:]:
+                        counts[label_bottom][t] += 1
 
-    rows = [
-        {"team": t, "playoff_pct": playoff_count[t] / n_sim, "relegated_pct": relegated_count[t] / n_sim}
-        for t in all_teams
-    ]
+    rows = []
+    for t in all_teams:
+        row = {"team": t}
+        for lbl in labels:
+            row[lbl] = counts[lbl][t] / n_sim
+        rows.append(row)
     return pd.DataFrame(rows).set_index("team")

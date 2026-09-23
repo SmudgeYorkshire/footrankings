@@ -15,10 +15,10 @@ import streamlit as st
 import pandas as pd
 
 from flags import flag_url
-from nations_league_data import NL_GROUPS, NL_FLAG_ALIASES
+from nations_league_data import NL_GROUPS, NL_FLAG_ALIASES, LEAGUE_OUTCOME_RULES
 from nations_league_simulator import (
     load_nl_ratings, simulate_group, simulate_league_a_knockouts,
-    cross_group_ranking, simulate_league_a_relegation_pool,
+    cross_group_ranking, simulate_league_outcomes,
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
@@ -142,20 +142,23 @@ def _render_predictions(teams: list[str], probs: pd.DataFrame, exp_pts: dict[str
     )
 
 
-def _render_cross_ranking(standings_by_group: dict[str, list[dict]], position: int) -> None:
-    """League A's "Ranking of Nth-placed teams" table (see
-    https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League) --
-    position 3: all four go to the relegation play-offs; position 4: the
-    top two (by Pts/GD/GF) go to the play-offs too, the bottom two are
-    relegated to League B outright."""
+def _render_cross_ranking(standings_by_group: dict[str, list[dict]], rule: tuple) -> None:
+    """A league's "Ranking of Nth-placed teams" table (see
+    https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League)
+    for one "ranked" rule -- the top n_top (by Pts/GD/GF) get label_top,
+    the bottom n_bottom get label_bottom, and anyone in between (if the
+    two don't cover every group) is simply safe."""
+    _, position, n_top, label_top, n_bottom, label_bottom = rule
     reps = cross_group_ranking(standings_by_group, position)
     if not reps:
         st.info("No standings yet.")
         return
-    qualification = (
-        ["Qualification for relegation play-offs"] * len(reps) if position == 3
-        else ["Qualification for relegation play-offs"] * 2 + ["Relegation to League B"] * 2
-    )
+    n = len(reps)
+    labels = [None] * n
+    for i in range(min(n_top, n)):
+        labels[i] = label_top
+    for i in range(max(0, n - n_bottom), n):
+        labels[i] = label_bottom
     rows = []
     for i, r in enumerate(reps):
         gd = int(r.get("intGoalDifference", 0))
@@ -172,11 +175,15 @@ def _render_cross_ranking(standings_by_group: dict[str, list[dict]], position: i
             "GA": int(r.get("intGoalsAgainst", 0)),
             "GD": f"+{gd}" if gd > 0 else str(gd),
             "Pts": int(r.get("intPoints", 0)),
-            "Qualification": qualification[i] if i < len(qualification) else "",
+            "Qualification": labels[i] or "Safe",
         })
     df = pd.DataFrame(rows)
-    styled = df.style.set_properties(**{"background-color": "#fbdcdc"}).set_properties(
-        subset=["Team"], **{"font-weight": "bold"})
+
+    def _row_style(row):
+        pink = row["Qualification"] != "Safe"
+        return [f"background-color: {'#fbdcdc' if pink else ''}" for _ in row]
+
+    styled = df.style.apply(_row_style, axis=1).set_properties(subset=["Team"], **{"font-weight": "bold"})
     st.dataframe(
         styled,
         column_config={
@@ -187,28 +194,39 @@ def _render_cross_ranking(standings_by_group: dict[str, list[dict]], position: i
     )
 
 
-def _render_relegation_predictions(pool_probs: pd.DataFrame) -> None:
+def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame) -> None:
+    """One column per outcome-bucket label in probs_df (Quarterfinals,
+    Promotion, Relegation Play-offs, ...), for exactly `teams`."""
+    cols = list(probs_df.columns)
     rows = []
-    for team, r in pool_probs.iterrows():
-        rows.append({
-            "Flag": _flag(team),
-            "Team": team,
-            "Relegation Play-offs": round(r["playoff_pct"] * 100, 1),
-            "Relegation to League B": round(r["relegated_pct"] * 100, 1),
-        })
-    df = pd.DataFrame(rows).sort_values(
-        ["Relegation to League B", "Relegation Play-offs"], ascending=False
-    ).reset_index(drop=True)
-    st.dataframe(
-        df,
-        column_config={
-            "Flag": st.column_config.ImageColumn("", width="small"),
-            "Team": st.column_config.TextColumn("Team", width="medium"),
-            "Relegation Play-offs": st.column_config.NumberColumn("Relegation Play-offs", format="%.1f%%"),
-            "Relegation to League B": st.column_config.NumberColumn("Relegation to League B", format="%.1f%%"),
-        },
-        use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
-    )
+    for t in teams:
+        row = {"Flag": _flag(t), "Team": t}
+        for c in cols:
+            row[c] = round(float(probs_df.loc[t, c]) * 100, 1) if t in probs_df.index else 0.0
+        rows.append(row)
+    df = pd.DataFrame(rows)
+    col_cfg = {
+        "Flag": st.column_config.ImageColumn("", width="small"),
+        "Team": st.column_config.TextColumn("Team", width="medium"),
+    }
+    for c in cols:
+        col_cfg[c] = st.column_config.NumberColumn(c, format="%.1f%%")
+    st.dataframe(df, column_config=col_cfg, use_container_width=True, hide_index=True, height=len(df) * 35 + 38)
+
+
+def _group_states_from(groups: dict[str, list[str]], standings_by_group: dict[str, list[dict]],
+                        remaining_by_group: dict[str, list[dict]]) -> dict[str, dict]:
+    return {
+        gname: {
+            "teams": teams,
+            "base_stats": {
+                r["strTeam"]: {"pts": r["intPoints"], "gd": r["intGoalDifference"], "gf": r["intGoalsFor"]}
+                for r in standings_by_group[gname]
+            },
+            "remaining": remaining_by_group[gname],
+        }
+        for gname, teams in groups.items()
+    }
 
 
 def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict],
@@ -326,20 +344,54 @@ for league_tab, league_name in zip(league_tabs, league_names):
         st.caption(_PROMOTION_NOTE[league_name])
         groups = NL_GROUPS[league_name]
         is_knockout_league = league_name == "League A"
-        extra_tabs = ["🏆 Knockout Bracket", "⚠️ Relegation Pool"] if is_knockout_league else []
-        tab_labels = list(groups.keys()) + extra_tabs
-        group_tabs = st.tabs(tab_labels)
-        league_group_probs: dict[str, pd.DataFrame] = {}
+        rules = LEAGUE_OUTCOME_RULES[league_name]
+        ranked_rules = [r for r in rules if r[0] == "ranked"]
+        all_league_teams = [t for g in groups.values() for t in g]
+
+        # Pre-fetch every group's real current data once -- needed both
+        # for each group's own tabs below and for the league-wide outcome
+        # simulation, which has to see every group's state at once so a
+        # cross-group-ranked rule (e.g. League A's 3rd/4th-place pools)
+        # is correlated correctly rather than computed from independent
+        # per-group marginals.
         league_group_standings: dict[str, list[dict]] = {}
         league_group_remaining: dict[str, list[dict]] = {}
+        league_group_played: dict[str, list[dict]] = {}
+        league_group_roster: dict[str, list[dict]] = {}
+        for group_name, teams in groups.items():
+            played, remaining = group_fixtures(teams)
+            roster = [{"strTeam": t} for t in teams]
+            real_standings = compute_full_standings(roster, played, tiebreakers=["gd", "gf"])
+            league_group_standings[group_name] = real_standings
+            league_group_remaining[group_name] = remaining
+            league_group_played[group_name] = played
+            league_group_roster[group_name] = roster
+
+        with st.spinner("Simulating group-stage outcomes…"):
+            outcome_probs = simulate_league_outcomes(
+                _group_states_from(groups, league_group_standings, league_group_remaining),
+                rules, ratings_df, n_sim=8_000,
+            )
+
+        tab_labels = (
+            list(groups.keys()) + ["📈 Predictions"]
+            + (["🏆 Knockout Bracket"] if is_knockout_league else [])
+            + ["🔀 Promotion & Relegation"]
+        )
+        all_tabs = st.tabs(tab_labels)
+        group_tabs = all_tabs[:len(groups)]
+        pred_tab = all_tabs[len(groups)]
+        knockout_tab = all_tabs[len(groups) + 1] if is_knockout_league else None
+        pool_tab = all_tabs[-1]
+
+        league_group_probs: dict[str, pd.DataFrame] = {}
 
         for group_tab, (group_name, teams) in zip(group_tabs, groups.items()):
             with group_tab:
-                played, remaining = group_fixtures(teams)
-                roster = [{"strTeam": t} for t in teams]
-                real_standings = compute_full_standings(roster, played, tiebreakers=["gd", "gf"])
-                league_group_standings[group_name] = real_standings
-                league_group_remaining[group_name] = remaining
+                played = league_group_played[group_name]
+                remaining = league_group_remaining[group_name]
+                roster = league_group_roster[group_name]
+                real_standings = league_group_standings[group_name]
 
                 sub_table, sub_pred, sub_manual = st.tabs(
                     ["📅 Table & Fixtures", "🎯 Predictions", "🔮 Manual Predictions"]
@@ -358,14 +410,25 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     )
                     league_group_probs[group_name] = probs
                     _render_predictions(teams, probs, exp_pts)
+                    st.markdown("#### Group stage outcome chances")
+                    _render_outcome_predictions(teams, outcome_probs)
 
                 with sub_manual:
                     _manual_predictions_tab(f"{league_name}_{group_name}", teams, roster, played, remaining)
 
         all_group_probs[league_name] = league_group_probs
 
+        with pred_tab:
+            st.markdown("#### Group Stage Outcome Predictions")
+            st.caption(
+                f"Every {league_name} nation's chance of landing in each group-stage outcome, jointly "
+                "simulating all groups together so a cross-group-ranked outcome is correctly correlated "
+                "rather than computed from independent per-group marginals."
+            )
+            _render_outcome_predictions(all_league_teams, outcome_probs)
+
         if is_knockout_league:
-            with group_tabs[-2]:
+            with knockout_tab:
                 st.markdown("#### Path to the Nations League Finals")
                 st.caption(
                     "Quarter-final pairings (group winners vs. runners-up from a different group) and the "
@@ -402,78 +465,65 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     hide_index=True, height=len(ko_df) * 35 + 38,
                 )
 
-            with group_tabs[-1]:
-                st.markdown("#### Relegation Play-off Pool")
+        with pool_tab:
+            st.markdown("#### Promotion & Relegation")
+            if ranked_rules:
                 st.caption(
-                    "All four 3rd-placed teams (one per group) plus the two highest-ranked 4th-placed "
-                    "teams (by Pts/GD/GF — these teams never play each other, so there's no head-to-head "
-                    "to break ties with) go into the March 2027 relegation play-offs; the two lowest-ranked "
-                    "4th-placed teams go straight down to League B. See "
+                    "Cross-group ranking of the finishing position(s) whose destination pool is smaller "
+                    "than the number of groups, so those teams have to be ranked against each other by "
+                    "Pts/GD/GF (they never play each other, so there's no head-to-head). See "
                     "[Wikipedia's own version of these tables](https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League)."
                 )
-
-                def _group_state_from(standings_by_group: dict[str, list[dict]],
-                                       remaining_by_group: dict[str, list[dict]]) -> dict[str, dict]:
-                    return {
-                        gname: {
-                            "teams": teams,
-                            "base_stats": {
-                                r["strTeam"]: {
-                                    "pts": r["intPoints"], "gd": r["intGoalDifference"], "gf": r["intGoalsFor"],
-                                }
-                                for r in standings_by_group[gname]
-                            },
-                            "remaining": remaining_by_group[gname],
-                        }
-                        for gname, teams in groups.items()
-                    }
-
-                rel_table, rel_pred, rel_manual = st.tabs(
-                    ["📅 Table & Fixtures", "🎯 Predictions", "🔮 Manual Predictions"]
+            else:
+                st.caption(
+                    f"Every {league_name} team's outcome here depends only on its own group finishing "
+                    "position — no cross-group ranking is needed."
                 )
 
-                with rel_table:
-                    st.markdown("##### Ranking of third-placed teams")
-                    _render_cross_ranking(league_group_standings, 3)
-                    st.markdown("##### Ranking of fourth-placed teams")
-                    _render_cross_ranking(league_group_standings, 4)
+            sub_table2, sub_pred2, sub_manual2 = st.tabs(
+                ["📅 Table & Fixtures", "🎯 Predictions", "🔮 Manual Predictions"]
+            )
 
-                with rel_pred:
-                    with st.spinner("Simulating the relegation pool…"):
-                        pool_probs = simulate_league_a_relegation_pool(
-                            _group_state_from(league_group_standings, league_group_remaining),
-                            ratings_df, n_sim=8_000,
-                        )
-                    _render_relegation_predictions(pool_probs)
+            with sub_table2:
+                if not ranked_rules:
+                    st.info("No cross-group ranking tables apply to this league.")
+                else:
+                    for rule in ranked_rules:
+                        st.markdown(f"##### Ranking of {_ordinal(rule[1])}-placed teams")
+                        _render_cross_ranking(league_group_standings, rule)
 
-                with rel_manual:
-                    st.caption("Uses whatever you've entered in each group's own Manual Predictions tab above.")
-                    manual_standings, manual_remaining = {}, {}
-                    for gname in groups:
-                        manual_state = st.session_state.get(f"nl_manual_state_{league_name}_{gname}")
-                        if manual_state:
-                            manual_standings[gname] = manual_state["standings"]
-                            manual_remaining[gname] = manual_state["remaining"]
-                        else:
-                            manual_standings[gname] = league_group_standings[gname]
-                            manual_remaining[gname] = league_group_remaining[gname]
+            with sub_pred2:
+                _render_outcome_predictions(all_league_teams, outcome_probs)
 
-                    st.markdown("##### Ranking of third-placed teams")
-                    _render_cross_ranking(manual_standings, 3)
-                    st.markdown("##### Ranking of fourth-placed teams")
-                    _render_cross_ranking(manual_standings, 4)
-
-                    st.divider()
-                    st.markdown("##### Projected outcomes")
-                    if st.button("▶  Run simulations with predictions", type="primary",
-                                 use_container_width=True, key="nl_relegation_run"):
-                        with st.spinner("Simulating…"):
-                            st.session_state["nl_relegation_pool_result"] = simulate_league_a_relegation_pool(
-                                _group_state_from(manual_standings, manual_remaining),
-                                ratings_df, n_sim=8_000,
-                            )
-                    cached_pool = st.session_state.get("nl_relegation_pool_result")
-                    if cached_pool is not None:
-                        _render_relegation_predictions(cached_pool)
+            with sub_manual2:
+                st.caption("Uses whatever you've entered in each group's own Manual Predictions tab above.")
+                manual_standings, manual_remaining = {}, {}
+                for gname in groups:
+                    manual_state = st.session_state.get(f"nl_manual_state_{league_name}_{gname}")
+                    if manual_state:
+                        manual_standings[gname] = manual_state["standings"]
+                        manual_remaining[gname] = manual_state["remaining"]
                     else:
-                        st.info("Press **▶ Run simulations** to see projected outcomes.")
+                        manual_standings[gname] = league_group_standings[gname]
+                        manual_remaining[gname] = league_group_remaining[gname]
+
+                if ranked_rules:
+                    for rule in ranked_rules:
+                        st.markdown(f"##### Ranking of {_ordinal(rule[1])}-placed teams")
+                        _render_cross_ranking(manual_standings, rule)
+                    st.divider()
+
+                st.markdown("##### Projected outcomes")
+                pool_result_key = f"nl_pool_result_{league_name}"
+                if st.button("▶  Run simulations with predictions", type="primary",
+                             use_container_width=True, key=f"nl_pool_run_{league_name}"):
+                    with st.spinner("Simulating…"):
+                        st.session_state[pool_result_key] = simulate_league_outcomes(
+                            _group_states_from(groups, manual_standings, manual_remaining),
+                            rules, ratings_df, n_sim=8_000,
+                        )
+                cached_pool = st.session_state.get(pool_result_key)
+                if cached_pool is not None:
+                    _render_outcome_predictions(all_league_teams, cached_pool)
+                else:
+                    st.info("Press **▶ Run simulations** to see projected outcomes.")

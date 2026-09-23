@@ -75,6 +75,62 @@ NL_FLAG_ALIASES = {
 
 ALL_NL_TEAMS: list[str] = [t for league in NL_GROUPS.values() for group in league.values() for t in group]
 
+# Each league's group-stage outcome buckets, reconstructed from the
+# playoff notes above (League A 3rd-place teams vs League B runners-up,
+# League B 3rd-place teams vs League C runners-up, League C's two best
+# 4th-place teams vs League D runners-up) plus the direct promotion/
+# relegation rules -- corrected 2026-09-23 after the user caught League
+# A's original version wrongly sending all four 3rd-placed teams to the
+# relegation play-offs (only the bottom two, cross-group ranked, actually
+# do; the top two stay safe in League A).
+#
+# Two rule shapes:
+#   ("direct", position, label) -- every team finishing `position` in its
+#     own group gets `label`, no cross-group ranking needed. Used
+#     wherever a whole position column feeds a same-sized pool on the
+#     other side (e.g. League B's 4 runners-up vs League A's 4-team
+#     relegation pool -- clean 4-for-4, nothing to narrow).
+#   ("ranked", position, n_top, label_top, n_bottom, label_bottom) --
+#     the teams finishing `position` (one per group) are ranked against
+#     each other by Pts/GD/GF (they never play each other, so there's no
+#     head-to-head), since the destination pool is SMALLER than the
+#     number of groups (e.g. League C's 4th-place teams narrow to
+#     League D's 2 runners-up). label_top/label_bottom may be None for
+#     "no bucket" (i.e. safe, stays in the current league).
+#
+# League B and D need no "ranked" rule at all -- every position feeds a
+# same-sized neighbouring pool. League C's 3rd-placed teams and League
+# D's bottom (3rd) place have no rule at all: they're just safe. Treat
+# this reconstruction as reasoned rather than confirmed for B/C/D
+# (League A's was directly corrected by the user against UEFA's own
+# published tables; B/C/D follow the same documented cross-league
+# playoff pairings but haven't been individually checked against
+# UEFA's own ranking tables the way League A's was) -- flag it if any
+# label or split looks wrong once real standings are in.
+LEAGUE_OUTCOME_RULES: dict[str, list[tuple]] = {
+    "League A": [
+        ("direct", 1, "Quarterfinals"),
+        ("direct", 2, "Quarterfinals"),
+        ("ranked", 3, 2, None, 2, "Relegation Play-offs"),
+        ("ranked", 4, 2, "Relegation Play-offs", 2, "Relegation to League B"),
+    ],
+    "League B": [
+        ("direct", 1, "Promotion"),
+        ("direct", 2, "Promotion Play-offs"),
+        ("direct", 3, "Relegation Play-offs"),
+        ("direct", 4, "Relegation to League C"),
+    ],
+    "League C": [
+        ("direct", 1, "Promotion"),
+        ("direct", 2, "Promotion Play-offs"),
+        ("ranked", 4, 2, "Relegation Play-offs", 2, "Relegation to League D"),
+    ],
+    "League D": [
+        ("direct", 1, "Promotion"),
+        ("direct", 2, "Promotion Play-offs"),
+    ],
+}
+
 # Ukraine (since Russia's 2022 invasion) and Israel (since the war
 # triggered by the October 2023 Hamas-led attack) play their UEFA "home"
 # matches at a neutral venue outside their own country -- Ukraine's own
