@@ -119,13 +119,19 @@ def _home_advantage_overrides(teams: list[str], home_advantage: float) -> dict[t
     return overrides
 
 
-def _expected_points(fixtures: list[dict], ratings_df: pd.DataFrame, home_advantage: float) -> dict[str, float]:
-    """Projected total points from a blank start: 3*P(win) + 1*P(draw)
-    summed across every fixture the team plays, home or away."""
+def _expected_points(
+    fixtures: list[dict],
+    ratings_df: pd.DataFrame,
+    home_advantage: float,
+    base_points: dict[str, float] | None = None,
+) -> dict[str, float]:
+    """Projected total points: base_points (0 for every team if not given,
+    e.g. a team's real points-so-far otherwise) + 3*P(win) + 1*P(draw)
+    summed across every one of `fixtures` the team plays, home or away."""
     teams = sorted({t for f in fixtures for t in (f["strHomeTeam"], f["strAwayTeam"])})
     overrides = _home_advantage_overrides(teams, home_advantage)
     odds = fixture_odds(fixtures, ratings_df, home_advantage=home_advantage, home_advantage_overrides=overrides)
-    pts = {t: 0.0 for t in teams}
+    pts = {t: float((base_points or {}).get(t, 0.0)) for t in teams}
     for f, o in zip(fixtures, odds):
         pts[f["strHomeTeam"]] += 3 * o["home_win"] + o["draw"]
         pts[f["strAwayTeam"]] += 3 * o["away_win"] + o["draw"]
@@ -137,20 +143,31 @@ def simulate_group(
     ratings_df: pd.DataFrame,
     n_sim: int = 10_000,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+    standings: list[dict] | None = None,
+    remaining_fixtures: list[dict] | None = None,
+    played_fixtures: list[dict] | None = None,
 ) -> tuple[pd.DataFrame, dict[str, float]]:
     """Position-probability matrix (index=team, columns "1".."n") plus
-    projected points, for one group's full double round-robin simulated
-    from a blank slate (the league phase hasn't started yet)."""
+    projected points, for one group's full double round-robin.
+
+    With no arguments beyond teams/ratings_df, simulates a fresh double
+    round-robin from a blank slate (a synthetic but structurally correct
+    schedule -- see _round_robin_fixtures) since the League Phase hasn't
+    started yet. Once it has, callers (nations_league.py) pass the real
+    current standings/remaining fixtures instead, so real results lock in
+    and only what's left to play gets simulated -- same "real results +
+    simulate the rest" approach used across the rest of this site."""
     group_ratings = _scoped_attack_defense(teams, ratings_df)
-    fixtures = _round_robin_fixtures(teams)
-    standings = _blank_standings(teams)
+    fixtures = remaining_fixtures if remaining_fixtures is not None else _round_robin_fixtures(teams)
+    base_standings = standings if standings is not None else _blank_standings(teams)
     overrides = _home_advantage_overrides(teams, home_advantage)
     probs = simulate_season(
-        standings=standings, remaining_fixtures=fixtures, ratings=group_ratings,
+        standings=base_standings, remaining_fixtures=fixtures, ratings=group_ratings,
         n_sim=n_sim, home_advantage=home_advantage, tiebreakers=["gd", "gf"],
-        home_advantage_overrides=overrides,
+        played_fixtures=played_fixtures, home_advantage_overrides=overrides,
     )
-    exp_pts = _expected_points(fixtures, group_ratings, home_advantage)
+    base_points = {row["strTeam"]: row.get("intPoints", 0) for row in base_standings}
+    exp_pts = _expected_points(fixtures, group_ratings, home_advantage, base_points)
     return probs, exp_pts
 
 

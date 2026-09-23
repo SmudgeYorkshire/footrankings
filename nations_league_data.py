@@ -6,6 +6,17 @@ competitions' qualifying brackets, so it's hardcoded rather than fetched
 live. Russia remains suspended, so League D has only 6 teams (2 groups of
 3) instead of a full complement.
 
+League C's group composition here was corrected 2026-09-23 against
+API-Football's actual fixture list (league id 5, season 2026) after
+nations_league_fixtures.py came up with zero real fixtures for every
+League C group -- the original Wikipedia-sourced grouping was wrong
+(e.g. it had Montenegro/Cyprus in different groups; the real schedule
+has them playing each other, along with Latvia and Armenia). League D's
+two groups' team lists were right but swapped between the D1/D2 labels;
+fixed too, though it made no functional difference (nothing here keys
+off which specific group is called D1 vs D2). Re-verify against a live
+fixture pull if UEFA ever reshuffles anything.
+
 Group play (Sep-Nov 2026): Leagues A/B/C are 4-team groups (double
 round-robin, 6 matches/team); League D is two 3-team groups (double
 round-robin, 4 matches/team).
@@ -44,14 +55,14 @@ NL_GROUPS: dict[str, dict[str, list[str]]] = {
         "B4": ["Poland", "Bosnia and Herzegovina", "Romania", "Sweden"],
     },
     "League C": {
-        "C1": ["Iceland", "Albania", "Montenegro", "Kazakhstan"],
-        "C2": ["Finland", "Slovakia", "Bulgaria", "Armenia"],
-        "C3": ["Belarus", "Faroe Islands", "Cyprus", "Estonia"],
-        "C4": ["Latvia", "Luxembourg", "Moldova", "San Marino"],
+        "C1": ["Montenegro", "Cyprus", "Latvia", "Armenia"],
+        "C2": ["Iceland", "Estonia", "Luxembourg", "Bulgaria"],
+        "C3": ["Faroe Islands", "Kazakhstan", "Moldova", "Slovakia"],
+        "C4": ["Albania", "Belarus", "San Marino", "Finland"],
     },
     "League D": {
-        "D1": ["Azerbaijan", "Lithuania", "Malta"],
-        "D2": ["Gibraltar", "Liechtenstein", "Andorra"],
+        "D1": ["Azerbaijan", "Lithuania", "Liechtenstein"],
+        "D2": ["Gibraltar", "Malta", "Andorra"],
     },
 }
 
