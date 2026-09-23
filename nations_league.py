@@ -202,7 +202,8 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
     3rd-placed teams, or any League C 3rd-placed team) -- so every row
     sums to 100%, for exactly `teams`."""
     stay_label = f"Stay in {league_name}"
-    cols = list(probs_df.columns) + [stay_label]
+    bucket_cols = list(probs_df.columns)
+    cols = bucket_cols[:1] + [stay_label] + bucket_cols[1:]
     rows = []
     for t in teams:
         row = {"Flag": _flag(t), "Team": t}
@@ -211,7 +212,7 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
             row[c] = round(v * 100, 1)
         row[stay_label] = round(max(0.0, 1.0 - sum(raw.values())) * 100, 1)
         rows.append(row)
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(rows)[["Flag", "Team"] + cols]
     col_cfg = {
         "Flag": st.column_config.ImageColumn("", width="small"),
         "Team": st.column_config.TextColumn("Team", width="medium"),
