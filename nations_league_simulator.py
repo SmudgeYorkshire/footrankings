@@ -19,12 +19,14 @@ Two things ARE specific to international football and handled here:
 
 import random
 
+import numpy as np
 import pandas as pd
 import streamlit as st
 
 from config import DEFAULT_HOME_ADVANTAGE
 from simulator import (
     _opta_to_attack_defense, simulate_season, fixture_odds, two_leg_advance_odds, _sort_cascade,
+    _build_rat_lookup, DEFAULT_BASE_GOALS, OVERDISPERSION,
 )
 from nations_league_data import NL_GROUPS, ALL_NL_TEAMS, NEUTRAL_VENUE_NATIONS, NEUTRAL_VENUE_FIXTURES
 
@@ -297,3 +299,117 @@ def simulate_league_a_knockouts(
     ]
     df = _sort_cascade(pd.DataFrame(rows), ["won_competition", "reached_finals_four", "reached_qf"])
     return df.set_index("team")
+
+
+# UEFA's own criteria for ranking the four 3rd-placed (or four 4th-placed)
+# League A teams against each other -- since they never play one another,
+# there's no head-to-head to break ties with, just Pts/GD/GF.
+_CROSS_GROUP_SORT_KEY = ("intPoints", "intGoalDifference", "intGoalsFor")
+
+
+def cross_group_ranking(group_standings: dict[str, list[dict]], position: int) -> list[dict]:
+    """League A's "Ranking of Nth-placed teams" table (position=3 or 4):
+    pulls that finishing position's row out of each of the 4 groups'
+    current standings, then ranks those 4 rows against each other by
+    Pts/GD/GF. Each returned row is the group's standings row plus
+    "group" (which group it came from)."""
+    reps = []
+    for gname, standings in group_standings.items():
+        row = next((r for r in standings if int(r.get("intRank", 0)) == position), None)
+        if row is not None:
+            reps.append({**row, "group": gname})
+    reps.sort(key=lambda r: tuple(-int(r.get(k, 0)) for k in _CROSS_GROUP_SORT_KEY))
+    return reps
+
+
+def simulate_league_a_relegation_pool(
+    group_states: dict[str, dict],
+    ratings_df: pd.DataFrame,
+    n_sim: int = 8_000,
+    home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+) -> pd.DataFrame:
+    """Monte Carlo League A's relegation play-off pool: all four 3rd-
+    placed teams (one per group) plus the two highest-ranked 4th-placed
+    teams (by Pts/GD/GF, cross-group -- see cross_group_ranking) go into
+    the March 2027 relegation play-offs; the two lowest-ranked 4th-placed
+    teams go straight down to League B.
+
+    group_states: {group_name: {"teams": [...], "base_stats": {team:
+    {"pts","gd","gf"}}, "remaining": [fixture dicts]}} -- base_stats is
+    each team's REAL points/GD/GF so far (0 if the group hasn't started,
+    or reflecting manually-entered results too), remaining is whatever
+    hasn't been locked in yet and gets simulated here.
+
+    Returns a DataFrame indexed by team with columns playoff_pct
+    (P(land in the relegation play-off pool)) and relegated_pct
+    (P(direct relegation to League B)) -- both 0 for any team not
+    currently projected to finish 3rd or 4th in a single simulation run,
+    which is most of them most of the time; only 3rd/4th finishers ever
+    contribute to either column.
+    """
+    all_teams = [t for g in group_states.values() for t in g["teams"]]
+    pts = {t: np.zeros(n_sim) for t in all_teams}
+    gd = {t: np.zeros(n_sim) for t in all_teams}
+    gf = {t: np.zeros(n_sim) for t in all_teams}
+
+    rng = np.random.default_rng()
+    phi = OVERDISPERSION
+    p_nb = 1.0 / (1.0 + phi)
+    default = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+
+    for gname, state in group_states.items():
+        teams = state["teams"]
+        for t in teams:
+            base = state["base_stats"].get(t, {})
+            pts[t][:] = base.get("pts", 0)
+            gd[t][:] = base.get("gd", 0)
+            gf[t][:] = base.get("gf", 0)
+
+        group_ratings = _scoped_attack_defense(teams, ratings_df)
+        rat_lookup, league_avg = _build_rat_lookup(group_ratings, DEFAULT_BASE_GOALS)
+        overrides = _home_advantage_overrides(teams, home_advantage)
+
+        for f in state["remaining"]:
+            h, a = f["strHomeTeam"], f["strAwayTeam"]
+            h_att, h_def = rat_lookup.get(h, default)
+            a_att, a_def = rat_lookup.get(a, default)
+            ha = overrides.get((h, a), home_advantage)
+            lam_h = h_att * max(a_def, 0.01) / league_avg * ha
+            lam_a = a_att * max(h_def, 0.01) / league_avg
+            gh = rng.negative_binomial(max(lam_h / phi, 1e-9), p_nb, n_sim)
+            ga = rng.negative_binomial(max(lam_a / phi, 1e-9), p_nb, n_sim)
+            pts[h] += np.where(gh > ga, 3, np.where(gh == ga, 1, 0))
+            pts[a] += np.where(ga > gh, 3, np.where(ga == gh, 1, 0))
+            gd[h] += gh - ga
+            gd[a] += ga - gh
+            gf[h] += gh
+            gf[a] += ga
+
+    # n_sim is only ever a few thousand and each group has just 3-4 teams,
+    # so a plain per-replicate Python loop for the ranking step (goal
+    # simulation above is the only part that actually needs vectorizing)
+    # is simplest and still runs in a fraction of a second.
+    playoff_count = {t: 0 for t in all_teams}
+    relegated_count = {t: 0 for t in all_teams}
+    group_items = list(group_states.items())
+    for i in range(n_sim):
+        third_reps, fourth_reps = [], []
+        for gname, state in group_items:
+            teams = state["teams"]
+            ranked = sorted(teams, key=lambda t: (-pts[t][i], -gd[t][i], -gf[t][i]))
+            third, fourth = ranked[2], ranked[3]
+            third_reps.append(third)
+            fourth_reps.append((fourth, pts[fourth][i], gd[fourth][i], gf[fourth][i]))
+        for t in third_reps:
+            playoff_count[t] += 1
+        fourth_reps.sort(key=lambda r: (-r[1], -r[2], -r[3]))
+        for t, *_ in fourth_reps[:2]:
+            playoff_count[t] += 1
+        for t, *_ in fourth_reps[2:]:
+            relegated_count[t] += 1
+
+    rows = [
+        {"team": t, "playoff_pct": playoff_count[t] / n_sim, "relegated_pct": relegated_count[t] / n_sim}
+        for t in all_teams
+    ]
+    return pd.DataFrame(rows).set_index("team")
