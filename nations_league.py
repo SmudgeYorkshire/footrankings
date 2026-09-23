@@ -194,15 +194,22 @@ def _render_cross_ranking(standings_by_group: dict[str, list[dict]], rule: tuple
     )
 
 
-def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame) -> None:
+def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league_name: str) -> None:
     """One column per outcome-bucket label in probs_df (Quarterfinals,
-    Promotion, Relegation Play-offs, ...), for exactly `teams`."""
-    cols = list(probs_df.columns)
+    Promotion, Relegation Play-offs, ...) plus a "Stay in {league}" column
+    -- the complement of everything else, i.e. finishing in a position
+    LEAGUE_OUTCOME_RULES doesn't send anywhere (e.g. League A's top two
+    3rd-placed teams, or any League C 3rd-placed team) -- so every row
+    sums to 100%, for exactly `teams`."""
+    stay_label = f"Stay in {league_name}"
+    cols = list(probs_df.columns) + [stay_label]
     rows = []
     for t in teams:
         row = {"Flag": _flag(t), "Team": t}
-        for c in cols:
-            row[c] = round(float(probs_df.loc[t, c]) * 100, 1) if t in probs_df.index else 0.0
+        raw = {c: float(probs_df.loc[t, c]) if t in probs_df.index else 0.0 for c in probs_df.columns}
+        for c, v in raw.items():
+            row[c] = round(v * 100, 1)
+        row[stay_label] = round(max(0.0, 1.0 - sum(raw.values())) * 100, 1)
         rows.append(row)
     df = pd.DataFrame(rows)
     col_cfg = {
@@ -411,7 +418,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     league_group_probs[group_name] = probs
                     _render_predictions(teams, probs, exp_pts)
                     st.markdown("#### Group stage outcome chances")
-                    _render_outcome_predictions(teams, outcome_probs)
+                    _render_outcome_predictions(teams, outcome_probs, league_name)
 
                 with sub_manual:
                     _manual_predictions_tab(f"{league_name}_{group_name}", teams, roster, played, remaining)
@@ -425,7 +432,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
                 "simulating all groups together so a cross-group-ranked outcome is correctly correlated "
                 "rather than computed from independent per-group marginals."
             )
-            _render_outcome_predictions(all_league_teams, outcome_probs)
+            _render_outcome_predictions(all_league_teams, outcome_probs, league_name)
 
         if is_knockout_league:
             with knockout_tab:
@@ -493,7 +500,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
                         _render_cross_ranking(league_group_standings, rule)
 
             with sub_pred2:
-                _render_outcome_predictions(all_league_teams, outcome_probs)
+                _render_outcome_predictions(all_league_teams, outcome_probs, league_name)
 
             with sub_manual2:
                 st.caption("Uses whatever you've entered in each group's own Manual Predictions tab above.")
@@ -524,6 +531,6 @@ for league_tab, league_name in zip(league_tabs, league_names):
                         )
                 cached_pool = st.session_state.get(pool_result_key)
                 if cached_pool is not None:
-                    _render_outcome_predictions(all_league_teams, cached_pool)
+                    _render_outcome_predictions(all_league_teams, cached_pool, league_name)
                 else:
                     st.info("Press **▶ Run simulations** to see projected outcomes.")
