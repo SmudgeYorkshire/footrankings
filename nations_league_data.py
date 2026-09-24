@@ -178,8 +178,9 @@ def position_status_labels(league_name: str, n_teams: int) -> dict[int, str]:
     position, not just this group) is hedged the same way Wikipedia's own
     group tables word it ("Possible qualification for..." / "... or
     ..."). A position with no rule at all, or whose only label is a
-    "safe" bucket (see _SAFE_RANKED_LABEL_RE), is simply safe."""
-    labels = {pos: "Safe" for pos in range(1, n_teams + 1)}
+    "safe" bucket (see _SAFE_RANKED_LABEL_RE), simply stays in this
+    league next edition."""
+    labels = {pos: f"Staying in {league_name}" for pos in range(1, n_teams + 1)}
     for rule in LEAGUE_OUTCOME_RULES[league_name]:
         if rule[0] == "direct":
             _, position, label = rule

@@ -140,6 +140,22 @@ def _expected_points(
     return pts
 
 
+def group_fixture_odds(
+    teams: list[str],
+    fixtures: list[dict],
+    ratings_df: pd.DataFrame,
+    home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+) -> list[dict]:
+    """Home/draw/away win probabilities for every one of `fixtures` --
+    played or still to come, the Poisson model doesn't care which -- using
+    this group's own scoped ratings and neutral-venue overrides, the same
+    way simulate_group's own goal model is set up. Returns a list (parallel
+    to `fixtures`) of {home_win, draw, away_win} dicts."""
+    group_ratings = _scoped_attack_defense(teams, ratings_df)
+    overrides = _home_advantage_overrides(teams, home_advantage)
+    return fixture_odds(fixtures, group_ratings, home_advantage=home_advantage, home_advantage_overrides=overrides)
+
+
 def simulate_group(
     teams: list[str],
     ratings_df: pd.DataFrame,

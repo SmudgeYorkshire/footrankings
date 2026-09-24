@@ -23,7 +23,7 @@ from nations_league_data import (
 )
 from nations_league_simulator import (
     load_nl_ratings, simulate_group, simulate_league_a_knockouts, simulate_league_outcomes,
-    cross_group_ranking,
+    cross_group_ranking, group_fixture_odds,
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
@@ -120,6 +120,42 @@ def _render_fixtures(played: list[dict], remaining: list[dict], height: int) -> 
     )
 
 
+def _render_match_odds(teams: list[str], played: list[dict], remaining: list[dict], height: int) -> None:
+    """Home/Draw/Away win chance for every fixture in the group, played or
+    not -- the Poisson model doesn't need a result to have an opinion, so
+    this shows the same pre-match read for already-decided games too
+    rather than only the ones still to come."""
+    fixtures = sorted(played + remaining, key=lambda f: (f.get("dateEvent", ""), f.get("strTime", "")))
+    if not fixtures:
+        st.info("No fixtures found for this group yet.")
+        return
+    odds_list = group_fixture_odds(teams, fixtures, ratings_df)
+    rows = []
+    for f, odds in zip(fixtures, odds_list):
+        rows.append({
+            "Date": _format_date(f.get("dateEvent", "")),
+            "HB": _flag(f.get("strHomeTeam", "")),
+            "Home": f.get("strHomeTeam", ""),
+            "Home %": round(odds["home_win"] * 100, 1),
+            "Draw %": round(odds["draw"] * 100, 1),
+            "Away %": round(odds["away_win"] * 100, 1),
+            "Away": f.get("strAwayTeam", ""),
+            "AB": _flag(f.get("strAwayTeam", "")),
+        })
+    df = pd.DataFrame(rows)
+    st.dataframe(
+        df.style.set_properties(subset=["Home", "Away"], **{"font-weight": "bold"}),
+        column_config={
+            "HB": st.column_config.ImageColumn("", width="small"),
+            "AB": st.column_config.ImageColumn("", width="small"),
+            "Home %": st.column_config.NumberColumn("Home %", format="%.1f%%", width="small"),
+            "Draw %": st.column_config.NumberColumn("Draw %", format="%.1f%%", width="small"),
+            "Away %": st.column_config.NumberColumn("Away %", format="%.1f%%", width="small"),
+        },
+        use_container_width=True, hide_index=True, height=height,
+    )
+
+
 def _render_predictions(teams: list[str], probs: pd.DataFrame, exp_pts: dict[str, float]) -> None:
     n_teams = len(teams)
     rows = []
@@ -145,24 +181,48 @@ def _render_predictions(teams: list[str], probs: pd.DataFrame, exp_pts: dict[str
     )
 
 
+# Display-only renaming for the two Relegation Play-offs resolution
+# columns simulate_league_outcomes reports (see nations_league_simulator
+# -- the underlying probs_df/LEAGUE_LEAVE_LABELS names are untouched, this
+# only affects what _render_outcome_predictions prints), plus the label
+# for the derived column inserted between them showing the combined
+# chance of entering that pool at all, win or lose.
+_PLAYOFF_WIN_DISPLAY = {"Promoted in Play-offs": "Winner in Play-offs"}
+_PLAYOFF_LOSE_DISPLAY = {"Relegated in Play-offs": "Loser in Play-offs"}
+_PLAYOFF_POOL_DISPLAY = "Relegation Play-off"
+
+
 def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league_name: str) -> None:
     """One column per outcome-bucket label in probs_df (Quarterfinals,
-    Promotion, Promoted/Relegated in Play-offs, ...) plus a "Stay in
-    {league}" column: 1 minus whichever of those labels actually mean
-    leaving the league next edition (see LEAGUE_LEAVE_LABELS) -- e.g. for
-    League A that's just the two ways down (a lost relegation play-off or
-    direct relegation), since reaching the Quarterfinals or winning a
-    play-off both keep a team in League A."""
+    Promotion, Winner/Loser in Play-offs, ...) plus a "Stay in {league}"
+    column: 1 minus whichever of those labels actually mean leaving the
+    league next edition (see LEAGUE_LEAVE_LABELS) -- e.g. for League A
+    that's just the two ways down (a lost relegation play-off or direct
+    relegation), since reaching the Quarterfinals or winning a play-off
+    both keep a team in League A."""
     stay_label = f"Stay in {league_name}"
     leave_labels = LEAGUE_LEAVE_LABELS.get(league_name, set(probs_df.columns))
     bucket_cols = list(probs_df.columns)
     cols = bucket_cols[:1] + [stay_label] + bucket_cols[1:]
+
+    has_playoff_split = "Promoted in Play-offs" in cols and "Relegated in Play-offs" in cols
+    if has_playoff_split:
+        win_idx = cols.index("Promoted in Play-offs")
+        cols[win_idx] = _PLAYOFF_WIN_DISPLAY["Promoted in Play-offs"]
+        lose_idx = cols.index("Relegated in Play-offs")
+        cols[lose_idx] = _PLAYOFF_LOSE_DISPLAY["Relegated in Play-offs"]
+        cols.insert(lose_idx, _PLAYOFF_POOL_DISPLAY)
+
     rows = []
     for t in teams:
         row = {"Flag": _flag(t), "Team": t}
         raw = {c: float(probs_df.loc[t, c]) if t in probs_df.index else 0.0 for c in probs_df.columns}
         for c, v in raw.items():
-            row[c] = round(v * 100, 1)
+            display_c = _PLAYOFF_WIN_DISPLAY.get(c) or _PLAYOFF_LOSE_DISPLAY.get(c) or c
+            row[display_c] = round(v * 100, 1)
+        if has_playoff_split:
+            pool = raw["Promoted in Play-offs"] + raw["Relegated in Play-offs"]
+            row[_PLAYOFF_POOL_DISPLAY] = round(pool * 100, 1)
         leave_prob = sum(v for c, v in raw.items() if c in leave_labels)
         row[stay_label] = round(max(0.0, 1.0 - leave_prob) * 100, 1)
         rows.append(row)
@@ -402,9 +462,10 @@ def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict]
 
 
 league_names = list(NL_GROUPS.keys())
-top_tabs = st.tabs(league_names + ["🔀 Promotion & Relegation", "📜 Rules"])
+top_tabs = st.tabs(league_names + ["🔀 Promotion & Relegation", "🏆 Knockout Chances", "📜 Rules"])
 league_tabs = top_tabs[:len(league_names)]
-promo_releg_tab = top_tabs[-2]
+promo_releg_tab = top_tabs[-3]
+knockout_chances_tab = top_tabs[-2]
 rules_tab = top_tabs[-1]
 
 all_group_probs: dict[str, dict[str, pd.DataFrame]] = {}
@@ -413,7 +474,6 @@ all_outcome_probs: dict[str, pd.DataFrame] = {}
 for league_tab, league_name in zip(league_tabs, league_names):
     with league_tab:
         groups = NL_GROUPS[league_name]
-        is_knockout_league = league_name == "League A"
         rules = LEAGUE_OUTCOME_RULES[league_name]
         ranked_rules = [r for r in rules if r[0] == "ranked"]
         all_league_teams = [t for g in groups.values() for t in g]
@@ -448,7 +508,6 @@ for league_tab, league_name in zip(league_tabs, league_names):
             list(groups.keys())
             + (["🥉 3rd/4th"] if ranked_rules else [])
             + ["📈 Predictions"]
-            + (["🏆 Knockout Bracket"] if is_knockout_league else [])
         )
         all_tabs = st.tabs(tab_labels)
         group_tabs = all_tabs[:len(groups)]
@@ -458,8 +517,6 @@ for league_tab, league_name in zip(league_tabs, league_names):
             third_fourth_tab = all_tabs[next_idx]
             next_idx += 1
         pred_tab = all_tabs[next_idx]
-        next_idx += 1
-        knockout_tab = all_tabs[next_idx] if is_knockout_league else None
 
         league_group_probs: dict[str, pd.DataFrame] = {}
         league_group_exp_pts: dict[str, dict[str, float]] = {}
@@ -480,6 +537,8 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     _render_table(real_standings, height=len(teams) * 35 + 38, league_name=league_name)
                     st.markdown("#### Fixtures")
                     _render_fixtures(played, remaining, height=len(played + remaining) * 35 + 38)
+                    st.markdown("#### Match Outcome Chances")
+                    _render_match_odds(teams, played, remaining, height=len(played + remaining) * 35 + 38)
 
                 with sub_pred:
                     probs, exp_pts = simulate_group(
@@ -573,37 +632,36 @@ for league_tab, league_name in zip(league_tabs, league_names):
             )
             _render_outcome_predictions(all_league_teams, outcome_probs, league_name)
 
-        if is_knockout_league:
-            with knockout_tab:
-                st.markdown("#### Path to the Nations League Finals")
-                st.caption(
-                    "Winners will face Runners-up in the Quarterfinals, determined by a draw, and it will "
-                    "be an open draw for the Semifinals without seeding."
-                )
-                with st.spinner("Simulating the quarter-finals and Finals Four…"):
-                    ko = simulate_league_a_knockouts(league_group_probs, ratings_df, n_sim=8_000)
+with knockout_chances_tab:
+    st.markdown("#### Knockout Chances")
+    st.caption(
+        "Winners will face Runners-up in the Quarterfinals, determined by a draw, and it will "
+        "be an open draw for the Semifinals without seeding."
+    )
+    with st.spinner("Simulating the quarter-finals and Finals Four…"):
+        ko = simulate_league_a_knockouts(all_group_probs["League A"], ratings_df, n_sim=8_000)
 
-                ko_rows = []
-                for team, r in ko.iterrows():
-                    ko_rows.append({
-                        "Flag": _flag(team),
-                        "Team": team,
-                        "Quarterfinals": round(r["reached_qf"] * 100, 1),
-                        "Semifinals": round(r["reached_finals_four"] * 100, 1),
-                        "Winner": round(r["won_competition"] * 100, 1),
-                    })
-                ko_df = pd.DataFrame(ko_rows)
-                ko_col_cfg = {
-                    "Flag": st.column_config.ImageColumn("", width="small"),
-                    "Team": st.column_config.TextColumn("Team", width="medium"),
-                    "Quarterfinals": st.column_config.NumberColumn("Quarterfinals", format="%.1f%%", width="small"),
-                    "Semifinals": st.column_config.NumberColumn("Semifinals", format="%.1f%%", width="small"),
-                    "Winner": st.column_config.NumberColumn("Winner", format="%.1f%%", width="small"),
-                }
-                st.dataframe(
-                    ko_df, column_config=ko_col_cfg, use_container_width=True,
-                    hide_index=True, height=len(ko_df) * 35 + 38,
-                )
+    ko_rows = []
+    for team, r in ko.iterrows():
+        ko_rows.append({
+            "Flag": _flag(team),
+            "Team": team,
+            "Quarterfinals": round(r["reached_qf"] * 100, 1),
+            "Semifinals": round(r["reached_finals_four"] * 100, 1),
+            "Winner": round(r["won_competition"] * 100, 1),
+        })
+    ko_df = pd.DataFrame(ko_rows)
+    ko_col_cfg = {
+        "Flag": st.column_config.ImageColumn("", width="small"),
+        "Team": st.column_config.TextColumn("Team", width="medium"),
+        "Quarterfinals": st.column_config.NumberColumn("Quarterfinals", format="%.1f%%", width="small"),
+        "Semifinals": st.column_config.NumberColumn("Semifinals", format="%.1f%%", width="small"),
+        "Winner": st.column_config.NumberColumn("Winner", format="%.1f%%", width="small"),
+    }
+    st.dataframe(
+        ko_df, column_config=ko_col_cfg, use_container_width=True,
+        hide_index=True, height=len(ko_df) * 35 + 38,
+    )
 
 with promo_releg_tab:
     st.markdown("#### Promotion & Relegation")
@@ -636,6 +694,7 @@ with promo_releg_tab:
                 {"Flag": _flag(t), "Team": t, "Chance": round(float(chances.get(t, 0.0)) * 100, 1)}
                 for t in teams
             ]
+            rows.sort(key=lambda r: -r["Chance"])
             df = pd.DataFrame(rows)
             st.dataframe(
                 df,
