@@ -2,9 +2,11 @@ name: Update Nations League Elo Ratings
 
 on:
   schedule:
-    - cron: '0 7 * * 1'   # 07:00 UTC, Mondays -- national teams only play real
-                           # matches on internationals windows, so ratings move
-                           # far less often than club Opta ratings (daily cron).
+    - cron: '0 7 * * *'   # 07:00 UTC daily -- matches the club Opta ratings'
+                           # cadence, so ratings from a midweek international
+                           # window show up the next morning instead of
+                           # lagging up to a week behind on the old
+                           # Monday-only schedule.
   workflow_dispatch:       # allow manual "Run workflow" trigger too
 
 permissions:

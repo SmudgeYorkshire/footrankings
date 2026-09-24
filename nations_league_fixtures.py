@@ -31,7 +31,6 @@ _NAME_ALIASES = {
     "Bosnia & Herzegovina": "Bosnia and Herzegovina",
     "FYR Macedonia": "North Macedonia",
     "Rep. Of Ireland": "Republic of Ireland",
-    "Türkiye": "Turkey",
 }
 
 

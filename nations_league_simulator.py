@@ -38,7 +38,7 @@ RATINGS_PATH = "ratings/nations_league_elo.csv"
 # scale, whose spread within a single domestic league is wide (e.g.
 # Arsenal ~100 vs a relegation candidate ~40). Elo ratings within one
 # seeded Nations League group are much closer together by construction
-# (Group A1: France 2070 vs Turkey 1852 is about as wide as League A
+# (Group A1: France 2070 vs Türkiye 1852 is about as wide as League A
 # groups get, relative range only ~0.96-1.07), so a much lower exponent
 # is needed to reach a comparable level of separation.
 #
@@ -301,34 +301,28 @@ def simulate_league_a_knockouts(
     return df.set_index("team")
 
 
-# UEFA's own criteria for ranking one finishing position's four (or
-# fewer) representatives -- one per group -- against each other: since
-# they never play one another, criteria 1-4 (head-to-head) never apply,
-# so this starts straight at NL_TIEBREAKERS' criterion 5 (overall GD),
-# same order (GD, GF, away GF, wins, away wins) -- disciplinary points
-# and access-list position (criteria 10-11) still aren't representable.
-_CROSS_GROUP_SORT_KEY = (
-    "intPoints", "intGoalDifference", "intGoalsFor", "intAwayGoalsFor", "intWin", "intAwayWin",
-)
-
-
-def cross_group_ranking(group_standings: dict[str, list[dict]], position: int) -> list[dict]:
-    """A league's "Ranking of Nth-placed teams" table: pulls that
-    finishing position's row out of each group's current standings, then
-    ranks those rows against each other by Pts/GD/GF/away GF/wins/away
-    wins (see _CROSS_GROUP_SORT_KEY). Each returned row is the group's
-    standings row plus "group" (which group it came from)."""
-    reps = []
-    for gname, standings in group_standings.items():
-        row = next((r for r in standings if int(r.get("intRank", 0)) == position), None)
-        if row is not None:
-            reps.append({**row, "group": gname})
-    reps.sort(key=lambda r: tuple(-int(r.get(k, 0)) for k in _CROSS_GROUP_SORT_KEY))
-    return reps
-
-
 def _rule_labels(rule: tuple) -> list[str]:
     return [rule[2]] if rule[0] == "direct" else [lbl for lbl in (rule[3], rule[5]) if lbl]
+
+
+# "Relegation Play-offs" (see LEAGUE_OUTCOME_RULES) is a pool, not a final
+# outcome -- whichever teams land there (2 or 4, always even under every
+# league's current rules) actually play a two-legged tie for a place in
+# the higher-standing side of the pool's fate. simulate_league_outcomes
+# below plays that tie out per replicate (using two_leg_advance_odds,
+# precomputed once like simulate_league_a_knockouts' QF pairings) and
+# reports these two labels instead.
+_PLAYOFF_POOL_LABEL = "Relegation Play-offs"
+_PLAYOFF_WIN_LABEL = "Promoted in Play-offs"
+_PLAYOFF_LOSE_LABEL = "Relegated in Play-offs"
+
+
+def _pair_playoff_pool(ranked_pool: list[str]) -> list[tuple[str, str]]:
+    """Seeded knockout pairing (strongest vs weakest, 2nd vs 2nd-last, ...)
+    for a play-off pool already ordered strongest-to-weakest by the same
+    Pts/GD/GF criteria used to place these teams in the pool."""
+    n = len(ranked_pool)
+    return [(ranked_pool[i], ranked_pool[n - 1 - i]) for i in range(n // 2)]
 
 
 def simulate_league_outcomes(
@@ -402,8 +396,43 @@ def simulate_league_outcomes(
             gf[h] += gh
             gf[a] += ga
 
-    labels = sorted({lbl for rule in outcome_rules for lbl in _rule_labels(rule)})
+    # Preserve each rule's own order of first appearance (rather than
+    # alphabetical) so a league's Predictions columns read as a natural
+    # best-to-worst progression -- see nations_league.py's _render_outcome_
+    # predictions, which relies on column 0 being the league's best/direct
+    # outcome (e.g. "Quarterfinals") to place "Stay in {league}" right
+    # after it.
+    labels: list[str] = []
+    for rule in outcome_rules:
+        for lbl in _rule_labels(rule):
+            if lbl not in labels:
+                labels.append(lbl)
+    has_playoff_pool = _PLAYOFF_POOL_LABEL in labels
+    if has_playoff_pool:
+        labels = [
+            lbl for orig in labels
+            for lbl in ([_PLAYOFF_WIN_LABEL, _PLAYOFF_LOSE_LABEL] if orig == _PLAYOFF_POOL_LABEL else [orig])
+        ]
     counts = {lbl: {t: 0 for t in all_teams} for lbl in labels}
+
+    # Every pairing the play-off pool could possibly draw is knowable up
+    # front (any of the league's own teams vs any other) and only depends
+    # on the two teams' ratings, not the replicate -- precompute once
+    # rather than re-running the analytical two-leg calculation inside the
+    # n_sim loop (see simulate_league_a_knockouts for why that's needed).
+    tie_odds: dict[tuple[str, str], float] = {}
+    if has_playoff_pool:
+        ko_ratings = _scoped_attack_defense(all_teams, ratings_df)
+        ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
+        for i, t1 in enumerate(all_teams):
+            for t2 in all_teams[i + 1:]:
+                adv = two_leg_advance_odds(
+                    t1, t2, ko_ratings,
+                    home_advantage_team1=ha_pairs.get((t1, t2), home_advantage),
+                    home_advantage_team2=ha_pairs.get((t2, t1), home_advantage),
+                )
+                tie_odds[(t1, t2)] = adv["team1_adv"]
+                tie_odds[(t2, t1)] = adv["team2_adv"]
 
     # n_sim is only ever a few thousand and each group has just 3-4 teams,
     # so a plain per-replicate Python loop for the ranking step (goal
@@ -415,12 +444,17 @@ def simulate_league_outcomes(
             gname: sorted(state["teams"], key=lambda t: (-pts[t][i], -gd[t][i], -gf[t][i]))
             for gname, state in group_items
         }
+        playoff_pool: list[tuple[str, float, float, float]] = []
         for rule in outcome_rules:
             if rule[0] == "direct":
                 _, position, label = rule
                 for order in order_by_group.values():
                     if position <= len(order):
-                        counts[label][order[position - 1]] += 1
+                        t = order[position - 1]
+                        if has_playoff_pool and label == _PLAYOFF_POOL_LABEL:
+                            playoff_pool.append((t, pts[t][i], gd[t][i], gf[t][i]))
+                        else:
+                            counts[label][t] += 1
             else:
                 _, position, n_top, label_top, n_bottom, label_bottom = rule
                 reps = []
@@ -430,11 +464,27 @@ def simulate_league_outcomes(
                         reps.append((t, pts[t][i], gd[t][i], gf[t][i]))
                 reps.sort(key=lambda r: (-r[1], -r[2], -r[3]))
                 if label_top:
-                    for t, *_ in reps[:n_top]:
-                        counts[label_top][t] += 1
+                    top_reps = reps[:n_top]
+                    if has_playoff_pool and label_top == _PLAYOFF_POOL_LABEL:
+                        playoff_pool.extend(top_reps)
+                    else:
+                        for t, *_ in top_reps:
+                            counts[label_top][t] += 1
                 if label_bottom:
-                    for t, *_ in reps[len(reps) - n_bottom:]:
-                        counts[label_bottom][t] += 1
+                    bottom_reps = reps[len(reps) - n_bottom:]
+                    if has_playoff_pool and label_bottom == _PLAYOFF_POOL_LABEL:
+                        playoff_pool.extend(bottom_reps)
+                    else:
+                        for t, *_ in bottom_reps:
+                            counts[label_bottom][t] += 1
+
+        if playoff_pool:
+            playoff_pool.sort(key=lambda r: (-r[1], -r[2], -r[3]))
+            pool_teams = [t for t, *_ in playoff_pool]
+            for t1, t2 in _pair_playoff_pool(pool_teams):
+                t1_wins = rng.random() < tie_odds[(t1, t2)]
+                counts[_PLAYOFF_WIN_LABEL][t1 if t1_wins else t2] += 1
+                counts[_PLAYOFF_LOSE_LABEL][t2 if t1_wins else t1] += 1
 
     rows = []
     for t in all_teams:

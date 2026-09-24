@@ -18,17 +18,16 @@ import pandas as pd
 
 from flags import flag_url
 from nations_league_data import (
-    NL_GROUPS, NL_FLAG_ALIASES, LEAGUE_OUTCOME_RULES, NL_TIEBREAKERS, NL_TIEBREAK_RULES,
+    NL_GROUPS, NL_FLAG_ALIASES, LEAGUE_OUTCOME_RULES, LEAGUE_LEAVE_LABELS, NL_TIEBREAKERS, NL_TIEBREAK_RULES,
     position_status_labels,
 )
 from nations_league_simulator import (
-    load_nl_ratings, simulate_group, simulate_league_a_knockouts,
-    cross_group_ranking, simulate_league_outcomes,
+    load_nl_ratings, simulate_group, simulate_league_a_knockouts, simulate_league_outcomes,
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
 
-st.title("🌍 UEFA Nations League 2026/27")
+st.title("🌍 2026/27 UEFA Nations League")
 
 
 def _flag(team: str) -> str:
@@ -121,29 +120,23 @@ def _render_fixtures(played: list[dict], remaining: list[dict], height: int) -> 
 
 
 def _render_predictions(teams: list[str], probs: pd.DataFrame, exp_pts: dict[str, float]) -> None:
-    elo_lookup = dict(zip(ratings_df["team"], ratings_df["opta_rating"]))
     n_teams = len(teams)
     rows = []
     for team in probs.index:
-        row = {
-            "Flag": _flag(team),
-            "Team": team,
-            "Elo": int(elo_lookup.get(team, 0)),
-            "Projected Pts": round(exp_pts.get(team, 0.0), 1),
-        }
+        row = {"Flag": _flag(team), "Team": team}
         for pos in range(1, n_teams + 1):
             row[_ordinal(pos)] = round(probs.loc[team, str(pos)] * 100, 1)
+        row["xPTS"] = round(exp_pts.get(team, 0.0), 1)
         rows.append(row)
     display_df = pd.DataFrame(rows)
 
     col_cfg = {
         "Flag": st.column_config.ImageColumn("", width="small"),
         "Team": st.column_config.TextColumn("Team", width="medium"),
-        "Elo": st.column_config.NumberColumn("Elo", width="small"),
-        "Projected Pts": st.column_config.NumberColumn("Proj. Pts", width="small"),
     }
     for pos in range(1, n_teams + 1):
         col_cfg[_ordinal(pos)] = st.column_config.NumberColumn(_ordinal(pos), format="%.1f%%", width="small")
+    col_cfg["xPTS"] = st.column_config.NumberColumn("xPTS", width="small", help="Expected points")
 
     st.dataframe(
         display_df, column_config=col_cfg, use_container_width=True,
@@ -151,66 +144,16 @@ def _render_predictions(teams: list[str], probs: pd.DataFrame, exp_pts: dict[str
     )
 
 
-def _render_cross_ranking(standings_by_group: dict[str, list[dict]], rule: tuple) -> None:
-    """A league's "Ranking of Nth-placed teams" table (see
-    https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League)
-    for one "ranked" rule -- the top n_top (by Pts/GD/GF) get label_top,
-    the bottom n_bottom get label_bottom, and anyone in between (if the
-    two don't cover every group) is simply safe."""
-    _, position, n_top, label_top, n_bottom, label_bottom = rule
-    reps = cross_group_ranking(standings_by_group, position)
-    if not reps:
-        st.info("No standings yet.")
-        return
-    n = len(reps)
-    labels = [None] * n
-    for i in range(min(n_top, n)):
-        labels[i] = label_top
-    for i in range(max(0, n - n_bottom), n):
-        labels[i] = label_bottom
-    rows = []
-    for i, r in enumerate(reps):
-        gd = int(r.get("intGoalDifference", 0))
-        rows.append({
-            "Pos": i + 1,
-            "Grp": r["group"],
-            "Flag": _flag(r["strTeam"]),
-            "Team": r["strTeam"],
-            "Pld": int(r.get("intPlayed", 0)),
-            "W": int(r.get("intWin", 0)),
-            "D": int(r.get("intDraw", 0)),
-            "L": int(r.get("intLoss", 0)),
-            "GF": int(r.get("intGoalsFor", 0)),
-            "GA": int(r.get("intGoalsAgainst", 0)),
-            "GD": f"+{gd}" if gd > 0 else str(gd),
-            "Pts": int(r.get("intPoints", 0)),
-            "Qualification": labels[i] or "Safe",
-        })
-    df = pd.DataFrame(rows)
-
-    def _row_style(row):
-        pink = row["Qualification"] != "Safe"
-        return [f"background-color: {'#fbdcdc' if pink else ''}" for _ in row]
-
-    styled = df.style.apply(_row_style, axis=1).set_properties(subset=["Team"], **{"font-weight": "bold"})
-    st.dataframe(
-        styled,
-        column_config={
-            "Flag": st.column_config.ImageColumn("", width="small"),
-            "Team": st.column_config.TextColumn("Team", width="medium"),
-        },
-        use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
-    )
-
-
 def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league_name: str) -> None:
     """One column per outcome-bucket label in probs_df (Quarterfinals,
-    Promotion, Relegation Play-offs, ...) plus a "Stay in {league}" column
-    -- the complement of everything else, i.e. finishing in a position
-    LEAGUE_OUTCOME_RULES doesn't send anywhere (e.g. League A's top two
-    3rd-placed teams, or any League C 3rd-placed team) -- so every row
-    sums to 100%, for exactly `teams`."""
+    Promotion, Promoted/Relegated in Play-offs, ...) plus a "Stay in
+    {league}" column: 1 minus whichever of those labels actually mean
+    leaving the league next edition (see LEAGUE_LEAVE_LABELS) -- e.g. for
+    League A that's just the two ways down (a lost relegation play-off or
+    direct relegation), since reaching the Quarterfinals or winning a
+    play-off both keep a team in League A."""
     stay_label = f"Stay in {league_name}"
+    leave_labels = LEAGUE_LEAVE_LABELS.get(league_name, set(probs_df.columns))
     bucket_cols = list(probs_df.columns)
     cols = bucket_cols[:1] + [stay_label] + bucket_cols[1:]
     rows = []
@@ -219,7 +162,8 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
         raw = {c: float(probs_df.loc[t, c]) if t in probs_df.index else 0.0 for c in probs_df.columns}
         for c, v in raw.items():
             row[c] = round(v * 100, 1)
-        row[stay_label] = round(max(0.0, 1.0 - sum(raw.values())) * 100, 1)
+        leave_prob = sum(v for c, v in raw.items() if c in leave_labels)
+        row[stay_label] = round(max(0.0, 1.0 - leave_prob) * 100, 1)
         rows.append(row)
     df = pd.DataFrame(rows)[["Flag", "Team"] + cols]
     col_cfg = {
@@ -352,18 +296,19 @@ def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict]
 
 
 league_names = list(NL_GROUPS.keys())
-top_tabs = st.tabs(league_names + ["📜 Rules"])
-league_tabs = top_tabs[:-1]
+top_tabs = st.tabs(league_names + ["🔀 Promotion & Relegation", "📜 Rules"])
+league_tabs = top_tabs[:len(league_names)]
+promo_releg_tab = top_tabs[-2]
 rules_tab = top_tabs[-1]
 
 all_group_probs: dict[str, dict[str, pd.DataFrame]] = {}
+all_outcome_probs: dict[str, pd.DataFrame] = {}
 
 for league_tab, league_name in zip(league_tabs, league_names):
     with league_tab:
         groups = NL_GROUPS[league_name]
         is_knockout_league = league_name == "League A"
         rules = LEAGUE_OUTCOME_RULES[league_name]
-        ranked_rules = [r for r in rules if r[0] == "ranked"]
         all_league_teams = [t for g in groups.values() for t in g]
 
         # Pre-fetch every group's real current data once -- needed both
@@ -390,17 +335,16 @@ for league_tab, league_name in zip(league_tabs, league_names):
                 _group_states_from(groups, league_group_standings, league_group_remaining),
                 rules, ratings_df, n_sim=8_000,
             )
+        all_outcome_probs[league_name] = outcome_probs
 
         tab_labels = (
             list(groups.keys()) + ["📈 Predictions"]
             + (["🏆 Knockout Bracket"] if is_knockout_league else [])
-            + ["🔀 Promotion & Relegation"]
         )
         all_tabs = st.tabs(tab_labels)
         group_tabs = all_tabs[:len(groups)]
         pred_tab = all_tabs[len(groups)]
         knockout_tab = all_tabs[len(groups) + 1] if is_knockout_league else None
-        pool_tab = all_tabs[-1]
 
         league_group_probs: dict[str, pd.DataFrame] = {}
 
@@ -449,14 +393,8 @@ for league_tab, league_name in zip(league_tabs, league_names):
             with knockout_tab:
                 st.markdown("#### Path to the Nations League Finals")
                 st.caption(
-                    "Quarter-final pairings (group winners vs. runners-up from a different group) and the "
-                    "Finals Four bracket aren't drawn by UEFA until after the group stage — so, like the "
-                    "European club competitions' pre-draw qualifying odds elsewhere on this site, each "
-                    "simulation run draws its own representative pairing rather than assuming a fixed one. "
-                    "**Reach QF** is exact (it's just each team's own chance of finishing top 2 in its "
-                    "group); **Reach Finals Four** and **Win it all** are Monte Carlo estimates that also "
-                    "sample which specific teams occupy 1st/2nd in each group, so read them as a guide to "
-                    "the pecking order rather than precise percentages."
+                    "Winners will face Runners-up in the Quarterfinals, determined by a draw, and it will "
+                    "be an open draw for the Semifinals without seeding."
                 )
                 with st.spinner("Simulating the quarter-finals and Finals Four…"):
                     ko = simulate_league_a_knockouts(league_group_probs, ratings_df, n_sim=8_000)
@@ -466,85 +404,77 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     ko_rows.append({
                         "Flag": _flag(team),
                         "Team": team,
-                        "Reach QF": round(r["reached_qf"] * 100, 1),
-                        "Reach Finals Four": round(r["reached_finals_four"] * 100, 1),
-                        "Win it all": round(r["won_competition"] * 100, 1),
+                        "Quarterfinals": round(r["reached_qf"] * 100, 1),
+                        "Semifinals": round(r["reached_finals_four"] * 100, 1),
+                        "Winner": round(r["won_competition"] * 100, 1),
                     })
                 ko_df = pd.DataFrame(ko_rows)
                 ko_col_cfg = {
                     "Flag": st.column_config.ImageColumn("", width="small"),
                     "Team": st.column_config.TextColumn("Team", width="medium"),
-                    "Reach QF": st.column_config.NumberColumn("Reach QF", format="%.1f%%", width="small"),
-                    "Reach Finals Four": st.column_config.NumberColumn("Reach Finals Four", format="%.1f%%", width="small"),
-                    "Win it all": st.column_config.NumberColumn("Win it all", format="%.1f%%", width="small"),
+                    "Quarterfinals": st.column_config.NumberColumn("Quarterfinals", format="%.1f%%", width="small"),
+                    "Semifinals": st.column_config.NumberColumn("Semifinals", format="%.1f%%", width="small"),
+                    "Winner": st.column_config.NumberColumn("Winner", format="%.1f%%", width="small"),
                 }
                 st.dataframe(
                     ko_df, column_config=ko_col_cfg, use_container_width=True,
                     hide_index=True, height=len(ko_df) * 35 + 38,
                 )
 
-        with pool_tab:
-            st.markdown("#### Promotion & Relegation")
-            if ranked_rules:
-                st.caption(
-                    "Cross-group ranking of the finishing position(s) whose destination pool is smaller "
-                    "than the number of groups, so those teams have to be ranked against each other by "
-                    "Pts/GD/GF (they never play each other, so there's no head-to-head). See "
-                    "[Wikipedia's own version of these tables](https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League)."
-                )
-            else:
-                st.caption(
-                    f"Every {league_name} team's outcome here depends only on its own group finishing "
-                    "position — no cross-group ranking is needed."
-                )
+with promo_releg_tab:
+    st.markdown("#### Promotion & Relegation")
+    st.caption(
+        "UEFA's own promotion/relegation play-off bracket for March 2027. Exact pairings aren't drawn "
+        "until after the group stage, so these show which pool each side is drawn from rather than "
+        "real nations — see "
+        "[Wikipedia](https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League#Promotion_and_relegation_play-offs)."
+    )
 
-            sub_table2, sub_pred2, sub_manual2 = st.tabs(
-                ["📅 Table & Fixtures", "🎯 Predictions", "🔮 Manual Predictions"]
+    def _bracket_table(team2_label: str, team1_label: str) -> None:
+        df = pd.DataFrame(
+            [{"Team 1": team1_label, "Agg.": "", "Team 2": team2_label, "1st leg": "25–27 Mar", "2nd leg": "28–30 Mar"}
+             for _ in range(4)]
+        )
+        st.dataframe(df, hide_index=True, use_container_width=True, height=len(df) * 35 + 38)
+
+    st.markdown("##### League A vs League B")
+    _bracket_table("League A third place/fourth place", "League B runner-up")
+
+    st.markdown("##### League B vs League C")
+    _bracket_table("League B fourth place", "League C runner-up")
+
+    st.divider()
+    st.markdown("##### Chances of reaching each play-off pool")
+
+    def _role_chances(title: str, teams: list[str], chances: pd.Series) -> None:
+        with st.expander(title):
+            rows = [
+                {"Flag": _flag(t), "Team": t, "Chance": round(float(chances.get(t, 0.0)) * 100, 1)}
+                for t in teams
+            ]
+            df = pd.DataFrame(rows)
+            st.dataframe(
+                df,
+                column_config={
+                    "Flag": st.column_config.ImageColumn("", width="small"),
+                    "Team": st.column_config.TextColumn("Team", width="medium"),
+                    "Chance": st.column_config.NumberColumn("Chance", format="%.1f%%"),
+                },
+                use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
             )
 
-            with sub_table2:
-                if not ranked_rules:
-                    st.info("No cross-group ranking tables apply to this league.")
-                else:
-                    for rule in ranked_rules:
-                        st.markdown(f"##### Ranking of {_ordinal(rule[1])}-placed teams")
-                        _render_cross_ranking(league_group_standings, rule)
+    a_teams = [t for g in NL_GROUPS["League A"].values() for t in g]
+    b_teams = [t for g in NL_GROUPS["League B"].values() for t in g]
+    c_teams = [t for g in NL_GROUPS["League C"].values() for t in g]
+    a_probs = all_outcome_probs["League A"]
+    b_probs = all_outcome_probs["League B"]
+    a_pool_chance = a_probs["Promoted in Play-offs"] + a_probs["Relegated in Play-offs"]
+    b_pool_chance = b_probs["Promoted in Play-offs"] + b_probs["Relegated in Play-offs"]
 
-            with sub_pred2:
-                _render_outcome_predictions(all_league_teams, outcome_probs, league_name)
-
-            with sub_manual2:
-                st.caption("Uses whatever you've entered in each group's own Manual Predictions tab above.")
-                manual_standings, manual_remaining = {}, {}
-                for gname in groups:
-                    manual_state = st.session_state.get(f"nl_manual_state_{league_name}_{gname}")
-                    if manual_state:
-                        manual_standings[gname] = manual_state["standings"]
-                        manual_remaining[gname] = manual_state["remaining"]
-                    else:
-                        manual_standings[gname] = league_group_standings[gname]
-                        manual_remaining[gname] = league_group_remaining[gname]
-
-                if ranked_rules:
-                    for rule in ranked_rules:
-                        st.markdown(f"##### Ranking of {_ordinal(rule[1])}-placed teams")
-                        _render_cross_ranking(manual_standings, rule)
-                    st.divider()
-
-                st.markdown("##### Projected outcomes")
-                pool_result_key = f"nl_pool_result_{league_name}"
-                if st.button("▶  Run simulations with predictions", type="primary",
-                             use_container_width=True, key=f"nl_pool_run_{league_name}"):
-                    with st.spinner("Simulating…"):
-                        st.session_state[pool_result_key] = simulate_league_outcomes(
-                            _group_states_from(groups, manual_standings, manual_remaining),
-                            rules, ratings_df, n_sim=8_000,
-                        )
-                cached_pool = st.session_state.get(pool_result_key)
-                if cached_pool is not None:
-                    _render_outcome_predictions(all_league_teams, cached_pool, league_name)
-                else:
-                    st.info("Press **▶ Run simulations** to see projected outcomes.")
+    _role_chances("League A third place/fourth place", a_teams, a_pool_chance)
+    _role_chances("League B runner-up", b_teams, all_outcome_probs["League B"]["Promotion Play-offs"])
+    _role_chances("League B fourth place", b_teams, b_pool_chance)
+    _role_chances("League C runner-up", c_teams, all_outcome_probs["League C"]["Promotion Play-offs"])
 
 with rules_tab:
     st.markdown("#### Tiebreaking Rules")
@@ -570,9 +500,8 @@ with rules_tab:
     )
     st.markdown("#### Cross-Group Ranking (Ranking of Nth-placed teams)")
     st.caption(
-        "For League A's 3rd/4th-placed teams and League C's 4th-placed teams (see each league's "
-        "Promotion & Relegation tab), the teams being ranked are from different groups and have never "
-        "played each other, so criteria 1-4 (head-to-head) never apply — ranking starts straight at "
-        "criterion 5 (overall goal difference), then goals scored, away goals scored, wins, and away "
-        "wins, in that order."
+        "League A's 3rd/4th-placed teams (the only ones still cross-group ranked — see the "
+        "Promotion & Relegation tab) are from different groups and have never played each other, so "
+        "criteria 1-4 (head-to-head) never apply — ranking starts straight at criterion 5 (overall "
+        "goal difference), then goals scored, away goals scored, wins, and away wins, in that order."
     )

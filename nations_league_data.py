@@ -21,16 +21,23 @@ Group play (Sep-Nov 2026): Leagues A/B/C are 4-team groups (double
 round-robin, 6 matches/team); League D is two 3-team groups (double
 round-robin, 4 matches/team).
 
-Promotion/relegation after the group stage:
-  - League A: bottom side in each group relegated to League B.
-  - League B: group winners promoted to League A; bottom side relegated to C.
-  - League C: group winners promoted to B; the two lowest-ranked 4th-place
-    teams relegated to League D.
-  - League D: group winners promoted to League C.
-  - Playoffs (March 2027, not modelled here — see nations_league.py):
-    League A 3rd-place teams vs League B runners-up, League B 3rd-place
-    teams vs League C runners-up, League C's two best 4th-place teams vs
-    League D runners-up.
+Promotion/relegation after the group stage (League B/C corrected 2026-09-24
+against Wikipedia's own League B/​C pages' tables -- an earlier version of
+this file had the wrong positions for their Promotion/Relegation Play-offs):
+  - League A: group winners/runners-up reach the Quarterfinals; the bottom
+    two (cross-group ranked) 3rd-place teams and top two 4th-place teams
+    contest relegation play-offs (see LEAGUE_OUTCOME_RULES); the bottom two
+    4th-place teams are relegated to League B outright.
+  - League B: group winners promoted to League A; runners-up contest
+    promotion play-offs against League A's relegation pool; 3rd place stays
+    in League B; 4th place contests relegation play-offs against League C's
+    promotion-play-offs teams.
+  - League C: group winners promoted to League B; runners-up contest
+    promotion play-offs against League B's relegation pool; 3rd and 4th
+    place both stay in League C.
+  - League D: every team promoted to League C regardless of position --
+    League D is being folded after this edition since Russia's continued
+    suspension has left it with only 6 teams.
 
 League A knockout stage: the 4 group winners play the 4 runners-up
 (from a different group) over two legs in the quarter-finals (Mar 2027);
@@ -41,9 +48,11 @@ existing "own representative draw per simulation run" approach for the
 League Phase rather than guessing a fixed pairing.
 """
 
+import re
+
 NL_GROUPS: dict[str, dict[str, list[str]]] = {
     "League A": {
-        "A1": ["France", "Italy", "Belgium", "Turkey"],
+        "A1": ["France", "Italy", "Belgium", "Türkiye"],
         "A2": ["Germany", "Netherlands", "Serbia", "Greece"],
         "A3": ["Spain", "Croatia", "England", "Czechia"],
         "A4": ["Portugal", "Denmark", "Norway", "Wales"],
@@ -68,68 +77,95 @@ NL_GROUPS: dict[str, dict[str, list[str]]] = {
 
 # nations_league.py display name -> flags.py FLAG_CODES key, only where they differ.
 NL_FLAG_ALIASES = {
-    "Turkey": "Türkiye",
     "Bosnia and Herzegovina": "Bosnia-Herzegovina",
     "Republic of Ireland": "Ireland",
 }
 
 ALL_NL_TEAMS: list[str] = [t for league in NL_GROUPS.values() for group in league.values() for t in group]
 
-# Each league's group-stage outcome buckets, reconstructed from the
-# playoff notes above (League A 3rd-place teams vs League B runners-up,
-# League B 3rd-place teams vs League C runners-up, League C's two best
-# 4th-place teams vs League D runners-up) plus the direct promotion/
-# relegation rules -- corrected 2026-09-23 after the user caught League
-# A's original version wrongly sending all four 3rd-placed teams to the
-# relegation play-offs (only the bottom two, cross-group ranked, actually
-# do; the top two stay safe in League A).
+# Each league's group-stage outcome buckets. League A's shape was
+# corrected 2026-09-23 after the user caught the original version wrongly
+# sending all four 3rd-placed teams to the relegation play-offs (only the
+# bottom two, cross-group ranked, actually do). League B and C's shapes
+# were corrected 2026-09-24 directly against Wikipedia's own League B/​C
+# pages' TABLES (an earlier version here had 3rd place going to relegation
+# play-offs in League B, and a 4th-place split between play-offs/direct
+# relegation in League C -- both wrong; the real rule is simpler: only
+# 2nd place (promotion) and, for League B only, 4th place (relegation)
+# ever go to a play-off, and every other position is either direct or
+# safe). League D's shape was corrected the same day per the user: with
+# only 6 teams left after Russia's suspension, League D is being folded
+# and every team promotes to League C regardless of position.
 #
 # Two rule shapes:
 #   ("direct", position, label) -- every team finishing `position` in its
 #     own group gets `label`, no cross-group ranking needed. Used
 #     wherever a whole position column feeds a same-sized pool on the
-#     other side (e.g. League B's 4 runners-up vs League A's 4-team
-#     relegation pool -- clean 4-for-4, nothing to narrow).
+#     other side (e.g. League A's cross-group relegation-play-offs pool
+#     always draws from an exact position in each group).
 #   ("ranked", position, n_top, label_top, n_bottom, label_bottom) --
 #     the teams finishing `position` (one per group) are ranked against
 #     each other by Pts/GD/GF (they never play each other, so there's no
 #     head-to-head), since the destination pool is SMALLER than the
-#     number of groups (e.g. League C's 4th-place teams narrow to
-#     League D's 2 runners-up). label_top/label_bottom may be None for
-#     "no bucket" (i.e. safe, stays in the current league).
+#     number of groups. label_top/label_bottom may be None for "no
+#     bucket" (i.e. safe, stays in the current league).
 #
-# League B and D need no "ranked" rule at all -- every position feeds a
-# same-sized neighbouring pool. League C's 3rd-placed teams and League
-# D's bottom (3rd) place have no rule at all: they're just safe. Treat
-# this reconstruction as reasoned rather than confirmed for B/C/D
-# (League A's was directly corrected by the user against UEFA's own
-# published tables; B/C/D follow the same documented cross-league
-# playoff pairings but haven't been individually checked against
-# UEFA's own ranking tables the way League A's was) -- flag it if any
-# label or split looks wrong once real standings are in.
+# Only League A still needs a "ranked" rule (its relegation-play-offs pool
+# narrows from all 8 3rd/4th-place teams to just 4). League B/C/D's
+# positions each feed either a label directly or nothing at all (safe) --
+# see nations_league_simulator.simulate_league_outcomes for how a
+# "Relegation Play-offs" pool (wherever one appears, League A or B) is
+# actually played out into "Promoted in Play-offs"/"Relegated in
+# Play-offs" using each team's own rating.
 LEAGUE_OUTCOME_RULES: dict[str, list[tuple]] = {
     "League A": [
         ("direct", 1, "Quarterfinals"),
         ("direct", 2, "Quarterfinals"),
-        ("ranked", 3, 2, None, 2, "Relegation Play-offs"),
+        ("ranked", 3, 2, "3rd as Top 2 nations", 2, "Relegation Play-offs"),
         ("ranked", 4, 2, "Relegation Play-offs", 2, "Relegation to League B"),
     ],
     "League B": [
         ("direct", 1, "Promotion"),
         ("direct", 2, "Promotion Play-offs"),
-        ("direct", 3, "Relegation Play-offs"),
-        ("direct", 4, "Relegation to League C"),
+        ("direct", 4, "Relegation Play-offs"),
     ],
     "League C": [
         ("direct", 1, "Promotion"),
         ("direct", 2, "Promotion Play-offs"),
-        ("ranked", 4, 2, "Relegation Play-offs", 2, "Relegation to League D"),
     ],
     "League D": [
         ("direct", 1, "Promotion"),
-        ("direct", 2, "Promotion Play-offs"),
+        ("direct", 2, "Promotion"),
+        ("direct", 3, "Promotion"),
     ],
 }
+
+# "Relegation Play-offs" (see LEAGUE_OUTCOME_RULES) isn't a final outcome
+# on its own -- nations_league_simulator.simulate_league_outcomes actually
+# plays out that pool's two-legged ties and reports "Promoted in
+# Play-offs"/"Relegated in Play-offs" instead. Every other bucket label
+# IS a final outcome. Used by nations_league.py to compute each league's
+# "Stay in {league}" column as an explicit sum of the labels that mean a
+# team actually leaves next edition, rather than "whatever isn't listed"
+# (which would wrongly subtract "Promoted in Play-offs", and for League A
+# specifically also "Quarterfinals" -- reaching the knockout stage or
+# winning a relegation play-off both keep a team in League A, since A has
+# no higher league to be promoted to).
+LEAGUE_LEAVE_LABELS: dict[str, set[str]] = {
+    "League A": {"Relegated in Play-offs", "Relegation to League B"},
+    "League B": {"Promotion", "Promotion Play-offs", "Relegated in Play-offs"},
+    "League C": {"Promotion", "Promotion Play-offs"},
+    "League D": {"Promotion"},
+}
+
+# Matches a rule label like "3rd as Top 2 nations" -- a bucket that's
+# still a real, named simulation outcome (so it gets its own Predictions
+# column) but describes a team simply being SAFE within a cross-group-
+# ranked pool, not an actual promotion/relegation action. Kept out of the
+# Status column's "Possible X"/"X or Y" phrasing below so it still reads
+# the way Wikipedia's own group tables do, and out of LEAGUE_LEAVE_LABELS
+# above since it never means leaving the league.
+_SAFE_RANKED_LABEL_RE = re.compile(r"^\d+(st|nd|rd|th) as ")
 
 
 def position_status_labels(league_name: str, n_teams: int) -> dict[int, str]:
@@ -141,7 +177,8 @@ def position_status_labels(league_name: str, n_teams: int) -> dict[int, str]:
     fate depends on ranking against the other groups' teams in the same
     position, not just this group) is hedged the same way Wikipedia's own
     group tables word it ("Possible qualification for..." / "... or
-    ..."). A position with no rule at all is simply safe."""
+    ..."). A position with no rule at all, or whose only label is a
+    "safe" bucket (see _SAFE_RANKED_LABEL_RE), is simply safe."""
     labels = {pos: "Safe" for pos in range(1, n_teams + 1)}
     for rule in LEAGUE_OUTCOME_RULES[league_name]:
         if rule[0] == "direct":
@@ -149,11 +186,13 @@ def position_status_labels(league_name: str, n_teams: int) -> dict[int, str]:
             labels[position] = label
         else:
             _, position, n_top, label_top, n_bottom, label_bottom = rule
-            if label_top and label_bottom:
+            top_is_safe = not label_top or _SAFE_RANKED_LABEL_RE.match(label_top)
+            bottom_is_safe = not label_bottom or _SAFE_RANKED_LABEL_RE.match(label_bottom)
+            if not top_is_safe and not bottom_is_safe:
                 labels[position] = f"{label_top} or {label_bottom}"
-            elif label_bottom:
+            elif not bottom_is_safe:
                 labels[position] = f"Possible {label_bottom}"
-            elif label_top:
+            elif not top_is_safe:
                 labels[position] = f"Possible {label_top}"
     return labels
 

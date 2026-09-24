@@ -32,6 +32,7 @@ OUT_PATH = "ratings/nations_league_elo.csv"
 # eloratings.net's own team names, only where they differ from this site's.
 _NAME_ALIASES = {
     "Republic of Ireland": "Ireland",
+    "Türkiye": "Turkey",
 }
 
 
