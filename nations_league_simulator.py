@@ -31,6 +31,7 @@ from simulator import (
 from nations_league_data import NL_GROUPS, ALL_NL_TEAMS, NEUTRAL_VENUE_NATIONS, NEUTRAL_VENUE_FIXTURES, NL_TIEBREAKERS
 
 RATINGS_PATH = "ratings/nations_league_elo.csv"
+RATINGS_ADJUSTMENTS_PATH = "ratings/nations_league_elo_adjustments.csv"
 
 # Exponent for the Elo -> attack/defense power transform (see
 # simulator._opta_to_attack_defense). Kept separate from the club game's
@@ -60,12 +61,28 @@ RATINGS_PATH = "ratings/nations_league_elo.csv"
 # once more matchdays' odds are available for a bigger sample.
 NATIONS_LEAGUE_K = 3.0
 
+# Lower exponent used only for simulate_league_a_knockouts' cross-round
+# ratings -- NATIONS_LEAGUE_K=3.0 above is validated against single-match
+# odds (see its own comment), but a title run compounds that separation
+# across 3 knockout rounds (QF -> SF -> Final), which concentrates the
+# "Win it all" market far more than real books do. Checked 2026-09-24
+# against oddschecker's outright winner market: at k=3.0 Spain was ~2.2x
+# the market's price (38% vs a de-vigged ~17%) and Germany/Italy were
+# under a quarter of theirs; k=2.0 pulls both substantially closer while
+# leaving the group-stage model (already checked against real matchday
+# 1/2 odds) untouched. Revisit once there's a more reliable, repeated
+# odds comparison than a single snapshot.
+KNOCKOUT_K = 2.0
+
 
 @st.cache_data(ttl=3_600, show_spinner=False)
-def load_nl_ratings() -> pd.DataFrame:
+def load_raw_nl_ratings() -> pd.DataFrame:
     """Raw eloratings.net ratings for all 54 tracked nations, columns
     [team, alias, opta_rating] (Elo points; see scrape_elo_ratings.py for
-    why the opta_rating name is reused)."""
+    why the opta_rating name is reused). This is the daily-scraped
+    baseline -- see load_nl_ratings() for the version simulations
+    actually use, which layers nl_odds_calibration.py's adjustments on
+    top."""
     try:
         df = pd.read_csv(RATINGS_PATH, dtype={"team": str, "alias": str})
     except FileNotFoundError:
@@ -75,14 +92,43 @@ def load_nl_ratings() -> pd.DataFrame:
     return df.dropna(subset=["opta_rating"])
 
 
-def _scoped_attack_defense(teams: list[str], ratings_df: pd.DataFrame) -> pd.DataFrame:
+def load_nl_rating_adjustments() -> dict[str, float]:
+    """{team: Elo-point adjustment} from nl_odds_calibration.py's last
+    manual run (see that script's own docstring for why this isn't part
+    of the daily automated Elo scrape), or {} if it's never been run."""
+    try:
+        df = pd.read_csv(RATINGS_ADJUSTMENTS_PATH)
+    except FileNotFoundError:
+        return {}
+    return dict(zip(df["team"], df["adjustment"]))
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def load_nl_ratings() -> pd.DataFrame:
+    """load_raw_nl_ratings() with nl_odds_calibration.py's per-team
+    adjustments added on top -- this is what every group/knockout
+    simulation on the page actually uses, so a fresh calibration run
+    takes effect everywhere the next time this cache expires (1 hour)
+    without touching the raw eloratings.net baseline itself."""
+    df = load_raw_nl_ratings().copy()
+    adjustments = load_nl_rating_adjustments()
+    if adjustments:
+        df["opta_rating"] = df.apply(
+            lambda r: r["opta_rating"] + adjustments.get(r["team"], 0.0), axis=1,
+        )
+    return df
+
+
+def _scoped_attack_defense(teams: list[str], ratings_df: pd.DataFrame, k: float = NATIONS_LEAGUE_K) -> pd.DataFrame:
     """Opta-style attack/defense columns for exactly `teams`, with the
     relative-strength transform's mean scoped to just those teams -- e.g.
     a group's own 4 (or a whole league's 16), matching how domestic
     ratings are scoped per-league rather than across all 54 leagues at
-    once (see qualifying_projection._load_ratings_by_country)."""
+    once (see qualifying_projection._load_ratings_by_country). `k` lets
+    simulate_league_a_knockouts use a lower exponent than the group stage
+    (see KNOCKOUT_K)."""
     scoped = ratings_df[ratings_df["team"].isin(teams)].reset_index(drop=True)
-    return _opta_to_attack_defense(scoped, k=NATIONS_LEAGUE_K)
+    return _opta_to_attack_defense(scoped, k=k)
 
 
 def _round_robin_fixtures(teams: list[str]) -> list[dict]:
@@ -216,7 +262,7 @@ def simulate_league_a_knockouts(
     """
     group_names = list(group_probs.keys())
     all_teams = [t for g in group_names for t in group_probs[g].index]
-    ko_ratings = _scoped_attack_defense(all_teams, ratings_df)
+    ko_ratings = _scoped_attack_defense(all_teams, ratings_df, k=KNOCKOUT_K)
 
     reached_qf = {t: 0.0 for t in all_teams}
     reached_ff = {t: 0 for t in all_teams}
