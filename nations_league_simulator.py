@@ -393,16 +393,20 @@ def _rule_labels(rule: tuple) -> list[str]:
     return [rule[2]] if rule[0] == "direct" else [lbl for lbl in (rule[3], rule[5]) if lbl]
 
 
-# "Relegation Play-offs" (see LEAGUE_OUTCOME_RULES) is a pool, not a final
-# outcome -- whichever teams land there (2 or 4, always even under every
-# league's current rules) actually play a two-legged tie for a place in
-# the higher-standing side of the pool's fate. simulate_league_outcomes
-# below plays that tie out per replicate (using two_leg_advance_odds,
-# precomputed once like simulate_league_a_knockouts' QF pairings) and
-# reports these two labels instead.
-_PLAYOFF_POOL_LABEL = "Relegation Play-offs"
-_PLAYOFF_WIN_LABEL = "Promoted in Play-offs"
-_PLAYOFF_LOSE_LABEL = "Relegated in Play-offs"
+# "Relegation Play-offs" and "Promotion Play-offs" (see LEAGUE_OUTCOME_
+# RULES) are pools, not final outcomes -- whichever teams land in one (2
+# or 4, always even under every league's current rules) actually play a
+# two-legged tie for a place on the higher-standing side of that pool's
+# fate. simulate_league_outcomes below plays each one out per replicate
+# (using two_leg_advance_odds, precomputed once like
+# simulate_league_a_knockouts' QF pairings) and reports a win/lose label
+# pair instead of the raw pool label. Both pools can be active at once
+# (League B has both); each is resolved independently but shares the same
+# precomputed tie_odds since that only depends on the two teams' ratings.
+_PLAYOFF_POOLS: dict[str, tuple[str, str]] = {
+    "Relegation Play-offs": ("Promoted in Play-offs", "Relegated in Play-offs"),
+    "Promotion Play-offs": ("Won Promotion Play-offs", "Lost Promotion Play-offs"),
+}
 
 
 def _pair_playoff_pool(ranked_pool: list[str]) -> list[tuple[str, str]]:
@@ -495,21 +499,22 @@ def simulate_league_outcomes(
         for lbl in _rule_labels(rule):
             if lbl not in labels:
                 labels.append(lbl)
-    has_playoff_pool = _PLAYOFF_POOL_LABEL in labels
-    if has_playoff_pool:
+    active_pools = {lbl: pair for lbl, pair in _PLAYOFF_POOLS.items() if lbl in labels}
+    if active_pools:
         labels = [
             lbl for orig in labels
-            for lbl in ([_PLAYOFF_WIN_LABEL, _PLAYOFF_LOSE_LABEL] if orig == _PLAYOFF_POOL_LABEL else [orig])
+            for lbl in (active_pools[orig] if orig in active_pools else [orig])
         ]
     counts = {lbl: {t: 0 for t in all_teams} for lbl in labels}
 
-    # Every pairing the play-off pool could possibly draw is knowable up
+    # Every pairing a play-off pool could possibly draw is knowable up
     # front (any of the league's own teams vs any other) and only depends
     # on the two teams' ratings, not the replicate -- precompute once
     # rather than re-running the analytical two-leg calculation inside the
     # n_sim loop (see simulate_league_a_knockouts for why that's needed).
+    # Shared across every active pool since it only depends on ratings.
     tie_odds: dict[tuple[str, str], float] = {}
-    if has_playoff_pool:
+    if active_pools:
         ko_ratings = _scoped_attack_defense(all_teams, ratings_df)
         ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
         for i, t1 in enumerate(all_teams):
@@ -532,15 +537,15 @@ def simulate_league_outcomes(
             gname: sorted(state["teams"], key=lambda t: (-pts[t][i], -gd[t][i], -gf[t][i]))
             for gname, state in group_items
         }
-        playoff_pool: list[tuple[str, float, float, float]] = []
+        playoff_pools: dict[str, list[tuple[str, float, float, float]]] = {lbl: [] for lbl in active_pools}
         for rule in outcome_rules:
             if rule[0] == "direct":
                 _, position, label = rule
                 for order in order_by_group.values():
                     if position <= len(order):
                         t = order[position - 1]
-                        if has_playoff_pool and label == _PLAYOFF_POOL_LABEL:
-                            playoff_pool.append((t, pts[t][i], gd[t][i], gf[t][i]))
+                        if label in active_pools:
+                            playoff_pools[label].append((t, pts[t][i], gd[t][i], gf[t][i]))
                         else:
                             counts[label][t] += 1
             else:
@@ -553,26 +558,29 @@ def simulate_league_outcomes(
                 reps.sort(key=lambda r: (-r[1], -r[2], -r[3]))
                 if label_top:
                     top_reps = reps[:n_top]
-                    if has_playoff_pool and label_top == _PLAYOFF_POOL_LABEL:
-                        playoff_pool.extend(top_reps)
+                    if label_top in active_pools:
+                        playoff_pools[label_top].extend(top_reps)
                     else:
                         for t, *_ in top_reps:
                             counts[label_top][t] += 1
                 if label_bottom:
                     bottom_reps = reps[len(reps) - n_bottom:]
-                    if has_playoff_pool and label_bottom == _PLAYOFF_POOL_LABEL:
-                        playoff_pool.extend(bottom_reps)
+                    if label_bottom in active_pools:
+                        playoff_pools[label_bottom].extend(bottom_reps)
                     else:
                         for t, *_ in bottom_reps:
                             counts[label_bottom][t] += 1
 
-        if playoff_pool:
-            playoff_pool.sort(key=lambda r: (-r[1], -r[2], -r[3]))
-            pool_teams = [t for t, *_ in playoff_pool]
+        for pool_label, pool_reps in playoff_pools.items():
+            if not pool_reps:
+                continue
+            win_label, lose_label = active_pools[pool_label]
+            pool_reps.sort(key=lambda r: (-r[1], -r[2], -r[3]))
+            pool_teams = [t for t, *_ in pool_reps]
             for t1, t2 in _pair_playoff_pool(pool_teams):
                 t1_wins = rng.random() < tie_odds[(t1, t2)]
-                counts[_PLAYOFF_WIN_LABEL][t1 if t1_wins else t2] += 1
-                counts[_PLAYOFF_LOSE_LABEL][t2 if t1_wins else t1] += 1
+                counts[win_label][t1 if t1_wins else t2] += 1
+                counts[lose_label][t2 if t1_wins else t1] += 1
 
     rows = []
     for t in all_teams:

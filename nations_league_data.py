@@ -140,11 +140,13 @@ LEAGUE_OUTCOME_RULES: dict[str, list[tuple]] = {
     ],
 }
 
-# "Relegation Play-offs" (see LEAGUE_OUTCOME_RULES) isn't a final outcome
-# on its own -- nations_league_simulator.simulate_league_outcomes actually
-# plays out that pool's two-legged ties and reports "Promoted in
-# Play-offs"/"Relegated in Play-offs" instead. Every other bucket label
-# IS a final outcome. Used by nations_league.py to compute each league's
+# "Relegation Play-offs" and "Promotion Play-offs" (see LEAGUE_OUTCOME_
+# RULES) aren't final outcomes on their own -- nations_league_simulator.
+# simulate_league_outcomes actually plays out each pool's two-legged ties
+# and reports a win/lose label pair instead ("Promoted in Play-offs"/
+# "Relegated in Play-offs" for the former, "Won Promotion Play-offs"/
+# "Lost Promotion Play-offs" for the latter). Every other bucket label IS
+# a final outcome. Used by nations_league.py to compute each league's
 # "Stay in {league}" column as an explicit sum of the labels that mean a
 # team actually leaves next edition, rather than "whatever isn't listed"
 # (which would wrongly subtract "Promoted in Play-offs", and for League A
@@ -153,8 +155,8 @@ LEAGUE_OUTCOME_RULES: dict[str, list[tuple]] = {
 # no higher league to be promoted to).
 LEAGUE_LEAVE_LABELS: dict[str, set[str]] = {
     "League A": {"Relegated in Play-offs", "Relegation to League B"},
-    "League B": {"Promotion", "Promotion Play-offs", "Relegated in Play-offs"},
-    "League C": {"Promotion", "Promotion Play-offs"},
+    "League B": {"Promotion", "Won Promotion Play-offs", "Relegated in Play-offs"},
+    "League C": {"Promotion", "Won Promotion Play-offs"},
     "League D": {"Promotion"},
 }
 

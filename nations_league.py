@@ -181,15 +181,40 @@ def _render_predictions(teams: list[str], probs: pd.DataFrame, exp_pts: dict[str
     )
 
 
-# Display-only renaming for the two Relegation Play-offs resolution
-# columns simulate_league_outcomes reports (see nations_league_simulator
-# -- the underlying probs_df/LEAGUE_LEAVE_LABELS names are untouched, this
-# only affects what _render_outcome_predictions prints), plus the label
-# for the derived column inserted between them showing the combined
-# chance of entering that pool at all, win or lose.
-_PLAYOFF_WIN_DISPLAY = {"Promoted in Play-offs": "Winner in Play-offs"}
-_PLAYOFF_LOSE_DISPLAY = {"Relegated in Play-offs": "Loser in Play-offs"}
-_PLAYOFF_POOL_DISPLAY = "Relegation Play-off"
+# Both play-off pools' win/lose columns (see nations_league_simulator.
+# _PLAYOFF_POOLS) are display-renamed to the same generic "Winner in
+# Play-offs"/"Loser in Play-offs" text -- table position (next to their
+# own pool's re-derived aggregate) tells them apart, not distinct
+# wording. Internal DataFrame column names stay the raw simulator labels
+# (so probs_df/LEAGUE_LEAVE_LABELS need no parallel renaming); only each
+# column's st.column_config label is overridden, which is what lets two
+# different columns both display as "Winner in Play-offs" without a
+# dict-key collision. Each tuple is (win_col, lose_col, aggregate label
+# re-derived as their sum and inserted between them).
+_PLAYOFF_SPLITS = [
+    ("Promoted in Play-offs", "Relegated in Play-offs", "Relegation Play-off"),
+    ("Won Promotion Play-offs", "Lost Promotion Play-offs", "Promotion Play-offs"),
+]
+_WIN_DISPLAY = "Winner in Play-offs"
+_LOSE_DISPLAY = "Loser in Play-offs"
+
+# A league's final "Relegation to League X" column should read as the
+# TOTAL chance of ending up there next edition, not just the direct-
+# relegation route -- League A's bottom two (cross-group ranked) 4th-
+# place teams go down directly, but the bottom two 3rd-place teams *and*
+# the top two 4th-place teams who then LOSE their relegation play-off end
+# up in exactly the same place, so that raw column's displayed value adds
+# in whichever play-off-loss label also leads there.
+_COMBINE_WITH_PLAYOFF_LOSS = {"Relegation to League B": "Relegated in Play-offs"}
+
+# Display-only rename for the direct-promotion column so it names its
+# actual destination league instead of the generic "Promotion" -- the
+# underlying rule label (and Status column text) is untouched.
+_PROMOTION_DISPLAY_BY_LEAGUE = {
+    "League B": "Promotion to League A",
+    "League C": "Promotion to League B",
+    "League D": "Promotion to League C",
+}
 
 
 def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league_name: str) -> None:
@@ -199,40 +224,46 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
     league next edition (see LEAGUE_LEAVE_LABELS) -- e.g. for League A
     that's just the two ways down (a lost relegation play-off or direct
     relegation), since reaching the Quarterfinals or winning a play-off
-    both keep a team in League A."""
-    stay_label = f"Stay in {league_name}"
+    both keep a team in League A. The Stay column is omitted entirely
+    when every raw column already means leaving (League D: every position
+    is a direct "Promotion", so it would always read 0%)."""
     leave_labels = LEAGUE_LEAVE_LABELS.get(league_name, set(probs_df.columns))
     bucket_cols = list(probs_df.columns)
-    cols = bucket_cols[:1] + [stay_label] + bucket_cols[1:]
+    show_stay = not (set(bucket_cols) <= leave_labels)
+    stay_label = f"Stay in {league_name}"
+    cols = (bucket_cols[:1] + [stay_label] + bucket_cols[1:]) if show_stay else list(bucket_cols)
 
-    has_playoff_split = "Promoted in Play-offs" in cols and "Relegated in Play-offs" in cols
-    if has_playoff_split:
-        win_idx = cols.index("Promoted in Play-offs")
-        cols[win_idx] = _PLAYOFF_WIN_DISPLAY["Promoted in Play-offs"]
-        lose_idx = cols.index("Relegated in Play-offs")
-        cols[lose_idx] = _PLAYOFF_LOSE_DISPLAY["Relegated in Play-offs"]
-        cols.insert(lose_idx, _PLAYOFF_POOL_DISPLAY)
+    active_splits = [s for s in _PLAYOFF_SPLITS if s[0] in cols and s[1] in cols]
+    for win_col, lose_col, agg_col in active_splits:
+        cols.insert(cols.index(lose_col), agg_col)
 
     rows = []
     for t in teams:
         row = {"Flag": _flag(t), "Team": t}
         raw = {c: float(probs_df.loc[t, c]) if t in probs_df.index else 0.0 for c in probs_df.columns}
         for c, v in raw.items():
-            display_c = _PLAYOFF_WIN_DISPLAY.get(c) or _PLAYOFF_LOSE_DISPLAY.get(c) or c
-            row[display_c] = round(v * 100, 1)
-        if has_playoff_split:
-            pool = raw["Promoted in Play-offs"] + raw["Relegated in Play-offs"]
-            row[_PLAYOFF_POOL_DISPLAY] = round(pool * 100, 1)
-        leave_prob = sum(v for c, v in raw.items() if c in leave_labels)
-        row[stay_label] = round(max(0.0, 1.0 - leave_prob) * 100, 1)
+            extra = raw.get(_COMBINE_WITH_PLAYOFF_LOSS.get(c, ""), 0.0)
+            row[c] = round((v + extra) * 100, 1)
+        for win_col, lose_col, agg_col in active_splits:
+            row[agg_col] = round((raw[win_col] + raw[lose_col]) * 100, 1)
+        if show_stay:
+            leave_prob = sum(v for c, v in raw.items() if c in leave_labels)
+            row[stay_label] = round(max(0.0, 1.0 - leave_prob) * 100, 1)
         rows.append(row)
     df = pd.DataFrame(rows)[["Flag", "Team"] + cols]
+
+    promo_display = _PROMOTION_DISPLAY_BY_LEAGUE.get(league_name)
+    display_overrides = {win: _WIN_DISPLAY for win, _, _ in active_splits}
+    display_overrides.update({lose: _LOSE_DISPLAY for _, lose, _ in active_splits})
+    if promo_display and "Promotion" in cols:
+        display_overrides["Promotion"] = promo_display
+
     col_cfg = {
         "Flag": st.column_config.ImageColumn("", width="small"),
         "Team": st.column_config.TextColumn("Team", width="medium"),
     }
     for c in cols:
-        col_cfg[c] = st.column_config.NumberColumn(c, format="%.1f%%")
+        col_cfg[c] = st.column_config.NumberColumn(display_overrides.get(c, c), format="%.1f%%")
     st.dataframe(df, column_config=col_cfg, use_container_width=True, hide_index=True, height=len(df) * 35 + 38)
 
 
@@ -711,13 +742,16 @@ with promo_releg_tab:
     c_teams = [t for g in NL_GROUPS["League C"].values() for t in g]
     a_probs = all_outcome_probs["League A"]
     b_probs = all_outcome_probs["League B"]
-    a_pool_chance = a_probs["Promoted in Play-offs"] + a_probs["Relegated in Play-offs"]
-    b_pool_chance = b_probs["Promoted in Play-offs"] + b_probs["Relegated in Play-offs"]
+    c_probs = all_outcome_probs["League C"]
+    a_releg_pool_chance = a_probs["Promoted in Play-offs"] + a_probs["Relegated in Play-offs"]
+    b_releg_pool_chance = b_probs["Promoted in Play-offs"] + b_probs["Relegated in Play-offs"]
+    b_promo_pool_chance = b_probs["Won Promotion Play-offs"] + b_probs["Lost Promotion Play-offs"]
+    c_promo_pool_chance = c_probs["Won Promotion Play-offs"] + c_probs["Lost Promotion Play-offs"]
 
-    _role_chances("League A third place/fourth place", a_teams, a_pool_chance)
-    _role_chances("League B runner-up", b_teams, all_outcome_probs["League B"]["Promotion Play-offs"])
-    _role_chances("League B fourth place", b_teams, b_pool_chance)
-    _role_chances("League C runner-up", c_teams, all_outcome_probs["League C"]["Promotion Play-offs"])
+    _role_chances("League A third place/fourth place", a_teams, a_releg_pool_chance)
+    _role_chances("League B runner-up", b_teams, b_promo_pool_chance)
+    _role_chances("League B fourth place", b_teams, b_releg_pool_chance)
+    _role_chances("League C runner-up", c_teams, c_promo_pool_chance)
 
 with rules_tab:
     st.markdown("#### Tiebreaking Rules")
