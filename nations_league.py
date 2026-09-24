@@ -11,11 +11,16 @@ the same "real results + simulate the rest" approach used across the
 rest of this site (see european.py's League Stage Predictions).
 """
 
+from datetime import datetime
+
 import streamlit as st
 import pandas as pd
 
 from flags import flag_url
-from nations_league_data import NL_GROUPS, NL_FLAG_ALIASES, LEAGUE_OUTCOME_RULES
+from nations_league_data import (
+    NL_GROUPS, NL_FLAG_ALIASES, LEAGUE_OUTCOME_RULES, NL_TIEBREAKERS, NL_TIEBREAK_RULES,
+    position_status_labels,
+)
 from nations_league_simulator import (
     load_nl_ratings, simulate_group, simulate_league_a_knockouts,
     cross_group_ranking, simulate_league_outcomes,
@@ -24,11 +29,6 @@ from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
 
 st.title("🌍 UEFA Nations League 2026/27")
-st.caption(
-    "Group stage runs September-November 2026, using current national-team Elo ratings from "
-    "[eloratings.net](https://eloratings.net/). Real results lock in as they're played — only "
-    "the remaining fixtures are simulated."
-)
 
 
 def _flag(team: str) -> str:
@@ -40,12 +40,17 @@ def _ordinal(n: int) -> str:
     return f"{n}{suffix}"
 
 
-_PROMOTION_NOTE = {
-    "League A": "Bottom side in each group is relegated to League B (subject to the March 2027 relegation play-offs).",
-    "League B": "Group winners are promoted to League A; bottom side relegated to League C.",
-    "League C": "Group winners are promoted to League B; the two lowest-ranked 4th-place teams across League C are relegated to League D.",
-    "League D": "Group winners are promoted to League C.",
-}
+def _format_date(date_str: str) -> str:
+    """'2026-09-25' -> 'Friday, 25 September' -- no year, since every
+    fixture on this page is within the 2026-27 season."""
+    if not date_str:
+        return ""
+    try:
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        return date_str
+    return f"{dt.strftime('%A')}, {dt.day} {dt.strftime('%B')}"
+
 
 ratings_df = load_nl_ratings()
 if ratings_df.empty:
@@ -55,12 +60,14 @@ if ratings_df.empty:
     st.stop()
 
 
-def _render_table(standings: list[dict], height: int) -> None:
+def _render_table(standings: list[dict], height: int, league_name: str) -> None:
+    status_by_pos = position_status_labels(league_name, len(standings))
     rows = []
     for row in sorted(standings, key=lambda r: int(r.get("intRank", 99))):
         gd = int(row.get("intGoalDifference", 0))
+        rank = int(row.get("intRank", 0))
         rows.append({
-            "Rank": int(row.get("intRank", 0)),
+            "Rank": rank,
             "Flag": _flag(row["strTeam"]),
             "Team": row["strTeam"],
             "P": int(row.get("intPlayed", 0)),
@@ -71,6 +78,7 @@ def _render_table(standings: list[dict], height: int) -> None:
             "GA": int(row.get("intGoalsAgainst", 0)),
             "GD": f"+{gd}" if gd > 0 else str(gd),
             "Pts": int(row.get("intPoints", 0)),
+            "Status": status_by_pos.get(rank, ""),
         })
     df = pd.DataFrame(rows)
     st.dataframe(
@@ -79,6 +87,7 @@ def _render_table(standings: list[dict], height: int) -> None:
             "Rank": st.column_config.NumberColumn("#", width="small"),
             "Flag": st.column_config.ImageColumn("", width="small"),
             "Team": st.column_config.TextColumn("Team", width="medium"),
+            "Status": st.column_config.TextColumn("Status", width="large"),
         },
         use_container_width=True, hide_index=True, height=height,
     )
@@ -93,7 +102,7 @@ def _render_fixtures(played: list[dict], remaining: list[dict], height: int) -> 
         decided = f in played
         score = f"{f.get('intHomeScore', '')}–{f.get('intAwayScore', '')}" if decided else "—"
         rows.append({
-            "Date": f.get("dateEvent", ""),
+            "Date": _format_date(f.get("dateEvent", "")),
             "HB": _flag(f.get("strHomeTeam", "")),
             "Home": f.get("strHomeTeam", ""),
             "Score": score,
@@ -238,7 +247,7 @@ def _group_states_from(groups: dict[str, list[str]], standings_by_group: dict[st
 
 
 def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict],
-                             played: list[dict], remaining: list[dict]) -> None:
+                             played: list[dict], remaining: list[dict], league_name: str) -> None:
     ver_key = f"nl_manual_ver_{group_key}"
     sim_key = f"nl_manual_sim_{group_key}"
     if ver_key not in st.session_state:
@@ -251,7 +260,7 @@ def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict]
     fix_rows = []
     for f in remaining:
         fix_rows.append({
-            "Date": f.get("dateEvent", ""),
+            "Date": _format_date(f.get("dateEvent", "")),
             "HB": _flag(f.get("strHomeTeam", "")),
             "Home": f.get("strHomeTeam", ""),
             "HG": pd.NA, "AG": pd.NA,
@@ -303,7 +312,7 @@ def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict]
     predicted_pairs = {(f["strHomeTeam"], f["strAwayTeam"]) for f in predicted_as_played}
     unpredicted = [f for f in remaining
                    if (f["strHomeTeam"], f["strAwayTeam"]) not in predicted_pairs]
-    updated_standings = compute_full_standings(roster, played + predicted_as_played, tiebreakers=["gd", "gf"])
+    updated_standings = compute_full_standings(roster, played + predicted_as_played, tiebreakers=NL_TIEBREAKERS)
 
     # Stashed every rerun (not just after "Run simulations") so League A's
     # cross-group Relegation Pool tab can pick up whatever's currently
@@ -314,7 +323,7 @@ def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict]
 
     st.divider()
     st.markdown("### Updated standings")
-    _render_table(updated_standings, height=len(teams) * 35 + 38)
+    _render_table(updated_standings, height=len(teams) * 35 + 38, league_name=league_name)
 
     fingerprint = (
         tuple(sorted((f["strHomeTeam"], f["strAwayTeam"], f["intHomeScore"], f["intAwayScore"])
@@ -343,13 +352,14 @@ def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict]
 
 
 league_names = list(NL_GROUPS.keys())
-league_tabs = st.tabs(league_names)
+top_tabs = st.tabs(league_names + ["📜 Rules"])
+league_tabs = top_tabs[:-1]
+rules_tab = top_tabs[-1]
 
 all_group_probs: dict[str, dict[str, pd.DataFrame]] = {}
 
 for league_tab, league_name in zip(league_tabs, league_names):
     with league_tab:
-        st.caption(_PROMOTION_NOTE[league_name])
         groups = NL_GROUPS[league_name]
         is_knockout_league = league_name == "League A"
         rules = LEAGUE_OUTCOME_RULES[league_name]
@@ -369,7 +379,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
         for group_name, teams in groups.items():
             played, remaining = group_fixtures(teams)
             roster = [{"strTeam": t} for t in teams]
-            real_standings = compute_full_standings(roster, played, tiebreakers=["gd", "gf"])
+            real_standings = compute_full_standings(roster, played, tiebreakers=NL_TIEBREAKERS)
             league_group_standings[group_name] = real_standings
             league_group_remaining[group_name] = remaining
             league_group_played[group_name] = played
@@ -407,7 +417,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
 
                 with sub_table:
                     st.markdown("#### Table")
-                    _render_table(real_standings, height=len(teams) * 35 + 38)
+                    _render_table(real_standings, height=len(teams) * 35 + 38, league_name=league_name)
                     st.markdown("#### Fixtures")
                     _render_fixtures(played, remaining, height=len(played + remaining) * 35 + 38)
 
@@ -422,7 +432,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     _render_outcome_predictions(teams, outcome_probs, league_name)
 
                 with sub_manual:
-                    _manual_predictions_tab(f"{league_name}_{group_name}", teams, roster, played, remaining)
+                    _manual_predictions_tab(f"{league_name}_{group_name}", teams, roster, played, remaining, league_name)
 
         all_group_probs[league_name] = league_group_probs
 
@@ -535,3 +545,34 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     _render_outcome_predictions(all_league_teams, cached_pool, league_name)
                 else:
                     st.info("Press **▶ Run simulations** to see projected outcomes.")
+
+with rules_tab:
+    st.markdown("#### Tiebreaking Rules")
+    st.caption(
+        "UEFA's official criteria for ranking teams level on points within a group, from "
+        "[Wikipedia](https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League#Tiebreakers). "
+        "Criteria 1-3 use only the matches played among the tied teams; if a 3+-way tie survives all "
+        "three, criterion 4 restarts 1-3 among just whichever teams are still tied. Criteria 5-9 fall "
+        "back to each team's record across the whole group. Every group table, simulation and "
+        "Manual Predictions projection on this page uses this exact order."
+    )
+    for i, (desc, implemented) in enumerate(NL_TIEBREAK_RULES, start=1):
+        if implemented:
+            st.markdown(f"{i}. {desc}")
+        else:
+            st.markdown(f"{i}. {desc} — *not applied here, see note below*")
+    st.info(
+        "Criteria 10 and 11 aren't applied: disciplinary points would need card-by-card data this "
+        "site doesn't fetch for any competition, and the UEFA Nations League access list isn't a "
+        "football result at all. Both are extremely unlikely to ever matter in practice — reaching "
+        "them needs five or more criteria to all tie exactly — so group tables/simulations here use "
+        "criteria 1-9 in full."
+    )
+    st.markdown("#### Cross-Group Ranking (Ranking of Nth-placed teams)")
+    st.caption(
+        "For League A's 3rd/4th-placed teams and League C's 4th-placed teams (see each league's "
+        "Promotion & Relegation tab), the teams being ranked are from different groups and have never "
+        "played each other, so criteria 1-4 (head-to-head) never apply — ranking starts straight at "
+        "criterion 5 (overall goal difference), then goals scored, away goals scored, wins, and away "
+        "wins, in that order."
+    )

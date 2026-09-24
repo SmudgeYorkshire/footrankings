@@ -28,7 +28,7 @@ from simulator import (
     _opta_to_attack_defense, simulate_season, fixture_odds, two_leg_advance_odds, _sort_cascade,
     _build_rat_lookup, DEFAULT_BASE_GOALS, OVERDISPERSION,
 )
-from nations_league_data import NL_GROUPS, ALL_NL_TEAMS, NEUTRAL_VENUE_NATIONS, NEUTRAL_VENUE_FIXTURES
+from nations_league_data import NL_GROUPS, ALL_NL_TEAMS, NEUTRAL_VENUE_NATIONS, NEUTRAL_VENUE_FIXTURES, NL_TIEBREAKERS
 
 RATINGS_PATH = "ratings/nations_league_elo.csv"
 
@@ -165,7 +165,7 @@ def simulate_group(
     overrides = _home_advantage_overrides(teams, home_advantage)
     probs = simulate_season(
         standings=base_standings, remaining_fixtures=fixtures, ratings=group_ratings,
-        n_sim=n_sim, home_advantage=home_advantage, tiebreakers=["gd", "gf"],
+        n_sim=n_sim, home_advantage=home_advantage, tiebreakers=NL_TIEBREAKERS,
         played_fixtures=played_fixtures, home_advantage_overrides=overrides,
     )
     base_points = {row["strTeam"]: row.get("intPoints", 0) for row in base_standings}
@@ -303,17 +303,21 @@ def simulate_league_a_knockouts(
 
 # UEFA's own criteria for ranking one finishing position's four (or
 # fewer) representatives -- one per group -- against each other: since
-# they never play one another, there's no head-to-head to break ties
-# with, just Pts/GD/GF.
-_CROSS_GROUP_SORT_KEY = ("intPoints", "intGoalDifference", "intGoalsFor")
+# they never play one another, criteria 1-4 (head-to-head) never apply,
+# so this starts straight at NL_TIEBREAKERS' criterion 5 (overall GD),
+# same order (GD, GF, away GF, wins, away wins) -- disciplinary points
+# and access-list position (criteria 10-11) still aren't representable.
+_CROSS_GROUP_SORT_KEY = (
+    "intPoints", "intGoalDifference", "intGoalsFor", "intAwayGoalsFor", "intWin", "intAwayWin",
+)
 
 
 def cross_group_ranking(group_standings: dict[str, list[dict]], position: int) -> list[dict]:
     """A league's "Ranking of Nth-placed teams" table: pulls that
     finishing position's row out of each group's current standings, then
-    ranks those rows against each other by Pts/GD/GF. Each returned row
-    is the group's standings row plus "group" (which group it came
-    from)."""
+    ranks those rows against each other by Pts/GD/GF/away GF/wins/away
+    wins (see _CROSS_GROUP_SORT_KEY). Each returned row is the group's
+    standings row plus "group" (which group it came from)."""
     reps = []
     for gname, standings in group_standings.items():
         row = next((r for r in standings if int(r.get("intRank", 0)) == position), None)

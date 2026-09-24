@@ -131,6 +131,74 @@ LEAGUE_OUTCOME_RULES: dict[str, list[tuple]] = {
     ],
 }
 
+
+def position_status_labels(league_name: str, n_teams: int) -> dict[int, str]:
+    """Status text for each finishing position 1..n_teams in a group of
+    this league, for the group table's own Status column -- derived
+    straight from LEAGUE_OUTCOME_RULES so it can never drift out of sync
+    with what the Predictions/Promotion & Relegation tabs actually
+    compute. A "direct" rule gives a firm outcome; a "ranked" rule (whose
+    fate depends on ranking against the other groups' teams in the same
+    position, not just this group) is hedged the same way Wikipedia's own
+    group tables word it ("Possible qualification for..." / "... or
+    ..."). A position with no rule at all is simply safe."""
+    labels = {pos: "Safe" for pos in range(1, n_teams + 1)}
+    for rule in LEAGUE_OUTCOME_RULES[league_name]:
+        if rule[0] == "direct":
+            _, position, label = rule
+            labels[position] = label
+        else:
+            _, position, n_top, label_top, n_bottom, label_bottom = rule
+            if label_top and label_bottom:
+                labels[position] = f"{label_top} or {label_bottom}"
+            elif label_bottom:
+                labels[position] = f"Possible {label_bottom}"
+            elif label_top:
+                labels[position] = f"Possible {label_top}"
+    return labels
+
+# Official tiebreaking order for teams level on points within a group,
+# from https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League
+# #Tiebreakers. Criteria 1-3 apply only to matches among the tied teams
+# ("mini-league"); if a 3+-way tie survives all of 1-3 the article notes
+# they're re-applied restricted to just the group that's still tied
+# (this site's tiebreak engine already does that by construction --
+# simulator._rank_group/​_split_season.rank_tied_group both re-scope the
+# head-to-head sums to whichever smaller subgroup they recurse into, the
+# same convention already used for every domestic league here). Criteria
+# 5-9 fall back to each team's whole-group record once 1-4 are
+# exhausted. Two of UEFA's eleven official criteria have NO representation
+# here -- disciplinary points (needs card-by-card data this site doesn't
+# fetch for any competition) and position on the UEFA access list (not a
+# football result at all) -- both are vanishingly unlikely to ever be
+# reached in practice (needs 5+ criteria to all tie exactly) and are
+# listed in NL_TIEBREAK_RULES/the Rules tab for completeness with a note
+# that they aren't applied, rather than silently pretended away.
+NL_TIEBREAKERS: list[str] = ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "away_gf", "wins", "away_wins"]
+
+# (description, implemented) for every one of UEFA's 11 official criteria,
+# in order -- used to render the Rules tab. "implemented" teams whether
+# NL_TIEBREAKERS (fed to simulator.py/​_split_season.py's shared tiebreak
+# engine, already used for every domestic league's own standings/
+# simulations on this site) actually applies that specific criterion.
+NL_TIEBREAK_RULES: list[tuple[str, bool]] = [
+    ("Higher number of points obtained in the matches played among the teams in question", True),
+    ("Superior goal difference in matches played among the teams in question", True),
+    ("Higher number of goals scored in the matches played among the teams in question", True),
+    ("If more than two teams are tied and, after applying criteria 1-3, some of these teams "
+     "are still tied, criteria 1-3 are reapplied exclusively to the matches between the "
+     "teams still tied, to determine their final rankings", True),
+    ("Superior goal difference in all group matches", True),
+    ("Higher number of goals scored in all group matches", True),
+    ("Higher number of away goals scored in all group matches", True),
+    ("Higher number of wins in all group matches", True),
+    ("Higher number of away wins in all group matches", True),
+    ("Lower number of disciplinary points (1 for a single yellow card, 3 for a red card "
+     "resulting from two yellow cards, 4 for a direct red card, 5 for a yellow card followed "
+     "by a direct red card) in all group matches", False),
+    ("Higher position in the 2026-27 UEFA Nations League access list", False),
+]
+
 # Ukraine (since Russia's 2022 invasion) and Israel (since the war
 # triggered by the October 2023 Hamas-led attack) play their UEFA "home"
 # matches at a neutral venue outside their own country -- Ukraine's own
