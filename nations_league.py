@@ -23,6 +23,7 @@ from nations_league_data import (
 )
 from nations_league_simulator import (
     load_nl_ratings, simulate_group, simulate_league_a_knockouts, simulate_league_outcomes,
+    cross_group_ranking,
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
@@ -175,6 +176,111 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
     st.dataframe(df, column_config=col_cfg, use_container_width=True, hide_index=True, height=len(df) * 35 + 38)
 
 
+def _blank_third_fourth_reps(groups: dict[str, list[str]], position: int) -> list[dict]:
+    """Placeholder rows for a "ranked" pool before the group stage has
+    settled anything -- no real team can be named yet, so each group gets
+    a generic "Nth-placed team of X" label and dashes for every stat,
+    matching how the top-level Promotion & Relegation tab's bracket
+    tables show a pool rather than a guessed name."""
+    ord_ = _ordinal(position)
+    return [
+        {"group": gname, "Team": f"{ord_}-placed team of {gname}",
+         "Pld": "-", "W": "-", "D": "-", "L": "-", "GF": "-", "GA": "-", "GD": "-", "Pts": "-", "xPts": "-"}
+        for gname in groups
+    ]
+
+
+def _current_third_fourth_reps(standings_by_group: dict[str, list[dict]], position: int) -> list[dict]:
+    """Real teams currently sitting at `position` in each group, cross-
+    ranked by their actual Pld/W/D/L/GF/GA/GD/Pts so far."""
+    reps = cross_group_ranking(standings_by_group, position)
+    rows = []
+    for r in reps:
+        gd = int(r.get("intGoalDifference", 0))
+        rows.append({
+            "group": r["group"], "Flag": _flag(r["strTeam"]), "Team": r["strTeam"],
+            "Pld": int(r.get("intPlayed", 0)), "W": int(r.get("intWin", 0)), "D": int(r.get("intDraw", 0)),
+            "L": int(r.get("intLoss", 0)), "GF": int(r.get("intGoalsFor", 0)), "GA": int(r.get("intGoalsAgainst", 0)),
+            "GD": f"+{gd}" if gd > 0 else str(gd), "Pts": int(r.get("intPoints", 0)),
+        })
+    return rows
+
+
+def _predicted_third_fourth_reps(
+    standings_by_group: dict[str, list[dict]], group_probs: dict[str, pd.DataFrame],
+    group_exp_pts: dict[str, dict[str, float]], position: int,
+) -> list[dict]:
+    """Whichever team is MOST LIKELY (per simulate_group's own position
+    probabilities) to finish at `position` in each group, cross-ranked by
+    projected final points (xPts = current Pts + expected points from
+    whatever's left to play) then current GD/GF as a tiebreak -- real
+    final GD/GF isn't knowable ahead of the remaining fixtures actually
+    being played, so this reuses each team's record so far rather than
+    inventing a projected one."""
+    pos_col = str(position)
+    reps = []
+    for gname, standings in standings_by_group.items():
+        team = group_probs[gname][pos_col].idxmax()
+        row = next((r for r in standings if r["strTeam"] == team), {})
+        gd = int(row.get("intGoalDifference", 0))
+        gf = int(row.get("intGoalsFor", 0))
+        xpts = round(group_exp_pts[gname].get(team, 0.0), 1)
+        reps.append({
+            "group": gname, "Flag": _flag(team), "Team": team,
+            "Pld": int(row.get("intPlayed", 0)), "W": int(row.get("intWin", 0)), "D": int(row.get("intDraw", 0)),
+            "L": int(row.get("intLoss", 0)), "GF": gf, "GA": int(row.get("intGoalsAgainst", 0)),
+            "GD": f"+{gd}" if gd > 0 else str(gd), "xPts": xpts, "_sort": (xpts, gd, gf),
+        })
+    reps.sort(key=lambda r: r["_sort"], reverse=True)
+    for r in reps:
+        del r["_sort"]
+    return reps
+
+
+def _render_ranking_table(reps: list[dict], rule: tuple, pts_key: str = "Pts", blank: bool = False) -> None:
+    """Renders one cross-group ranking table (see _blank/_current/
+    _predicted_third_fourth_reps) with a Qualification column derived
+    from `rule`'s n_top/label_top/n_bottom/label_bottom -- same shape as
+    LEAGUE_OUTCOME_RULES' "ranked" rules. `blank` skips the qualification
+    guess entirely (nothing's decided yet) and skips the pink highlight."""
+    _, position, n_top, label_top, n_bottom, label_bottom = rule
+    n = len(reps)
+    quals = [None] * n
+    if not blank:
+        for i in range(min(n_top, n)):
+            quals[i] = label_top
+        for i in range(max(0, n - n_bottom), n):
+            quals[i] = label_bottom
+    rows = []
+    for i, r in enumerate(reps):
+        row = {"Pos": i + 1, "Grp": r["group"]}
+        if "Flag" in r:
+            row["Flag"] = r["Flag"]
+        row["Team"] = r["Team"]
+        for k in ("Pld", "W", "D", "L", "GF", "GA", "GD"):
+            row[k] = r.get(k, "-")
+        row[pts_key] = r.get(pts_key, "-")
+        row["Qualification"] = "-" if blank else (quals[i] or "Safe")
+        rows.append(row)
+    df = pd.DataFrame(rows)
+    col_cfg = {"Team": st.column_config.TextColumn("Team", width="medium")}
+    if "Flag" in df.columns:
+        col_cfg["Flag"] = st.column_config.ImageColumn("", width="small")
+    if pts_key == "xPts" and not blank:
+        col_cfg["xPts"] = st.column_config.NumberColumn("xPts", format="%.1f")
+
+    if blank:
+        st.dataframe(df, column_config=col_cfg, use_container_width=True, hide_index=True, height=len(df) * 35 + 38)
+        return
+
+    def _row_style(row):
+        pink = row["Qualification"] != "Safe"
+        return [f"background-color: {'#fbdcdc' if pink else ''}" for _ in row]
+
+    styled = df.style.apply(_row_style, axis=1).set_properties(subset=["Team"], **{"font-weight": "bold"})
+    st.dataframe(styled, column_config=col_cfg, use_container_width=True, hide_index=True, height=len(df) * 35 + 38)
+
+
 def _group_states_from(groups: dict[str, list[str]], standings_by_group: dict[str, list[dict]],
                         remaining_by_group: dict[str, list[dict]]) -> dict[str, dict]:
     return {
@@ -309,6 +415,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
         groups = NL_GROUPS[league_name]
         is_knockout_league = league_name == "League A"
         rules = LEAGUE_OUTCOME_RULES[league_name]
+        ranked_rules = [r for r in rules if r[0] == "ranked"]
         all_league_teams = [t for g in groups.values() for t in g]
 
         # Pre-fetch every group's real current data once -- needed both
@@ -338,15 +445,24 @@ for league_tab, league_name in zip(league_tabs, league_names):
         all_outcome_probs[league_name] = outcome_probs
 
         tab_labels = (
-            list(groups.keys()) + ["📈 Predictions"]
+            list(groups.keys())
+            + (["🥉 3rd/4th"] if ranked_rules else [])
+            + ["📈 Predictions"]
             + (["🏆 Knockout Bracket"] if is_knockout_league else [])
         )
         all_tabs = st.tabs(tab_labels)
         group_tabs = all_tabs[:len(groups)]
-        pred_tab = all_tabs[len(groups)]
-        knockout_tab = all_tabs[len(groups) + 1] if is_knockout_league else None
+        next_idx = len(groups)
+        third_fourth_tab = None
+        if ranked_rules:
+            third_fourth_tab = all_tabs[next_idx]
+            next_idx += 1
+        pred_tab = all_tabs[next_idx]
+        next_idx += 1
+        knockout_tab = all_tabs[next_idx] if is_knockout_league else None
 
         league_group_probs: dict[str, pd.DataFrame] = {}
+        league_group_exp_pts: dict[str, dict[str, float]] = {}
 
         for group_tab, (group_name, teams) in zip(group_tabs, groups.items()):
             with group_tab:
@@ -371,6 +487,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
                         standings=real_standings, remaining_fixtures=remaining, played_fixtures=played,
                     )
                     league_group_probs[group_name] = probs
+                    league_group_exp_pts[group_name] = exp_pts
                     _render_predictions(teams, probs, exp_pts)
                     st.markdown("#### Group stage outcome chances")
                     _render_outcome_predictions(teams, outcome_probs, league_name)
@@ -379,6 +496,73 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     _manual_predictions_tab(f"{league_name}_{group_name}", teams, roster, played, remaining, league_name)
 
         all_group_probs[league_name] = league_group_probs
+
+        if third_fourth_tab is not None:
+            with third_fourth_tab:
+                st.markdown("#### Ranking of 3rd/4th-placed teams")
+                st.caption(
+                    "These positions' fate depends on ranking against the other groups' teams finishing "
+                    "the same position, not just this group -- see the top-level Promotion & Relegation "
+                    "tab for how the resulting play-off pool plays out."
+                )
+                for rule in ranked_rules:
+                    position = rule[1]
+                    st.markdown(f"##### Ranking of {_ordinal(position)}-placed teams")
+                    t_blank, t_current, t_predicted = st.tabs(
+                        ["Blank", "Current standings", "Predicted standings"]
+                    )
+                    with t_blank:
+                        _render_ranking_table(
+                            _blank_third_fourth_reps(groups, position), rule, pts_key="Pts", blank=True,
+                        )
+                    with t_current:
+                        _render_ranking_table(
+                            _current_third_fourth_reps(league_group_standings, position), rule, pts_key="Pts",
+                        )
+                    with t_predicted:
+                        _render_ranking_table(
+                            _predicted_third_fourth_reps(
+                                league_group_standings, league_group_probs, league_group_exp_pts, position,
+                            ),
+                            rule, pts_key="xPts",
+                        )
+                    st.divider()
+
+                st.markdown("##### Chances of finishing 3rd or 4th")
+                # Re-labelled copies of ranked_rules for this one table only: the
+                # real LEAGUE_OUTCOME_RULES give the two paths into the pool the
+                # SAME "Relegation Play-offs" label on purpose (see
+                # nations_league_simulator.simulate_league_outcomes), but this
+                # breakdown is specifically about telling those two paths apart.
+                detail_rules = []
+                for r in ranked_rules:
+                    _, position, n_top, label_top, n_bottom, label_bottom = r
+                    ord_ = _ordinal(position)
+                    top_text = f"{ord_} place, stays in {league_name}" if position == 3 else f"{ord_} place, {label_top}"
+                    bottom_text = f"{ord_} place, {label_bottom}"
+                    detail_rules.append(("ranked", position, n_top, top_text, n_bottom, bottom_text))
+                with st.spinner("Simulating…"):
+                    detail_probs = simulate_league_outcomes(
+                        _group_states_from(groups, league_group_standings, league_group_remaining),
+                        detail_rules, ratings_df, n_sim=8_000,
+                    )
+                detail_rows = []
+                for t in all_league_teams:
+                    row = {"Flag": _flag(t), "Team": t}
+                    for col in detail_probs.columns:
+                        row[col] = round(float(detail_probs.loc[t, col]) * 100, 1)
+                    detail_rows.append(row)
+                detail_df = pd.DataFrame(detail_rows)
+                detail_col_cfg = {
+                    "Flag": st.column_config.ImageColumn("", width="small"),
+                    "Team": st.column_config.TextColumn("Team", width="medium"),
+                }
+                for col in detail_probs.columns:
+                    detail_col_cfg[col] = st.column_config.NumberColumn(col, format="%.1f%%")
+                st.dataframe(
+                    detail_df, column_config=detail_col_cfg, use_container_width=True,
+                    hide_index=True, height=len(detail_df) * 35 + 38,
+                )
 
         with pred_tab:
             st.markdown("#### Group Stage Outcome Predictions")

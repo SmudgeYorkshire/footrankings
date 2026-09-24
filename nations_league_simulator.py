@@ -301,6 +301,32 @@ def simulate_league_a_knockouts(
     return df.set_index("team")
 
 
+# UEFA's own criteria for ranking one finishing position's four (or
+# fewer) representatives -- one per group -- against each other: since
+# they never play one another, criteria 1-4 (head-to-head) never apply,
+# so this starts straight at NL_TIEBREAKERS' criterion 5 (overall GD),
+# same order (GD, GF, away GF, wins, away wins) -- disciplinary points
+# and access-list position (criteria 10-11) still aren't representable.
+_CROSS_GROUP_SORT_KEY = (
+    "intPoints", "intGoalDifference", "intGoalsFor", "intAwayGoalsFor", "intWin", "intAwayWin",
+)
+
+
+def cross_group_ranking(group_standings: dict[str, list[dict]], position: int) -> list[dict]:
+    """A league's "Ranking of Nth-placed teams" table: pulls that
+    finishing position's row out of each group's current standings, then
+    ranks those rows against each other by Pts/GD/GF/away GF/wins/away
+    wins (see _CROSS_GROUP_SORT_KEY). Each returned row is the group's
+    standings row plus "group" (which group it came from)."""
+    reps = []
+    for gname, standings in group_standings.items():
+        row = next((r for r in standings if int(r.get("intRank", 0)) == position), None)
+        if row is not None:
+            reps.append({**row, "group": gname})
+    reps.sort(key=lambda r: tuple(-int(r.get(k, 0)) for k in _CROSS_GROUP_SORT_KEY))
+    return reps
+
+
 def _rule_labels(rule: tuple) -> list[str]:
     return [rule[2]] if rule[0] == "direct" else [lbl for lbl in (rule[3], rule[5]) if lbl]
 
