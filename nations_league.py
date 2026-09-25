@@ -23,7 +23,7 @@ from nations_league_data import (
 )
 from nations_league_simulator import (
     load_nl_ratings, simulate_group, simulate_league_a_knockouts, simulate_league_outcomes,
-    cross_group_ranking, group_fixture_odds,
+    cross_group_ranking, group_fixture_odds, group_expected_points,
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
@@ -530,7 +530,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
             league_group_roster[group_name] = roster
 
         with st.spinner("Simulating group-stage outcomes…"):
-            outcome_probs = simulate_league_outcomes(
+            outcome_probs, group_position_probs = simulate_league_outcomes(
                 _group_states_from(groups, league_group_standings, league_group_remaining),
                 rules, ratings_df, n_sim=8_000,
             )
@@ -573,9 +573,9 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     _render_match_odds(teams, played, remaining, height=len(played + remaining) * 35 + 38)
 
                 with sub_pred:
-                    probs, exp_pts = simulate_group(
-                        teams, ratings_df, n_sim=10_000,
-                        standings=real_standings, remaining_fixtures=remaining, played_fixtures=played,
+                    probs = group_position_probs[group_name]
+                    exp_pts = group_expected_points(
+                        teams, ratings_df, standings=real_standings, remaining_fixtures=remaining,
                     )
                     league_group_probs[group_name] = probs
                     league_group_exp_pts[group_name] = exp_pts
@@ -633,7 +633,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     bottom_text = f"{ord_} place, {label_bottom}"
                     detail_rules.append(("ranked", position, n_top, top_text, n_bottom, bottom_text))
                 with st.spinner("Simulating…"):
-                    detail_probs = simulate_league_outcomes(
+                    detail_probs, _ = simulate_league_outcomes(
                         _group_states_from(groups, league_group_standings, league_group_remaining),
                         detail_rules, ratings_df, n_sim=8_000,
                     )

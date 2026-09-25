@@ -202,6 +202,26 @@ def group_fixture_odds(
     return fixture_odds(fixtures, group_ratings, home_advantage=home_advantage, home_advantage_overrides=overrides)
 
 
+def group_expected_points(
+    teams: list[str],
+    ratings_df: pd.DataFrame,
+    home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+    standings: list[dict] | None = None,
+    remaining_fixtures: list[dict] | None = None,
+) -> dict[str, float]:
+    """Projected total points for one group -- purely analytic (no Monte
+    Carlo, just fixture_odds() under the hood via _expected_points), so
+    it's cheap enough to call directly wherever a group's own position
+    probabilities come from a different simulation run (see
+    simulate_league_outcomes's position_probs) without re-simulating
+    anything just to get this number too."""
+    group_ratings = _scoped_attack_defense(teams, ratings_df)
+    fixtures = remaining_fixtures if remaining_fixtures is not None else _round_robin_fixtures(teams)
+    base_standings = standings if standings is not None else _blank_standings(teams)
+    base_points = {row["strTeam"]: row.get("intPoints", 0) for row in base_standings}
+    return _expected_points(fixtures, group_ratings, home_advantage, base_points)
+
+
 def simulate_group(
     teams: list[str],
     ratings_df: pd.DataFrame,
@@ -220,7 +240,12 @@ def simulate_group(
     started yet. Once it has, callers (nations_league.py) pass the real
     current standings/remaining fixtures instead, so real results lock in
     and only what's left to play gets simulated -- same "real results +
-    simulate the rest" approach used across the rest of this site."""
+    simulate the rest" approach used across the rest of this site.
+
+    Used for Manual Predictions, where a fresh standalone simulation is
+    exactly what a what-if run needs. For a league's own real-standings
+    Predictions tab, prefer simulate_league_outcomes's position_probs
+    instead -- same group, no second Monte Carlo run."""
     group_ratings = _scoped_attack_defense(teams, ratings_df)
     fixtures = remaining_fixtures if remaining_fixtures is not None else _round_robin_fixtures(teams)
     base_standings = standings if standings is not None else _blank_standings(teams)
@@ -230,8 +255,7 @@ def simulate_group(
         n_sim=n_sim, home_advantage=home_advantage, tiebreakers=NL_TIEBREAKERS,
         played_fixtures=played_fixtures, home_advantage_overrides=overrides,
     )
-    base_points = {row["strTeam"]: row.get("intPoints", 0) for row in base_standings}
-    exp_pts = _expected_points(fixtures, group_ratings, home_advantage, base_points)
+    exp_pts = group_expected_points(teams, ratings_df, home_advantage, base_standings, fixtures)
     return probs, exp_pts
 
 
@@ -423,7 +447,7 @@ def simulate_league_outcomes(
     ratings_df: pd.DataFrame,
     n_sim: int = 8_000,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, dict[str, pd.DataFrame]]:
     """Monte Carlo every team's chance of landing in each of its
     league's group-stage outcome buckets (Quarterfinals, Promotion,
     Relegation Play-offs, direct relegation, ... -- see
@@ -447,13 +471,21 @@ def simulate_league_outcomes(
         the bottom n_bottom get label_bottom. Either label may be None
         for "no bucket" (the team is simply safe).
 
-    Returns a DataFrame indexed by team with one probability column per
-    distinct label across all rules.
+    Returns (outcomes, position_probs):
+      outcomes -- a DataFrame indexed by team with one probability column
+        per distinct label across all rules.
+      position_probs -- {group_name: DataFrame} indexed by team with
+        columns "1".."n", the SAME shape simulate_group returns, tallied
+        from these exact replicates rather than a separate per-group
+        simulation run -- so a group's own Predictions tab and this
+        league's Group Stage Outcome Predictions never disagree just from
+        being two independently-seeded Monte Carlo runs.
     """
     all_teams = [t for g in group_states.values() for t in g["teams"]]
     pts = {t: np.zeros(n_sim) for t in all_teams}
     gd = {t: np.zeros(n_sim) for t in all_teams}
     gf = {t: np.zeros(n_sim) for t in all_teams}
+    pos_counts: dict[str, dict[int, int]] = {t: {} for t in all_teams}
 
     rng = np.random.default_rng()
     phi = OVERDISPERSION
@@ -537,6 +569,9 @@ def simulate_league_outcomes(
             gname: sorted(state["teams"], key=lambda t: (-pts[t][i], -gd[t][i], -gf[t][i]))
             for gname, state in group_items
         }
+        for order in order_by_group.values():
+            for idx, t in enumerate(order):
+                pos_counts[t][idx + 1] = pos_counts[t].get(idx + 1, 0) + 1
         playoff_pools: dict[str, list[tuple[str, float, float, float]]] = {lbl: [] for lbl in active_pools}
         for rule in outcome_rules:
             if rule[0] == "direct":
@@ -588,4 +623,15 @@ def simulate_league_outcomes(
         for lbl in labels:
             row[lbl] = counts[lbl][t] / n_sim
         rows.append(row)
-    return pd.DataFrame(rows).set_index("team")
+    outcomes = pd.DataFrame(rows).set_index("team")
+
+    position_probs: dict[str, pd.DataFrame] = {}
+    for gname, state in group_states.items():
+        teams = state["teams"]
+        pos_rows = [
+            {"team": t, **{str(pos): pos_counts[t].get(pos, 0) / n_sim for pos in range(1, len(teams) + 1)}}
+            for t in teams
+        ]
+        position_probs[gname] = pd.DataFrame(pos_rows).set_index("team")
+
+    return outcomes, position_probs
