@@ -199,14 +199,20 @@ _PLAYOFF_SPLITS = [
 _WIN_DISPLAY = "Winner in Play-offs"
 _LOSE_DISPLAY = "Loser in Play-offs"
 
-# A league's final "Relegation to League X" column should read as the
-# TOTAL chance of ending up there next edition, not just the direct-
-# relegation route -- League A's bottom two (cross-group ranked) 4th-
-# place teams go down directly, but the bottom two 3rd-place teams *and*
-# the top two 4th-place teams who then LOSE their relegation play-off end
-# up in exactly the same place, so that raw column's displayed value adds
-# in whichever play-off-loss label also leads there.
-_COMBINE_WITH_PLAYOFF_LOSS = {"Relegation to League B": "Relegated in Play-offs"}
+# A league's terminal "arrived here" column should read as the TOTAL
+# chance of ending up there next edition, not just its direct route --
+# whichever OTHER raw label also leads to the exact same destination
+# (winning or losing the relevant play-off) gets folded into that
+# column's displayed value. "Relegation to League B" (League A): the
+# bottom two (cross-group ranked) 4th-place teams go down directly, but
+# so do the top two 4th-place/bottom two 3rd-place teams who then LOSE
+# their relegation play-off. "Promotion" (League B/C): 1st place is
+# promoted directly, but so is 2nd place if it WINS its promotion
+# play-off -- League D has no such column so this is a no-op there.
+_COMBINE_EXTRA = {
+    "Relegation to League B": "Relegated in Play-offs",
+    "Promotion": "Won Promotion Play-offs",
+}
 
 # Display-only rename for the direct-promotion column so it names its
 # actual destination league instead of the generic "Promotion" -- the
@@ -243,7 +249,7 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
         row = {"Flag": _flag(t), "Team": t}
         raw = {c: float(probs_df.loc[t, c]) if t in probs_df.index else 0.0 for c in probs_df.columns}
         for c, v in raw.items():
-            extra = raw.get(_COMBINE_WITH_PLAYOFF_LOSS.get(c, ""), 0.0)
+            extra = raw.get(_COMBINE_EXTRA.get(c, ""), 0.0)
             row[c] = round((v + extra) * 100, 1)
         for win_col, lose_col, agg_col in active_splits:
             row[agg_col] = round((raw[win_col] + raw[lose_col]) * 100, 1)
