@@ -67,16 +67,21 @@ EPOCHS = 400
 # matters and is what's committed).
 # ---------------------------------------------------------------------------
 OBSERVATIONS: list[dict] = [
-    # 2026-09-24, Stake via sportsgambler.com
-    {"type": "match", "home": "Türkiye", "away": "France", "odds": (6.25, 4.70, 1.44)},
-    # 2026-09-24, aggregate via thefootballfaithful.com/sportskeeda.com
-    {"type": "match", "home": "Italy", "away": "Belgium", "odds": (2.10, 3.5, 2.9)},
+    # 2026-09-25, matchday-1 kickoff-day line via sofascore.com (sharper
+    # than the 09-24 pre-match line this replaces -- same fixture)
+    {"type": "match", "home": "Türkiye", "away": "France", "odds": (8.00, 5.50, 1.33)},
+    # 2026-09-25, sofascore.com aggregate (replaces the 09-24 line)
+    {"type": "match", "home": "Italy", "away": "Belgium", "odds": (2.20, 3.60, 3.10)},
     # 2026-09-24, sportskeeda.com aggregate (American odds converted: +140/+260/+170)
     {"type": "match", "home": "Netherlands", "away": "Germany", "odds": (2.4286, 3.6, 2.5882)},
     # 2026-09-24, wincomparator.com
     {"type": "match", "home": "England", "away": "Spain", "odds": (2.62, 3.3, 2.55)},
-    # 2026-09-21, bettingodds.com aggregate (best/shortest odds end used
-    # where a range was given), fractional -> decimal
+    # 2026-09-25, sportsgambler.com
+    {"type": "match", "home": "Hungary", "away": "Ukraine", "odds": (2.25, 3.30, 3.15)},
+    # 2026-09-25, sportytrader.com model odds
+    {"type": "match", "home": "Montenegro", "away": "Cyprus", "odds": (1.78, 4.05, 6.30)},
+    # 2026-09-25, bettingodds.com aggregate -- rechecked, unchanged from
+    # 09-21 after matchday 1's results so far
     {"type": "outright", "team": "Spain", "decimal_odds": 4.5},
     {"type": "outright", "team": "France", "decimal_odds": 5.0},
     {"type": "outright", "team": "England", "decimal_odds": 5.5},
