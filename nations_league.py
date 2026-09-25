@@ -190,7 +190,8 @@ def _render_predictions(teams: list[str], probs: pd.DataFrame, exp_pts: dict[str
 # column's st.column_config label is overridden, which is what lets two
 # different columns both display as "Winner in Play-offs" without a
 # dict-key collision. Each tuple is (win_col, lose_col, aggregate label
-# re-derived as their sum and inserted between them).
+# re-derived as their sum and inserted ahead of both -- pool-entry chance
+# first, then how it resolved).
 _PLAYOFF_SPLITS = [
     ("Promoted in Play-offs", "Relegated in Play-offs", "Relegation Play-off"),
     ("Won Promotion Play-offs", "Lost Promotion Play-offs", "Promotion Play-offs"),
@@ -235,7 +236,7 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
 
     active_splits = [s for s in _PLAYOFF_SPLITS if s[0] in cols and s[1] in cols]
     for win_col, lose_col, agg_col in active_splits:
-        cols.insert(cols.index(lose_col), agg_col)
+        cols.insert(cols.index(win_col), agg_col)
 
     rows = []
     for t in teams:
