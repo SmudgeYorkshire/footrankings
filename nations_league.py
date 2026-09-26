@@ -223,6 +223,19 @@ _PROMOTION_DISPLAY_BY_LEAGUE = {
     "League D": "Promotion to League C",
 }
 
+# League B has no direct-relegation rule at all (see LEAGUE_OUTCOME_
+# RULES) -- every 4th-place team enters the relegation play-off pool, so
+# losing it is the ONLY way down. That's already shown as "Loser in
+# Play-offs", but a reader shouldn't have to infer the real-world
+# destination from a generic play-off label -- this adds an explicitly-
+# named alias column (same value, right after "Stay in {league}") for
+# whichever league needs it. League A/C don't: League A already has its
+# own real "Relegation to League B" bucket (see _COMBINE_EXTRA above),
+# and League C has no relegation path at all.
+_EXTRA_ALIAS_COLUMN = {
+    "League B": ("Relegation to League C", "Relegated in Play-offs"),
+}
+
 
 def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league_name: str) -> None:
     """One column per outcome-bucket label in probs_df (Quarterfinals,
@@ -240,6 +253,13 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
     stay_label = f"Stay in {league_name}"
     cols = (bucket_cols[:1] + [stay_label] + bucket_cols[1:]) if show_stay else list(bucket_cols)
 
+    extra_alias = _EXTRA_ALIAS_COLUMN.get(league_name)
+    if extra_alias and show_stay and extra_alias[1] in bucket_cols:
+        alias_name, alias_source = extra_alias
+        cols.insert(cols.index(stay_label) + 1, alias_name)
+    else:
+        extra_alias = None
+
     active_splits = [s for s in _PLAYOFF_SPLITS if s[0] in cols and s[1] in cols]
     for win_col, lose_col, agg_col in active_splits:
         cols.insert(cols.index(win_col), agg_col)
@@ -256,6 +276,8 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
         if show_stay:
             leave_prob = sum(v for c, v in raw.items() if c in leave_labels)
             row[stay_label] = round(max(0.0, 1.0 - leave_prob) * 100, 1)
+        if extra_alias:
+            row[extra_alias[0]] = round(raw[extra_alias[1]] * 100, 1)
         rows.append(row)
     df = pd.DataFrame(rows)[["Flag", "Team"] + cols]
 
