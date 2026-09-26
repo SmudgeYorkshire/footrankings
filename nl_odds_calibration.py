@@ -67,32 +67,41 @@ EPOCHS = 400
 # matters and is what's committed).
 # ---------------------------------------------------------------------------
 OBSERVATIONS: list[dict] = [
-    # 2026-09-25, matchday-1 kickoff-day line via sofascore.com (sharper
-    # than the 09-24 pre-match line this replaces -- same fixture)
-    {"type": "match", "home": "Türkiye", "away": "France", "odds": (8.00, 5.50, 1.33)},
-    # 2026-09-25, sofascore.com aggregate (replaces the 09-24 line)
-    {"type": "match", "home": "Italy", "away": "Belgium", "odds": (2.20, 3.60, 3.10)},
-    # 2026-09-24, sportskeeda.com aggregate (American odds converted: +140/+260/+170)
-    {"type": "match", "home": "Netherlands", "away": "Germany", "odds": (2.4286, 3.6, 2.5882)},
-    # 2026-09-24, wincomparator.com
+    # Matchday-1 observations for Türkiye-France, Italy-Belgium, Hungary-
+    # Ukraine, Netherlands-Germany and Montenegro-Cyprus were pruned
+    # 2026-09-26 -- those fixtures have since been PLAYED (France 1-0
+    # Türkiye, Belgium 2-0 Italy -- an upset vs. what those pre-match odds
+    # implied, Ukraine 1-0 Hungary -- also an upset, 1-1 draw, Montenegro
+    # 2-1 as expected), and eloratings.net's own daily scrape already
+    # reflects the real results in the raw baseline. Keeping a stale pre-
+    # match line after the game is played would fight the fresh evidence
+    # instead of complementing it.
+    #
+    # 2026-09-26, wincomparator.com/tntsports.co.uk (matchday-2, not yet played)
     {"type": "match", "home": "England", "away": "Spain", "odds": (2.62, 3.3, 2.55)},
-    # 2026-09-25, sportsgambler.com
-    {"type": "match", "home": "Hungary", "away": "Ukraine", "odds": (2.25, 3.30, 3.15)},
-    # 2026-09-25, sportytrader.com model odds
-    {"type": "match", "home": "Montenegro", "away": "Cyprus", "odds": (1.78, 4.05, 6.30)},
-    # 2026-09-25, bettingodds.com aggregate -- rechecked, unchanged from
-    # 09-21 after matchday 1's results so far
-    {"type": "outright", "team": "Spain", "decimal_odds": 4.5},
-    {"type": "outright", "team": "France", "decimal_odds": 5.0},
+    # 2026-09-26, sportsgambler.com (decimal from ESPN's American odds:
+    # Belgium +260, France -115, Draw +255)
+    {"type": "match", "home": "Belgium", "away": "France", "odds": (3.60, 3.55, 1.87)},
+    # 2026-09-26, sportsgambler.com
+    {"type": "match", "home": "Serbia", "away": "Netherlands", "odds": (7.00, 4.70, 1.40)},
+    # 2026-09-25 22:05, bettingodds.com aggregate -- refreshed post-
+    # matchday-1 (was last checked 09-21, pre-tournament): France jumped
+    # to favourite after beating Türkiye, Italy collapsed after losing to
+    # Belgium, Serbia dropped hard after losing to Greece. Belgium itself
+    # barely moved despite beating Italy -- still seen as capped by a
+    # tough group (France/Türkiye still to come).
+    {"type": "outright", "team": "France", "decimal_odds": 3.75},
+    {"type": "outright", "team": "Spain", "decimal_odds": 4.0},
+    {"type": "outright", "team": "Germany", "decimal_odds": 5.0},
     {"type": "outright", "team": "England", "decimal_odds": 5.5},
-    {"type": "outright", "team": "Germany", "decimal_odds": 5.5},
-    {"type": "outright", "team": "Portugal", "decimal_odds": 9.0},
-    {"type": "outright", "team": "Netherlands", "decimal_odds": 13.0},
-    {"type": "outright", "team": "Norway", "decimal_odds": 17.0},
-    {"type": "outright", "team": "Italy", "decimal_odds": 13.0},
+    {"type": "outright", "team": "Portugal", "decimal_odds": 8.5},
+    {"type": "outright", "team": "Netherlands", "decimal_odds": 15.0},
+    {"type": "outright", "team": "Norway", "decimal_odds": 15.0},
     {"type": "outright", "team": "Belgium", "decimal_odds": 17.0},
-    {"type": "outright", "team": "Denmark", "decimal_odds": 26.0},
-    {"type": "outright", "team": "Croatia", "decimal_odds": 51.0},
+    {"type": "outright", "team": "Italy", "decimal_odds": 34.0},
+    {"type": "outright", "team": "Denmark", "decimal_odds": 67.0},
+    {"type": "outright", "team": "Croatia", "decimal_odds": 67.0},
+    {"type": "outright", "team": "Serbia", "decimal_odds": 151.0},
 ]
 
 
