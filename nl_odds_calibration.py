@@ -67,41 +67,40 @@ EPOCHS = 400
 # matters and is what's committed).
 # ---------------------------------------------------------------------------
 OBSERVATIONS: list[dict] = [
-    # Matchday-1 observations for Türkiye-France, Italy-Belgium, Hungary-
-    # Ukraine, Netherlands-Germany and Montenegro-Cyprus were pruned
-    # 2026-09-26 -- those fixtures have since been PLAYED (France 1-0
-    # Türkiye, Belgium 2-0 Italy -- an upset vs. what those pre-match odds
-    # implied, Ukraine 1-0 Hungary -- also an upset, 1-1 draw, Montenegro
-    # 2-1 as expected), and eloratings.net's own daily scrape already
-    # reflects the real results in the raw baseline. Keeping a stale pre-
-    # match line after the game is played would fight the fresh evidence
-    # instead of complementing it.
+    # England-Spain pruned 2026-09-27 -- played (England 2-3 Spain), so
+    # eloratings.net's scrape already reflects it; keeping the pre-match
+    # line would fight the fresh evidence. Serbia-Netherlands and
+    # Belgium-France refreshed with kickoff-closer lines (both still
+    # upcoming, same fixtures as the pruned matchday-2 entries).
     #
-    # 2026-09-26, wincomparator.com/tntsports.co.uk (matchday-2, not yet played)
-    {"type": "match", "home": "England", "away": "Spain", "odds": (2.62, 3.3, 2.55)},
-    # 2026-09-26, sportsgambler.com (decimal from ESPN's American odds:
-    # Belgium +260, France -115, Draw +255)
-    {"type": "match", "home": "Belgium", "away": "France", "odds": (3.60, 3.55, 1.87)},
-    # 2026-09-26, sportsgambler.com
-    {"type": "match", "home": "Serbia", "away": "Netherlands", "odds": (7.00, 4.70, 1.40)},
-    # 2026-09-25 22:05, bettingodds.com aggregate -- refreshed post-
-    # matchday-1 (was last checked 09-21, pre-tournament): France jumped
-    # to favourite after beating Türkiye, Italy collapsed after losing to
-    # Belgium, Serbia dropped hard after losing to Greece. Belgium itself
-    # barely moved despite beating Italy -- still seen as capped by a
-    # tough group (France/Türkiye still to come).
+    # 2026-09-27, sportsgambler.com (kickoff today)
+    {"type": "match", "home": "Serbia", "away": "Netherlands", "odds": (7.50, 4.90, 1.38)},
+    # 2026-09-27, sportskeeda.com aggregate (fractional 27/10, 3/1, 9/10)
+    {"type": "match", "home": "Belgium", "away": "France", "odds": (3.70, 4.00, 1.90)},
+    # 2026-09-27, sportsgambler.com
+    {"type": "match", "home": "Denmark", "away": "Wales", "odds": (1.48, 4.80, 7.30)},
+    # 2026-09-27, wincomparator.com
+    {"type": "match", "home": "Spain", "away": "Croatia", "odds": (1.24, 5.25, 8.50)},
+    # 2026-09-27 08:18, bettingodds.com aggregate -- refreshed after
+    # matchday 2's early results (Spain beat England 3-2 away, Croatia
+    # beat Czechia, Switzerland routed North Macedonia 3-0): Spain back
+    # to co-favourite with France, England slipped after losing to Spain,
+    # Croatia jumped after their win, Czech Republic and Türkiye both
+    # got longer after their matchday-1/2 losses.
+    {"type": "outright", "team": "Spain", "decimal_odds": 3.75},
     {"type": "outright", "team": "France", "decimal_odds": 3.75},
-    {"type": "outright", "team": "Spain", "decimal_odds": 4.0},
     {"type": "outright", "team": "Germany", "decimal_odds": 5.0},
-    {"type": "outright", "team": "England", "decimal_odds": 5.5},
+    {"type": "outright", "team": "England", "decimal_odds": 7.0},
     {"type": "outright", "team": "Portugal", "decimal_odds": 8.5},
-    {"type": "outright", "team": "Netherlands", "decimal_odds": 15.0},
     {"type": "outright", "team": "Norway", "decimal_odds": 15.0},
-    {"type": "outright", "team": "Belgium", "decimal_odds": 17.0},
-    {"type": "outright", "team": "Italy", "decimal_odds": 34.0},
+    {"type": "outright", "team": "Netherlands", "decimal_odds": 15.0},
+    {"type": "outright", "team": "Belgium", "decimal_odds": 15.0},
+    {"type": "outright", "team": "Croatia", "decimal_odds": 41.0},
+    {"type": "outright", "team": "Italy", "decimal_odds": 51.0},
     {"type": "outright", "team": "Denmark", "decimal_odds": 67.0},
-    {"type": "outright", "team": "Croatia", "decimal_odds": 67.0},
     {"type": "outright", "team": "Serbia", "decimal_odds": 151.0},
+    {"type": "outright", "team": "Greece", "decimal_odds": 101.0},
+    {"type": "outright", "team": "Türkiye", "decimal_odds": 201.0},
 ]
 
 
