@@ -282,7 +282,8 @@ def simulate_league_a_knockouts(
     the exact reach-Finals-Four percentages shouldn't be read as precise.
 
     Returns a DataFrame indexed by team with columns reached_qf (exact,
-    = P(top 2 in own group)), reached_finals_four, won_competition.
+    = P(top 2 in own group)), reached_finals_four, reached_final,
+    won_competition.
     """
     group_names = list(group_probs.keys())
     all_teams = [t for g in group_names for t in group_probs[g].index]
@@ -290,6 +291,7 @@ def simulate_league_a_knockouts(
 
     reached_qf = {t: 0.0 for t in all_teams}
     reached_ff = {t: 0 for t in all_teams}
+    reached_final = {t: 0 for t in all_teams}
     won = {t: 0 for t in all_teams}
 
     for g in group_names:
@@ -372,6 +374,8 @@ def simulate_league_a_knockouts(
         rng.shuffle(qf_winners)
         f1 = _play_single_leg(qf_winners[0], qf_winners[1])
         f2 = _play_single_leg(qf_winners[2], qf_winners[3])
+        reached_final[f1] += 1
+        reached_final[f2] += 1
         won[_play_single_leg(f1, f2)] += 1
 
     rows = [
@@ -379,11 +383,14 @@ def simulate_league_a_knockouts(
             "team": t,
             "reached_qf": reached_qf[t],
             "reached_finals_four": reached_ff[t] / n_sim,
+            "reached_final": reached_final[t] / n_sim,
             "won_competition": won[t] / n_sim,
         }
         for t in all_teams
     ]
-    df = _sort_cascade(pd.DataFrame(rows), ["won_competition", "reached_finals_four", "reached_qf"])
+    df = _sort_cascade(
+        pd.DataFrame(rows), ["won_competition", "reached_final", "reached_finals_four", "reached_qf"],
+    )
     return df.set_index("team")
 
 

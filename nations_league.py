@@ -708,6 +708,7 @@ with knockout_chances_tab:
             "Team": team,
             "Quarterfinals": round(r["reached_qf"] * 100, 1),
             "Semifinals": round(r["reached_finals_four"] * 100, 1),
+            "Finals": round(r["reached_final"] * 100, 1),
             "Winner": round(r["won_competition"] * 100, 1),
         })
     ko_df = pd.DataFrame(ko_rows)
@@ -716,6 +717,7 @@ with knockout_chances_tab:
         "Team": st.column_config.TextColumn("Team", width="medium"),
         "Quarterfinals": st.column_config.NumberColumn("Quarterfinals", format="%.1f%%", width="small"),
         "Semifinals": st.column_config.NumberColumn("Semifinals", format="%.1f%%", width="small"),
+        "Finals": st.column_config.NumberColumn("Finals", format="%.1f%%", width="small"),
         "Winner": st.column_config.NumberColumn("Winner", format="%.1f%%", width="small"),
     }
     st.dataframe(
