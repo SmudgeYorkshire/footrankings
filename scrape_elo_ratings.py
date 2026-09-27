@@ -29,6 +29,15 @@ TEAMS_URL = "https://eloratings.net/en.teams.tsv"
 WORLD_URL = "https://eloratings.net/World.tsv"
 OUT_PATH = "ratings/nations_league_elo.csv"
 
+# Sanity floor for main(): eloratings.net returning a 200 with an empty or
+# malformed TSV body (no HTTPError to catch) rather than raising -- as
+# happened on the 2026-09-26 scheduled run, which silently committed a
+# header-only CSV -- would otherwise wipe out every simulation's ratings
+# with no visible failure anywhere. Refusing to write below this floor
+# turns that into a loud, visible GitHub Actions failure (old, good file
+# stays in place) instead of a silent one.
+MIN_EXPECTED_RATINGS = 40
+
 # eloratings.net's own team names, only where they differ from this site's.
 _NAME_ALIASES = {
     "Republic of Ireland": "Ireland",
@@ -84,6 +93,15 @@ def fetch_nl_elo_ratings() -> dict[str, float]:
 
 def main() -> None:
     ratings = fetch_nl_elo_ratings()
+    if len(ratings) < MIN_EXPECTED_RATINGS:
+        print(
+            f"ERROR: only matched {len(ratings)}/{len(ALL_NL_TEAMS)} teams (need at least "
+            f"{MIN_EXPECTED_RATINGS}) -- eloratings.net likely returned an empty/malformed "
+            f"response. Leaving {OUT_PATH} untouched rather than overwriting it with a "
+            "near-empty file.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     with open(OUT_PATH, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["team", "alias", "opta_rating"])
