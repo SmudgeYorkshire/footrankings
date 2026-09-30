@@ -67,36 +67,33 @@ EPOCHS = 400
 # matters and is what's committed).
 # ---------------------------------------------------------------------------
 OBSERVATIONS: list[dict] = [
-    # Serbia-Netherlands, Belgium-France and Denmark-Wales pruned
-    # 2026-09-29 -- all three played (Netherlands 2-1, France 1-0,
-    # Denmark 2-0, each as their pre-match favourite), so eloratings.net's
-    # scrape already reflects them. Spain-Croatia refreshed with a
-    # kickoff-day line (today); Germany-Serbia added (upcoming 10-01).
+    # Spain-Croatia pruned 2026-09-30 -- played 2026-09-29, Spain won 4-1
+    # (Yamal brace), so eloratings.net's scrape already reflects it.
+    # Germany-Serbia refreshed with a cleaner consensus line (still
+    # upcoming, 2026-10-01).
     #
-    # 2026-09-29, sportsgambler.com (kickoff today)
-    {"type": "match", "home": "Spain", "away": "Croatia", "odds": (1.17, 7.00, 14.00)},
-    # 2026-09-29, best-price aggregate via sportytrader.com/wincomparator.com
-    {"type": "match", "home": "Germany", "away": "Serbia", "odds": (1.33, 5.50, 8.80)},
-    # 2026-09-29 07:10, bettingodds.com aggregate -- refreshed after
-    # matchday 3's results: Germany dropped hard after LOSING to Greece
-    # 0-1 (Greece itself jumped from 100/1 to 40/1), Italy improved a lot
-    # after thrashing Türkiye 4-1 (who fell to 250/1), Portugal and
-    # Denmark both improved after wins, Netherlands improved after
-    # beating Serbia (who fell to 250/1 alongside Czech Republic/Wales).
+    # 2026-09-30, sportytrader.com/wincomparator.com consensus
+    {"type": "match", "home": "Germany", "away": "Serbia", "odds": (1.25, 6.00, 10.00)},
+    # 2026-09-30 07:00, bettingodds.com aggregate -- little movement since
+    # the last refresh apart from England shortening slightly and Croatia
+    # drifting out hard after the 4-1 loss to Spain (41/1 -> 50/1); added
+    # Wales and Czech Republic, both previously untracked longshots.
     {"type": "outright", "team": "Spain", "decimal_odds": 3.75},
     {"type": "outright", "team": "France", "decimal_odds": 3.75},
-    {"type": "outright", "team": "England", "decimal_odds": 7.0},
+    {"type": "outright", "team": "England", "decimal_odds": 6.5},
     {"type": "outright", "team": "Portugal", "decimal_odds": 7.0},
     {"type": "outright", "team": "Germany", "decimal_odds": 8.0},
     {"type": "outright", "team": "Netherlands", "decimal_odds": 13.0},
     {"type": "outright", "team": "Norway", "decimal_odds": 17.0},
     {"type": "outright", "team": "Belgium", "decimal_odds": 17.0},
     {"type": "outright", "team": "Italy", "decimal_odds": 34.0},
-    {"type": "outright", "team": "Croatia", "decimal_odds": 41.0},
     {"type": "outright", "team": "Greece", "decimal_odds": 41.0},
     {"type": "outright", "team": "Denmark", "decimal_odds": 51.0},
+    {"type": "outright", "team": "Croatia", "decimal_odds": 51.0},
     {"type": "outright", "team": "Serbia", "decimal_odds": 251.0},
     {"type": "outright", "team": "Türkiye", "decimal_odds": 251.0},
+    {"type": "outright", "team": "Wales", "decimal_odds": 251.0},
+    {"type": "outright", "team": "Czechia", "decimal_odds": 501.0},
 ]
 
 
