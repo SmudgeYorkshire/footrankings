@@ -59,6 +59,13 @@ LEARNING_RATE = 15.0            # Elo points per unit of match-level error
 OUTRIGHT_LEARNING_RATE = 300.0  # Elo points per unit of outright-market error
 L2_SHRINKAGE = 0.02             # per-epoch pull toward 0, keeps sparse teams tame
 EPOCHS = 400
+# The manual workflow this was built for only ever fed a handful of
+# hand-picked marquee observations, so real runs topped out around ±40 and
+# shrinkage alone was enough. nl_odds_calibration_auto.py feeds observations
+# across the full 54-nation roster (League A through D) instead, and a
+# single noisy reading against a minnow's extreme baseline Elo can otherwise
+# swing well past ±90 -- this hard cap keeps either path bounded.
+ADJUSTMENT_CAP = 60.0
 
 # ---------------------------------------------------------------------------
 # Fill in fresh sightings here (dated + sourced) each time this is run, then
@@ -112,9 +119,15 @@ def _elo_expectancy(rating_diff: float) -> float:
     return 1.0 / (1.0 + 10 ** (-rating_diff / 400.0))
 
 
-def fit_match_adjustments(base_elo: dict[str, float], adjustments: dict[str, float]) -> dict[str, float]:
+def fit_match_adjustments(
+    base_elo: dict[str, float], adjustments: dict[str, float],
+    observations: list[dict] | None = None,
+) -> dict[str, float]:
+    """observations defaults to the module-level OBSERVATIONS (the manual
+    workflow this script was built for); nl_odds_calibration_auto.py passes
+    its own automatically-fetched list instead, reusing this exact fit."""
     adj = dict(adjustments)
-    match_obs = [o for o in OBSERVATIONS if o["type"] == "match"]
+    match_obs = [o for o in (observations if observations is not None else OBSERVATIONS) if o["type"] == "match"]
     for _ in range(EPOCHS):
         for o in match_obs:
             home, away = o["home"], o["away"]
@@ -129,12 +142,15 @@ def fit_match_adjustments(base_elo: dict[str, float], adjustments: dict[str, flo
             adj[home] = adj.get(home, 0.0) + LEARNING_RATE * error
             adj[away] = adj.get(away, 0.0) - LEARNING_RATE * error
         for t in list(adj):
-            adj[t] *= (1.0 - L2_SHRINKAGE)
+            adj[t] = max(-ADJUSTMENT_CAP, min(ADJUSTMENT_CAP, adj[t] * (1.0 - L2_SHRINKAGE)))
     return adj
 
 
-def apply_outright_adjustments(adjustments: dict[str, float], ratings_df: pd.DataFrame) -> dict[str, float]:
-    outright_obs = [o for o in OBSERVATIONS if o["type"] == "outright"]
+def apply_outright_adjustments(
+    adjustments: dict[str, float], ratings_df: pd.DataFrame,
+    observations: list[dict] | None = None,
+) -> dict[str, float]:
+    outright_obs = [o for o in (observations if observations is not None else OBSERVATIONS) if o["type"] == "outright"]
     if not outright_obs:
         return adjustments
 
@@ -167,7 +183,7 @@ def apply_outright_adjustments(adjustments: dict[str, float], ratings_df: pd.Dat
         target = (1.0 / o["decimal_odds"]) / total_implied
         model = float(ko.loc[team, "won_competition"])
         error = target - model
-        adj[team] = adj.get(team, 0.0) + OUTRIGHT_LEARNING_RATE * error
+        adj[team] = max(-ADJUSTMENT_CAP, min(ADJUSTMENT_CAP, adj.get(team, 0.0) + OUTRIGHT_LEARNING_RATE * error))
     return adj
 
 
