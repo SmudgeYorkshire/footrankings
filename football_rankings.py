@@ -475,6 +475,18 @@ def fetch_all(lid, ssn, key, league_name_=None):
     return standings, played, remaining, info
 
 
+@st.cache_data(ttl=86_400, show_spinner=False)
+def fetch_cup_name(cup_id, key) -> str | None:
+    """The cup's display name straight from its league-info metadata --
+    unlike fetch_cup_status's name (lifted off a fixture), this is available
+    even for a cup whose fixtures haven't been published for any season yet."""
+    try:
+        info = ApiFootballClient(api_key=key).get_league_info(cup_id)
+    except RuntimeError:
+        return None
+    return info.get("strLeague") or None
+
+
 @st.cache_data(ttl=3_600, show_spinner=False)
 def fetch_cup_status(cup_id, season, key):
     """Fetch a domestic cup's fixtures for its current season and reduce
@@ -651,6 +663,62 @@ def render_cup_details(cfg: dict, key: str):
         _render_one_cup(cup_id, season, ratings_df, key)
 
 
+def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str,
+                              played_all: list[dict], remaining_all: list[dict]):
+    """The 🔮 Predicted winner line (+ any already-eliminated higher-rated
+    teams flagged below it), in plain (non-caption, i.e. non-gray) text so
+    it reads as the headline fact it is rather than a footnote."""
+    pred_row, pred_status, skipped = _resolve_predicted_cup_winner(ratings_df, played_all, remaining_all)
+    pred_name = _display_team_name(pred_row)
+    state = pred_status["state"]
+
+    if state == "active":
+        side = "home" if pred_status["is_home"] else "away"
+        st.markdown(
+            f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+            f"next plays {pred_status['opponent']} ({side}) in the {pred_status['next_round']} "
+            f"on {pred_status['next_date']}. Entered this season at: {pred_status['entry_round']} "
+            f"({pred_status['entry_date']})."
+        )
+    elif state == "awaiting_draw":
+        st.markdown(
+            f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+            f"through to the next round after the {pred_status['last_round']} ({pred_status['last_date']}); "
+            f"next tie not yet drawn. Entered this season at: {pred_status['entry_round']} "
+            f"({pred_status['entry_date']})."
+        )
+    elif state == "not_entered":
+        expected = None
+        try:
+            prev_played, prev_remaining = fetch_cup_fixtures(cup_id, season - 1, key)
+            prev_status = _cup_campaign_status(_team_name_set(pred_row), prev_played, prev_remaining)
+            if prev_status["state"] != "not_entered":
+                expected = prev_status["entry_round"]
+        except RuntimeError:
+            pass
+        if expected:
+            st.markdown(
+                f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+                f"not yet entered this season; last season they entered at the {expected} stage."
+            )
+        else:
+            st.markdown(f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}).")
+    else:  # eliminated (everyone we track is out)
+        st.markdown(
+            f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+            f"lost to {pred_status['opponent']} {pred_status['score']} in the {pred_status['round']} "
+            f"({pred_status['date']})."
+        )
+
+    for skip_row, skip_status in skipped:
+        skip_name = _display_team_name(skip_row)
+        st.caption(
+            f"⚠️ {skip_name} (Opta {skip_row['opta_rating']:.1f}, higher-rated) already eliminated — "
+            f"lost to {skip_status['opponent']} {skip_status['score']} in the {skip_status['round']} "
+            f"({skip_status['date']})."
+        )
+
+
 def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str):
     try:
         cup = fetch_cup_status(cup_id, season, key)
@@ -659,15 +727,25 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
         # in the UI either way, but at least log it so it's not invisible.
         print(f"[football_rankings] WARNING: cup status fetch failed for cup {cup_id}: {e}", file=sys.stderr)
         cup = None
+
     if not cup:
+        # No fixtures published for any team yet (e.g. the French Cup this
+        # early in the season) -- the cup's name has to come from its
+        # league-info metadata instead of a fixture, but the prediction
+        # itself still works (it just falls all the way back to last
+        # season's entry round, since this season has nothing to look at).
+        st.markdown(f"##### {fetch_cup_name(cup_id, key) or 'Cup'}")
+        if not ratings_df.empty:
+            _render_predicted_winner(cup_id, season, ratings_df, key, [], [])
         st.caption("Fixtures will be released soon.")
         return
 
+    st.markdown(f"##### {cup['name']}")
     if cup["status"] == "final":
         if cup["winner"]:
             pens = f" (pens {cup['ph']}–{cup['pa']})" if cup.get("ph") is not None else ""
             st.markdown(
-                f"<small><b>{cup['name']}</b> — 🏆 <b>{cup['winner']}</b> won the Final "
+                f"<small>🏆 <b>{cup['winner']}</b> won the Final "
                 f"({cup['home']} {cup['hs']}–{cup['as']} {cup['away']}{pens}, {cup['date']})</small>",
                 unsafe_allow_html=True,
             )
@@ -681,20 +759,20 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
                     )
         else:
             st.markdown(
-                f"<small><b>{cup['name']}</b> — Final played {cup['date']}: "
+                f"<small>Final played {cup['date']}: "
                 f"{cup['home']} {cup['hs']}–{cup['as']} {cup['away']}</small>",
                 unsafe_allow_html=True,
             )
     elif cup["status"] == "upcoming":
         st.markdown(
-            f"<small><b>{cup['name']}</b> — currently in the "
+            f"<small>currently in the "
             f"<b>{cup['round']}</b> ({cup['n_matches']} match{'es' if cup['n_matches'] != 1 else ''}, "
             f"next on {cup['next_date']})</small>",
             unsafe_allow_html=True,
         )
     else:
         st.markdown(
-            f"<small><b>{cup['name']}</b> — last played round: "
+            f"<small>last played round: "
             f"<b>{cup['round']}</b> ({cup['date']})</small>",
             unsafe_allow_html=True,
         )
@@ -704,55 +782,7 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
             played_all, remaining_all = fetch_cup_fixtures(cup_id, season, key)
         except RuntimeError:
             played_all, remaining_all = [], []
-        pred_row, pred_status, skipped = _resolve_predicted_cup_winner(ratings_df, played_all, remaining_all)
-        pred_name = _display_team_name(pred_row)
-        state = pred_status["state"]
-
-        if state == "active":
-            side = "home" if pred_status["is_home"] else "away"
-            st.caption(
-                f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
-                f"next plays {pred_status['opponent']} ({side}) in the {pred_status['next_round']} "
-                f"on {pred_status['next_date']}. Entered this season at: {pred_status['entry_round']} "
-                f"({pred_status['entry_date']})."
-            )
-        elif state == "awaiting_draw":
-            st.caption(
-                f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
-                f"through to the next round after the {pred_status['last_round']} ({pred_status['last_date']}); "
-                f"next tie not yet drawn. Entered this season at: {pred_status['entry_round']} "
-                f"({pred_status['entry_date']})."
-            )
-        elif state == "not_entered":
-            expected = None
-            try:
-                prev_played, prev_remaining = fetch_cup_fixtures(cup_id, season - 1, key)
-                prev_status = _cup_campaign_status(_team_name_set(pred_row), prev_played, prev_remaining)
-                if prev_status["state"] != "not_entered":
-                    expected = prev_status["entry_round"]
-            except RuntimeError:
-                pass
-            if expected:
-                st.caption(
-                    f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
-                    f"not yet entered this season; last season they entered at the {expected} stage."
-                )
-            else:
-                st.caption(f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}).")
-        else:  # eliminated (everyone we track is out)
-            st.caption(
-                f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
-                f"lost to {pred_status['opponent']} {pred_status['score']} in the {pred_status['round']} "
-                f"({pred_status['date']})."
-            )
-
-        for skip_row, skip_status in skipped:
-            skip_name = _display_team_name(skip_row)
-            st.caption(
-                f"⚠️ {skip_name} (Opta {skip_row['opta_rating']:.1f}, higher-rated) already eliminated — "
-                f"lost to {skip_status['opponent']} {skip_status['score']} in the {skip_status['round']} "
-                f"({skip_status['date']})."
-            )
+        _render_predicted_winner(cup_id, season, ratings_df, key, played_all, remaining_all)
 
     render_cup_fixture_browser(cup_id, season, key, current_round=cup.get("round"))
 
