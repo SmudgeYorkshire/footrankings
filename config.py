@@ -458,6 +458,14 @@ LEAGUES = {
                                      },
                                      "split_round": 33, "n_champ": 6, "pts_factor": 1.0},
     "Norwegian Eliteserien":        {"id": 103, "provider": "api_football", "tsdb_id": 4358, "af_season": 2026, "cup_id": 105, "country": "Norway",      "flag": "🇳🇴", "season_type": "summer",
+                                     # API-Football files the current NM Cupen under season 2027,
+                                     # one ahead of the league's own 2026 -- querying cup_id 105
+                                     # with af_season (2026) returns 79 played/0 remaining and
+                                     # looks finished; 2027 is the real in-progress season (94
+                                     # played, 16 remaining as of 2026-10-01). Checked the other
+                                     # 11 "summer"-type leagues' cups -- none of them have this
+                                     # off-by-one, it's specific to this competition.
+                                     "cup_af_seasons": {105: 2027},
                                      "season_end": "6 December 2026",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_gf"],
                                      "home_advantage": 1.19,

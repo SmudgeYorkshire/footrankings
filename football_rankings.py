@@ -667,11 +667,16 @@ def render_cup_details(cfg: dict, key: str):
     if not cup_ids:
         st.caption("No cup data available for this competition.")
         return
-    season = cfg.get("af_season") or int(str(get_current_season(cfg["season_type"]))[:4])
+    league_season = cfg.get("af_season") or int(str(get_current_season(cfg["season_type"]))[:4])
+    cup_season_overrides = cfg.get("cup_af_seasons", {})
     ratings_df = load_ratings(cfg.get("tsdb_id", cfg["id"]), [])
     for i, cup_id in enumerate(cup_ids):
         if i:
             st.markdown("<hr style='margin:4px 0'>", unsafe_allow_html=True)
+        # A cup competition's own current season on API-Football doesn't
+        # always match the league's (see Norway's config entry) -- prefer
+        # a per-cup override when one's configured.
+        season = cup_season_overrides.get(cup_id, league_season)
         _render_one_cup(cup_id, season, ratings_df, key)
 
 
