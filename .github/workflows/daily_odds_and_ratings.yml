@@ -1,0 +1,55 @@
+name: Daily Odds Pull and Club/Nations League Ratings
+
+on:
+  schedule:
+    - cron: '7 5 * * *'   # 05:07 UTC every day (including weekends -- odds and
+                           # matches happen on weekends, unlike Opta's own
+                           # Mon-Fri scrape cadence), off the hour to avoid
+                           # the top-of-hour scheduling crowd
+  workflow_dispatch:       # allow manual "Run workflow" trigger too
+
+permissions:
+  contents: write
+
+jobs:
+  odds-and-ratings:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Pull today's odds from API-Football and The Odds API
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python fetch_daily_odds.py
+
+      - name: Log today's provider-coverage comparison
+        run: python odds_comparison_snapshot.py
+
+      - name: Fit today's odds-driven club rating adjustments
+        run: python club_rating_calibration.py
+
+      - name: Rebuild the global 0-1000 Club Power Ranking
+        run: python build_club_power_rankings.py
+
+      - name: Fit today's odds-driven Nations League rating adjustments
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python nl_odds_calibration_auto.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add odds_coverage/ ratings/club_rating_adjustments.csv club_power_rankings_1000.csv \
+                  ratings/nations_league_elo_adjustments.csv
+          git diff --staged --quiet || git commit -m "Daily odds pull and club/Nations League ratings $(date -u +%Y-%m-%d)"
+          git push

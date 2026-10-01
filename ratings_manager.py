@@ -22,13 +22,48 @@ from pathlib import Path
 
 RATINGS_DIR = Path("ratings")
 DEFAULT_OPTA = 75.0   # fallback for teams with no season data
+CLUB_ADJUSTMENTS_PATH = RATINGS_DIR / "club_rating_adjustments.csv"
 
 
-def load_ratings(league_id: int, standings: list[dict]) -> pd.DataFrame:
+def load_club_rating_adjustments() -> dict[str, float]:
+    """{team: adjustment} fit daily by club_rating_calibration.py from real
+    odds, refit from scratch each run (never accumulated) -- mirrors
+    nations_league_simulator.load_nl_rating_adjustments()'s exact pattern."""
+    try:
+        df = pd.read_csv(CLUB_ADJUSTMENTS_PATH)
+    except FileNotFoundError:
+        return {}
+    return dict(zip(df["team"], df["adjustment"]))
+
+
+def load_ratings(league_id: int, standings: list[dict], apply_adjustments: bool = True) -> pd.DataFrame:
     """
     Load Opta ratings for a league from CSV, or generate defaults from standings.
     Returns a DataFrame with columns: ['team', 'alias', 'opta_rating']
+
+    apply_adjustments=True (the default, used by every live page) overlays
+    club_rating_calibration.py's odds-fitted adjustment on top of the raw
+    CSV value. club_rating_calibration.py itself calls with
+    apply_adjustments=False to fit against the true raw baseline each run --
+    fitting against an already-adjusted value would compound indefinitely
+    instead of refitting from scratch.
     """
+    raw = _load_raw_ratings(league_id, standings)
+    if not apply_adjustments:
+        return raw
+
+    adjustments = load_club_rating_adjustments()
+    if not adjustments:
+        return raw
+    out = raw.copy()
+    out["opta_rating"] = out.apply(
+        lambda r: r["opta_rating"] + adjustments.get(r["team"], adjustments.get(str(r.get("alias", "")), 0.0)),
+        axis=1,
+    )
+    return out
+
+
+def _load_raw_ratings(league_id: int, standings: list[dict]) -> pd.DataFrame:
     RATINGS_DIR.mkdir(exist_ok=True)
     csv_path = RATINGS_DIR / f"{league_id}.csv"
 

@@ -43,6 +43,28 @@ def _normalize(name: str) -> str:
     return re.sub(r"\s+", " ", name).strip()
 
 
+def fuzzy_token_match(name: str, candidates) -> str | None:
+    """Loosest tier of name matching, shared by club_rating_calibration.py
+    and build_club_power_rankings.py: true when `name`'s normalized token
+    set is a subset of a candidate's (or vice versa) -- catches spelling
+    variants exact/normalized matching misses, e.g. "Inter Milan" ~ alias
+    "Inter", "FC Bayern" ~ "Bayern Munich", "Atalanta BC" ~ "Atalanta".
+    `candidates` is any iterable of strings; returns the first match or
+    None. Only safe to use against a small, known-relevant candidate pool
+    (a single league's ~20 teams, not the full 14,200-club global list) --
+    single-token names risk over-matching in a large, unrelated pool."""
+    name_tokens = set(_normalize(name).split())
+    if not name_tokens:
+        return None
+    for candidate in candidates:
+        if not candidate:
+            continue
+        cand_tokens = set(_normalize(candidate).split())
+        if cand_tokens and (cand_tokens <= name_tokens or name_tokens <= cand_tokens):
+            return candidate
+    return None
+
+
 def load_global_rankings() -> tuple[dict[str, list[float]], dict[str, list[float]]]:
     """Returns (exact_lookup, normalized_lookup): name -> every rating it
     maps to in the scraped data (usually one; a handful of common club
