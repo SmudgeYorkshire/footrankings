@@ -25,6 +25,7 @@ from config import (
     CACHE_TTL_FIXTURES,
     CACHE_TTL_META,
     CACHE_TTL_HISTORICAL,
+    CACHE_TTL_ODDS,
     CACHE_STALE_FALLBACK_MAX_AGE,
 )
 
@@ -255,6 +256,30 @@ class ApiFootballClient:
             (s["year"] for s in seasons if not s.get("current")),
             reverse=True,
         )
+
+    def get_odds_by_date(self, date: str, ttl: int = CACHE_TTL_ODDS) -> list[dict]:
+        """Every fixture across every league/competition (club AND national
+        team) that has at least one bookmaker's pre-match odds published for
+        the given date -- API-Football's /odds endpoint doesn't retain
+        history (see odds_coverage_snapshot.py's docstring), so this is
+        deliberately unfiltered and un-normalized: the raw per-fixture
+        {league, fixture, bookmakers} shape is handed back as-is, since
+        there's no existing flat-field convention for odds data and the
+        snapshot script wants the full bookmaker/market detail anyway."""
+        all_items: list[dict] = []
+        page = 1
+        while True:
+            data = self._cached_get(
+                "odds", {"date": date, "page": page},
+                cache_key=f"af_odds_{date}_{page}", ttl=ttl,
+            )
+            resp = (data or {}).get("response") or []
+            all_items.extend(resp)
+            paging = (data or {}).get("paging") or {}
+            if page >= (paging.get("total") or 1):
+                break
+            page += 1
+        return all_items
 
     def invalidate_cache(self, league_id: int, season):
         af_season = self._season_year(season)

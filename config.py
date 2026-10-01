@@ -718,6 +718,7 @@ CACHE_TTL_STANDINGS = 7_200     # 2 hours
 CACHE_TTL_FIXTURES = 60         # 1 minute — matches the page's own 60s auto-refresh
 CACHE_TTL_META = 86_400         # 24 hours
 CACHE_TTL_HISTORICAL = 30 * 86_400  # 30 days — completed past seasons never change
+CACHE_TTL_ODDS = 3_600          # 1 hour — odds/odds_coverage_snapshot.py's own cadence
 
 # Ceiling on how old an on-disk cache file is allowed to be when served as a
 # fallback after a failed live request. Beyond this, the failure is raised
