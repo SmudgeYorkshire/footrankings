@@ -11,7 +11,7 @@
 
 LEAGUES = {
     # ── Top 5 (pinned) ───────────────────────────────────────────────────────
-    "English Premier League":       {"id": 39, "provider": "api_football", "tsdb_id": 4328, "af_season": 2026, "cup_id": 45, "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "season_type": "winter",
+    "English Premier League":       {"id": 39, "provider": "api_football", "tsdb_id": 4328, "af_season": 2026, "cup_id": 45, "extra_cup_ids": [48], "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "season_type": "winter",
                                      "season_end": "30 May 2027",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_away_gf", "playoffs"],
                                      "home_advantage": 1.18,

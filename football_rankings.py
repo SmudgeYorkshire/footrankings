@@ -539,14 +539,119 @@ def fetch_cup_status(cup_id, season, key):
     }
 
 
+def _cup_campaign_status(team_names: set[str], played: list[dict], remaining: list[dict]) -> dict:
+    """One team's progress through a single cup season, derived purely from
+    its own fixtures (played + remaining already fetched for the whole
+    competition). Returns a dict with a "state" of:
+      - "not_entered"  — no fixture at all yet (their round hasn't been
+        drawn/published by the provider yet, common for top-flight sides
+        that enter a cup many rounds after it starts)
+      - "active"       — has an upcoming fixture
+      - "awaiting_draw"— won/advanced their last match but the next round
+        isn't drawn yet
+      - "eliminated"   — lost (normal time, or on penalties) their last match
+    "entry_round"/"entry_date" (when available) is their earliest fixture
+    this season, i.e. the phase they entered the competition at.
+    """
+    def _involves(f):
+        return f.get("strHomeTeam") in team_names or f.get("strAwayTeam") in team_names
+
+    team_played = sorted((f for f in played if _involves(f)), key=lambda f: f.get("dateEvent", ""))
+    team_remaining = sorted((f for f in remaining if _involves(f)), key=lambda f: f.get("dateEvent", ""))
+    if not team_played and not team_remaining:
+        return {"state": "not_entered"}
+
+    entry_fx = sorted(team_played + team_remaining, key=lambda f: f.get("dateEvent", ""))[0]
+    entry_round, entry_date = entry_fx.get("strRound", ""), entry_fx.get("dateEvent", "")
+
+    if team_remaining:
+        nxt = team_remaining[0]
+        is_home = nxt.get("strHomeTeam") in team_names
+        opponent = nxt.get("strAwayTeam") if is_home else nxt.get("strHomeTeam")
+        return {
+            "state": "active", "entry_round": entry_round, "entry_date": entry_date,
+            "next_round": nxt.get("strRound", ""), "next_date": nxt.get("dateEvent", ""),
+            "opponent": opponent, "is_home": is_home,
+        }
+
+    last = team_played[-1]
+    is_home = last.get("strHomeTeam") in team_names
+    hs, as_ = last.get("intHomeScore"), last.get("intAwayScore")
+    team_score, opp_score = (hs, as_) if is_home else (as_, hs)
+    lost = False
+    if team_score is not None and opp_score is not None:
+        if team_score < opp_score:
+            lost = True
+        elif team_score == opp_score:
+            # Two-legged aggregate ties aren't reconstructed here (that would
+            # need pairing up both legs) -- a single-match loss on penalties
+            # is treated as elimination, which covers single-match knockout
+            # rounds (the common case for the rounds this feature targets).
+            ph, pa = last.get("intPenaltyHome"), last.get("intPenaltyAway")
+            if ph is not None and pa is not None:
+                team_pens, opp_pens = (ph, pa) if is_home else (pa, ph)
+                lost = team_pens < opp_pens
+    opponent = last.get("strAwayTeam") if is_home else last.get("strHomeTeam")
+    if lost:
+        return {
+            "state": "eliminated", "entry_round": entry_round, "entry_date": entry_date,
+            "round": last.get("strRound", ""), "date": last.get("dateEvent", ""),
+            "opponent": opponent, "score": f"{hs}–{as_}",
+        }
+    return {
+        "state": "awaiting_draw", "entry_round": entry_round, "entry_date": entry_date,
+        "last_round": last.get("strRound", ""), "last_date": last.get("dateEvent", ""),
+    }
+
+
+def _team_name_set(row) -> set[str]:
+    return {n for n in (str(row.get("team", "")).strip(), str(row.get("alias", "")).strip()) if n}
+
+
+def _resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], remaining: list[dict]):
+    """Highest-Opta-rated team in this league that hasn't already been
+    knocked out of this season's cup, plus any higher-rated teams skipped
+    over because they're already eliminated. Returns
+    (predicted_row, predicted_status, [(skipped_row, skipped_status), ...])."""
+    ranked = ratings_df.sort_values("opta_rating", ascending=False)
+    skipped = []
+    for _, row in ranked.iterrows():
+        status = _cup_campaign_status(_team_name_set(row), played, remaining)
+        if status["state"] == "eliminated":
+            skipped.append((row, status))
+            continue
+        return row, status, skipped
+    # Everyone we track has been eliminated -- fall back to the top-rated
+    # team anyway rather than showing nothing.
+    row = ranked.iloc[0]
+    status = _cup_campaign_status(_team_name_set(row), played, remaining)
+    return row, status, skipped[1:]
+
+
+def _display_team_name(row) -> str:
+    alias = str(row.get("alias", "")).strip()
+    return alias if alias else row["team"]
+
+
 def render_cup_details(cfg: dict, key: str):
-    """Render live domestic-cup status in place of the old static prediction text."""
+    """Render live domestic-cup status (+ a self-updating winner prediction)
+    in place of the old static prediction text. Renders every cup configured
+    for this league -- "cup_id" plus any "extra_cup_ids" (England: FA Cup
+    and League Cup)."""
     st.markdown("#### 🏆 Cup Details")
-    cup_id = cfg.get("cup_id")
-    season = cfg.get("af_season") or int(str(get_current_season(cfg["season_type"]))[:4])
-    if not cup_id:
+    cup_ids = [cid for cid in [cfg.get("cup_id"), *cfg.get("extra_cup_ids", [])] if cid]
+    if not cup_ids:
         st.caption("No cup data available for this competition.")
         return
+    season = cfg.get("af_season") or int(str(get_current_season(cfg["season_type"]))[:4])
+    ratings_df = load_ratings(cfg.get("tsdb_id", cfg["id"]), [])
+    for i, cup_id in enumerate(cup_ids):
+        if i:
+            st.markdown("<hr style='margin:4px 0'>", unsafe_allow_html=True)
+        _render_one_cup(cup_id, season, ratings_df, key)
+
+
+def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str):
     try:
         cup = fetch_cup_status(cup_id, season, key)
     except RuntimeError as e:
@@ -566,6 +671,14 @@ def render_cup_details(cfg: dict, key: str):
                 f"({cup['home']} {cup['hs']}–{cup['as']} {cup['away']}{pens}, {cup['date']})</small>",
                 unsafe_allow_html=True,
             )
+            if not ratings_df.empty:
+                from update_ratings_from_opta import _normalize
+                top_row = ratings_df.sort_values("opta_rating", ascending=False).iloc[0]
+                top_name = _display_team_name(top_row)
+                if _normalize(top_name) != _normalize(cup["winner"]):
+                    st.caption(
+                        f"📊 Our predicted winner ({top_name}, highest Opta rating) didn't lift the trophy this time."
+                    )
         else:
             st.markdown(
                 f"<small><b>{cup['name']}</b> — Final played {cup['date']}: "
@@ -585,6 +698,61 @@ def render_cup_details(cfg: dict, key: str):
             f"<b>{cup['round']}</b> ({cup['date']})</small>",
             unsafe_allow_html=True,
         )
+
+    if cup["status"] != "final" and not ratings_df.empty:
+        try:
+            played_all, remaining_all = fetch_cup_fixtures(cup_id, season, key)
+        except RuntimeError:
+            played_all, remaining_all = [], []
+        pred_row, pred_status, skipped = _resolve_predicted_cup_winner(ratings_df, played_all, remaining_all)
+        pred_name = _display_team_name(pred_row)
+        state = pred_status["state"]
+
+        if state == "active":
+            side = "home" if pred_status["is_home"] else "away"
+            st.caption(
+                f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+                f"next plays {pred_status['opponent']} ({side}) in the {pred_status['next_round']} "
+                f"on {pred_status['next_date']}. Entered this season at: {pred_status['entry_round']} "
+                f"({pred_status['entry_date']})."
+            )
+        elif state == "awaiting_draw":
+            st.caption(
+                f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+                f"through to the next round after the {pred_status['last_round']} ({pred_status['last_date']}); "
+                f"next tie not yet drawn. Entered this season at: {pred_status['entry_round']} "
+                f"({pred_status['entry_date']})."
+            )
+        elif state == "not_entered":
+            expected = None
+            try:
+                prev_played, prev_remaining = fetch_cup_fixtures(cup_id, season - 1, key)
+                prev_status = _cup_campaign_status(_team_name_set(pred_row), prev_played, prev_remaining)
+                if prev_status["state"] != "not_entered":
+                    expected = prev_status["entry_round"]
+            except RuntimeError:
+                pass
+            if expected:
+                st.caption(
+                    f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+                    f"not yet entered this season; last season they entered at the {expected} stage."
+                )
+            else:
+                st.caption(f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}).")
+        else:  # eliminated (everyone we track is out)
+            st.caption(
+                f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+                f"lost to {pred_status['opponent']} {pred_status['score']} in the {pred_status['round']} "
+                f"({pred_status['date']})."
+            )
+
+        for skip_row, skip_status in skipped:
+            skip_name = _display_team_name(skip_row)
+            st.caption(
+                f"⚠️ {skip_name} (Opta {skip_row['opta_rating']:.1f}, higher-rated) already eliminated — "
+                f"lost to {skip_status['opponent']} {skip_status['score']} in the {skip_status['round']} "
+                f"({skip_status['date']})."
+            )
 
     render_cup_fixture_browser(cup_id, season, key, current_round=cup.get("round"))
 
