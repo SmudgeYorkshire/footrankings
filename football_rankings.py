@@ -66,6 +66,18 @@ _TB_LABELS = {
 }
 
 
+def _fmt_long_date(date_str: str) -> str:
+    """'2026-10-27' -> '27 October 2026'. Returns the input unchanged if it
+    doesn't parse (e.g. already blank or in some other shape)."""
+    if not date_str:
+        return date_str
+    try:
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+        return f"{dt.day} {dt.strftime('%B')} {dt.year}"
+    except ValueError:
+        return date_str
+
+
 def _utc_to_cet(date_str: str, time_str: str) -> str:
     """Convert a UTC date+time to CET/CEST. Returns 'HH:MM CET/CEST'."""
     if not date_str or not time_str or time_str.startswith("00:00"):
@@ -677,15 +689,16 @@ def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame,
         st.markdown(
             f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
             f"next plays {pred_status['opponent']} ({side}) in the {pred_status['next_round']} "
-            f"on {pred_status['next_date']}. Entered this season at: {pred_status['entry_round']} "
-            f"({pred_status['entry_date']})."
+            f"on {_fmt_long_date(pred_status['next_date'])}. Entered this season at: {pred_status['entry_round']} "
+            f"({_fmt_long_date(pred_status['entry_date'])})."
         )
     elif state == "awaiting_draw":
         st.markdown(
             f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
-            f"through to the next round after the {pred_status['last_round']} ({pred_status['last_date']}); "
+            f"through to the next round after the {pred_status['last_round']} "
+            f"({_fmt_long_date(pred_status['last_date'])}); "
             f"next tie not yet drawn. Entered this season at: {pred_status['entry_round']} "
-            f"({pred_status['entry_date']})."
+            f"({_fmt_long_date(pred_status['entry_date'])})."
         )
     elif state == "not_entered":
         expected = None
@@ -707,15 +720,15 @@ def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame,
         st.markdown(
             f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
             f"lost to {pred_status['opponent']} {pred_status['score']} in the {pred_status['round']} "
-            f"({pred_status['date']})."
+            f"({_fmt_long_date(pred_status['date'])})."
         )
 
     for skip_row, skip_status in skipped:
         skip_name = _display_team_name(skip_row)
-        st.caption(
+        st.markdown(
             f"⚠️ {skip_name} (Opta {skip_row['opta_rating']:.1f}, higher-rated) already eliminated — "
             f"lost to {skip_status['opponent']} {skip_status['score']} in the {skip_status['round']} "
-            f"({skip_status['date']})."
+            f"({_fmt_long_date(skip_status['date'])})."
         )
 
 
@@ -737,7 +750,7 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
         st.markdown(f"##### {fetch_cup_name(cup_id, key) or 'Cup'}")
         if not ratings_df.empty:
             _render_predicted_winner(cup_id, season, ratings_df, key, [], [])
-        st.caption("Fixtures will be released soon.")
+        st.markdown("📅 Fixtures will be released soon.")
         return
 
     st.markdown(f"##### {cup['name']}")
@@ -745,9 +758,8 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
         if cup["winner"]:
             pens = f" (pens {cup['ph']}–{cup['pa']})" if cup.get("ph") is not None else ""
             st.markdown(
-                f"<small>🏆 <b>{cup['winner']}</b> won the Final "
-                f"({cup['home']} {cup['hs']}–{cup['as']} {cup['away']}{pens}, {cup['date']})</small>",
-                unsafe_allow_html=True,
+                f"🏆 **{cup['winner']}** won the Final "
+                f"({cup['home']} {cup['hs']}–{cup['as']} {cup['away']}{pens}, {_fmt_long_date(cup['date'])})"
             )
             if not ratings_df.empty:
                 from update_ratings_from_opta import _normalize
@@ -759,22 +771,19 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
                     )
         else:
             st.markdown(
-                f"<small>Final played {cup['date']}: "
-                f"{cup['home']} {cup['hs']}–{cup['as']} {cup['away']}</small>",
-                unsafe_allow_html=True,
+                f"Final played {_fmt_long_date(cup['date'])}: "
+                f"{cup['home']} {cup['hs']}–{cup['as']} {cup['away']}"
             )
     elif cup["status"] == "upcoming":
         st.markdown(
-            f"<small>currently in the "
-            f"<b>{cup['round']}</b> ({cup['n_matches']} match{'es' if cup['n_matches'] != 1 else ''}, "
-            f"next on {cup['next_date']})</small>",
-            unsafe_allow_html=True,
+            f"🟢 Currently in the "
+            f"**{cup['round']}** ({cup['n_matches']} match{'es' if cup['n_matches'] != 1 else ''}, "
+            f"next on {_fmt_long_date(cup['next_date'])})"
         )
     else:
         st.markdown(
-            f"<small>last played round: "
-            f"<b>{cup['round']}</b> ({cup['date']})</small>",
-            unsafe_allow_html=True,
+            f"last played round: "
+            f"**{cup['round']}** ({_fmt_long_date(cup['date'])})"
         )
 
     if cup["status"] != "final" and not ratings_df.empty:
