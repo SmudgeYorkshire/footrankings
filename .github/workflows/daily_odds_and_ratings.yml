@@ -51,5 +51,15 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add odds_coverage/ ratings/club_rating_adjustments.csv club_power_rankings_1000.csv \
                   ratings/nations_league_elo_adjustments.csv
-          git diff --staged --quiet || git commit -m "Daily odds pull and club/Nations League ratings $(date -u +%Y-%m-%d)"
+          git diff --staged --quiet && exit 0
+          git commit -m "Daily odds pull and club/Nations League ratings $(date -u +%Y-%m-%d)"
+          # main can move between this job's checkout and this push (another
+          # workflow, or a manual commit) -- rebase onto the latest and retry
+          # a few times rather than failing the whole run over a plain
+          # non-fast-forward rejection.
+          for attempt in 1 2 3; do
+            git push && exit 0
+            echo "push rejected (attempt $attempt) -- rebasing onto latest main and retrying"
+            git pull --rebase origin main
+          done
           git push
