@@ -24,7 +24,8 @@ from nations_league_data import (
 )
 from nations_league_simulator import (
     load_nl_ratings, simulate_group, simulate_league_a_knockouts, simulate_league_outcomes,
-    cross_group_ranking, group_fixture_odds, group_expected_points,
+    cross_group_ranking, group_fixture_odds, group_expected_points, project_qf_entries,
+    project_playoff_entries,
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
@@ -723,6 +724,36 @@ with knockout_chances_tab:
     st.dataframe(qf_format_df, hide_index=True, use_container_width=True, height=len(qf_format_df) * 35 + 38)
 
     st.divider()
+    st.markdown("##### Projected Quarterfinals Entries")
+    st.caption(
+        "The team most likely to finish 1st and 2nd in each League A group -- i.e. if exactly these "
+        "eight nations are the ones who show up, each one's chance to prevail in the Quarterfinals, "
+        "averaged over every valid winner-vs-different-group-runner-up draw."
+    )
+    qf_entries = project_qf_entries(all_group_probs["League A"], ratings_df)
+    qf_entries_df = pd.DataFrame([
+        {
+            "Flag": _flag(r["team"]),
+            "Team": r["team"],
+            "Group": r["group"],
+            "Role": r["role"],
+            "Chance to prevail": r["prevail_pct"],
+        }
+        for _, r in qf_entries.iterrows()
+    ])
+    st.dataframe(
+        qf_entries_df,
+        column_config={
+            "Flag": st.column_config.ImageColumn("", width="small"),
+            "Team": st.column_config.TextColumn("Team", width="medium"),
+            "Group": st.column_config.TextColumn("Group", width="small"),
+            "Role": st.column_config.TextColumn("Role", width="small"),
+            "Chance to prevail": st.column_config.NumberColumn("Chance to prevail", format="%.1f%%", width="small"),
+        },
+        use_container_width=True, hide_index=True, height=len(qf_entries_df) * 35 + 38,
+    )
+
+    st.divider()
     st.markdown("##### Predictions")
     st.caption(
         "Winners will face Runners-up in the Quarterfinals, determined by a draw, and it will "
@@ -777,6 +808,57 @@ with promo_releg_tab:
     st.markdown("##### League B vs League C")
     _bracket_table("League B fourth place", "League C runner-up")
 
+    a_teams = [t for g in NL_GROUPS["League A"].values() for t in g]
+    b_teams = [t for g in NL_GROUPS["League B"].values() for t in g]
+    c_teams = [t for g in NL_GROUPS["League C"].values() for t in g]
+    a_probs = all_outcome_probs["League A"]
+    b_probs = all_outcome_probs["League B"]
+    c_probs = all_outcome_probs["League C"]
+    a_releg_pool_chance = a_probs["Promoted in Play-offs"] + a_probs["Relegated in Play-offs"]
+    b_releg_pool_chance = b_probs["Promoted in Play-offs"] + b_probs["Relegated in Play-offs"]
+    b_promo_pool_chance = b_probs["Won Promotion Play-offs"] + b_probs["Lost Promotion Play-offs"]
+    c_promo_pool_chance = c_probs["Won Promotion Play-offs"] + c_probs["Lost Promotion Play-offs"]
+
+    st.divider()
+    st.markdown("##### Projected Promotion/Relegation Entries")
+    st.caption(
+        "The four teams most likely to land in each side of a pool -- i.e. if exactly these eight "
+        "nations are the ones who show up, each one's chance to prevail in its two-legged tie, "
+        "averaged over every way UEFA's open draw could pair the two pools."
+    )
+
+    def _projected_entries_table(higher_chance, higher_label, lower_chance, lower_label):
+        entries = project_playoff_entries(higher_chance, higher_label, lower_chance, lower_label, ratings_df)
+        df = pd.DataFrame([
+            {
+                "Flag": _flag(r["team"]), "Team": r["team"], "Pool": r["pool"],
+                "Chance to prevail": r["prevail_pct"],
+            }
+            for _, r in entries.iterrows()
+        ])
+        st.dataframe(
+            df,
+            column_config={
+                "Flag": st.column_config.ImageColumn("", width="small"),
+                "Team": st.column_config.TextColumn("Team", width="medium"),
+                "Pool": st.column_config.TextColumn("Pool", width="medium"),
+                "Chance to prevail": st.column_config.NumberColumn("Chance to prevail", format="%.1f%%", width="small"),
+            },
+            use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
+        )
+
+    st.markdown("###### League A vs League B")
+    _projected_entries_table(
+        a_releg_pool_chance, "League A third place/fourth place",
+        b_promo_pool_chance, "League B runner-up",
+    )
+
+    st.markdown("###### League B vs League C")
+    _projected_entries_table(
+        b_releg_pool_chance, "League B fourth place",
+        c_promo_pool_chance, "League C runner-up",
+    )
+
     st.divider()
     st.markdown("##### Chances of reaching each play-off pool")
 
@@ -797,17 +879,6 @@ with promo_releg_tab:
                 },
                 use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
             )
-
-    a_teams = [t for g in NL_GROUPS["League A"].values() for t in g]
-    b_teams = [t for g in NL_GROUPS["League B"].values() for t in g]
-    c_teams = [t for g in NL_GROUPS["League C"].values() for t in g]
-    a_probs = all_outcome_probs["League A"]
-    b_probs = all_outcome_probs["League B"]
-    c_probs = all_outcome_probs["League C"]
-    a_releg_pool_chance = a_probs["Promoted in Play-offs"] + a_probs["Relegated in Play-offs"]
-    b_releg_pool_chance = b_probs["Promoted in Play-offs"] + b_probs["Relegated in Play-offs"]
-    b_promo_pool_chance = b_probs["Won Promotion Play-offs"] + b_probs["Lost Promotion Play-offs"]
-    c_promo_pool_chance = c_probs["Won Promotion Play-offs"] + c_probs["Lost Promotion Play-offs"]
 
     _role_chances("League A third place/fourth place", a_teams, a_releg_pool_chance)
     _role_chances("League B runner-up", b_teams, b_promo_pool_chance)

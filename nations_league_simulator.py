@@ -17,6 +17,7 @@ Two things ARE specific to international football and handled here:
     and fixture_odds directly.
 """
 
+import itertools
 import random
 
 import numpy as np
@@ -392,6 +393,127 @@ def simulate_league_a_knockouts(
         pd.DataFrame(rows), ["won_competition", "reached_final", "reached_finals_four", "reached_qf"],
     )
     return df.set_index("team")
+
+
+def project_qf_entries(
+    group_probs: dict[str, pd.DataFrame],
+    ratings_df: pd.DataFrame,
+    home_advantage: float = 1.05,
+) -> pd.DataFrame:
+    """The single most-likely team to finish 1st and 2nd in each League A
+    group (8 teams total -- "if these are exactly who shows up"), each
+    one's chance to win its quarter-final averaged over every valid draw.
+
+    Distinct from simulate_league_a_knockouts' reached_finals_four: that
+    figure also carries the group-stage uncertainty over WHICH 8 teams
+    make it that far at all, so a team overwhelmingly likely to finish
+    1st can still show a modest reached_finals_four just from upset risk
+    earlier on. This instead fixes the 8 entrants as given and only asks
+    who's favoured in the quarter-final itself -- the number a reader
+    comparing it to the "Group runner-up vs Group winner" format table
+    actually wants.
+
+    The real draw pairs each group's winner against a runner-up from a
+    DIFFERENT group (never their own), chosen after the group stage --
+    every such pairing (a derangement of the 4 groups) is equally likely,
+    so each team's quarter-final win probability is averaged across all
+    nine valid derangements rather than assuming one fixed bracket.
+    """
+    group_names = list(group_probs.keys())
+    winners: dict[str, str] = {}
+    runners_up: dict[str, str] = {}
+    for g in group_names:
+        p = group_probs[g]
+        winners[g] = p["1"].astype(float).idxmax()
+        runner_up_candidates = p.drop(index=winners[g])
+        runners_up[g] = runner_up_candidates["2"].astype(float).idxmax()
+
+    all_teams = list(winners.values()) + list(runners_up.values())
+    ko_ratings = _scoped_attack_defense(all_teams, ratings_df, k=KNOCKOUT_K)
+    ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
+
+    n = len(group_names)
+    derangements = [
+        sigma for sigma in itertools.permutations(range(n))
+        if all(sigma[i] != i for i in range(n))
+    ]
+
+    prevail_sum = {t: 0.0 for t in all_teams}
+    for sigma in derangements:
+        for i, g in enumerate(group_names):
+            home, away = winners[g], runners_up[group_names[sigma[i]]]
+            adv = two_leg_advance_odds(
+                home, away, ko_ratings,
+                home_advantage_team1=ha_pairs.get((home, away), home_advantage),
+                home_advantage_team2=ha_pairs.get((away, home), home_advantage),
+            )
+            prevail_sum[home] += adv["team1_adv"]
+            prevail_sum[away] += adv["team2_adv"]
+
+    n_deal = len(derangements)
+    rows = []
+    for g in group_names:
+        rows.append({"team": winners[g], "group": g, "role": "Winner",
+                     "prevail_pct": round(prevail_sum[winners[g]] / n_deal * 100, 1)})
+        rows.append({"team": runners_up[g], "group": g, "role": "Runner-up",
+                     "prevail_pct": round(prevail_sum[runners_up[g]] / n_deal * 100, 1)})
+    return pd.DataFrame(rows).sort_values("prevail_pct", ascending=False).reset_index(drop=True)
+
+
+def project_playoff_entries(
+    higher_chances: pd.Series,
+    higher_label: str,
+    lower_chances: pd.Series,
+    lower_label: str,
+    ratings_df: pd.DataFrame,
+    home_advantage: float = 1.05,
+) -> pd.DataFrame:
+    """The four teams most likely to land in each side of one promotion/
+    relegation play-off pool (eight entries total) -- same "if exactly
+    these eight show up" approach as project_qf_entries, but for the
+    cross-league ties UEFA draws for promotion/relegation rather than
+    League A's own quarter-final bracket.
+
+    higher_chances/lower_chances: each team's probability of landing in
+    that side of the pool (nations_league.py already computes these --
+    e.g. "League A third place/fourth place" or "League B runner-up" --
+    as the sum of simulate_league_outcomes' win/lose play-off labels);
+    higher_label/lower_label just annotate which pool a row came from.
+    The higher side is the one with something to defend (home in leg 1).
+
+    Unlike the Quarterfinals draw there's no same-group exclusion to
+    apply -- the two sides are always from different leagues, so all
+    4x4=24 ways to pair them are equally likely, not just a derangement
+    subset.
+    """
+    higher_teams = higher_chances.sort_values(ascending=False).head(4).index.tolist()
+    lower_teams = lower_chances.sort_values(ascending=False).head(4).index.tolist()
+
+    all_teams = higher_teams + lower_teams
+    ko_ratings = _scoped_attack_defense(all_teams, ratings_df, k=KNOCKOUT_K)
+    ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
+
+    prevail_sum = {t: 0.0 for t in all_teams}
+    pairings = list(itertools.permutations(lower_teams))
+    for perm in pairings:
+        for home, away in zip(higher_teams, perm):
+            adv = two_leg_advance_odds(
+                home, away, ko_ratings,
+                home_advantage_team1=ha_pairs.get((home, away), home_advantage),
+                home_advantage_team2=ha_pairs.get((away, home), home_advantage),
+            )
+            prevail_sum[home] += adv["team1_adv"]
+            prevail_sum[away] += adv["team2_adv"]
+
+    n_deal = len(pairings)
+    rows = [
+        {"team": t, "pool": higher_label, "prevail_pct": round(prevail_sum[t] / n_deal * 100, 1)}
+        for t in higher_teams
+    ] + [
+        {"team": t, "pool": lower_label, "prevail_pct": round(prevail_sum[t] / n_deal * 100, 1)}
+        for t in lower_teams
+    ]
+    return pd.DataFrame(rows).sort_values("prevail_pct", ascending=False).reset_index(drop=True)
 
 
 # UEFA's own criteria for ranking one finishing position's four (or
