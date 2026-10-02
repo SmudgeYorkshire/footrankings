@@ -523,7 +523,7 @@ def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict]
 
 
 league_names = list(NL_GROUPS.keys())
-top_tabs = st.tabs(league_names + ["🔀 Promotion & Relegation", "🏆 Knockout Chances", "📜 Rules"])
+top_tabs = st.tabs(league_names + ["🔀 Promotion & Relegation", "🏆 Knockouts", "📜 Rules"])
 league_tabs = top_tabs[:len(league_names)]
 promo_releg_tab = top_tabs[-3]
 knockout_chances_tab = top_tabs[-2]
@@ -708,7 +708,22 @@ for league_tab, league_name in zip(league_tabs, league_names):
             _render_outcome_predictions(all_league_teams, outcome_probs, league_name)
 
 with knockout_chances_tab:
-    st.markdown("#### Knockout Chances")
+    st.markdown("#### Knockouts")
+
+    st.markdown("##### Quarter-finals format")
+    st.caption(
+        "The draw for the quarter-finals is held after the league phase, pairing each League A "
+        "group winner with a runner-up from a different group. Legs played 25–27 Mar and 28–30 Mar 2027."
+    )
+    qf_format_df = pd.DataFrame(
+        [{"Team 1": "Group runner-up", "Agg.": "", "Team 2": "Group winner",
+          "1st leg": "25–27 Mar", "2nd leg": "28–30 Mar"}
+         for _ in range(4)]
+    )
+    st.dataframe(qf_format_df, hide_index=True, use_container_width=True, height=len(qf_format_df) * 35 + 38)
+
+    st.divider()
+    st.markdown("##### Predictions")
     st.caption(
         "Winners will face Runners-up in the Quarterfinals, determined by a draw, and it will "
         "be an open draw for the Semifinals without seeding."
