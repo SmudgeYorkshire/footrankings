@@ -736,7 +736,13 @@ LEAGUES_TIER2 = {
     # Originally skipped for that reason; added as two separate entries
     # instead of picking one arbitrarily, per user request.
     "Bosnia - 1st League - FBiH": {"id": 316, "provider": "api_football", "tsdb_id": 20050, "af_season": 2026, "country": "Bosnia", "flag": "🇧🇦", "season_type": "winter", "home_advantage": 1.47, "tiebreakers": ["gd", "gf"]},
-    "Bosnia - 1st League - RS": {"id": 317, "provider": "api_football", "tsdb_id": 20051, "af_season": 2026, "country": "Bosnia", "flag": "🇧🇦", "season_type": "winter", "home_advantage": 1.47, "tiebreakers": ["gd", "gf"]},
+    # 14 teams, double round-robin (26 rounds) regular season, then splits
+    # into a top-6 Play-offs group and a bottom-8 Play-outs group -- same
+    # split_round/n_champ shape as e.g. Cypriot First Division (also 14
+    # teams, split at round 26, n_champ 6), just with no middle group.
+    # pts_factor 1.0 (full carry-over, not halved) -- unverified against a
+    # primary source for this specific league, flag if wrong.
+    "Bosnia - 1st League - RS": {"id": 317, "provider": "api_football", "tsdb_id": 20051, "af_season": 2026, "country": "Bosnia", "flag": "🇧🇦", "season_type": "winter", "home_advantage": 1.47, "tiebreakers": ["gd", "gf"], "split_round": 26, "n_champ": 6, "pts_factor": 1.0},
 }
 
 
