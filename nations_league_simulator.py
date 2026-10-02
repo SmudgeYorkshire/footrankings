@@ -460,6 +460,41 @@ def project_qf_entries(
     return pd.DataFrame(rows).sort_values("prevail_pct", ascending=False).reset_index(drop=True)
 
 
+def _average_pairing_prevail(
+    higher_teams: list[str],
+    lower_teams: list[str],
+    ratings_df: pd.DataFrame,
+    home_advantage: float,
+) -> dict[str, float]:
+    """Each of 4 higher-side teams' and 4 lower-side teams' probability of
+    winning its two-legged tie, averaged over all 4x4=24 ways an open,
+    unseeded draw could pair the two sides (no same-group exclusion --
+    unlike the Quarterfinals derangement, the two sides are always from
+    different leagues, so every pairing is equally likely). The higher
+    side is the one with something to defend (home in leg 1). Shared by
+    project_playoff_entries (which picks its 4+4 from two chance Series)
+    and project_2028_composition (which already knows exactly which 4+4
+    teams it means and must keep them disjoint from its other buckets)."""
+    all_teams = higher_teams + lower_teams
+    ko_ratings = _scoped_attack_defense(all_teams, ratings_df, k=KNOCKOUT_K)
+    ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
+
+    prevail_sum = {t: 0.0 for t in all_teams}
+    pairings = list(itertools.permutations(lower_teams))
+    for perm in pairings:
+        for home, away in zip(higher_teams, perm):
+            adv = two_leg_advance_odds(
+                home, away, ko_ratings,
+                home_advantage_team1=ha_pairs.get((home, away), home_advantage),
+                home_advantage_team2=ha_pairs.get((away, home), home_advantage),
+            )
+            prevail_sum[home] += adv["team1_adv"]
+            prevail_sum[away] += adv["team2_adv"]
+
+    n_deal = len(pairings)
+    return {t: round(prevail_sum[t] / n_deal * 100, 1) for t in all_teams}
+
+
 def project_playoff_entries(
     higher_chances: pd.Series,
     higher_label: str,
@@ -479,41 +514,142 @@ def project_playoff_entries(
     e.g. "League A third place/fourth place" or "League B runner-up" --
     as the sum of simulate_league_outcomes' win/lose play-off labels);
     higher_label/lower_label just annotate which pool a row came from.
-    The higher side is the one with something to defend (home in leg 1).
-
-    Unlike the Quarterfinals draw there's no same-group exclusion to
-    apply -- the two sides are always from different leagues, so all
-    4x4=24 ways to pair them are equally likely, not just a derangement
-    subset.
     """
     higher_teams = higher_chances.sort_values(ascending=False).head(4).index.tolist()
     lower_teams = lower_chances.sort_values(ascending=False).head(4).index.tolist()
+    prevail = _average_pairing_prevail(higher_teams, lower_teams, ratings_df, home_advantage)
 
-    all_teams = higher_teams + lower_teams
-    ko_ratings = _scoped_attack_defense(all_teams, ratings_df, k=KNOCKOUT_K)
-    ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
-
-    prevail_sum = {t: 0.0 for t in all_teams}
-    pairings = list(itertools.permutations(lower_teams))
-    for perm in pairings:
-        for home, away in zip(higher_teams, perm):
-            adv = two_leg_advance_odds(
-                home, away, ko_ratings,
-                home_advantage_team1=ha_pairs.get((home, away), home_advantage),
-                home_advantage_team2=ha_pairs.get((away, home), home_advantage),
-            )
-            prevail_sum[home] += adv["team1_adv"]
-            prevail_sum[away] += adv["team2_adv"]
-
-    n_deal = len(pairings)
     rows = [
-        {"team": t, "pool": higher_label, "prevail_pct": round(prevail_sum[t] / n_deal * 100, 1)}
-        for t in higher_teams
+        {"team": t, "pool": higher_label, "prevail_pct": prevail[t]} for t in higher_teams
     ] + [
-        {"team": t, "pool": lower_label, "prevail_pct": round(prevail_sum[t] / n_deal * 100, 1)}
-        for t in lower_teams
+        {"team": t, "pool": lower_label, "prevail_pct": prevail[t]} for t in lower_teams
     ]
     return pd.DataFrame(rows).sort_values("prevail_pct", ascending=False).reset_index(drop=True)
+
+
+def _most_likely_group_order(probs: pd.DataFrame) -> list[str]:
+    """Teams in most-likely finishing order [1st, 2nd, ...], picking
+    sequentially position by position and excluding each already-picked
+    team, rather than taking each position column's independent argmax --
+    which could otherwise collide on the same heavily-favoured team for
+    two different positions in a lopsided group."""
+    remaining = list(probs.index)
+    order = []
+    for col in sorted(probs.columns, key=int):
+        pick = max(remaining, key=lambda t: float(probs.loc[t, col]))
+        order.append(pick)
+        remaining.remove(pick)
+    return order
+
+
+def project_2028_composition(
+    all_group_probs: dict[str, dict[str, pd.DataFrame]],
+    all_outcome_probs: dict[str, pd.DataFrame],
+    nl_groups: dict[str, dict[str, list[str]]],
+    ratings_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Projects every nation's 2028/29 UEFA Nations League placement from
+    the 2026/27 edition's most-likely outcomes, per UEFA's own transition
+    rules (editorial.uefa.com's "Promotion and relegation between the
+    2026/27 and 2028/29 editions" PDF): the four-league, 16/16/16/6 shape
+    becomes three leagues of 18 (League D is folded, every one of its
+    teams moving to League C regardless of position).
+
+    Point-estimate only, same spirit as project_qf_entries and
+    project_playoff_entries above -- picks the single most-likely team
+    for every slot rather than a full joint Monte Carlo across all four
+    leagues' group stages and both play-off draws at once (group finishes
+    x two separate play-off pools x cross-group rankings interacting
+    together makes that impractical for a point-in-time projection; the
+    two play-off pools' own win/lose split still comes from
+    _average_pairing_prevail's probability-weighted ordering, not a coin
+    flip, so that part of the uncertainty is still respected).
+
+    Returns a DataFrame with columns team, league ("League A"/"B"/"C"),
+    source (a short human-readable reason, e.g. "League B2 winner").
+    """
+    a_probs = all_outcome_probs["League A"]
+
+    rows: list[dict] = []
+
+    def add(team: str, league: str, source: str) -> None:
+        rows.append({"team": team, "league": league, "source": source})
+
+    # Every single-position pick below (winner/runner-up/3rd/4th, for
+    # every league) comes from this SAME pre-computed per-group order,
+    # never re-derived separately from a different marginal probability
+    # column -- that's what guarantees every bucket stays disjoint: each
+    # (group, position) pair is used in exactly one place. Re-deriving a
+    # pick from a league-wide marginal chance column instead (e.g. "which
+    # team has the single highest P(2nd) across all 16 teams") does NOT
+    # give this guarantee even though it looks like it should -- confirmed
+    # on real runs twice: a team whose group already assigned it to a
+    # different position can still top a marginal ranking drawn from
+    # another bucket's source position, double-booking it (Croatia via
+    # League A's "3rd as Top 2" vs. the play-off pool; Kosovo via League
+    # B's runner-up marginal chance vs. its own group's 3rd place).
+    a_order = {g: _most_likely_group_order(p) for g, p in all_group_probs["League A"].items()}
+    b_order = {g: _most_likely_group_order(p) for g, p in all_group_probs["League B"].items()}
+    c_order = {g: _most_likely_group_order(p) for g, p in all_group_probs["League C"].items()}
+
+    # League A quarter-finalists (8) -- stay in League A regardless of how
+    # the quarter-final itself goes.
+    for gname, order in a_order.items():
+        add(order[0], "League A", f"{gname} winner")
+        add(order[1], "League A", f"{gname} runner-up")
+
+    # League A's 3rd/4th reps (one of each per group, already disjoint)
+    # are ranked against their OWN set only for the top-2/bottom-2 split.
+    third_reps = [order[2] for order in a_order.values()]
+    fourth_reps = [order[3] for order in a_order.values()]
+    third_rank = a_probs["3rd as Top 2 nations"].reindex(third_reps).sort_values(ascending=False)
+    safe_third, playoff_third = third_rank.head(2).index.tolist(), third_rank.tail(2).index.tolist()
+    fourth_rank = a_probs["Relegation to League B"].reindex(fourth_reps).sort_values(ascending=False)
+    direct_releg_fourth, playoff_fourth = fourth_rank.head(2).index.tolist(), fourth_rank.tail(2).index.tolist()
+
+    for t in safe_third:
+        add(t, "League A", "League A 3rd-place (top 2 ranked)")
+    for t in direct_releg_fourth:
+        add(t, "League B", "League A 4th-place (bottom 2 ranked)")
+
+    # League B group winners (4) promote to League A; 3rd place (4) stay.
+    for gname, order in b_order.items():
+        add(order[0], "League A", f"League B {gname} winner")
+        add(order[2], "League B", f"League B {gname} 3rd place")
+
+    # League A/B play-off: League A's 2 worst-3rd + 2 best-4th against
+    # League B's 4 runners-up (one per group, from the pre-computed order).
+    a_playoff_pool = playoff_third + playoff_fourth
+    b_playoff_pool = [order[1] for order in b_order.values()]
+    ab_prevail = _average_pairing_prevail(a_playoff_pool, b_playoff_pool, ratings_df, home_advantage=1.05)
+    ab_ranked = sorted(a_playoff_pool + b_playoff_pool, key=lambda t: -ab_prevail[t])
+    for t in ab_ranked[:4]:
+        add(t, "League A", "Won League A/B play-off")
+    for t in ab_ranked[4:]:
+        add(t, "League B", "Lost League A/B play-off")
+
+    # League C group winners (4) promote to League B; 3rd/4th (8) stay.
+    for gname, order in c_order.items():
+        add(order[0], "League B", f"League C {gname} winner")
+        add(order[2], "League C", f"League C {gname} 3rd place")
+        add(order[3], "League C", f"League C {gname} 4th place")
+
+    # League B/C play-off: League B's 4 fourth-place teams against League
+    # C's 4 runners-up (again one per group, from the pre-computed order).
+    b_playoff_pool_releg = [order[3] for order in b_order.values()]
+    c_playoff_pool = [order[1] for order in c_order.values()]
+    bc_prevail = _average_pairing_prevail(b_playoff_pool_releg, c_playoff_pool, ratings_df, home_advantage=1.05)
+    bc_ranked = sorted(b_playoff_pool_releg + c_playoff_pool, key=lambda t: -bc_prevail[t])
+    for t in bc_ranked[:4]:
+        add(t, "League B", "Won League B/C play-off")
+    for t in bc_ranked[4:]:
+        add(t, "League C", "Lost League B/C play-off")
+
+    for gname, teams in nl_groups["League D"].items():
+        for t in teams:
+            add(t, "League C", f"League D {gname} (League D folded into League C)")
+
+    return pd.DataFrame(rows)
 
 
 # UEFA's own criteria for ranking one finishing position's four (or
