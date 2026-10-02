@@ -454,6 +454,7 @@ def simulate_league_outcomes(
     ratings_df: pd.DataFrame,
     n_sim: int = 8_000,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+    seed: int | None = None,
 ) -> tuple[pd.DataFrame, dict[str, pd.DataFrame]]:
     """Monte Carlo every team's chance of landing in each of its
     league's group-stage outcome buckets (Quarterfinals, Promotion,
@@ -487,6 +488,14 @@ def simulate_league_outcomes(
         simulation run -- so a group's own Predictions tab and this
         league's Group Stage Outcome Predictions never disagree just from
         being two independently-seeded Monte Carlo runs.
+
+    seed: pass the same int across two calls (e.g. nations_league.py's main
+    per-league call and its re-labelled "Chances of finishing 3rd or 4th"
+    detail-table call) to force identical underlying replicates, so two
+    views built from the same group_states/rules-shape but different
+    label text can't drift apart from being independently random. Left
+    None (a fresh, unseeded draw) everywhere a call doesn't need to match
+    another one.
     """
     all_teams = [t for g in group_states.values() for t in g["teams"]]
     pts = {t: np.zeros(n_sim) for t in all_teams}
@@ -494,7 +503,7 @@ def simulate_league_outcomes(
     gf = {t: np.zeros(n_sim) for t in all_teams}
     pos_counts: dict[str, dict[int, int]] = {t: {} for t in all_teams}
 
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
     phi = OVERDISPERSION
     p_nb = 1.0 / (1.0 + phi)
     default = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)

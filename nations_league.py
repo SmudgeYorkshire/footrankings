@@ -11,6 +11,7 @@ the same "real results + simulate the rest" approach used across the
 rest of this site (see european.py's League Stage Predictions).
 """
 
+import random
 from datetime import datetime
 
 import streamlit as st
@@ -537,6 +538,13 @@ for league_tab, league_name in zip(league_tabs, league_names):
         rules = LEAGUE_OUTCOME_RULES[league_name]
         ranked_rules = [r for r in rules if r[0] == "ranked"]
         all_league_teams = [t for g in groups.values() for t in g]
+        # Shared across every simulate_league_outcomes() call for this
+        # league this render pass (the main call below and the "Chances of
+        # finishing 3rd or 4th" detail-table call further down) so they're
+        # the same underlying replicates, just binned into differently
+        # labelled buckets -- not two independently-random simulations that
+        # could report slightly different numbers for the same thing.
+        league_seed = random.randint(0, 2**31 - 1)
 
         # Pre-fetch every group's real current data once -- needed both
         # for each group's own tabs below and for the league-wide outcome
@@ -560,7 +568,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
         with st.spinner("Simulating group-stage outcomes…"):
             outcome_probs, group_position_probs = simulate_league_outcomes(
                 _group_states_from(groups, league_group_standings, league_group_remaining),
-                rules, ratings_df, n_sim=8_000,
+                rules, ratings_df, n_sim=8_000, seed=league_seed,
             )
         all_outcome_probs[league_name] = outcome_probs
 
@@ -657,13 +665,20 @@ for league_tab, league_name in zip(league_tabs, league_names):
                 for r in ranked_rules:
                     _, position, n_top, label_top, n_bottom, label_bottom = r
                     ord_ = _ordinal(position)
-                    top_text = f"{ord_} place, stays in {league_name}" if position == 3 else f"{ord_} place, {label_top}"
-                    bottom_text = f"{ord_} place, {label_bottom}"
+                    if position == 3:
+                        top_text = f"Best two {ord_}-place - Stay in {league_name}"
+                        bottom_text = f"Worst two {ord_}-place - {label_bottom}"
+                    elif position == 4:
+                        top_text = f"Best two {ord_}-place - {label_top}"
+                        bottom_text = f"Worst two {ord_}-place - Relegated to League B"
+                    else:
+                        top_text = f"{ord_} place, {label_top}"
+                        bottom_text = f"{ord_} place, {label_bottom}"
                     detail_rules.append(("ranked", position, n_top, top_text, n_bottom, bottom_text))
                 with st.spinner("Simulating…"):
                     detail_probs, _ = simulate_league_outcomes(
                         _group_states_from(groups, league_group_standings, league_group_remaining),
-                        detail_rules, ratings_df, n_sim=8_000,
+                        detail_rules, ratings_df, n_sim=8_000, seed=league_seed,
                     )
                 detail_rows = []
                 for t in all_league_teams:
