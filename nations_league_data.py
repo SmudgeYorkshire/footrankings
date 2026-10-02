@@ -11,11 +11,24 @@ API-Football's actual fixture list (league id 5, season 2026) after
 nations_league_fixtures.py came up with zero real fixtures for every
 League C group -- the original Wikipedia-sourced grouping was wrong
 (e.g. it had Montenegro/Cyprus in different groups; the real schedule
-has them playing each other, along with Latvia and Armenia). League D's
-two groups' team lists were right but swapped between the D1/D2 labels;
-fixed too, though it made no functional difference (nothing here keys
-off which specific group is called D1 vs D2). Re-verify against a live
-fixture pull if UEFA ever reshuffles anything.
+has them playing each other, along with Latvia and Armenia).
+
+The C1-C4/D1-D2 LABELS (not the team groupings, which were already
+right) were then found wrong too on 2026-10-02 -- confirmed against
+API-Football's /standings endpoint, which carries UEFA's own "Group
+A/B/C/D" labels (the /fixtures endpoint used above only labels rounds by
+matchday number, not group, so it can't catch a mislabelled group on its
+own). League A and B's 1-4 labels already matched UEFA's A-D in order;
+League C's didn't (UEFA's own Group A -- Albania/Finland/Belarus/San
+Marino -- was mislabelled "C4" here instead of "C1", Group B --
+Montenegro/Armenia/Cyprus/Latvia -- was "C1" instead of "C2", and Group D
+-- Iceland/Luxembourg/Estonia/Bulgaria -- was "C2" instead of "C4"; only
+Group C/"C3" happened to already be right -- not a clean off-by-one, a
+genuine scramble) and League D's two groups were simply swapped. Re-verify
+against a live fixture or standings pull if UEFA ever reshuffles
+anything -- group LABELS now appear in user-facing text (e.g. the
+2028/29 Projections tab's "League D D1 (League D folded...)" source
+column), so a mislabelled group is a visible, not just cosmetic, bug.
 
 Group play (Sep-Nov 2026): Leagues A/B/C are 4-team groups (double
 round-robin, 6 matches/team); League D is two 3-team groups (double
@@ -64,14 +77,14 @@ NL_GROUPS: dict[str, dict[str, list[str]]] = {
         "B4": ["Poland", "Bosnia and Herzegovina", "Romania", "Sweden"],
     },
     "League C": {
-        "C1": ["Montenegro", "Cyprus", "Latvia", "Armenia"],
-        "C2": ["Iceland", "Estonia", "Luxembourg", "Bulgaria"],
+        "C1": ["Albania", "Belarus", "San Marino", "Finland"],
+        "C2": ["Montenegro", "Cyprus", "Latvia", "Armenia"],
         "C3": ["Faroe Islands", "Kazakhstan", "Moldova", "Slovakia"],
-        "C4": ["Albania", "Belarus", "San Marino", "Finland"],
+        "C4": ["Iceland", "Estonia", "Luxembourg", "Bulgaria"],
     },
     "League D": {
-        "D1": ["Azerbaijan", "Lithuania", "Liechtenstein"],
-        "D2": ["Gibraltar", "Malta", "Andorra"],
+        "D1": ["Gibraltar", "Malta", "Andorra"],
+        "D2": ["Azerbaijan", "Lithuania", "Liechtenstein"],
     },
 }
 
