@@ -50,6 +50,41 @@ from _split_season import ensure_full_roster
 
 GLOBAL_RANKINGS_PATH = "opta_power_rankings.csv"
 
+# Exact/normalized matching deliberately can't bridge a club being stored
+# under a shorter/colloquial name in the global scrape than our roster's
+# full "Club Town" name (e.g. our "Famos Vojkovići" vs Opta's "Vojkovići").
+# Confirmed via Opta's own published power-ranking list for Bosnian clubs
+# (user-supplied screenshots, 2026-10-02) that these are the same club.
+# Values are the RATING itself, not just an alias name to re-look-up --
+# several of these short names are non-unique in the global list (e.g.
+# "Sutjeska" has two entries, 66.7 and 51.7; "Rudar" has seven), and
+# _build_lookups' exact dict keeps only the highest-rated duplicate, which
+# would silently pick the wrong one. Each value below is the specific
+# rating confirmed to match this club from Opta's own Bosnia list, with
+# ambiguous siblings noted for context.
+MANUAL_RATINGS: dict[str, dict[str, float]] = {
+    "Bosnia - 1st League - RS": {
+        "Famos Vojkovići": 54.5,
+        "Velež Nevesinje": 52.4,
+        "Kozara Gradiška": 55.4,
+        "Sutjeska Foča": 51.7,  # not the 66.7 entry (likely Sutjeska Nikšić, Montenegro)
+        "FK Majevica Lopare": 56.2,
+        "Drina Zvornik": 57.6,
+        "Rudar Prijedor": 55.8,  # not Rudar Kakanj (52.8, separate FBiH club) or the other 5 "Rudar" entries worldwide
+    },
+    "Bosnia - 1st League - FBiH": {
+        "Stupčanica Olovo": 60.2,
+        "GOŠK Gabela": 59.3,
+        "Sloboda Tuzla": 59.4,  # Opta stores it as "Sloboda T"
+        "Igman Konjic": 56.7,
+        "Jedinstvo Bihać": 56.6,  # Opta stores it as "Jedinstvo B"
+        "Bratstvo Gračanica": 56.2,
+        "Zvijezda Gradačac": 55.0,  # Opta stores it as "Zvijezda G"
+        "Budućnost Banovići": 55.2,  # not the 65.9 entry (likely Budućnost Podgorica, Montenegro)
+        "Radnik Hadžići": 55.4,  # Opta stores it as "Hadžići"; not the "Radnik" entries (66-72, a different, higher-level club)
+    },
+}
+
 
 def _build_lookups(global_df: pd.DataFrame) -> tuple[dict[str, tuple[float, str]], dict[str, tuple[float, str]]]:
     """{team: (rating, team)} exact + {normalized: (rating, team)}, built
@@ -81,10 +116,12 @@ def _build_lookups(global_df: pd.DataFrame) -> tuple[dict[str, tuple[float, str]
     return exact, normalized
 
 
-def _resolve_rating(team_name: str, exact: dict, normalized: dict) -> tuple[float, str]:
-    """Returns (rating, matched_name_or_empty). Exact -> normalized only --
-    see module docstring for why fuzzy matching against this large a pool
-    is deliberately not attempted here."""
+def _resolve_rating(team_name: str, exact: dict, normalized: dict, manual: dict) -> tuple[float, str]:
+    """Returns (rating, matched_name_or_empty). Manual override -> exact ->
+    normalized only -- see module docstring for why fuzzy matching against
+    this large a pool is deliberately not attempted here."""
+    if team_name in manual:
+        return manual[team_name], team_name
     if team_name in exact:
         return exact[team_name]
     hit = normalized.get(_normalize(team_name))
@@ -112,12 +149,13 @@ def bootstrap_league(league_name: str, cfg: dict, key: str, exact: dict, normali
         print(f"  WARNING: no roster or fixtures for {league_name} yet (season not published)", file=sys.stderr)
         return
 
+    manual = MANUAL_RATINGS.get(league_name, {})
     rows, unmatched = [], []
     for team in roster:
         name = team.get("strTeam")
         if not name:
             continue
-        rating, matched = _resolve_rating(name, exact, normalized)
+        rating, matched = _resolve_rating(name, exact, normalized, manual)
         alias = matched if matched and matched != name else ""
         rows.append({"team": name, "alias": alias, "opta_rating": round(rating, 1)})
         if not matched:
