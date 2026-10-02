@@ -652,6 +652,94 @@ LEAGUES = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Second-tier (2nd division) leagues -- discovered via
+# discover_second_tier_leagues.py, which samples API-Football directly for
+# each country's second division rather than guessing names from memory.
+# 50 of 54 countries have one; the four without: Liechtenstein (no domestic
+# league at all, same reason it's absent from LEAGUES), San Marino (only one
+# division exists -- "Campionato" -- nothing below it), Gibraltar (single-
+# tier country, only "Premier Division"), Luxembourg (API-Football tracks
+# only "National Division" + "Cup" for it, no second tier despite one
+# existing in real life). Bosnia is also absent: its pyramid is split into
+# two entity-based regional leagues ("1st League - RS"/"1st League - FBiH"),
+# not one unified national 2nd tier, so there's no single right answer to
+# pick rather than an arbitrary one.
+#
+# tsdb_id (20000+) is a fresh, non-colliding range purely for the
+# ratings/{tsdb_id}.csv filename key -- unrelated to TheSportsDB, same
+# convention LEAGUES itself already uses loosely for this field.
+# home_advantage is reused from each country's own LEAGUES (top-flight)
+# entry -- it's a league-wide football-culture effect (crowd, travel),
+# not meaningfully different by division.
+#
+# Deliberately minimal compared to LEAGUES: no cup_id (the domestic cup
+# already shown on the tier-1 page covers clubs across every tier, so
+# showing it again here would be redundant, not a second thing), no
+# european_spots/zone/split-format fields (no 2nd-tier promotion/relegation
+# zone colour-coding yet -- see the "European Leagues - 2nd Tiers" project
+# notes for why that's a deliberately separate follow-up, not missing by
+# accident).
+LEAGUES_TIER2 = {
+    "Albania - 1st Division": {"id": 311, "provider": "api_football", "tsdb_id": 20000, "af_season": 2026, "country": "Albania", "flag": "🇦🇱", "season_type": "winter", "home_advantage": 1.23, "tiebreakers": ["gd", "gf"]},
+    "Armenia - First League": {"id": 343, "provider": "api_football", "tsdb_id": 20001, "af_season": 2026, "country": "Armenia", "flag": "🇦🇲", "season_type": "winter", "home_advantage": 1.42, "tiebreakers": ["gd", "gf"]},
+    "Austria - 2. Liga": {"id": 219, "provider": "api_football", "tsdb_id": 20002, "af_season": 2026, "country": "Austria", "flag": "🇦🇹", "season_type": "winter", "home_advantage": 1.1, "tiebreakers": ["gd", "gf"]},
+    "Azerbaijan - Birinci Dasta": {"id": 418, "provider": "api_football", "tsdb_id": 20003, "af_season": 2026, "country": "Azerbaijan", "flag": "🇦🇿", "season_type": "winter", "home_advantage": 1.0, "tiebreakers": ["gd", "gf"]},
+    "Belarus - 1. Division": {"id": 117, "provider": "api_football", "tsdb_id": 20004, "af_season": 2026, "country": "Belarus", "flag": "🇧🇾", "season_type": "winter", "home_advantage": 1.14, "tiebreakers": ["gd", "gf"]},
+    "Belgium - Challenger Pro League": {"id": 145, "provider": "api_football", "tsdb_id": 20005, "af_season": 2026, "country": "Belgium", "flag": "🇧🇪", "season_type": "winter", "home_advantage": 1.13, "tiebreakers": ["gd", "gf"]},
+    "Bulgaria - Second League": {"id": 173, "provider": "api_football", "tsdb_id": 20006, "af_season": 2026, "country": "Bulgaria", "flag": "🇧🇬", "season_type": "winter", "home_advantage": 1.17, "tiebreakers": ["gd", "gf"]},
+    "Croatia - First NL": {"id": 211, "provider": "api_football", "tsdb_id": 20007, "af_season": 2026, "country": "Croatia", "flag": "🇭🇷", "season_type": "winter", "home_advantage": 1.25, "tiebreakers": ["gd", "gf"]},
+    "Cyprus - 2. Division": {"id": 319, "provider": "api_football", "tsdb_id": 20008, "af_season": 2026, "country": "Cyprus", "flag": "🇨🇾", "season_type": "winter", "home_advantage": 1.25, "tiebreakers": ["gd", "gf"]},
+    "Czech Republic - FNL": {"id": 346, "provider": "api_football", "tsdb_id": 20009, "af_season": 2026, "country": "Czech Republic", "flag": "🇨🇿", "season_type": "winter", "home_advantage": 1.15, "tiebreakers": ["gd", "gf"]},
+    "Denmark - 1. Division": {"id": 120, "provider": "api_football", "tsdb_id": 20010, "af_season": 2026, "country": "Denmark", "flag": "🇩🇰", "season_type": "winter", "home_advantage": 1.12, "tiebreakers": ["gd", "gf"]},
+    "England - Championship": {"id": 40, "provider": "api_football", "tsdb_id": 20011, "af_season": 2026, "country": "England", "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "season_type": "winter", "home_advantage": 1.18, "tiebreakers": ["gd", "gf"]},
+    "Estonia - Esiliiga A": {"id": 328, "provider": "api_football", "tsdb_id": 20012, "af_season": 2026, "country": "Estonia", "flag": "🇪🇪", "season_type": "summer", "home_advantage": 1.2, "tiebreakers": ["gd", "gf"]},
+    "Faroe Islands - 1. Deild": {"id": 366, "provider": "api_football", "tsdb_id": 20013, "af_season": 2026, "country": "Faroe Islands", "flag": "🇫🇴", "season_type": "summer", "home_advantage": 1.1, "tiebreakers": ["gd", "gf"]},
+    "Finland - Ykkönen": {"id": 245, "provider": "api_football", "tsdb_id": 20014, "af_season": 2026, "country": "Finland", "flag": "🇫🇮", "season_type": "summer", "home_advantage": 1.02, "tiebreakers": ["gd", "gf"]},
+    "France - Ligue 2": {"id": 62, "provider": "api_football", "tsdb_id": 20015, "af_season": 2026, "country": "France", "flag": "🇫🇷", "season_type": "winter", "home_advantage": 1.17, "tiebreakers": ["gd", "gf"]},
+    "Georgia - Erovnuli Liga 2": {"id": 326, "provider": "api_football", "tsdb_id": 20016, "af_season": 2026, "country": "Georgia", "flag": "🇬🇪", "season_type": "summer", "home_advantage": 1.2, "tiebreakers": ["gd", "gf"]},
+    "Germany - 2. Bundesliga": {"id": 79, "provider": "api_football", "tsdb_id": 20017, "af_season": 2026, "country": "Germany", "flag": "🇩🇪", "season_type": "winter", "home_advantage": 1.15, "tiebreakers": ["gd", "gf"]},
+    "Greece - Football League": {"id": 198, "provider": "api_football", "tsdb_id": 20018, "af_season": 2026, "country": "Greece", "flag": "🇬🇷", "season_type": "winter", "home_advantage": 1.25, "tiebreakers": ["gd", "gf"]},
+    "Hungary - NB II": {"id": 272, "provider": "api_football", "tsdb_id": 20019, "af_season": 2026, "country": "Hungary", "flag": "🇭🇺", "season_type": "winter", "home_advantage": 1.01, "tiebreakers": ["gd", "gf"]},
+    "Iceland - 1. Deild": {"id": 165, "provider": "api_football", "tsdb_id": 20020, "af_season": 2026, "country": "Iceland", "flag": "🇮🇸", "season_type": "summer", "home_advantage": 1.4, "tiebreakers": ["gd", "gf"]},
+    "Ireland - First Division": {"id": 358, "provider": "api_football", "tsdb_id": 20021, "af_season": 2026, "country": "Ireland", "flag": "🇮🇪", "season_type": "summer", "home_advantage": 1.22, "tiebreakers": ["gd", "gf"]},
+    "Israel - Liga Leumit": {"id": 382, "provider": "api_football", "tsdb_id": 20022, "af_season": 2026, "country": "Israel", "flag": "🇮🇱", "season_type": "winter", "home_advantage": 1.05, "tiebreakers": ["gd", "gf"]},
+    "Italy - Serie B": {"id": 136, "provider": "api_football", "tsdb_id": 20023, "af_season": 2026, "country": "Italy", "flag": "🇮🇹", "season_type": "winter", "home_advantage": 1.16, "tiebreakers": ["gd", "gf"]},
+    "Kazakhstan - 1. Division": {"id": 388, "provider": "api_football", "tsdb_id": 20024, "af_season": 2026, "country": "Kazakhstan", "flag": "🇰🇿", "season_type": "summer", "home_advantage": 1.27, "tiebreakers": ["gd", "gf"]},
+    "Kosovo - Liga E Pare": {"id": 1195, "provider": "api_football", "tsdb_id": 20025, "af_season": 2026, "country": "Kosovo", "flag": "🇽🇰", "season_type": "winter", "home_advantage": 1.07, "tiebreakers": ["gd", "gf"]},
+    "Latvia - 1. Liga": {"id": 364, "provider": "api_football", "tsdb_id": 20026, "af_season": 2026, "country": "Latvia", "flag": "🇱🇻", "season_type": "summer", "home_advantage": 1.07, "tiebreakers": ["gd", "gf"]},
+    "Lithuania - 1 Lyga": {"id": 361, "provider": "api_football", "tsdb_id": 20027, "af_season": 2026, "country": "Lithuania", "flag": "🇱🇹", "season_type": "summer", "home_advantage": 1.17, "tiebreakers": ["gd", "gf"]},
+    "Macedonia - Second League": {"id": 372, "provider": "api_football", "tsdb_id": 20028, "af_season": 2026, "country": "Macedonia", "flag": "🇲🇰", "season_type": "winter", "home_advantage": 1.22, "tiebreakers": ["gd", "gf"]},
+    "Malta - Challenge League": {"id": 392, "provider": "api_football", "tsdb_id": 20029, "af_season": 2026, "country": "Malta", "flag": "🇲🇹", "season_type": "winter", "home_advantage": 1.18, "tiebreakers": ["gd", "gf"]},
+    "Moldova - Liga 1": {"id": 395, "provider": "api_football", "tsdb_id": 20030, "af_season": 2026, "country": "Moldova", "flag": "🇲🇩", "season_type": "winter", "home_advantage": 1.03, "tiebreakers": ["gd", "gf"]},
+    "Montenegro - Second League": {"id": 356, "provider": "api_football", "tsdb_id": 20031, "af_season": 2026, "country": "Montenegro", "flag": "🇲🇪", "season_type": "winter", "home_advantage": 1.47, "tiebreakers": ["gd", "gf"]},
+    "Netherlands - Eerste Divisie": {"id": 89, "provider": "api_football", "tsdb_id": 20032, "af_season": 2026, "country": "Netherlands", "flag": "🇳🇱", "season_type": "winter", "home_advantage": 1.24, "tiebreakers": ["gd", "gf"]},
+    "Northern Ireland - Championship": {"id": 407, "provider": "api_football", "tsdb_id": 20033, "af_season": 2026, "country": "Northern Ireland", "flag": "🇬🇧", "season_type": "winter", "home_advantage": 1.2, "tiebreakers": ["gd", "gf"]},
+    "Norway - 1. Division": {"id": 104, "provider": "api_football", "tsdb_id": 20034, "af_season": 2026, "country": "Norway", "flag": "🇳🇴", "season_type": "summer", "home_advantage": 1.19, "tiebreakers": ["gd", "gf"]},
+    "Poland - I Liga": {"id": 107, "provider": "api_football", "tsdb_id": 20035, "af_season": 2026, "country": "Poland", "flag": "🇵🇱", "season_type": "winter", "home_advantage": 1.33, "tiebreakers": ["gd", "gf"]},
+    "Portugal - Segunda Liga": {"id": 95, "provider": "api_football", "tsdb_id": 20036, "af_season": 2026, "country": "Portugal", "flag": "🇵🇹", "season_type": "winter", "home_advantage": 1.3, "tiebreakers": ["gd", "gf"]},
+    "Romania - Liga II": {"id": 284, "provider": "api_football", "tsdb_id": 20037, "af_season": 2026, "country": "Romania", "flag": "🇷🇴", "season_type": "winter", "home_advantage": 1.24, "tiebreakers": ["gd", "gf"]},
+    "Russia - First League": {"id": 236, "provider": "api_football", "tsdb_id": 20038, "af_season": 2026, "country": "Russia", "flag": "🇷🇺", "season_type": "winter", "home_advantage": 1.38, "tiebreakers": ["gd", "gf"]},
+    "Scotland - Championship": {"id": 180, "provider": "api_football", "tsdb_id": 20039, "af_season": 2026, "country": "Scotland", "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "season_type": "winter", "home_advantage": 1.35, "tiebreakers": ["gd", "gf"]},
+    "Serbia - Prva Liga": {"id": 287, "provider": "api_football", "tsdb_id": 20040, "af_season": 2026, "country": "Serbia", "flag": "🇷🇸", "season_type": "winter", "home_advantage": 1.28, "tiebreakers": ["gd", "gf"]},
+    "Slovakia - 2. liga": {"id": 506, "provider": "api_football", "tsdb_id": 20041, "af_season": 2026, "country": "Slovakia", "flag": "🇸🇰", "season_type": "winter", "home_advantage": 1.07, "tiebreakers": ["gd", "gf"]},
+    "Slovenia - 2. SNL": {"id": 374, "provider": "api_football", "tsdb_id": 20042, "af_season": 2026, "country": "Slovenia", "flag": "🇸🇮", "season_type": "winter", "home_advantage": 1.2, "tiebreakers": ["gd", "gf"]},
+    "Spain - Segunda División": {"id": 141, "provider": "api_football", "tsdb_id": 20043, "af_season": 2026, "country": "Spain", "flag": "🇪🇸", "season_type": "winter", "home_advantage": 1.16, "tiebreakers": ["gd", "gf"]},
+    "Sweden - Superettan": {"id": 114, "provider": "api_football", "tsdb_id": 20044, "af_season": 2026, "country": "Sweden", "flag": "🇸🇪", "season_type": "summer", "home_advantage": 1.02, "tiebreakers": ["gd", "gf"]},
+    "Switzerland - Challenge League": {"id": 208, "provider": "api_football", "tsdb_id": 20045, "af_season": 2026, "country": "Switzerland", "flag": "🇨🇭", "season_type": "winter", "home_advantage": 1.19, "tiebreakers": ["gd", "gf"]},
+    "Turkey - 1. Lig": {"id": 204, "provider": "api_football", "tsdb_id": 20046, "af_season": 2026, "country": "Turkey", "flag": "🇹🇷", "season_type": "winter", "home_advantage": 1.1, "tiebreakers": ["gd", "gf"]},
+    "Ukraine - Persha Liga": {"id": 334, "provider": "api_football", "tsdb_id": 20047, "af_season": 2026, "country": "Ukraine", "flag": "🇺🇦", "season_type": "winter", "home_advantage": 1.2, "tiebreakers": ["gd", "gf"]},
+    "Wales - FAW Championship": {"id": 111, "provider": "api_football", "tsdb_id": 20048, "af_season": 2026, "country": "Wales", "flag": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "season_type": "winter", "home_advantage": 1.06, "tiebreakers": ["gd", "gf"]},
+    "Andorra - 2a Divisió": {"id": 313, "provider": "api_football", "tsdb_id": 20049, "af_season": 2026, "country": "Andorra", "flag": "🇦🇩", "season_type": "winter", "home_advantage": 1.28, "tiebreakers": ["gd", "gf"]},
+    # Bosnia's pyramid has no single unified 2nd tier -- it splits into two
+    # entity-based regional leagues below the national Premijer Liga.
+    # Originally skipped for that reason; added as two separate entries
+    # instead of picking one arbitrarily, per user request.
+    "Bosnia - 1st League - FBiH": {"id": 316, "provider": "api_football", "tsdb_id": 20050, "af_season": 2026, "country": "Bosnia", "flag": "🇧🇦", "season_type": "winter", "home_advantage": 1.47, "tiebreakers": ["gd", "gf"]},
+    "Bosnia - 1st League - RS": {"id": 317, "provider": "api_football", "tsdb_id": 20051, "af_season": 2026, "country": "Bosnia", "flag": "🇧🇦", "season_type": "winter", "home_advantage": 1.47, "tiebreakers": ["gd", "gf"]},
+}
+
+
 def get_current_season(season_type: str) -> str:
     """
     Return the season string currently active (fallback when a league has no

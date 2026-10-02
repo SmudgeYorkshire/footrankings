@@ -12,7 +12,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
+from config import LEAGUES_TIER2 as LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
 from api_football_fetcher import ApiFootballClient
 from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff
 from ratings_manager import load_ratings, check_coverage
@@ -27,7 +27,7 @@ _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 # by country), shared with opta_rankings.py via league_display.py so every
 # page's league dropdown looks and sorts the same way.
 # ---------------------------------------------------------------------------
-from league_display import DROPDOWN_LABELS as _DROPDOWN_LABELS, DROPDOWN_ORDER as _DROPDOWN_ORDER
+from league_display_tier2 import DROPDOWN_LABELS as _DROPDOWN_LABELS, DROPDOWN_ORDER as _DROPDOWN_ORDER
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -436,7 +436,7 @@ with st.sidebar:
         _auth.logout("Logout", location="sidebar")
     st.divider()
     league_name = st.selectbox(
-        "European Leagues",
+        "European Leagues - 2nd Tiers",
         options=_DROPDOWN_ORDER,
         format_func=lambda n: _DROPDOWN_LABELS.get(n, n),
     )
@@ -480,12 +480,9 @@ def fetch_all(lid, ssn, key, league_name_=None):
     # match results by anywhere from minutes to hours; the roster (team
     # names + badges) is all we take from it. The roster endpoint has also
     # been observed to only list teams that have already played early in a
-    # season (sometimes none at all) -- always pad out from the fixture
-    # list rather than only when roster is already non-empty, which would
-    # skip exactly the case that needs it (found via the tier-2 page's
-    # Bosnia "1st League - RS", which has 0 standings rows but 56+ played
-    # fixtures; same bug existed here, just never triggered by any of the
-    # 54 tracked top-flight leagues).
+    # season (sometimes none at all, e.g. Bosnia's "1st League - RS") --
+    # always pad out from the fixture list rather than only when roster is
+    # already non-empty, which skipped exactly the case that needed it.
     roster = ensure_full_roster(roster, played + remaining)
     tiebreakers = LEAGUES.get(league_name_, {}).get("tiebreakers")
     standings = compute_full_standings(roster, played, tiebreakers=tiebreakers) if roster else roster
@@ -1274,9 +1271,6 @@ def main_content():
             if any(str(v).endswith("*") for v in (_champ_zones or {}).values()):
                 st.caption(_UECL_PO_FOOTNOTE)
 
-            # ── Cup Details ──────────────────────────────────────────────────────
-            render_cup_details(cfg, _API_KEY)
-
             if split_info.get("mid_teams"):
                 _mid_pf  = conference_fixtures(played_fixtures,    split_info["mid_teams"])
                 _mid_rf  = conference_fixtures(remaining_fixtures, split_info["mid_teams"])
@@ -1540,9 +1534,6 @@ def main_content():
             st.caption("Tiebreakers: " + "; ".join(f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(_tbs_non_split)))
             if cfg.get("team_status_note"):
                 st.caption(cfg["team_status_note"])
-
-            # ── Cup Details ──────────────────────────────────────────────────────
-            render_cup_details(cfg, _API_KEY)
 
             # ── UECL 4-team Play-offs (e.g. Dutch Eredivisie) ────────────────
             _u4cfg = cfg.get("uecl_4team_playoff")
