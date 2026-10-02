@@ -586,18 +586,96 @@ def league_a_relegation_pool_split(
     }
 
 
+def _ordinal(n: int) -> str:
+    suffix = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+
+def league_interim_order(
+    group_probs: dict[str, pd.DataFrame],
+    group_standings: dict[str, list[dict]] | None,
+    group_remaining: dict[str, list[dict]] | None,
+    ratings_df: pd.DataFrame,
+) -> list[str]:
+    """All of a league's teams in UEFA's "Criteria for league ranking"
+    order (see the Rules tab / Wikipedia): primarily by group position --
+    every group's 1st-place team ranks above every group's 2nd-place
+    team, and so on -- then by each team's own projected final points as
+    the tiebreaker within a position tier. GD/GF/away-goals/wins/
+    discipline/access-list (UEFA's criteria 3-9) aren't modeled here,
+    same simplification the Rules tab already documents for criteria
+    10-11 elsewhere on this page -- points alone already decides the
+    overwhelming majority of real tiebreaks.
+
+    group_standings/group_remaining: that league's real current data
+    (nations_league.py's per-league all_group_standings/all_group_
+    remaining), so the points projection reflects results already in,
+    not a blank slate -- None for a league/group with no real data yet
+    (projects a fresh double round-robin's worth of expected points).
+    """
+    rows = []
+    for gname, probs in group_probs.items():
+        order = most_likely_group_order(probs)
+        exp_pts = group_expected_points(
+            list(probs.index), ratings_df,
+            standings=(group_standings or {}).get(gname),
+            remaining_fixtures=(group_remaining or {}).get(gname),
+        )
+        for pos, team in enumerate(order, start=1):
+            rows.append((team, pos, exp_pts.get(team, 0.0)))
+    rows.sort(key=lambda r: (r[1], -r[2]))
+    return [r[0] for r in rows]
+
+
+def project_league_a_finals(
+    group_probs_a: dict[str, pd.DataFrame],
+    ratings_df: pd.DataFrame,
+) -> dict[str, str]:
+    """Point-estimate occupants of the Nations League Finals' 4 places
+    (winner/runner-up/3rd/4th), reusing simulate_league_a_knockouts' own
+    Monte Carlo rather than re-deriving it (so this always agrees with
+    the Knockouts tab's own numbers). The most likely winner and runner-
+    up are whichever teams top won_competition and (reached_final -
+    won_competition); the next two most-likely semi-final participants
+    (by reached_finals_four, excluding the two finalists) play an implied
+    single neutral-venue match (fixture_odds, the same no-boost
+    convention simulate_league_a_knockouts' own Finals Four odds use) to
+    settle 3rd vs 4th, since no separate simulation tracks UEFA's actual
+    3rd-place game.
+    """
+    ko = simulate_league_a_knockouts(group_probs_a, ratings_df, n_sim=8_000)
+    winner = ko["won_competition"].idxmax()
+    runner_up = (ko["reached_final"] - ko["won_competition"]).drop(index=winner).idxmax()
+    remaining = ko.drop(index=[winner, runner_up])
+    semis_only = (remaining["reached_finals_four"] - remaining["reached_final"]).sort_values(ascending=False)
+    t1, t2 = semis_only.head(2).index.tolist()
+    ko_ratings = _scoped_attack_defense([t1, t2], ratings_df, k=KNOCKOUT_K)
+    odds = fixture_odds([{"strHomeTeam": t1, "strAwayTeam": t2}], ko_ratings, home_advantage=1.0)[0]
+    t1_through = odds["home_win"] + odds["draw"] / 2
+    third, fourth = (t1, t2) if t1_through >= 0.5 else (t2, t1)
+    return {"winner": winner, "runner_up": runner_up, "third": third, "fourth": fourth}
+
+
 def project_2028_composition(
     all_group_probs: dict[str, dict[str, pd.DataFrame]],
-    all_outcome_probs: dict[str, pd.DataFrame],
     nl_groups: dict[str, dict[str, list[str]]],
     ratings_df: pd.DataFrame,
+    all_group_standings: dict[str, dict[str, list[dict]]] | None = None,
+    all_group_remaining: dict[str, dict[str, list[dict]]] | None = None,
 ) -> pd.DataFrame:
-    """Projects every nation's 2028/29 UEFA Nations League placement from
-    the 2026/27 edition's most-likely outcomes, per UEFA's own transition
-    rules (editorial.uefa.com's "Promotion and relegation between the
-    2026/27 and 2028/29 editions" PDF): the four-league, 16/16/16/6 shape
-    becomes three leagues of 18 (League D is folded, every one of its
-    teams moving to League C regardless of position).
+    """Projects every nation's 2028/29 UEFA Nations League placement AND
+    its exact rank within its new league, from the 2026/27 edition's
+    most-likely outcomes, per UEFA's own transition rules PDF (the four-
+    league 16/16/16/6 shape becomes three leagues of 18, League D folded)
+    and UEFA's own "Criteria for final overall ranking" (Wikipedia's 2026-
+    27 UEFA Nations League article): each bucket of teams (Finals
+    participants, quarter-final losers, play-off winners/losers, ...) is
+    ordered by each team's interim league ranking (league_interim_order)
+    exactly as UEFA's own rule describes, and the "source" text mirrors
+    UEFA's own wording for that bucket (ordinal-within-bucket for a
+    play-off/knockout outcome, "Team ranked Nth in interim ranking" for a
+    bucket whose members simply keep their interim position, matching
+    which phrasing Wikipedia itself uses for each row).
 
     Point-estimate only, same spirit as project_qf_entries and
     project_playoff_entries above -- picks the single most-likely team
@@ -610,84 +688,119 @@ def project_2028_composition(
     flip, so that part of the uncertainty is still respected).
 
     Returns a DataFrame with columns team, league ("League A"/"B"/"C"),
-    source (a short human-readable reason, e.g. "League B2 winner").
+    rank (1-18, local to that league's own 18-team table), source.
     """
-    a_probs = all_outcome_probs["League A"]
-
-    rows: list[dict] = []
-
-    def add(team: str, league: str, source: str) -> None:
-        rows.append({"team": team, "league": league, "source": source})
-
-    # Every single-position pick below (winner/runner-up/3rd/4th, for
-    # every league) comes from this SAME pre-computed per-group order,
-    # never re-derived separately from a different marginal probability
-    # column -- that's what guarantees every bucket stays disjoint: each
-    # (group, position) pair is used in exactly one place. Re-deriving a
-    # pick from a league-wide marginal chance column instead (e.g. "which
-    # team has the single highest P(2nd) across all 16 teams") does NOT
-    # give this guarantee even though it looks like it should -- confirmed
-    # on real runs twice: a team whose group already assigned it to a
-    # different position can still top a marginal ranking drawn from
-    # another bucket's source position, double-booking it (Croatia via
-    # League A's "3rd as Top 2" vs. the play-off pool; Kosovo via League
-    # B's runner-up marginal chance vs. its own group's 3rd place).
     a_order = {g: most_likely_group_order(p) for g, p in all_group_probs["League A"].items()}
     b_order = {g: most_likely_group_order(p) for g, p in all_group_probs["League B"].items()}
     c_order = {g: most_likely_group_order(p) for g, p in all_group_probs["League C"].items()}
 
-    # League A quarter-finalists (8) -- stay in League A regardless of how
-    # the quarter-final itself goes.
-    for gname, order in a_order.items():
-        add(order[0], "League A", f"{gname} winner")
-        add(order[1], "League A", f"{gname} runner-up")
+    # Each team's CURRENT-edition interim rank (1-16 League A, 17-32 B,
+    # 33-48 C, 49-54 D) -- used both as a sort key within a bucket (per
+    # UEFA's "ordered based on their interim overall ranking" rule) and,
+    # for buckets that simply keep it, in the "Team ranked Nth..." text.
+    interim_order = (
+        league_interim_order(all_group_probs["League A"], (all_group_standings or {}).get("League A"),
+                              (all_group_remaining or {}).get("League A"), ratings_df)
+        + league_interim_order(all_group_probs["League B"], (all_group_standings or {}).get("League B"),
+                                (all_group_remaining or {}).get("League B"), ratings_df)
+        + league_interim_order(all_group_probs["League C"], (all_group_standings or {}).get("League C"),
+                                (all_group_remaining or {}).get("League C"), ratings_df)
+        + league_interim_order(all_group_probs["League D"], (all_group_standings or {}).get("League D"),
+                                (all_group_remaining or {}).get("League D"), ratings_df)
+    )
+    interim_rank = {team: i + 1 for i, team in enumerate(interim_order)}
 
-    # League A's 3rd/4th reps are ranked against their OWN set only for
-    # the top-2/bottom-2 split -- see league_a_relegation_pool_split.
-    a_split = league_a_relegation_pool_split(all_group_probs["League A"], a_probs)
+    def by_interim(teams: list[str]) -> list[str]:
+        return sorted(teams, key=lambda t: interim_rank[t])
 
-    for t in a_split["safe_third"]:
-        add(t, "League A", "League A 3rd-place (top 2 ranked)")
-    for t in a_split["direct_releg_fourth"]:
-        add(t, "League B", "League A 4th-place (bottom 2 ranked)")
+    buckets: list[tuple[str, list[tuple[str, str]]]] = []  # (league, [(team, source), ...]) in final rank order
 
-    # League B group winners (4) promote to League A; 3rd place (4) stay.
-    for gname, order in b_order.items():
-        add(order[0], "League A", f"League B {gname} winner")
-        add(order[2], "League B", f"League B {gname} 3rd place")
+    # --- League A: ranks 1-18 -----------------------------------------
+    finals = project_league_a_finals(all_group_probs["League A"], ratings_df)
+    a_rows = [
+        (finals["winner"], "Nations League Finals winner"),
+        (finals["runner_up"], "Nations League Finals runner-up"),
+        (finals["third"], "Nations League Finals 3rd place"),
+        (finals["fourth"], "Nations League Finals 4th place"),
+    ]
+    qf_losers = by_interim([
+        order[i] for order in a_order.values() for i in (0, 1)
+        if order[i] not in finals.values()
+    ])
+    a_rows += [(t, f"{_ordinal(i)}-ranked quarter-final loser") for i, t in enumerate(qf_losers, start=1)]
 
-    # League A/B play-off: League A's 2 worst-3rd + 2 best-4th against
-    # League B's 4 runners-up (one per group, from the pre-computed order).
-    a_playoff_pool = a_split["playoff_third"] + a_split["playoff_fourth"]
-    b_playoff_pool = [order[1] for order in b_order.values()]
-    ab_prevail = _average_pairing_prevail(a_playoff_pool, b_playoff_pool, ratings_df, home_advantage=1.05)
-    ab_ranked = sorted(a_playoff_pool + b_playoff_pool, key=lambda t: -ab_prevail[t])
-    for t in ab_ranked[:4]:
-        add(t, "League A", "Won League A/B play-off")
-    for t in ab_ranked[4:]:
-        add(t, "League B", "Lost League A/B play-off")
+    # The two 3rd/4th-place splits are resolved by interim rank (not
+    # league_a_relegation_pool_split's simulation-probability method,
+    # which nations_league.py's Promotion & Relegation tab uses for its
+    # own, genuinely probabilistic "which pool" question) so the "Team
+    # ranked Nth in interim ranking" text below is always self-consistent
+    # with which 2 teams this function actually calls "safe"/"relegated" --
+    # third_reps/fourth_reps are each already exactly one team per group,
+    # so splitting the 4 by their own interim rank needs no further
+    # cross-group resolution.
+    third_by_interim = by_interim([order[2] for order in a_order.values()])
+    safe_third, playoff_third = third_by_interim[:2], third_by_interim[2:]
+    fourth_by_interim = by_interim([order[3] for order in a_order.values()])
+    playoff_fourth, direct_releg_fourth = fourth_by_interim[:2], fourth_by_interim[2:]
 
-    # League C group winners (4) promote to League B; 3rd/4th (8) stay.
-    for gname, order in c_order.items():
-        add(order[0], "League B", f"League C {gname} winner")
-        add(order[2], "League C", f"League C {gname} 3rd place")
-        add(order[3], "League C", f"League C {gname} 4th place")
+    for t in safe_third:
+        a_rows.append((t, f"Team ranked {_ordinal(interim_rank[t])} in interim ranking"))
 
-    # League B/C play-off: League B's 4 fourth-place teams against League
-    # C's 4 runners-up (again one per group, from the pre-computed order).
-    b_playoff_pool_releg = [order[3] for order in b_order.values()]
-    c_playoff_pool = [order[1] for order in c_order.values()]
-    bc_prevail = _average_pairing_prevail(b_playoff_pool_releg, c_playoff_pool, ratings_df, home_advantage=1.05)
-    bc_ranked = sorted(b_playoff_pool_releg + c_playoff_pool, key=lambda t: -bc_prevail[t])
-    for t in bc_ranked[:4]:
-        add(t, "League B", "Won League B/C play-off")
-    for t in bc_ranked[4:]:
-        add(t, "League C", "Lost League B/C play-off")
+    a_playoff_pool = playoff_third + playoff_fourth
+    b_runner_up_pool = [order[1] for order in b_order.values()]
+    ab_prevail = _average_pairing_prevail(a_playoff_pool, b_runner_up_pool, ratings_df, home_advantage=1.05)
+    ab_winners = sorted(a_playoff_pool + b_runner_up_pool, key=lambda t: -ab_prevail[t])[:4]
+    b_winners_direct = [order[0] for order in b_order.values()]
+    a_rows += [
+        (t, f"{_ordinal(i)}-ranked League A/B play-off winner or League B group winner")
+        for i, t in enumerate(by_interim(ab_winners + b_winners_direct), start=1)
+    ]
+    buckets.append(("League A", a_rows))
 
-    for gname, teams in nl_groups["League D"].items():
-        for t in teams:
-            add(t, "League C", f"League D {gname} (League D folded into League C)")
+    # --- League B: ranks 19-36 -----------------------------------------
+    ab_losers = sorted(a_playoff_pool + b_runner_up_pool, key=lambda t: -ab_prevail[t])[4:]
+    b_rows = [
+        (t, f"{_ordinal(i)}-ranked League A/B play-off loser or League A 4th place")
+        for i, t in enumerate(by_interim(direct_releg_fourth + ab_losers), start=1)
+    ]
+    b_third_pool = [order[2] for order in b_order.values()]
+    for t in by_interim(b_third_pool):
+        b_rows.append((t, f"Team ranked {_ordinal(interim_rank[t])} in interim ranking"))
 
+    b_fourth_pool = [order[3] for order in b_order.values()]
+    c_runner_up_pool = [order[1] for order in c_order.values()]
+    bc_prevail = _average_pairing_prevail(b_fourth_pool, c_runner_up_pool, ratings_df, home_advantage=1.05)
+    bc_winners = sorted(b_fourth_pool + c_runner_up_pool, key=lambda t: -bc_prevail[t])[:4]
+    c_winners_direct = [order[0] for order in c_order.values()]
+    b_rows += [
+        (t, f"{_ordinal(i)}-ranked League B/C play-off winner or League C group winner")
+        for i, t in enumerate(by_interim(bc_winners + c_winners_direct), start=1)
+    ]
+    buckets.append(("League B", b_rows))
+
+    # --- League C: ranks 37-54 -----------------------------------------
+    bc_losers = sorted(b_fourth_pool + c_runner_up_pool, key=lambda t: -bc_prevail[t])[4:]
+    c_rows = [
+        (t, f"{_ordinal(i)}-ranked League B/C play-off loser")
+        for i, t in enumerate(by_interim(bc_losers), start=1)
+    ]
+    c_third_pool = [order[2] for order in c_order.values()]
+    for t in by_interim(c_third_pool):
+        c_rows.append((t, f"Team ranked {_ordinal(interim_rank[t])} in interim ranking"))
+    c_fourth_pool = [order[3] for order in c_order.values()]
+    for t in by_interim(c_fourth_pool):
+        c_rows.append((t, f"Team ranked {_ordinal(interim_rank[t])} in interim ranking"))
+
+    d_teams = [t for teams in nl_groups["League D"].values() for t in teams]
+    for t in by_interim(d_teams):
+        c_rows.append((t, f"Team ranked {_ordinal(interim_rank[t])} in interim ranking (League D folded)"))
+    buckets.append(("League C", c_rows))
+
+    rows = [
+        {"team": team, "league": league, "rank": i, "source": source}
+        for league, league_rows in buckets
+        for i, (team, source) in enumerate(league_rows, start=1)
+    ]
     return pd.DataFrame(rows)
 
 

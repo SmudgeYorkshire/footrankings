@@ -536,6 +536,8 @@ projections_2028_tab = top_tabs[-1]
 
 all_group_probs: dict[str, dict[str, pd.DataFrame]] = {}
 all_outcome_probs: dict[str, pd.DataFrame] = {}
+all_group_standings: dict[str, dict[str, list[dict]]] = {}
+all_group_remaining: dict[str, dict[str, list[dict]]] = {}
 
 for league_tab, league_name in zip(league_tabs, league_names):
     with league_tab:
@@ -569,6 +571,8 @@ for league_tab, league_name in zip(league_tabs, league_names):
             league_group_remaining[group_name] = remaining
             league_group_played[group_name] = played
             league_group_roster[group_name] = roster
+        all_group_standings[league_name] = league_group_standings
+        all_group_remaining[league_name] = league_group_remaining
 
         with st.spinner("Simulating group-stage outcomes…"):
             outcome_probs, group_position_probs = simulate_league_outcomes(
@@ -940,27 +944,33 @@ with projections_2028_tab:
         "UEFA is folding League D and moving to a three-league, 18-team shape (League A/B/C) for "
         "2028/29 — see UEFA's own "
         "[transition rules PDF](https://editorial.uefa.com/resources/02a9-21985b7e3370-3f0fda209606-1000/promotion_and_relegation_unl_website.pdf). "
-        "This projects each nation's 2028/29 league from the single most-likely outcome of every "
-        "slot in the 2026/27 edition — group finishes, the League A/B and League B/C play-off pools' "
-        "likeliest winners, and League D's teams, which all move to League C regardless of position. "
-        "It's a point estimate, not a probability (contrast the Knockouts/Promotion & Relegation "
-        "tabs' own \"chance to prevail\" figures, which still carry real uncertainty) — treat it as "
-        "today's single most-likely scenario, not a forecast with error bars."
+        "This projects each nation's 2028/29 league and rank from the single most-likely outcome of "
+        "every slot in the 2026/27 edition — group finishes, the Nations League Finals itself, both "
+        "play-off pools' likeliest winners, and League D's teams, which all move to League C "
+        "regardless of position. Ranking order and wording follow UEFA's own "
+        "[criteria for final overall ranking](https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League#Overall_ranking), "
+        "using each team's projected points as the tiebreaker within a bucket. It's a point estimate, "
+        "not a probability (contrast the Knockouts/Promotion & Relegation tabs' own \"chance to "
+        "prevail\" figures, which still carry real uncertainty) — treat it as today's single "
+        "most-likely scenario, not a forecast with error bars."
     )
 
     with st.spinner("Projecting the 2028/29 league composition…"):
-        composition = project_2028_composition(all_group_probs, all_outcome_probs, NL_GROUPS, ratings_df)
+        composition = project_2028_composition(
+            all_group_probs, NL_GROUPS, ratings_df, all_group_standings, all_group_remaining,
+        )
 
     for league in ["League A", "League B", "League C"]:
         league_rows = composition[composition["league"] == league].reset_index(drop=True)
         st.markdown(f"##### {league} ({len(league_rows)} teams)")
         df = pd.DataFrame([
-            {"Flag": _flag(r["team"]), "Team": r["team"], "Source": r["source"]}
+            {"Rank": r["rank"], "Flag": _flag(r["team"]), "Team": r["team"], "Source": r["source"]}
             for _, r in league_rows.iterrows()
         ])
         st.dataframe(
             df,
             column_config={
+                "Rank": st.column_config.NumberColumn("Rank", width="small"),
                 "Flag": st.column_config.ImageColumn("", width="small"),
                 "Team": st.column_config.TextColumn("Team", width="medium"),
                 "Source": st.column_config.TextColumn("How they got there", width="large"),
