@@ -25,7 +25,8 @@ from nations_league_data import (
 from nations_league_simulator import (
     load_nl_ratings, simulate_group, simulate_league_a_knockouts, simulate_league_outcomes,
     cross_group_ranking, group_fixture_odds, group_expected_points, project_qf_entries,
-    project_playoff_entries, project_2028_composition,
+    project_playoff_entries, project_2028_composition, league_a_relegation_pool_split,
+    most_likely_group_order,
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
@@ -830,8 +831,23 @@ with promo_releg_tab:
         "averaged over every way UEFA's open draw could pair the two pools."
     )
 
-    def _projected_entries_table(higher_chance, higher_label, lower_chance, lower_label):
-        entries = project_playoff_entries(higher_chance, higher_label, lower_chance, lower_label, ratings_df)
+    # Each pool's 4 entrants must come from exactly one representative per
+    # group (never a league-wide marginal probability's raw top-4, which
+    # can double-book a team into two different pools at once -- see
+    # project_playoff_entries' docstring) -- League A's is a genuine
+    # cross-group ranking (league_a_relegation_pool_split), League B/C's
+    # are single "direct rule" positions so each group's own most-likely
+    # team at that position (most_likely_group_order) is exactly right.
+    a_split = league_a_relegation_pool_split(all_group_probs["League A"], a_probs)
+    a_playoff_pool = a_split["playoff_third"] + a_split["playoff_fourth"]
+    b_order = {g: most_likely_group_order(p) for g, p in all_group_probs["League B"].items()}
+    c_order = {g: most_likely_group_order(p) for g, p in all_group_probs["League C"].items()}
+    b_runner_up_pool = [order[1] for order in b_order.values()]
+    b_fourth_pool = [order[3] for order in b_order.values()]
+    c_runner_up_pool = [order[1] for order in c_order.values()]
+
+    def _projected_entries_table(higher_teams, higher_label, lower_teams, lower_label):
+        entries = project_playoff_entries(higher_teams, higher_label, lower_teams, lower_label, ratings_df)
         df = pd.DataFrame([
             {
                 "Flag": _flag(r["team"]), "Team": r["team"], "Pool": r["pool"],
@@ -852,14 +868,14 @@ with promo_releg_tab:
 
     st.markdown("###### League A vs League B")
     _projected_entries_table(
-        a_releg_pool_chance, "League A third place/fourth place",
-        b_promo_pool_chance, "League B runner-up",
+        a_playoff_pool, "League A third place/fourth place",
+        b_runner_up_pool, "League B runner-up",
     )
 
     st.markdown("###### League B vs League C")
     _projected_entries_table(
-        b_releg_pool_chance, "League B fourth place",
-        c_promo_pool_chance, "League C runner-up",
+        b_fourth_pool, "League B fourth place",
+        c_runner_up_pool, "League C runner-up",
     )
 
     st.divider()

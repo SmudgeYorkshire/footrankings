@@ -496,29 +496,36 @@ def _average_pairing_prevail(
 
 
 def project_playoff_entries(
-    higher_chances: pd.Series,
+    higher_teams: list[str],
     higher_label: str,
-    lower_chances: pd.Series,
+    lower_teams: list[str],
     lower_label: str,
     ratings_df: pd.DataFrame,
     home_advantage: float = 1.05,
 ) -> pd.DataFrame:
-    """The four teams most likely to land in each side of one promotion/
-    relegation play-off pool (eight entries total) -- same "if exactly
-    these eight show up" approach as project_qf_entries, but for the
-    cross-league ties UEFA draws for promotion/relegation rather than
-    League A's own quarter-final bracket.
+    """Each of 4 higher-side and 4 lower-side teams' chance to prevail in
+    its two-legged tie, averaged over every way an open, unseeded draw
+    could pair them (4x4=24 -- no same-group exclusion, unlike the
+    Quarterfinals derangement, since the two sides are always from
+    different leagues). The higher side is the one with something to
+    defend (home in leg 1).
 
-    higher_chances/lower_chances: each team's probability of landing in
-    that side of the pool (nations_league.py already computes these --
-    e.g. "League A third place/fourth place" or "League B runner-up" --
-    as the sum of simulate_league_outcomes' win/lose play-off labels);
-    higher_label/lower_label just annotate which pool a row came from.
+    Callers must already have resolved higher_teams/lower_teams to the
+    correct disjoint 4-per-side group representatives (see
+    most_likely_group_order and league_a_relegation_pool_split below) --
+    picking a side's 4 teams by sorting a marginal per-team probability
+    across its whole league and taking the top 4 does NOT reliably give
+    one team per group, and can double-book a team that tops two
+    different overlapping marginal columns at once. Confirmed on real
+    runs: Croatia topped League A's global "relegation pool" marginal
+    even though its OWN group's 3rd-place ranking (the only one that
+    actually matters, since only one team per group ever reaches this
+    pool) put it safely in the top 2 instead; Kosovo topped League B's
+    global runner-up marginal despite its own group's 2nd-place spot
+    actually belonging to a different team, landing it in both that pool
+    and its own group's (correct) 3rd place at once.
     """
-    higher_teams = higher_chances.sort_values(ascending=False).head(4).index.tolist()
-    lower_teams = lower_chances.sort_values(ascending=False).head(4).index.tolist()
     prevail = _average_pairing_prevail(higher_teams, lower_teams, ratings_df, home_advantage)
-
     rows = [
         {"team": t, "pool": higher_label, "prevail_pct": prevail[t]} for t in higher_teams
     ] + [
@@ -527,7 +534,7 @@ def project_playoff_entries(
     return pd.DataFrame(rows).sort_values("prevail_pct", ascending=False).reset_index(drop=True)
 
 
-def _most_likely_group_order(probs: pd.DataFrame) -> list[str]:
+def most_likely_group_order(probs: pd.DataFrame) -> list[str]:
     """Teams in most-likely finishing order [1st, 2nd, ...], picking
     sequentially position by position and excluding each already-picked
     team, rather than taking each position column's independent argmax --
@@ -540,6 +547,43 @@ def _most_likely_group_order(probs: pd.DataFrame) -> list[str]:
         order.append(pick)
         remaining.remove(pick)
     return order
+
+
+def league_a_relegation_pool_split(
+    group_probs: dict[str, pd.DataFrame],
+    outcome_probs: pd.DataFrame,
+) -> dict[str, list[str]]:
+    """League A's 3rd/4th-place cross-group ranking, resolved to four
+    disjoint groups: the 2 safest 3rd-place teams, the 2 entering the
+    relegation play-off pool from the 3rd-place side, the 2 entering it
+    from the 4th-place side, and the 2 directly-relegated 4th-place teams.
+
+    Each candidate pool is first narrowed to exactly one representative
+    per group (via most_likely_group_order) before being ranked by the
+    matching outcome-probability column -- ranking a marginal column like
+    outcome_probs["3rd as Top 2 nations"] across all 16 League A teams
+    directly, instead of just the 4 actual 3rd-place representatives,
+    double-books a team whose marginal chance happens to top two
+    overlapping buckets at once (confirmed on a real run: Croatia topped
+    the league-wide relegation-pool marginal even though its own group's
+    3rd-place ranking put it safely in the top 2 instead -- see
+    project_playoff_entries' docstring).
+    """
+    third_reps, fourth_reps = [], []
+    for probs in group_probs.values():
+        order = most_likely_group_order(probs)
+        third_reps.append(order[2])
+        fourth_reps.append(order[3])
+
+    third_rank = outcome_probs["3rd as Top 2 nations"].reindex(third_reps).sort_values(ascending=False)
+    fourth_rank = outcome_probs["Relegation to League B"].reindex(fourth_reps).sort_values(ascending=False)
+
+    return {
+        "safe_third": third_rank.head(2).index.tolist(),
+        "playoff_third": third_rank.tail(2).index.tolist(),
+        "direct_releg_fourth": fourth_rank.head(2).index.tolist(),
+        "playoff_fourth": fourth_rank.tail(2).index.tolist(),
+    }
 
 
 def project_2028_composition(
@@ -588,9 +632,9 @@ def project_2028_composition(
     # another bucket's source position, double-booking it (Croatia via
     # League A's "3rd as Top 2" vs. the play-off pool; Kosovo via League
     # B's runner-up marginal chance vs. its own group's 3rd place).
-    a_order = {g: _most_likely_group_order(p) for g, p in all_group_probs["League A"].items()}
-    b_order = {g: _most_likely_group_order(p) for g, p in all_group_probs["League B"].items()}
-    c_order = {g: _most_likely_group_order(p) for g, p in all_group_probs["League C"].items()}
+    a_order = {g: most_likely_group_order(p) for g, p in all_group_probs["League A"].items()}
+    b_order = {g: most_likely_group_order(p) for g, p in all_group_probs["League B"].items()}
+    c_order = {g: most_likely_group_order(p) for g, p in all_group_probs["League C"].items()}
 
     # League A quarter-finalists (8) -- stay in League A regardless of how
     # the quarter-final itself goes.
@@ -598,18 +642,13 @@ def project_2028_composition(
         add(order[0], "League A", f"{gname} winner")
         add(order[1], "League A", f"{gname} runner-up")
 
-    # League A's 3rd/4th reps (one of each per group, already disjoint)
-    # are ranked against their OWN set only for the top-2/bottom-2 split.
-    third_reps = [order[2] for order in a_order.values()]
-    fourth_reps = [order[3] for order in a_order.values()]
-    third_rank = a_probs["3rd as Top 2 nations"].reindex(third_reps).sort_values(ascending=False)
-    safe_third, playoff_third = third_rank.head(2).index.tolist(), third_rank.tail(2).index.tolist()
-    fourth_rank = a_probs["Relegation to League B"].reindex(fourth_reps).sort_values(ascending=False)
-    direct_releg_fourth, playoff_fourth = fourth_rank.head(2).index.tolist(), fourth_rank.tail(2).index.tolist()
+    # League A's 3rd/4th reps are ranked against their OWN set only for
+    # the top-2/bottom-2 split -- see league_a_relegation_pool_split.
+    a_split = league_a_relegation_pool_split(all_group_probs["League A"], a_probs)
 
-    for t in safe_third:
+    for t in a_split["safe_third"]:
         add(t, "League A", "League A 3rd-place (top 2 ranked)")
-    for t in direct_releg_fourth:
+    for t in a_split["direct_releg_fourth"]:
         add(t, "League B", "League A 4th-place (bottom 2 ranked)")
 
     # League B group winners (4) promote to League A; 3rd place (4) stay.
@@ -619,7 +658,7 @@ def project_2028_composition(
 
     # League A/B play-off: League A's 2 worst-3rd + 2 best-4th against
     # League B's 4 runners-up (one per group, from the pre-computed order).
-    a_playoff_pool = playoff_third + playoff_fourth
+    a_playoff_pool = a_split["playoff_third"] + a_split["playoff_fourth"]
     b_playoff_pool = [order[1] for order in b_order.values()]
     ab_prevail = _average_pairing_prevail(a_playoff_pool, b_playoff_pool, ratings_df, home_advantage=1.05)
     ab_ranked = sorted(a_playoff_pool + b_playoff_pool, key=lambda t: -ab_prevail[t])
