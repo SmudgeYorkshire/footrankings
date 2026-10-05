@@ -1061,3 +1061,138 @@ def simulate_league_outcomes(
         position_probs[gname] = pd.DataFrame(pos_rows).set_index("team")
 
     return outcomes, position_probs
+
+
+def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int, int]]:
+    """{team: (best_reachable, worst_reachable)} -- the best (smallest
+    number) and worst (largest number) final position still
+    mathematically possible for every team across every group in
+    group_states, from guaranteed points (current) vs. maximum
+    achievable points (current + 3 x remaining games) alone.
+
+    This is always sound -- never wrongly asserts a position is pinned
+    down -- because UEFA's own tiebreak order ranks by points first; GD/
+    GF/etc. only break ties WITHIN equal points, so a team can never
+    finish above a rival with strictly more points. Deliberately ignores
+    GD entirely (ships no team-by-team projected-GD model, and a wrong
+    GD guess here would risk a false "clinched"/"eliminated" badge, which
+    is actively misleading -- better to stay silent a little longer than
+    assert a wrong certainty).
+
+    best_reachable[t] = 1 + however many rivals are GUARANTEED to finish
+    strictly above t even in t's own best case (their current points
+    alone already exceed t's ceiling). worst_reachable[t] = n minus
+    however many rivals can NEVER catch t even in their own best case
+    (their ceiling is still below t's current points) -- t cannot
+    possibly finish worse than that. A team is pinned to an exact final
+    position only when best == worst.
+    """
+    bounds: dict[str, tuple[int, int]] = {}
+    for state in group_states.values():
+        teams = state["teams"]
+        current = {t: int(state["base_stats"].get(t, {}).get("pts", 0)) for t in teams}
+        remaining_count = {t: 0 for t in teams}
+        for f in state["remaining"]:
+            for side in ("strHomeTeam", "strAwayTeam"):
+                t = f.get(side)
+                if t in remaining_count:
+                    remaining_count[t] += 1
+        ceiling = {t: current[t] + 3 * remaining_count[t] for t in teams}
+        for t in teams:
+            above = sum(1 for o in teams if o != t and current[o] > ceiling[t])
+            below = sum(1 for o in teams if o != t and ceiling[o] < current[t])
+            bounds[t] = (1 + above, len(teams) - below)
+    return bounds
+
+
+def league_label_certainty(
+    group_states: dict[str, dict], outcome_rules: list[tuple],
+) -> dict[str, dict[str, bool]]:
+    """{team: {label: True}} for every outcome-bucket label a team has
+    mathematically CLINCHED, {team: {label: False}} for every one it's
+    mathematically been ELIMINATED from -- a label simply absent from a
+    team's dict means still genuinely open (show the real percentage).
+
+    Only asserted from group_position_bounds (see its own docstring for
+    why that's always sound): a "direct" rule's label is clinched when a
+    team's position is pinned to exactly that rule's position, eliminated
+    when that exact position falls entirely outside its reachable range.
+    A "ranked" (cross-group) rule's label -- e.g. League A's "3rd as Top 2
+    nations" / "Relegation Play-offs" split -- can only ever be marked
+    ELIMINATED here (reachable range doesn't even cover that rule's
+    source position, so the team can't possibly contribute to that
+    cross-group pool at all) -- never CLINCHED, since which of several
+    teams make a cross-group top/bottom cut depends on every OTHER
+    group's remaining results too, not just this team's own.
+
+    A label that _PLAYOFF_POOLS later splits into win/lose sub-outcomes
+    (e.g. "Relegation Play-offs" -> "Promoted"/"Relegated in Play-offs"):
+    ELIMINATED propagates to both split labels (can't win OR lose a tie
+    you'll never play); CLINCHED propagates only to the raw, pre-split
+    label itself -- i.e. "guaranteed to reach this play-off pool", for an
+    aggregate "pool entry chance" column that sums both split outcomes --
+    never to the individual win/lose columns, since which one actually
+    happens still depends on an actual two-legged tie yet to be drawn or
+    played, which this function has no way to assert certainty about.
+    """
+    bounds = group_position_bounds(group_states)
+    result: dict[str, dict[str, bool]] = {}
+
+    def set_label(team: str, label: str, certain: bool) -> None:
+        result.setdefault(team, {})[label] = certain
+
+    # "direct" rules can repeat the SAME label at different positions --
+    # League A's "Quarterfinals" is really two rules, (direct, 1, ...) and
+    # (direct, 2, ...), together meaning "top 2", not one single exact
+    # spot. Collecting every direct label's full position set up front
+    # (rather than resolving rule-by-rule) avoids a later rule's "can't
+    # reach position 2" conclusion wrongly overwriting an earlier rule's
+    # correct "clinched position 1" one for the exact same label --
+    # confirmed as a real bug this way on a first pass of this function.
+    direct_positions: dict[str, set[int]] = {}
+    for rule in outcome_rules:
+        if rule[0] == "direct":
+            _, position, label = rule
+            direct_positions.setdefault(label, set()).add(position)
+
+    # Same multi-route issue applies to "ranked" rules' labels: League A's
+    # "Relegation Play-offs" is fed by BOTH the position-3 rule's bottom
+    # cut AND the position-4 rule's top cut, so a team reachable at
+    # position 3 but not 4 must still stay open on that label, not get
+    # wrongly eliminated just because ONE of its two routes in is closed.
+    ranked_positions: dict[str, set[int]] = {}
+    for rule in outcome_rules:
+        if rule[0] == "ranked":
+            _, position, _, label_top, _, label_bottom = rule
+            for label in (label_top, label_bottom):
+                if label:
+                    ranked_positions.setdefault(label, set()).add(position)
+
+    for state in group_states.values():
+        for t in state["teams"]:
+            best, worst = bounds[t]
+            reachable = set(range(best, worst + 1))
+
+            for label, positions in direct_positions.items():
+                split = _PLAYOFF_POOLS.get(label)
+                if reachable.isdisjoint(positions):
+                    set_label(t, label, False)
+                    if split:
+                        set_label(t, split[0], False)
+                        set_label(t, split[1], False)
+                elif reachable <= positions:
+                    set_label(t, label, True)
+
+            for label, positions in ranked_positions.items():
+                split = _PLAYOFF_POOLS.get(label)
+                if reachable.isdisjoint(positions):
+                    set_label(t, label, False)
+                    if split:
+                        set_label(t, split[0], False)
+                        set_label(t, split[1], False)
+                # No "elif reachable <= positions: clinched" branch here --
+                # see docstring: a ranked label is cross-group, so even a
+                # team pinned INSIDE a rule's source position can't be
+                # asserted to clinch the label itself from this group's
+                # own data alone.
+    return result

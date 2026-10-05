@@ -26,7 +26,7 @@ from nations_league_simulator import (
     load_nl_ratings, simulate_group, simulate_league_a_knockouts, simulate_league_outcomes,
     cross_group_ranking, group_fixture_odds, group_expected_points, project_qf_entries,
     project_playoff_entries, project_2028_composition, league_a_relegation_pool_split,
-    most_likely_group_order,
+    most_likely_group_order, group_position_bounds, league_label_certainty,
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
@@ -41,6 +41,20 @@ def _flag(team: str) -> str:
 def _ordinal(n: int) -> str:
     suffix = "th" if 11 <= n % 100 <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
     return f"{n}{suffix}"
+
+
+# "X" (mathematically eliminated) / "✓" (mathematically clinched) replace
+# the usual "%.1f%%" text wherever group_position_bounds/league_label_
+# certainty have proven one or the other -- both are reserved for real
+# certainty (see those functions' own docstrings for exactly what they
+# will and won't assert), never just a simulated probability that
+# happens to round to 0.0% or 100.0%.
+def _fmt_cert_pct(value: float, certain: bool | None) -> str:
+    if certain is True:
+        return "✓"
+    if certain is False:
+        return "X"
+    return f"{value:.1f}%"
 
 
 def _format_date(date_str: str) -> str:
@@ -159,13 +173,19 @@ def _render_match_odds(teams: list[str], played: list[dict], remaining: list[dic
     )
 
 
-def _render_predictions(teams: list[str], probs: pd.DataFrame, exp_pts: dict[str, float]) -> None:
+def _render_predictions(
+    teams: list[str], probs: pd.DataFrame, exp_pts: dict[str, float],
+    bounds: dict[str, tuple[int, int]] | None = None,
+) -> None:
     n_teams = len(teams)
     rows = []
     for team in probs.index:
         row = {"Flag": _flag(team), "Team": team}
+        best, worst = bounds.get(team, (1, n_teams)) if bounds else (1, n_teams)
         for pos in range(1, n_teams + 1):
-            row[_ordinal(pos)] = round(probs.loc[team, str(pos)] * 100, 1)
+            value = round(probs.loc[team, str(pos)] * 100, 1)
+            certain = True if best == worst == pos else (False if not (best <= pos <= worst) else None)
+            row[_ordinal(pos)] = _fmt_cert_pct(value, certain)
         row["xPTS"] = round(exp_pts.get(team, 0.0), 1)
         rows.append(row)
     display_df = pd.DataFrame(rows)
@@ -175,7 +195,7 @@ def _render_predictions(teams: list[str], probs: pd.DataFrame, exp_pts: dict[str
         "Team": st.column_config.TextColumn("Team", width="medium"),
     }
     for pos in range(1, n_teams + 1):
-        col_cfg[_ordinal(pos)] = st.column_config.NumberColumn(_ordinal(pos), format="%.1f%%", width="small")
+        col_cfg[_ordinal(pos)] = st.column_config.TextColumn(_ordinal(pos), width="small")
     col_cfg["xPTS"] = st.column_config.NumberColumn("xPTS", width="small", help="Expected points")
 
     st.dataframe(
@@ -240,7 +260,21 @@ _EXTRA_ALIAS_COLUMN = {
 }
 
 
-def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league_name: str) -> None:
+# Reverse of nations_league_simulator._PLAYOFF_POOLS -- lets the
+# aggregate "pool entry chance" column below look up whether a team has
+# mathematically CLINCHED reaching that pool (league_label_certainty sets
+# this on the raw, pre-split label, never on the win/lose columns
+# themselves -- see that function's own docstring for why).
+_RAW_POOL_LABEL = {
+    ("Promoted in Play-offs", "Relegated in Play-offs"): "Relegation Play-offs",
+    ("Won Promotion Play-offs", "Lost Promotion Play-offs"): "Promotion Play-offs",
+}
+
+
+def _render_outcome_predictions(
+    teams: list[str], probs_df: pd.DataFrame, league_name: str,
+    certainty: dict[str, dict[str, bool]] | None = None,
+) -> None:
     """One column per outcome-bucket label in probs_df (Quarterfinals,
     Promotion, Winner/Loser in Play-offs, ...) plus a "Stay in {league}"
     column: 1 minus whichever of those labels actually mean leaving the
@@ -249,7 +283,11 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
     relegation), since reaching the Quarterfinals or winning a play-off
     both keep a team in League A. The Stay column is omitted entirely
     when every raw column already means leaving (League D: every position
-    is a direct "Promotion", so it would always read 0%)."""
+    is a direct "Promotion", so it would always read 0%).
+
+    certainty (from league_label_certainty): wherever it's proven a cell
+    mathematically impossible or already clinched, that cell shows "X" or
+    "✓" instead of the usual percentage -- see _fmt_cert_pct."""
     leave_labels = LEAGUE_LEAVE_LABELS.get(league_name, set(probs_df.columns))
     bucket_cols = list(probs_df.columns)
     show_stay = not (set(bucket_cols) <= leave_labels)
@@ -270,17 +308,32 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
     rows = []
     for t in teams:
         row = {"Flag": _flag(t), "Team": t}
+        cert = (certainty or {}).get(t, {})
         raw = {c: float(probs_df.loc[t, c]) if t in probs_df.index else 0.0 for c in probs_df.columns}
         for c, v in raw.items():
-            extra = raw.get(_COMBINE_EXTRA.get(c, ""), 0.0)
-            row[c] = round((v + extra) * 100, 1)
+            extra_label = _COMBINE_EXTRA.get(c, "")
+            extra = raw.get(extra_label, 0.0)
+            value = round((v + extra) * 100, 1)
+            own_cert, extra_cert = cert.get(c), cert.get(extra_label) if extra_label else None
+            combined = True if (own_cert or extra_cert) else (
+                False if own_cert is False and (not extra_label or extra_cert is False) else None
+            )
+            row[c] = _fmt_cert_pct(value, combined)
         for win_col, lose_col, agg_col in active_splits:
-            row[agg_col] = round((raw[win_col] + raw[lose_col]) * 100, 1)
+            value = round((raw[win_col] + raw[lose_col]) * 100, 1)
+            pool_label = _RAW_POOL_LABEL.get((win_col, lose_col))
+            pool_cert = cert.get(pool_label) if pool_label else None
+            if pool_cert is None and cert.get(win_col) is False and cert.get(lose_col) is False:
+                pool_cert = False
+            row[agg_col] = _fmt_cert_pct(value, pool_cert)
         if show_stay:
             leave_prob = sum(v for c, v in raw.items() if c in leave_labels)
-            row[stay_label] = round(max(0.0, 1.0 - leave_prob) * 100, 1)
+            value = round(max(0.0, 1.0 - leave_prob) * 100, 1)
+            stay_cert = True if all(cert.get(c) is False for c in leave_labels) else None
+            row[stay_label] = _fmt_cert_pct(value, stay_cert)
         if extra_alias:
-            row[extra_alias[0]] = round(raw[extra_alias[1]] * 100, 1)
+            value = round(raw[extra_alias[1]] * 100, 1)
+            row[extra_alias[0]] = _fmt_cert_pct(value, cert.get(extra_alias[1]))
         rows.append(row)
     df = pd.DataFrame(rows)[["Flag", "Team"] + cols]
 
@@ -295,7 +348,7 @@ def _render_outcome_predictions(teams: list[str], probs_df: pd.DataFrame, league
         "Team": st.column_config.TextColumn("Team", width="medium"),
     }
     for c in cols:
-        col_cfg[c] = st.column_config.NumberColumn(display_overrides.get(c, c), format="%.1f%%")
+        col_cfg[c] = st.column_config.TextColumn(display_overrides.get(c, c))
     st.dataframe(df, column_config=col_cfg, use_container_width=True, hide_index=True, height=len(df) * 35 + 38)
 
 
@@ -519,7 +572,12 @@ def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict]
     if cached:
         if cached["fingerprint"] != fingerprint:
             st.warning("⚠ Predictions changed since last run — press ▶ to update.")
-        _render_predictions(teams, cached["probs"], cached["exp_pts"])
+        manual_state = {"G": {
+            "teams": teams,
+            "base_stats": {r["strTeam"]: {"pts": r["intPoints"]} for r in updated_standings},
+            "remaining": unpredicted,
+        }}
+        _render_predictions(teams, cached["probs"], cached["exp_pts"], group_position_bounds(manual_state))
     else:
         st.info("Enter predictions above then press **▶ Run simulations**.")
 
@@ -538,6 +596,7 @@ all_group_probs: dict[str, dict[str, pd.DataFrame]] = {}
 all_outcome_probs: dict[str, pd.DataFrame] = {}
 all_group_standings: dict[str, dict[str, list[dict]]] = {}
 all_group_remaining: dict[str, dict[str, list[dict]]] = {}
+all_league_certainty: dict[str, dict[str, dict[str, bool]]] = {}
 
 for league_tab, league_name in zip(league_tabs, league_names):
     with league_tab:
@@ -574,12 +633,15 @@ for league_tab, league_name in zip(league_tabs, league_names):
         all_group_standings[league_name] = league_group_standings
         all_group_remaining[league_name] = league_group_remaining
 
+        league_group_states = _group_states_from(groups, league_group_standings, league_group_remaining)
         with st.spinner("Simulating group-stage outcomes…"):
             outcome_probs, group_position_probs = simulate_league_outcomes(
-                _group_states_from(groups, league_group_standings, league_group_remaining),
-                rules, ratings_df, n_sim=10_000, seed=league_seed,
+                league_group_states, rules, ratings_df, n_sim=10_000, seed=league_seed,
             )
         all_outcome_probs[league_name] = outcome_probs
+        league_bounds = group_position_bounds(league_group_states)
+        league_certainty = league_label_certainty(league_group_states, rules)
+        all_league_certainty[league_name] = league_certainty
 
         tab_labels = (
             list(groups.keys())
@@ -624,9 +686,9 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     )
                     league_group_probs[group_name] = probs
                     league_group_exp_pts[group_name] = exp_pts
-                    _render_predictions(teams, probs, exp_pts)
+                    _render_predictions(teams, probs, exp_pts, league_bounds)
                     st.markdown("#### Group stage outcome chances")
-                    _render_outcome_predictions(teams, outcome_probs, league_name)
+                    _render_outcome_predictions(teams, outcome_probs, league_name, league_certainty)
 
                 with sub_manual:
                     _manual_predictions_tab(f"{league_name}_{group_name}", teams, roster, played, remaining, league_name)
@@ -689,11 +751,14 @@ for league_tab, league_name in zip(league_tabs, league_names):
                         _group_states_from(groups, league_group_standings, league_group_remaining),
                         detail_rules, ratings_df, n_sim=10_000, seed=league_seed,
                     )
+                detail_certainty = league_label_certainty(league_group_states, detail_rules)
                 detail_rows = []
                 for t in all_league_teams:
                     row = {"Flag": _flag(t), "Team": t}
+                    cert = detail_certainty.get(t, {})
                     for col in detail_probs.columns:
-                        row[col] = round(float(detail_probs.loc[t, col]) * 100, 1)
+                        value = round(float(detail_probs.loc[t, col]) * 100, 1)
+                        row[col] = _fmt_cert_pct(value, cert.get(col))
                     detail_rows.append(row)
                 detail_df = pd.DataFrame(detail_rows)
                 detail_col_cfg = {
@@ -701,7 +766,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     "Team": st.column_config.TextColumn("Team", width="medium"),
                 }
                 for col in detail_probs.columns:
-                    detail_col_cfg[col] = st.column_config.NumberColumn(col, format="%.1f%%")
+                    detail_col_cfg[col] = st.column_config.TextColumn(col)
                 st.dataframe(
                     detail_df, column_config=detail_col_cfg, use_container_width=True,
                     hide_index=True, height=len(detail_df) * 35 + 38,
@@ -714,7 +779,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
                 "simulating all groups together so a cross-group-ranked outcome is correctly correlated "
                 "rather than computed from independent per-group marginals."
             )
-            _render_outcome_predictions(all_league_teams, outcome_probs, league_name)
+            _render_outcome_predictions(all_league_teams, outcome_probs, league_name, league_certainty)
 
 with knockout_chances_tab:
     st.markdown("#### Knockouts")
@@ -770,24 +835,33 @@ with knockout_chances_tab:
     with st.spinner("Simulating the quarter-finals and Finals Four…"):
         ko = simulate_league_a_knockouts(all_group_probs["League A"], ratings_df, n_sim=10_000)
 
+    a_certainty = all_league_certainty.get("League A", {})
     ko_rows = []
     for team, r in ko.iterrows():
+        qf_cert = a_certainty.get(team, {}).get("Quarterfinals")
+        qf_value = round(r["reached_qf"] * 100, 1)
+        # Semifinals/Finals/Winner are knockout-contingent (an actual draw
+        # and matches still to come), so they never get a "✓" from group-
+        # stage math alone -- but a team eliminated from the Quarterfinals
+        # is just as surely eliminated from everything past it, so "X"
+        # cascades down from the same qf_cert fact.
+        downstream_cert = False if qf_cert is False else None
         ko_rows.append({
             "Flag": _flag(team),
             "Team": team,
-            "Quarterfinals": round(r["reached_qf"] * 100, 1),
-            "Semifinals": round(r["reached_finals_four"] * 100, 1),
-            "Finals": round(r["reached_final"] * 100, 1),
-            "Winner": round(r["won_competition"] * 100, 1),
+            "Quarterfinals": _fmt_cert_pct(qf_value, qf_cert),
+            "Semifinals": _fmt_cert_pct(round(r["reached_finals_four"] * 100, 1), downstream_cert),
+            "Finals": _fmt_cert_pct(round(r["reached_final"] * 100, 1), downstream_cert),
+            "Winner": _fmt_cert_pct(round(r["won_competition"] * 100, 1), downstream_cert),
         })
     ko_df = pd.DataFrame(ko_rows)
     ko_col_cfg = {
         "Flag": st.column_config.ImageColumn("", width="small"),
         "Team": st.column_config.TextColumn("Team", width="medium"),
-        "Quarterfinals": st.column_config.NumberColumn("Quarterfinals", format="%.1f%%", width="small"),
-        "Semifinals": st.column_config.NumberColumn("Semifinals", format="%.1f%%", width="small"),
-        "Finals": st.column_config.NumberColumn("Finals", format="%.1f%%", width="small"),
-        "Winner": st.column_config.NumberColumn("Winner", format="%.1f%%", width="small"),
+        "Quarterfinals": st.column_config.TextColumn("Quarterfinals", width="small"),
+        "Semifinals": st.column_config.TextColumn("Semifinals", width="small"),
+        "Finals": st.column_config.TextColumn("Finals", width="small"),
+        "Winner": st.column_config.TextColumn("Winner", width="small"),
     }
     st.dataframe(
         ko_df, column_config=ko_col_cfg, use_container_width=True,
@@ -885,28 +959,38 @@ with promo_releg_tab:
     st.divider()
     st.markdown("##### Chances of reaching each play-off pool")
 
-    def _role_chances(title: str, teams: list[str], chances: pd.Series) -> None:
+    def _role_chances(title: str, teams: list[str], chances: pd.Series, cert: dict[str, bool] | None = None) -> None:
         with st.expander(title):
             rows = [
-                {"Flag": _flag(t), "Team": t, "Chance": round(float(chances.get(t, 0.0)) * 100, 1)}
+                {
+                    "Flag": _flag(t), "Team": t,
+                    "_sort": float(chances.get(t, 0.0)),
+                    "Chance": _fmt_cert_pct(round(float(chances.get(t, 0.0)) * 100, 1), (cert or {}).get(t)),
+                }
                 for t in teams
             ]
-            rows.sort(key=lambda r: -r["Chance"])
-            df = pd.DataFrame(rows)
+            rows.sort(key=lambda r: -r["_sort"])
+            df = pd.DataFrame(rows).drop(columns="_sort")
             st.dataframe(
                 df,
                 column_config={
                     "Flag": st.column_config.ImageColumn("", width="small"),
                     "Team": st.column_config.TextColumn("Team", width="medium"),
-                    "Chance": st.column_config.NumberColumn("Chance", format="%.1f%%"),
+                    "Chance": st.column_config.TextColumn("Chance"),
                 },
                 use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
             )
 
-    _role_chances("League A third place/fourth place", a_teams, a_releg_pool_chance)
-    _role_chances("League B runner-up", b_teams, b_promo_pool_chance)
-    _role_chances("League B fourth place", b_teams, b_releg_pool_chance)
-    _role_chances("League C runner-up", c_teams, c_promo_pool_chance)
+    a_cert = {t: c.get("Relegation Play-offs") for t, c in all_league_certainty.get("League A", {}).items()}
+    b_cert = all_league_certainty.get("League B", {})
+    c_cert = all_league_certainty.get("League C", {})
+    _role_chances("League A third place/fourth place", a_teams, a_releg_pool_chance, a_cert)
+    _role_chances("League B runner-up", b_teams, b_promo_pool_chance,
+                  {t: c.get("Promotion Play-offs") for t, c in b_cert.items()})
+    _role_chances("League B fourth place", b_teams, b_releg_pool_chance,
+                  {t: c.get("Relegation Play-offs") for t, c in b_cert.items()})
+    _role_chances("League C runner-up", c_teams, c_promo_pool_chance,
+                  {t: c.get("Promotion Play-offs") for t, c in c_cert.items()})
 
 with rules_tab:
     st.markdown("#### Tiebreaking Rules")
