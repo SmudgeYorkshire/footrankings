@@ -49,12 +49,37 @@ def _ordinal(n: int) -> str:
 # certainty (see those functions' own docstrings for exactly what they
 # will and won't assert), never just a simulated probability that
 # happens to round to 0.0% or 100.0%.
-def _fmt_cert_pct(value: float, certain: bool | None) -> str:
+#
+# These cells are encoded as a NUMBER (the real percentage, or a sentinel
+# far outside the real 0-100 range), not a pre-formatted "X"/"73.2%"
+# string -- an earlier version used plain text (via st.column_config.
+# TextColumn) so our own row order could put clinched/eliminated rows at
+# the right end, but that broke the column's own built-in click-to-sort
+# header: Streamlit compares TextColumn values lexicographically, so
+# "6.0%" sorts ahead of "46.1%" (same bug a plain numeric column would
+# have if formatted as text first). Keeping the column genuinely numeric
+# and only overriding its DISPLAY via a pandas Styler .format() callable
+# (same pattern football_rankings.py's render_prob_table already uses)
+# means both our own default order and the reader's own click-to-sort
+# compare real numbers throughout, never text.
+_CLINCHED_SENTINEL = 1_000.0
+_ELIMINATED_SENTINEL = -1_000.0
+
+
+def _cert_value(value: float, certain: bool | None) -> float:
     if certain is True:
-        return "✓"
+        return _CLINCHED_SENTINEL
     if certain is False:
+        return _ELIMINATED_SENTINEL
+    return value
+
+
+def _cert_cell_format(v: float) -> str:
+    if v == _CLINCHED_SENTINEL:
+        return "✓"
+    if v == _ELIMINATED_SENTINEL:
         return "X"
-    return f"{value:.1f}%"
+    return f"{v:.1f}%"
 
 
 def _format_date(date_str: str) -> str:
@@ -178,6 +203,7 @@ def _render_predictions(
     bounds: dict[str, tuple[int, int]] | None = None,
 ) -> None:
     n_teams = len(teams)
+    pos_cols = [_ordinal(pos) for pos in range(1, n_teams + 1)]
     rows = []
     for team in probs.index:
         row = {"Flag": _flag(team), "Team": team}
@@ -185,21 +211,26 @@ def _render_predictions(
         for pos in range(1, n_teams + 1):
             value = round(probs.loc[team, str(pos)] * 100, 1)
             certain = True if best == worst == pos else (False if not (best <= pos <= worst) else None)
-            row[_ordinal(pos)] = _fmt_cert_pct(value, certain)
+            row[_ordinal(pos)] = _cert_value(value, certain)
         row["xPTS"] = round(exp_pts.get(team, 0.0), 1)
         rows.append(row)
+    # Rows default-sort by 1st-place chance -- a team clinched 1st goes to
+    # the top, one eliminated from 1st to the bottom (see _cert_value's
+    # sentinels), everyone else by their real chance in between.
+    rows.sort(key=lambda r: r[pos_cols[0]], reverse=True)
     display_df = pd.DataFrame(rows)
+    styled = display_df.style.format(_cert_cell_format, subset=pos_cols)
 
     col_cfg = {
         "Flag": st.column_config.ImageColumn("", width="small"),
         "Team": st.column_config.TextColumn("Team", width="medium"),
     }
-    for pos in range(1, n_teams + 1):
-        col_cfg[_ordinal(pos)] = st.column_config.TextColumn(_ordinal(pos), width="small")
+    for pos_col in pos_cols:
+        col_cfg[pos_col] = st.column_config.NumberColumn(pos_col, width="small")
     col_cfg["xPTS"] = st.column_config.NumberColumn("xPTS", width="small", help="Expected points")
 
     st.dataframe(
-        display_df, column_config=col_cfg, use_container_width=True,
+        styled, column_config=col_cfg, use_container_width=True,
         hide_index=True, height=len(display_df) * 35 + 38,
     )
 
@@ -287,7 +318,7 @@ def _render_outcome_predictions(
 
     certainty (from league_label_certainty): wherever it's proven a cell
     mathematically impossible or already clinched, that cell shows "X" or
-    "✓" instead of the usual percentage -- see _fmt_cert_pct."""
+    "✓" instead of the usual percentage -- see _cert_value."""
     leave_labels = LEAGUE_LEAVE_LABELS.get(league_name, set(probs_df.columns))
     bucket_cols = list(probs_df.columns)
     show_stay = not (set(bucket_cols) <= leave_labels)
@@ -318,24 +349,29 @@ def _render_outcome_predictions(
             combined = True if (own_cert or extra_cert) else (
                 False if own_cert is False and (not extra_label or extra_cert is False) else None
             )
-            row[c] = _fmt_cert_pct(value, combined)
+            row[c] = _cert_value(value, combined)
         for win_col, lose_col, agg_col in active_splits:
             value = round((raw[win_col] + raw[lose_col]) * 100, 1)
             pool_label = _RAW_POOL_LABEL.get((win_col, lose_col))
             pool_cert = cert.get(pool_label) if pool_label else None
             if pool_cert is None and cert.get(win_col) is False and cert.get(lose_col) is False:
                 pool_cert = False
-            row[agg_col] = _fmt_cert_pct(value, pool_cert)
+            row[agg_col] = _cert_value(value, pool_cert)
         if show_stay:
             leave_prob = sum(v for c, v in raw.items() if c in leave_labels)
             value = round(max(0.0, 1.0 - leave_prob) * 100, 1)
             stay_cert = True if all(cert.get(c) is False for c in leave_labels) else None
-            row[stay_label] = _fmt_cert_pct(value, stay_cert)
+            row[stay_label] = _cert_value(value, stay_cert)
         if extra_alias:
             value = round(raw[extra_alias[1]] * 100, 1)
-            row[extra_alias[0]] = _fmt_cert_pct(value, cert.get(extra_alias[1]))
+            row[extra_alias[0]] = _cert_value(value, cert.get(extra_alias[1]))
         rows.append(row)
+    # Rows default-sort by cols[0] -- the league's headline qualifying
+    # outcome (Quarterfinals/Promotion) -- clinched teams first, real
+    # chances descending, eliminated last (see _cert_value's sentinels).
+    rows.sort(key=lambda r: r[cols[0]], reverse=True)
     df = pd.DataFrame(rows)[["Flag", "Team"] + cols]
+    styled = df.style.format(_cert_cell_format, subset=cols)
 
     promo_display = _PROMOTION_DISPLAY_BY_LEAGUE.get(league_name)
     display_overrides = {win: _WIN_DISPLAY for win, _, _ in active_splits}
@@ -348,8 +384,8 @@ def _render_outcome_predictions(
         "Team": st.column_config.TextColumn("Team", width="medium"),
     }
     for c in cols:
-        col_cfg[c] = st.column_config.TextColumn(display_overrides.get(c, c))
-    st.dataframe(df, column_config=col_cfg, use_container_width=True, hide_index=True, height=len(df) * 35 + 38)
+        col_cfg[c] = st.column_config.NumberColumn(display_overrides.get(c, c))
+    st.dataframe(styled, column_config=col_cfg, use_container_width=True, hide_index=True, height=len(df) * 35 + 38)
 
 
 def _blank_third_fourth_reps(groups: dict[str, list[str]], position: int) -> list[dict]:
@@ -758,17 +794,19 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     cert = detail_certainty.get(t, {})
                     for col in detail_probs.columns:
                         value = round(float(detail_probs.loc[t, col]) * 100, 1)
-                        row[col] = _fmt_cert_pct(value, cert.get(col))
+                        row[col] = _cert_value(value, cert.get(col))
                     detail_rows.append(row)
                 detail_df = pd.DataFrame(detail_rows)
+                detail_cert_cols = list(detail_probs.columns)
+                detail_styled = detail_df.style.format(_cert_cell_format, subset=detail_cert_cols)
                 detail_col_cfg = {
                     "Flag": st.column_config.ImageColumn("", width="small"),
                     "Team": st.column_config.TextColumn("Team", width="medium"),
                 }
-                for col in detail_probs.columns:
-                    detail_col_cfg[col] = st.column_config.TextColumn(col)
+                for col in detail_cert_cols:
+                    detail_col_cfg[col] = st.column_config.NumberColumn(col)
                 st.dataframe(
-                    detail_df, column_config=detail_col_cfg, use_container_width=True,
+                    detail_styled, column_config=detail_col_cfg, use_container_width=True,
                     hide_index=True, height=len(detail_df) * 35 + 38,
                 )
 
@@ -846,25 +884,35 @@ with knockout_chances_tab:
         # is just as surely eliminated from everything past it, so "X"
         # cascades down from the same qf_cert fact.
         downstream_cert = False if qf_cert is False else None
+        qf_cell = _cert_value(qf_value, qf_cert)
+        # Sort by Quarterfinals first (clinched teams top, eliminated
+        # bottom, real chances descending in between -- see _cert_value's
+        # sentinels), Winner chance as a tiebreaker within a tier so
+        # genuine favourites still lead among teams with the same QF
+        # status rather than landing in an arbitrary order.
         ko_rows.append({
             "Flag": _flag(team),
             "Team": team,
-            "Quarterfinals": _fmt_cert_pct(qf_value, qf_cert),
-            "Semifinals": _fmt_cert_pct(round(r["reached_finals_four"] * 100, 1), downstream_cert),
-            "Finals": _fmt_cert_pct(round(r["reached_final"] * 100, 1), downstream_cert),
-            "Winner": _fmt_cert_pct(round(r["won_competition"] * 100, 1), downstream_cert),
+            "_sort": (qf_cell, r["won_competition"]),
+            "Quarterfinals": qf_cell,
+            "Semifinals": _cert_value(round(r["reached_finals_four"] * 100, 1), downstream_cert),
+            "Finals": _cert_value(round(r["reached_final"] * 100, 1), downstream_cert),
+            "Winner": _cert_value(round(r["won_competition"] * 100, 1), downstream_cert),
         })
-    ko_df = pd.DataFrame(ko_rows)
+    ko_rows.sort(key=lambda r: r["_sort"], reverse=True)
+    ko_df = pd.DataFrame(ko_rows).drop(columns="_sort")
+    ko_cert_cols = ["Quarterfinals", "Semifinals", "Finals", "Winner"]
+    ko_styled = ko_df.style.format(_cert_cell_format, subset=ko_cert_cols)
     ko_col_cfg = {
         "Flag": st.column_config.ImageColumn("", width="small"),
         "Team": st.column_config.TextColumn("Team", width="medium"),
-        "Quarterfinals": st.column_config.TextColumn("Quarterfinals", width="small"),
-        "Semifinals": st.column_config.TextColumn("Semifinals", width="small"),
-        "Finals": st.column_config.TextColumn("Finals", width="small"),
-        "Winner": st.column_config.TextColumn("Winner", width="small"),
+        "Quarterfinals": st.column_config.NumberColumn("Quarterfinals", width="small"),
+        "Semifinals": st.column_config.NumberColumn("Semifinals", width="small"),
+        "Finals": st.column_config.NumberColumn("Finals", width="small"),
+        "Winner": st.column_config.NumberColumn("Winner", width="small"),
     }
     st.dataframe(
-        ko_df, column_config=ko_col_cfg, use_container_width=True,
+        ko_styled, column_config=ko_col_cfg, use_container_width=True,
         hide_index=True, height=len(ko_df) * 35 + 38,
     )
 
@@ -961,22 +1009,23 @@ with promo_releg_tab:
 
     def _role_chances(title: str, teams: list[str], chances: pd.Series, cert: dict[str, bool] | None = None) -> None:
         with st.expander(title):
-            rows = [
-                {
+            rows = []
+            for t in teams:
+                value = round(float(chances.get(t, 0.0)) * 100, 1)
+                certain = (cert or {}).get(t)
+                rows.append({
                     "Flag": _flag(t), "Team": t,
-                    "_sort": float(chances.get(t, 0.0)),
-                    "Chance": _fmt_cert_pct(round(float(chances.get(t, 0.0)) * 100, 1), (cert or {}).get(t)),
-                }
-                for t in teams
-            ]
-            rows.sort(key=lambda r: -r["_sort"])
-            df = pd.DataFrame(rows).drop(columns="_sort")
+                    "Chance": _cert_value(value, certain),
+                })
+            rows.sort(key=lambda r: r["Chance"], reverse=True)
+            df = pd.DataFrame(rows)
+            styled = df.style.format(_cert_cell_format, subset=["Chance"])
             st.dataframe(
-                df,
+                styled,
                 column_config={
                     "Flag": st.column_config.ImageColumn("", width="small"),
                     "Team": st.column_config.TextColumn("Team", width="medium"),
-                    "Chance": st.column_config.TextColumn("Chance"),
+                    "Chance": st.column_config.NumberColumn("Chance"),
                 },
                 use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
             )
