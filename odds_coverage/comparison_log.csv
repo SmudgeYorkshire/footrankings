@@ -665,3 +665,75 @@ date,source,league,tracked,n_fixtures,avg_bookmakers
 2026-10-04,odds_api,Swedish Allsvenskan,True,8,15.8
 2026-10-04,odds_api,Swiss Super League,True,6,11.5
 2026-10-04,odds_api,Turkish Super Lig,True,9,15.7
+2026-10-05,api_football,UEFA U21 Championship - Qualification,False,6,6.7
+2026-10-05,api_football,Liga Profesional Argentina,False,5,9.0
+2026-10-05,api_football,1. Division,False,1,9.0
+2026-10-05,api_football,3. Division - Girone 3,False,1,8.0
+2026-10-05,api_football,3. Division - Girone 4,False,1,8.0
+2026-10-05,api_football,3. Division - Girone 6,False,1,6.0
+2026-10-05,api_football,Primera Nacional,False,1,9.0
+2026-10-05,api_football,Primera B Metropolitana,False,2,7.5
+2026-10-05,api_football,Primera C,False,4,6.8
+2026-10-05,api_football,Division 2 - Norra Götaland,False,1,6.0
+2026-10-05,api_football,UEFA Nations League,False,18,8.9
+2026-10-05,api_football,Primera B,False,2,8.0
+2026-10-05,api_football,Primera A,False,2,9.0
+2026-10-05,api_football,Prva Liga,False,4,8.0
+2026-10-05,api_football,Liga Nacional,False,1,7.0
+2026-10-05,api_football,2. liga,False,1,8.0
+2026-10-05,api_football,Segunda División,False,1,9.0
+2026-10-05,api_football,Persha Liga,False,1,7.0
+2026-10-05,api_football,Mineiro - 3,False,1,5.0
+2026-10-05,api_football,2. Lig,False,1,7.0
+2026-10-05,api_football,Non League Premier - Isthmian,False,6,5.5
+2026-10-05,api_football,Liga Revelação U23,False,4,7.0
+2026-10-05,api_football,Friendlies,False,13,5.9
+2026-10-05,api_football,Professional Development League,False,1,7.0
+2026-10-05,api_football,Division Profesional - Clausura,False,4,8.0
+2026-10-05,api_football,Azadegan League,False,3,2.0
+2026-10-05,api_football,Super League 2,False,3,6.3
+2026-10-05,api_football,CONCACAF Nations League,False,9,8.9
+2026-10-05,api_football,Division Intermedia,False,4,6.0
+2026-10-05,api_football,Torneo Promocional Amateur,False,1,7.0
+2026-10-05,api_football,CAF U23 Cup of Nations,False,1,2.0
+2026-10-05,api_football,Friendlies Clubs,False,1,1.0
+2026-10-05,api_football,Premier League,False,3,8.0
+2026-10-05,api_football,Ligue 1,False,1,7.0
+2026-10-05,api_football,IFA Shield,False,1,8.0
+2026-10-05,api_football,FIFA Asean Cup,False,2,9.0
+2026-10-05,api_football,Serie B,False,8,7.6
+2026-10-05,api_football,Africa Cup of Nations - Qualification,False,1,5.0
+2026-10-05,api_football,2. SNL,False,1,4.0
+2026-10-05,api_football,Liga Panameña de Fútbol,False,1,7.0
+2026-10-05,api_football,National League - South,False,3,8.0
+2026-10-05,api_football,EFL Trophy,False,19,7.8
+2026-10-05,api_football,Non League Premier - Northern,False,11,4.9
+2026-10-05,api_football,Liga Alef,False,1,2.0
+2026-10-05,api_football,Copa Chile,False,3,6.0
+2026-10-05,api_football,FA Cup,False,3,6.0
+2026-10-05,api_football,Major League Soccer,False,1,8.0
+2026-10-05,api_football,Serie A,False,5,9.0
+2026-10-05,api_football,Non League Premier - Southern South,False,1,5.0
+2026-10-05,api_football,Finnish Veikkausliiga,True,1,9.0
+2026-10-05,api_football,Ykkönen,False,1,5.0
+2026-10-05,api_football,Copa Ecuador,False,1,6.0
+2026-10-05,odds_api,Austrian Bundesliga,True,12,11.8
+2026-10-05,odds_api,Belgian Pro League,True,9,18.2
+2026-10-05,odds_api,Danish Superliga,True,6,19.5
+2026-10-05,odds_api,English Premier League,True,20,19.9
+2026-10-05,odds_api,Finnish Veikkausliiga,True,7,12.7
+2026-10-05,odds_api,French Ligue 1,True,18,19.5
+2026-10-05,odds_api,German Bundesliga,True,18,17.9
+2026-10-05,odds_api,Greek Super League 1,True,14,12.1
+2026-10-05,odds_api,Irish Premier Division,True,6,9.0
+2026-10-05,odds_api,Italian Serie A,True,20,18.7
+2026-10-05,odds_api,Dutch Eredivisie,True,9,17.6
+2026-10-05,odds_api,Norwegian Eliteserien,True,8,16.5
+2026-10-05,odds_api,Polish Ekstraklasa,True,9,15.0
+2026-10-05,odds_api,Portuguese Primeira Liga,True,9,15.3
+2026-10-05,odds_api,Russian Football Premier League,True,8,3.2
+2026-10-05,odds_api,Scottish Premiership,True,6,14.2
+2026-10-05,odds_api,Spanish La Liga,True,20,16.9
+2026-10-05,odds_api,Swedish Allsvenskan,True,8,16.2
+2026-10-05,odds_api,Swiss Super League,True,6,15.5
+2026-10-05,odds_api,Turkish Super Lig,True,9,17.7
