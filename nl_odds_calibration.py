@@ -74,38 +74,32 @@ ADJUSTMENT_CAP = 60.0
 # matters and is what's committed).
 # ---------------------------------------------------------------------------
 OBSERVATIONS: list[dict] = [
-    # 2026-10-01 -- matchday 4 kicks off today (Germany-Serbia, Greece-
-    # Netherlands, Denmark-Portugal, Wales-Norway all still upcoming at
-    # time of writing), so all four get fresh pre-match lines this round.
+    # No fresh "match" sightings this round -- nl_odds_calibration_auto.py's
+    # daily run already covers match-level odds across the full roster (see
+    # its own run log / ratings/nations_league_elo_adjustments.csv), so
+    # hand-typing a handful of matches here would just double-apply a
+    # correction on top of odds that are already-fitted and current.
     #
-    # 2026-10-01, sportytrader.com/1xbet/Betsson consensus (kickoff 18:45 UTC)
-    {"type": "match", "home": "Germany", "away": "Serbia", "odds": (1.28, 6.00, 9.50)},
-    # 2026-10-01, sportytrader.com/stake/1xbet consensus
-    {"type": "match", "home": "Wales", "away": "Norway", "odds": (5.90, 4.60, 1.52)},
-    # 2026-10-01, stake/betfred/1xbet consensus
-    {"type": "match", "home": "Denmark", "away": "Portugal", "odds": (3.35, 3.60, 2.05)},
-    # 2026-10-01, stake/1xbet/22bet consensus
-    {"type": "match", "home": "Greece", "away": "Netherlands", "odds": (3.30, 3.50, 2.10)},
-    # 2026-10-01 06:26 GMT, bettingodds.com aggregate -- Spain/France/
-    # Portugal/Germany steady, England drifted back out a touch, Italy
-    # and Denmark/Croatia drifted out further (no result to justify it,
-    # just market thinning); Netherlands widened slightly too.
-    {"type": "outright", "team": "Spain", "decimal_odds": 3.75},
-    {"type": "outright", "team": "France", "decimal_odds": 3.75},
-    {"type": "outright", "team": "England", "decimal_odds": 5.5},
-    {"type": "outright", "team": "Portugal", "decimal_odds": 7.0},
-    {"type": "outright", "team": "Germany", "decimal_odds": 8.0},
-    {"type": "outright", "team": "Netherlands", "decimal_odds": 12.0},
-    {"type": "outright", "team": "Norway", "decimal_odds": 17.0},
-    {"type": "outright", "team": "Belgium", "decimal_odds": 17.0},
-    {"type": "outright", "team": "Italy", "decimal_odds": 30.0},
-    {"type": "outright", "team": "Greece", "decimal_odds": 41.0},
-    {"type": "outright", "team": "Denmark", "decimal_odds": 46.0},
-    {"type": "outright", "team": "Croatia", "decimal_odds": 54.0},
-    {"type": "outright", "team": "Serbia", "decimal_odds": 251.0},
-    {"type": "outright", "team": "Türkiye", "decimal_odds": 251.0},
-    {"type": "outright", "team": "Wales", "decimal_odds": 251.0},
-    {"type": "outright", "team": "Czechia", "decimal_odds": 501.0},
+    # 2026-10-05 08:00 BST, bettingodds.com's League A outright winner
+    # market (fractional -> decimal): Spain still clear favourite after
+    # France/England tightened up since the last check; no Serbia line
+    # currently posted (dropped the stale 2026-10-01 251.0 guess rather
+    # than carry a figure with no current market backing it).
+    {"type": "outright", "team": "Spain", "decimal_odds": 3.25},
+    {"type": "outright", "team": "France", "decimal_odds": 4.00},
+    {"type": "outright", "team": "England", "decimal_odds": 6.00},
+    {"type": "outright", "team": "Portugal", "decimal_odds": 7.00},
+    {"type": "outright", "team": "Germany", "decimal_odds": 10.00},
+    {"type": "outright", "team": "Netherlands", "decimal_odds": 13.00},
+    {"type": "outright", "team": "Belgium", "decimal_odds": 17.00},
+    {"type": "outright", "team": "Greece", "decimal_odds": 21.00},
+    {"type": "outright", "team": "Italy", "decimal_odds": 34.00},
+    {"type": "outright", "team": "Norway", "decimal_odds": 34.00},
+    {"type": "outright", "team": "Denmark", "decimal_odds": 67.00},
+    {"type": "outright", "team": "Croatia", "decimal_odds": 101.00},
+    {"type": "outright", "team": "Wales", "decimal_odds": 151.00},
+    {"type": "outright", "team": "Türkiye", "decimal_odds": 501.00},
+    {"type": "outright", "team": "Czechia", "decimal_odds": 1001.00},
 ]
 
 
@@ -125,9 +119,33 @@ def fit_match_adjustments(
 ) -> dict[str, float]:
     """observations defaults to the module-level OBSERVATIONS (the manual
     workflow this script was built for); nl_odds_calibration_auto.py passes
-    its own automatically-fetched list instead, reusing this exact fit."""
+    its own automatically-fetched list instead, reusing this exact fit.
+
+    With zero match observations this is a no-op (returns `adjustments`
+    unchanged) rather than still running the shrinkage loop -- EPOCHS=400
+    passes of L2_SHRINKAGE with nothing to re-anchor against decays
+    everything toward 0 (0.98**400 =~ 0.0003x), silently wiping out
+    perfectly good adjustments from a separate fitting run (e.g. this
+    script's own outright-only manual step, layered on top of
+    nl_odds_calibration_auto.py's already-fitted match adjustments file --
+    caught for real when a 36-team auto-fit collapsed to 14 after an
+    outright-only run with the match OBSERVATIONS pruned)."""
     adj = dict(adjustments)
     match_obs = [o for o in (observations if observations is not None else OBSERVATIONS) if o["type"] == "match"]
+    if not match_obs:
+        return adj
+    # Shrinkage below only ever touches teams THIS call's observations
+    # actually mention, not every team in `adj` -- confirmed via real
+    # daily commits (ratings/nations_league_elo_adjustments.csv, Oct 3 ->
+    # Oct 4) that shrinking the whole carried-forward dict every call
+    # wipes out any team not observed again that specific day: 400 epochs
+    # of 2% shrinkage is a ~99.97% decay WITHIN ONE RUN (0.98**400), so a
+    # team's adjustment from two days ago -- not stale, just not re-
+    # observed today -- vanishes by the end of a single day's fit even
+    # though nothing contradicted it. The regularization this shrinkage
+    # is for ("a team with only one noisy observation doesn't swing far")
+    # only makes sense applied to teams actually being fit this call.
+    touched = {t for o in match_obs for t in (o["home"], o["away"]) if t in base_elo}
     for _ in range(EPOCHS):
         for o in match_obs:
             home, away = o["home"], o["away"]
@@ -141,8 +159,8 @@ def fit_match_adjustments(
             error = target - model
             adj[home] = adj.get(home, 0.0) + LEARNING_RATE * error
             adj[away] = adj.get(away, 0.0) - LEARNING_RATE * error
-        for t in list(adj):
-            adj[t] = max(-ADJUSTMENT_CAP, min(ADJUSTMENT_CAP, adj[t] * (1.0 - L2_SHRINKAGE)))
+        for t in touched:
+            adj[t] = max(-ADJUSTMENT_CAP, min(ADJUSTMENT_CAP, adj.get(t, 0.0) * (1.0 - L2_SHRINKAGE)))
     return adj
 
 

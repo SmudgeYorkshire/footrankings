@@ -114,7 +114,8 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:sportsapi.com)",
       "Bash(gh auth *)",
-      "PowerShell(gh auth status 2>&1)"
+      "PowerShell(gh auth status 2>&1)",
+      "Bash(python -c ' *)"
     ]
   }
 }
