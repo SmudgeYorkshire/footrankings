@@ -495,6 +495,103 @@ def _average_pairing_prevail(
     return {t: round(prevail_sum[t] / n_deal * 100, 1) for t in all_teams}
 
 
+def cross_league_playoff_win_rates(
+    higher_chances: pd.Series,
+    lower_chances: pd.Series,
+    ratings_df: pd.DataFrame,
+    home_advantage: float = 1.05,
+) -> dict[str, float]:
+    """Each team's probability of winning its play-off tie GIVEN it
+    reaches the pool, against a realistic cross-league opponent --
+    weighted over the OTHER side's own candidates by their own
+    normalized chance of being the one actually drawn.
+
+    This exists because simulate_league_outcomes' own internal Monte
+    Carlo play-off resolution only ever sees ONE league's roster at a
+    time (it's called separately per league), so its _pair_playoff_pool
+    step can only pair a pool member against its own DOMESTIC rivals --
+    never the real cross-league opponent the tie is actually played
+    against. Confirmed to matter on real data: Albania (League C) was
+    shown winning its promotion play-off ~84% of the time GIVEN it
+    reached the pool, because the simulation was testing it against
+    weaker fellow League C sides (Estonia, Cyprus, Faroe Islands) instead
+    of the genuinely tougher League B opponents (Georgia, Israel,
+    Romania, North Macedonia) it would actually face -- more than 30
+    points higher than the ~50% this function (and the already-correct
+    project_playoff_entries, used elsewhere on this same page) gives.
+
+    higher_chances/lower_chances: EVERY team's own pool-entry marginal
+    probability (0-1, e.g. "Won X Play-offs" + "Lost X Play-offs" summed
+    from simulate_league_outcomes' own output) for the two sides of one
+    real UEFA play-off bracket -- not just the top 4 most likely
+    (project_playoff_entries' own point-estimate scope), so a team with a
+    real but smaller chance of reaching the pool still gets a realistic
+    win-rate instead of keeping the old same-pool-biased one. Candidates
+    below a 0.5% pool chance are dropped to keep the O(n_higher x
+    n_lower) two-leg calculation tractable -- their contribution to any
+    visible total is negligible anyway.
+
+    The higher side is the one with something to defend (home in leg 1).
+    Returns {team: win_rate} (0-1) for every team kept on either side.
+    """
+    higher = higher_chances[higher_chances > 0.005]
+    lower = lower_chances[lower_chances > 0.005]
+    if higher.empty or lower.empty:
+        return {}
+
+    all_teams = list(higher.index) + list(lower.index)
+    ko_ratings = _scoped_attack_defense(all_teams, ratings_df, k=KNOCKOUT_K)
+    ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
+
+    odds: dict[tuple[str, str], dict] = {}
+    for h in higher.index:
+        for l in lower.index:
+            odds[(h, l)] = two_leg_advance_odds(
+                h, l, ko_ratings,
+                home_advantage_team1=ha_pairs.get((h, l), home_advantage),
+                home_advantage_team2=ha_pairs.get((l, h), home_advantage),
+            )
+
+    lower_weights = lower / lower.sum()
+    higher_weights = higher / higher.sum()
+
+    result: dict[str, float] = {}
+    for h in higher.index:
+        result[h] = sum(lower_weights[l] * odds[(h, l)]["team1_adv"] for l in lower.index)
+    for l in lower.index:
+        result[l] = sum(higher_weights[h] * odds[(h, l)]["team2_adv"] for h in higher.index)
+    return result
+
+
+def apply_cross_league_playoff_correction(
+    higher_probs: pd.DataFrame,
+    higher_pool_label: str,
+    lower_probs: pd.DataFrame,
+    lower_pool_label: str,
+    ratings_df: pd.DataFrame,
+) -> None:
+    """Mutates higher_probs/lower_probs IN PLACE, overriding each pool's
+    Won/Lost split columns (see _PLAYOFF_POOLS) with the cross-league-
+    aware win rate from cross_league_playoff_win_rates -- the POOL-ENTRY
+    marginal itself (win+lose summed) is untouched and already correct
+    (it only depends on this league's own group stage); only HOW that
+    chance splits between winning and losing the actual tie changes.
+    """
+    win_label, lose_label = _PLAYOFF_POOLS[higher_pool_label]
+    higher_chance = higher_probs[win_label] + higher_probs[lose_label]
+    win_label2, lose_label2 = _PLAYOFF_POOLS[lower_pool_label]
+    lower_chance = lower_probs[win_label2] + lower_probs[lose_label2]
+
+    win_rates = cross_league_playoff_win_rates(higher_chance, lower_chance, ratings_df)
+    for team, rate in win_rates.items():
+        if team in higher_chance.index and higher_chance[team] > 0.005:
+            higher_probs.loc[team, win_label] = higher_chance[team] * rate
+            higher_probs.loc[team, lose_label] = higher_chance[team] * (1 - rate)
+        elif team in lower_chance.index and lower_chance[team] > 0.005:
+            lower_probs.loc[team, win_label2] = lower_chance[team] * rate
+            lower_probs.loc[team, lose_label2] = lower_chance[team] * (1 - rate)
+
+
 def project_playoff_entries(
     higher_teams: list[str],
     higher_label: str,

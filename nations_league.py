@@ -27,6 +27,7 @@ from nations_league_simulator import (
     cross_group_ranking, group_fixture_odds, group_expected_points, project_qf_entries,
     project_playoff_entries, project_2028_composition, league_a_relegation_pool_split,
     most_likely_group_order, group_position_bounds, league_label_certainty,
+    apply_cross_league_playoff_correction,
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
@@ -632,28 +633,36 @@ all_group_probs: dict[str, dict[str, pd.DataFrame]] = {}
 all_outcome_probs: dict[str, pd.DataFrame] = {}
 all_group_standings: dict[str, dict[str, list[dict]]] = {}
 all_group_remaining: dict[str, dict[str, list[dict]]] = {}
+all_group_played: dict[str, dict[str, list[dict]]] = {}
+all_group_roster: dict[str, dict[str, list[dict]]] = {}
+all_group_states: dict[str, dict[str, dict]] = {}
+all_group_position_probs: dict[str, dict[str, pd.DataFrame]] = {}
+all_league_seed: dict[str, int] = {}
 all_league_certainty: dict[str, dict[str, dict[str, bool]]] = {}
+all_league_bounds: dict[str, dict[str, tuple[int, int]]] = {}
 
-for league_tab, league_name in zip(league_tabs, league_names):
-    with league_tab:
+# Simulate every league's own group stage FIRST, before rendering any of
+# them, so the play-off win/lose correction below can see every league's
+# pool-entry chances at once -- simulate_league_outcomes only ever sees
+# one league's own roster at a time, so a team's real cross-league
+# play-off opponent (e.g. a League C runner-up facing a League B
+# relegation-pool team) isn't knowable until BOTH sides' simulations have
+# run. group_fixtures() is cached, so fetching each group's data here and
+# again inside the render loop below is cheap, not a double real pull.
+with st.spinner("Simulating every league's group stage…"):
+    for league_name in league_names:
         groups = NL_GROUPS[league_name]
         rules = LEAGUE_OUTCOME_RULES[league_name]
-        ranked_rules = [r for r in rules if r[0] == "ranked"]
-        all_league_teams = [t for g in groups.values() for t in g]
         # Shared across every simulate_league_outcomes() call for this
-        # league this render pass (the main call below and the "Chances of
-        # finishing 3rd or 4th" detail-table call further down) so they're
-        # the same underlying replicates, just binned into differently
-        # labelled buckets -- not two independently-random simulations that
-        # could report slightly different numbers for the same thing.
+        # league this render pass (the main call here and the "Chances
+        # of finishing 3rd or 4th" detail-table call further down) so
+        # they're the same underlying replicates, just binned into
+        # differently labelled buckets -- not two independently-random
+        # simulations that could report slightly different numbers for
+        # the same thing.
         league_seed = random.randint(0, 2**31 - 1)
+        all_league_seed[league_name] = league_seed
 
-        # Pre-fetch every group's real current data once -- needed both
-        # for each group's own tabs below and for the league-wide outcome
-        # simulation, which has to see every group's state at once so a
-        # cross-group-ranked rule (e.g. League A's 3rd/4th-place pools)
-        # is correlated correctly rather than computed from independent
-        # per-group marginals.
         league_group_standings: dict[str, list[dict]] = {}
         league_group_remaining: dict[str, list[dict]] = {}
         league_group_played: dict[str, list[dict]] = {}
@@ -668,16 +677,51 @@ for league_tab, league_name in zip(league_tabs, league_names):
             league_group_roster[group_name] = roster
         all_group_standings[league_name] = league_group_standings
         all_group_remaining[league_name] = league_group_remaining
+        all_group_played[league_name] = league_group_played
+        all_group_roster[league_name] = league_group_roster
 
         league_group_states = _group_states_from(groups, league_group_standings, league_group_remaining)
-        with st.spinner("Simulating group-stage outcomes…"):
-            outcome_probs, group_position_probs = simulate_league_outcomes(
-                league_group_states, rules, ratings_df, n_sim=10_000, seed=league_seed,
-            )
+        all_group_states[league_name] = league_group_states
+        outcome_probs, group_position_probs = simulate_league_outcomes(
+            league_group_states, rules, ratings_df, n_sim=10_000, seed=league_seed,
+        )
         all_outcome_probs[league_name] = outcome_probs
-        league_bounds = group_position_bounds(league_group_states)
-        league_certainty = league_label_certainty(league_group_states, rules)
-        all_league_certainty[league_name] = league_certainty
+        all_group_position_probs[league_name] = group_position_probs
+        all_league_bounds[league_name] = group_position_bounds(league_group_states)
+        all_league_certainty[league_name] = league_label_certainty(league_group_states, rules)
+
+    # Now that every league's pool-entry chances exist, replace each
+    # play-off pool's Won/Lost split with the cross-league-aware win rate
+    # (see apply_cross_league_playoff_correction's own docstring for why
+    # simulate_league_outcomes' own internal split can't get this right
+    # on its own). Mutates all_outcome_probs' DataFrames in place.
+    apply_cross_league_playoff_correction(
+        all_outcome_probs["League A"], "Relegation Play-offs",
+        all_outcome_probs["League B"], "Promotion Play-offs",
+        ratings_df,
+    )
+    apply_cross_league_playoff_correction(
+        all_outcome_probs["League B"], "Relegation Play-offs",
+        all_outcome_probs["League C"], "Promotion Play-offs",
+        ratings_df,
+    )
+
+for league_tab, league_name in zip(league_tabs, league_names):
+    with league_tab:
+        groups = NL_GROUPS[league_name]
+        rules = LEAGUE_OUTCOME_RULES[league_name]
+        ranked_rules = [r for r in rules if r[0] == "ranked"]
+        all_league_teams = [t for g in groups.values() for t in g]
+        league_seed = all_league_seed[league_name]
+        league_group_standings = all_group_standings[league_name]
+        league_group_remaining = all_group_remaining[league_name]
+        league_group_played = all_group_played[league_name]
+        league_group_roster = all_group_roster[league_name]
+        league_group_states = all_group_states[league_name]
+        outcome_probs = all_outcome_probs[league_name]
+        group_position_probs = all_group_position_probs[league_name]
+        league_bounds = all_league_bounds[league_name]
+        league_certainty = all_league_certainty[league_name]
 
         tab_labels = (
             list(groups.keys())
