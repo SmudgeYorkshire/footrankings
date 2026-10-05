@@ -767,6 +767,7 @@ def project_2028_composition(
     ratings_df: pd.DataFrame,
     all_group_standings: dict[str, dict[str, list[dict]]] | None = None,
     all_group_remaining: dict[str, dict[str, list[dict]]] | None = None,
+    league_a_outcome_probs: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Projects every nation's 2028/29 UEFA Nations League placement AND
     its exact rank within its new league, from the 2026/27 edition's
@@ -791,6 +792,16 @@ def project_2028_composition(
     two play-off pools' own win/lose split still comes from
     _average_pairing_prevail's probability-weighted ordering, not a coin
     flip, so that part of the uncertainty is still respected).
+
+    league_a_outcome_probs: League A's simulate_league_outcomes() result
+    (nations_league.py's all_outcome_probs["League A"]) -- when given, the
+    3rd/4th-place relegation-pool split uses league_a_relegation_pool_split's
+    genuine per-team relegation probability (same method the Promotion &
+    Relegation tab's own, trusted split uses) instead of raw interim
+    standings rank, so a team sitting on points accumulated against a soft
+    schedule doesn't get spared here while the probabilistic tables
+    correctly flag it as one of the two likeliest to go down. Falls back to
+    the cruder interim-rank split only if omitted.
 
     Returns a DataFrame with columns team, league ("League A"/"B"/"C"),
     rank (1-18, local to that league's own 18-team table), source.
@@ -834,19 +845,26 @@ def project_2028_composition(
     ])
     a_rows += [(t, f"{_ordinal(i)}-ranked quarter-final loser") for i, t in enumerate(qf_losers, start=1)]
 
-    # The two 3rd/4th-place splits are resolved by interim rank (not
-    # league_a_relegation_pool_split's simulation-probability method,
-    # which nations_league.py's Promotion & Relegation tab uses for its
-    # own, genuinely probabilistic "which pool" question) so the "Team
-    # ranked Nth in interim ranking" text below is always self-consistent
-    # with which 2 teams this function actually calls "safe"/"relegated" --
-    # third_reps/fourth_reps are each already exactly one team per group,
-    # so splitting the 4 by their own interim rank needs no further
-    # cross-group resolution.
-    third_by_interim = by_interim([order[2] for order in a_order.values()])
-    safe_third, playoff_third = third_by_interim[:2], third_by_interim[2:]
-    fourth_by_interim = by_interim([order[3] for order in a_order.values()])
-    playoff_fourth, direct_releg_fourth = fourth_by_interim[:2], fourth_by_interim[2:]
+    # The two 3rd/4th-place splits use league_a_relegation_pool_split's own
+    # genuine per-team relegation probability when available -- the same
+    # method the Promotion & Relegation tab's trusted split uses -- rather
+    # than raw interim standings rank, which can rank a team above its
+    # true relegation risk (points banked against a soft remaining
+    # schedule, say) and wrongly spare it here while the probabilistic
+    # tables correctly flag it as one of the two likeliest to go down.
+    # by_interim only reorders each bucket for the "Team ranked Nth in
+    # interim ranking" text below -- it never changes bucket membership.
+    if league_a_outcome_probs is not None:
+        a_split = league_a_relegation_pool_split(all_group_probs["League A"], league_a_outcome_probs)
+        safe_third = by_interim(a_split["safe_third"])
+        playoff_third = by_interim(a_split["playoff_third"])
+        playoff_fourth = by_interim(a_split["playoff_fourth"])
+        direct_releg_fourth = by_interim(a_split["direct_releg_fourth"])
+    else:
+        third_by_interim = by_interim([order[2] for order in a_order.values()])
+        safe_third, playoff_third = third_by_interim[:2], third_by_interim[2:]
+        fourth_by_interim = by_interim([order[3] for order in a_order.values()])
+        playoff_fourth, direct_releg_fourth = fourth_by_interim[:2], fourth_by_interim[2:]
 
     for t in safe_third:
         a_rows.append((t, f"Team ranked {_ordinal(interim_rank[t])} in interim ranking"))

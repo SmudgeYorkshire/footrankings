@@ -235,7 +235,9 @@ def _render_predictions(
     }
     for pos_col in pos_cols:
         col_cfg[pos_col] = st.column_config.NumberColumn(pos_col, width="small")
-    col_cfg["xPTS"] = st.column_config.NumberColumn("xPTS", width="small", help="Expected points")
+    col_cfg["xPTS"] = st.column_config.NumberColumn(
+        "xPTS", width="small", help="Expected points", format="%.1f",
+    )
 
     st.dataframe(
         styled, column_config=col_cfg, use_container_width=True,
@@ -1150,6 +1152,7 @@ with projections_2028_tab:
     with st.spinner("Projecting the 2028/29 league composition…"):
         composition = project_2028_composition(
             all_group_probs, NL_GROUPS, ratings_df, all_group_standings, all_group_remaining,
+            league_a_outcome_probs=all_outcome_probs["League A"],
         )
 
     for league in ["League A", "League B", "League C"]:
