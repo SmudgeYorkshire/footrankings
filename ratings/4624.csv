@@ -1,11 +1,11 @@
-team,alias,opta_rating
-Borac Banja Luka,FK Borac Banja Luka,80.3
-Zrinjski,Zrinjski Mostar,77.9
-Sarajevo,FK Sarajevo,74.3
-Velez,Velež,70.1
-Zeljeznicar,Zeljeznicar Sarajevo,71.3
-Siroki Brijeg,Široki Brijeg,69.0
-Čelik,,68.2
-Radnik Bijeljina,FK Radnik Bijeljina,66.4
-BSK Banja Luka,,66.7
-Sloga Doboj,FK Sloga Doboj,67.2
+team,alias,opta_rating,opta_scrape_alias
+Borac Banja Luka,FK Borac Banja Luka,80.4,Borac BB
+Zrinjski,Zrinjski Mostar,77.9,
+Sarajevo,FK Sarajevo,74.3,
+Velez,Velež,70.1,
+Zeljeznicar,Zeljeznicar Sarajevo,71.3,
+Siroki Brijeg,Široki Brijeg,69.0,
+Čelik,,68.2,
+Radnik Bijeljina,FK Radnik Bijeljina,66.7,Radnik
+BSK Banja Luka,,66.9,Banja Luka
+Sloga Doboj,FK Sloga Doboj,67.2,

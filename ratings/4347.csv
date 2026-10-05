@@ -1,17 +1,17 @@
-team,alias,opta_rating
-Sirius,IK Sirius,81.4
-Hammarby,Hammarby FF,82.4
-Mjällby,Mjallby AIF,76.3
-Djurgården,Djurgardens IF,81.4
-GAIS,Gais,79.3
-Häcken,BK Hacken,79.5
-Malmö FF,Malmo FF,77.7
-AIK,AIK Stockholm,77.2
-Elfsborg,IF Elfsborg,78.4
-IFK Göteborg,IFK Goteborg,77.6
-Västerås,Vasteras SK FK,77.0
-Kalmar,Kalmar FF,74.3
-Brommapojkarna,IF Brommapojkarna,75.2
-Örgryte,Orgryte IS,72.3
-Degerfors,Degerfors IF,73.7
-Halmstad,Halmstads BK,71.7
+team,alias,opta_rating,opta_scrape_alias
+Sirius,IK Sirius,81.4,
+Hammarby,Hammarby FF,82.4,
+Mjällby,Mjallby AIF,76.3,
+Djurgården,Djurgardens IF,81.4,
+GAIS,Gais,79.3,
+Häcken,BK Hacken,79.5,
+Malmö FF,Malmo FF,77.9,Malmö
+AIK,AIK Stockholm,77.2,
+Elfsborg,IF Elfsborg,78.4,
+IFK Göteborg,IFK Goteborg,77.6,
+Västerås,Vasteras SK FK,77.0,
+Kalmar,Kalmar FF,74.3,
+Brommapojkarna,IF Brommapojkarna,75.2,
+Örgryte,Orgryte IS,72.3,
+Degerfors,Degerfors IF,73.7,
+Halmstad,Halmstads BK,71.7,

@@ -1,13 +1,13 @@
-team,alias,opta_rating
-LASK,Lask Linz,84.8
-Sturm Graz,,82.5
-Salzburg,Red Bull Salzburg,85.0
-Austria Wien,Austria Vienna,78.1
-Rapid,Rapid Vienna,81.3
-Wolfsberger AC,,75.5
-Hartberg,TSV Hartberg,77.1
-Grazer AK,,76.5
-Ried,SV Ried,76.9
-Austria Lustenau,,75.3
-SCR Altach,,74.9
-WSG Tirol,WSG Wattens,75.7
+team,alias,opta_rating,opta_scrape_alias
+LASK,Lask Linz,84.8,
+Sturm Graz,,82.7,Sturm
+Salzburg,Red Bull Salzburg,85.0,
+Austria Wien,Austria Vienna,78.3,Austria
+Rapid,Rapid Vienna,81.4,
+Wolfsberger AC,,75.7,WAC
+Hartberg,TSV Hartberg,77.1,
+Grazer AK,,76.7,GAK
+Ried,SV Ried,76.9,
+Austria Lustenau,,75.5,A Lustenau
+SCR Altach,,75.1,Altach
+WSG Tirol,WSG Wattens,75.9,Tirol

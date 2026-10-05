@@ -1,15 +1,15 @@
-team,alias,opta_rating
-Hapoel Be'er Sheva,Hapoel Beer Sheva,81.5
-Maccabi Tel Aviv,,83.1
-Beitar Jerusalem,,78.9
-Hapoel Tel Aviv,Hapoel Tel-Aviv,79.4
-Maccabi Haifa,,78.1
-Maccabi Netanya,,74.4
-Hapoel Haifa,,73.9
-Hapoel Petah Tikva,Hapoel Petach Tikva,71.4
-Ironi Kiryat Shmona,Hapoel Ironi Kiryat Shmona,72.0
-Ironi Tiberias,,72.2
-Hapoel Ramat Gan,,71.7
-Maccabi Petah Tikva,,71.2
-Hapoel Jerusalem,Hapoel Katamon,72.4
-Bnei Sakhnin,,68.5
+team,alias,opta_rating,opta_scrape_alias
+Hapoel Be'er Sheva,Hapoel Beer Sheva,81.7,H Be'er Sheva
+Maccabi Tel Aviv,,83.2,Maccabi TA
+Beitar Jerusalem,,79.1,Beitar
+Hapoel Tel Aviv,Hapoel Tel-Aviv,79.6,Hapoel TA
+Maccabi Haifa,,78.2,M Haifa
+Maccabi Netanya,,74.7,M Netanya
+Hapoel Haifa,,74.1,H Haifa
+Hapoel Petah Tikva,Hapoel Petach Tikva,71.7,H Petah Tikva
+Ironi Kiryat Shmona,Hapoel Ironi Kiryat Shmona,72.3,Kiryat Shmona
+Ironi Tiberias,,72.4,I Tiberias
+Hapoel Ramat Gan,,71.9,H Ramat Gan
+Maccabi Petah Tikva,,71.4,M Petah Tikva
+Hapoel Jerusalem,Hapoel Katamon,72.6,H Jerusalem
+Bnei Sakhnin,,68.8,Sakhnin

@@ -1,21 +1,21 @@
-team,alias,opta_rating
-Barcelona,,97.0
-Real Madrid,,94.4
-Atlético de Madrid,Atletico Madrid,91.3
-Villarreal,,88.4
-Real Betis,,88.9
-Valencia,,85.1
-Rayo Vallecano,,86.4
-Celta de Vigo,Celta Vigo,85.6
-Real Sociedad,,85.8
-Athletic Club,Athletic Bilbao,86.3
-Alavés,Alaves,85.7
-Osasuna,,84.2
-Getafe,,83.6
-Levante,,84.7
-Málaga,Malaga,82.8
-Espanyol,RCD Espanyol,83.8
-Racing de Santander,Racing Santander,83.4
-Sevilla,,85.1
-Elche,,83.9
-Deportivo de A Coruña,Deportivo La Coruna,84.1
+team,alias,opta_rating,opta_scrape_alias
+Barcelona,,97.0,
+Real Madrid,,94.4,
+Atlético de Madrid,Atletico Madrid,91.4,Atlético
+Villarreal,,88.4,
+Real Betis,,89.0,Betis
+Valencia,,85.1,
+Rayo Vallecano,,86.5,Rayo
+Celta de Vigo,Celta Vigo,85.8,Celta
+Real Sociedad,,85.8,
+Athletic Club,Athletic Bilbao,86.4,Athletic
+Alavés,Alaves,85.7,
+Osasuna,,84.2,
+Getafe,,83.6,
+Levante,,84.7,
+Málaga,Malaga,82.8,
+Espanyol,RCD Espanyol,83.8,
+Racing de Santander,Racing Santander,83.6,Santander
+Sevilla,,85.1,
+Elche,,83.9,
+Deportivo de A Coruña,Deportivo La Coruna,84.2,Deportivo

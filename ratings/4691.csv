@@ -1,17 +1,17 @@
-team,alias,opta_rating
-Universitatea Craiova,,80.7
-CFR Cluj,CFR 1907 Cluj,76.5
-Universitatea Cluj,FC Universitatea Cluj,78.0
-Dinamo București,Dinamo Bucuresti,79.3
-FCSB,Steaua Bucharest,75.2
-Rapid București,Rapid,81.3
-Oțelul Galați,Oţelul,73.3
-Argeș,Arges Pitesti,73.3
-UTA Arad,Uta Arad,74.6
-FCV Farul Constanța,Farul Constanta,73.4
-Botoșani,FC Botosani,73.3
-Sepsi,Sepsi OSK Sfantu Gheorghe,72.7
-Corvinul Hunedoara,,73.4
-Voluntari,FC Voluntari,71.2
-Petrolul 52,Petrolul Ploiesti,73.0
-Csikszereda,Csikszereda Miercurea,69.5
+team,alias,opta_rating,opta_scrape_alias
+Universitatea Craiova,,80.8,U Craiova
+CFR Cluj,CFR 1907 Cluj,76.7,CFR
+Universitatea Cluj,FC Universitatea Cluj,78.2,U Cluj
+Dinamo București,Dinamo Bucuresti,79.4,Dinamo
+FCSB,Steaua Bucharest,75.2,
+Rapid București,Rapid,77.8,
+Oțelul Galați,Oţelul,73.3,
+Argeș,Arges Pitesti,73.3,
+UTA Arad,Uta Arad,74.8,Arad
+FCV Farul Constanța,Farul Constanta,73.7,Farul
+Botoșani,FC Botosani,73.3,
+Sepsi,Sepsi OSK Sfantu Gheorghe,72.7,
+Corvinul Hunedoara,,73.6,Hunedoara
+Voluntari,FC Voluntari,71.2,
+Petrolul 52,Petrolul Ploiesti,73.0,
+Csikszereda,Csikszereda Miercurea,69.5,

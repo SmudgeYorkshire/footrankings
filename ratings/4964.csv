@@ -1,13 +1,13 @@
-team,alias,opta_rating
-Lincoln Red Imps,Lincoln Red Imps FC,71.9
-St Joseph's,St Joseph S Fc,67.4
-Europa,Europa FC,59.6
-Mons Calpe,Mons Calpe SC,56.9
-Magpies,FCB Magpies,56.3
-Lions Gibraltar,,50.8
-Lynx,,49.6
-Manchester 62,,48.6
-Glacis United,,47.1
-Europa Point,,46.2
-Hound Dogs,,42.6
-College 1975,,43.9
+team,alias,opta_rating,opta_scrape_alias
+Lincoln Red Imps,Lincoln Red Imps FC,72.1,Red Imps
+St Joseph's,St Joseph S Fc,67.4,
+Europa,Europa FC,59.6,
+Mons Calpe,Mons Calpe SC,56.9,
+Magpies,FCB Magpies,56.3,
+Lions Gibraltar,,51.2,Lions
+Lynx,,49.6,
+Manchester 62,,48.6,
+Glacis United,,47.5,Glacis Utd
+Europa Point,,46.2,
+Hound Dogs,,42.6,
+College 1975,,43.9,

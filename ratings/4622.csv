@@ -1,17 +1,17 @@
-team,alias,opta_rating
-Dinamo Minsk,FC Dinamo Minsk,76.1
-ML Vitebsk,Maxline Vitebsk,75.2
-Isloch,FC Isloch Minsk R.,73.8
-Torpedo Belaz,Torpedo Zhodino,69.9
-Dinamo Brest,Dynamo Brest,71.5
-Neman Grodno,Neman,72.1
-Gomel,FC Gomel,71.1
-Minsk,FC Minsk,69.3
-Slavia,Slavia Mozyr,68.8
-Vitebsk,FC Vitebsk,69.2
-BATE,Bate Borisov,67.8
-Arsenal,Arsenal Dzerzhinsk,66.3
-Baranovichi,FK Baranovichi,66.1
-Dnepr Mogilev,FC Dnepr Mogilev,64.5
-Belshina,Belshina Bobruisk,65.5
-Naftan,Naftan Novopolotsk,61.9
+team,alias,opta_rating,opta_scrape_alias
+Dinamo Minsk,FC Dinamo Minsk,76.1,
+ML Vitebsk,Maxline Vitebsk,75.2,
+Isloch,FC Isloch Minsk R.,73.8,
+Torpedo Belaz,Torpedo Zhodino,69.9,
+Dinamo Brest,Dynamo Brest,71.5,
+Neman Grodno,Neman,72.1,
+Gomel,FC Gomel,71.1,
+Minsk,FC Minsk,69.3,
+Slavia,Slavia Mozyr,68.8,
+Vitebsk,FC Vitebsk,69.2,
+BATE,Bate Borisov,67.8,
+Arsenal,Arsenal Dzerzhinsk,66.3,
+Baranovichi,FK Baranovichi,66.1,
+Dnepr Mogilev,FC Dnepr Mogilev,64.8,Dnepr
+Belshina,Belshina Bobruisk,65.5,
+Naftan,Naftan Novopolotsk,61.9,

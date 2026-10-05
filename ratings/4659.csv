@@ -1,13 +1,13 @@
-team,alias,opta_rating
-Larne,,70.0
-Coleraine,Coleraine FC,68.2
-Glentoran,,65.5
-Linfield,,65.7
-Cliftonville,Cliftonville FC,60.6
-Carrick Rangers,,59.3
-Dungannon Swifts,,59.1
-Portadown,,55.6
-Crusaders,Crusaders FC,57.7
-Limavady United,,55.8
-Ballymena United,,56.9
-Bangor,,54.5
+team,alias,opta_rating,opta_scrape_alias
+Larne,,70.0,
+Coleraine,Coleraine FC,68.2,
+Glentoran,,65.5,
+Linfield,,65.7,
+Cliftonville,Cliftonville FC,60.6,
+Carrick Rangers,,59.8,Carrick
+Dungannon Swifts,,59.3,Dungannon
+Portadown,,55.6,
+Crusaders,Crusaders FC,57.7,
+Limavady United,,56.3,Limavady Utd
+Ballymena United,,58.2,Ballymena Utd
+Bangor,,54.5,

@@ -1,11 +1,11 @@
-team,alias,opta_rating
-Shkendija,Shkëndija,75.5
-Vardar Skopje,Vardar,74.4
-Struga,FK Struga,72.4
-Sileks,FK Sileks,69.1
-Tikvesh,Tikveš,70.0
-Bregalnica Štip,,65.5
-Aresimi,Arsimi,65.3
-Skopje,,63.4
-Bashkimi Kumanovo,Bashkimi,63.1
-Shkëndija Haraçinë,,65.1
+team,alias,opta_rating,opta_scrape_alias
+Shkendija,Shkëndija,75.5,
+Vardar Skopje,Vardar,74.4,
+Struga,FK Struga,72.4,
+Sileks,FK Sileks,69.1,
+Tikvesh,Tikveš,70.0,
+Bregalnica Štip,,65.8,Bregalnica
+Aresimi,Arsimi,65.3,
+Skopje,,63.4,
+Bashkimi Kumanovo,Bashkimi,63.1,
+Shkëndija Haraçinë,,65.4,Shkëndija 77

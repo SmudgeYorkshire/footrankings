@@ -1,13 +1,13 @@
-team,alias,opta_rating
-Ferencváros,Ferencvarosi TC,86.2
-Győri ETO,Gyori ETO FC,80.8
-Paks,FC Paksi,77.5
-Puskás,Puskas Academy,78.4
-Debrecen,Debreceni VSC,76.0
-Zalaegerszeg,Zalaegerszegi TE,75.2
-MTK,MTK Budapest,75.4
-Nyíregyháza Spartacus,Nyiregyhaza,75.8
-Újpest,Ujpest,76.9
-Vasas,,76.9
-Kisvárda,Kisvarda FC,74.2
-Honvéd,Budapest Honved,74.3
+team,alias,opta_rating,opta_scrape_alias
+Ferencváros,Ferencvarosi TC,86.2,
+Győri ETO,Gyori ETO FC,80.9,Győr
+Paks,FC Paksi,77.5,
+Puskás,Puskas Academy,78.4,
+Debrecen,Debreceni VSC,76.0,
+Zalaegerszeg,Zalaegerszegi TE,75.4,ZTE
+MTK,MTK Budapest,75.4,
+Nyíregyháza Spartacus,Nyiregyhaza,75.8,
+Újpest,Ujpest,76.9,
+Vasas,,76.9,
+Kisvárda,Kisvarda FC,74.2,
+Honvéd,Budapest Honved,74.3,

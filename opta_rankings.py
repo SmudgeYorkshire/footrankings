@@ -200,7 +200,7 @@ with tab_global:
             f"{_GLOBAL_RANKINGS_PATH}."
         )
     else:
-        from update_ratings_from_opta import _normalize
+        from build_club_power_rankings import resolve_tracked_leagues
 
         @st.cache_data(ttl=3_600, show_spinner=False)
         def _load_global_rankings_df(mtime: float) -> pd.DataFrame:
@@ -211,26 +211,14 @@ with tab_global:
         _global_df = _load_global_rankings_df(Path(_GLOBAL_RANKINGS_PATH).stat().st_mtime)
 
         # Tag every globally-ranked team that matches one of our tracked
-        # clubs with which league we track it in. Matches against both the
-        # `team` and `alias` columns of each league's ratings CSV (not the
-        # single alias-preferred display name _all_df uses) -- e.g. Brighton
-        # & Hove Albion's alias is the short "Brighton", so matching only
-        # the display name would miss the full name this scrape uses.
-        _tracked_by_norm: dict[str, str] = {}
-        for _league_name, _cfg in LEAGUES.items():
-            _label = f"{_cfg['flag']} {_league_name}"
-            _csv_path = Path("ratings") / f"{_cfg.get('tsdb_id', _cfg['id'])}.csv"
-            if not _csv_path.exists():
-                continue
-            _rdf = pd.read_csv(_csv_path, dtype=str)
-            for _, _rrow in _rdf.iterrows():
-                for _col in ("team", "alias"):
-                    _name = str(_rrow.get(_col, "")).strip()
-                    if _name and _name.lower() != "nan":
-                        _tracked_by_norm.setdefault(_normalize(_name), _label)
-        _global_df["Tracked League"] = _global_df["team"].map(
-            lambda t: _tracked_by_norm.get(_normalize(t), "")
-        )
+        # clubs with which league we track it in -- same resolver
+        # club_power_rankings.py uses, so the two pages can't drift apart
+        # (this tab used to have its own separate, simpler inline copy,
+        # which -- unlike resolve_tracked_leagues -- tagged EVERY row
+        # sharing a normalized name instead of each tracked club at most
+        # one, double- and sometimes 8x-counting homonyms like
+        # Arsenal/Inter/Juventus/Rangers under unrelated clubs abroad).
+        _global_df["Tracked League"], _ = resolve_tracked_leagues(_global_df)
 
         st.caption(
             f"Every men's team Opta rates worldwide ({len(_global_df):,} teams), not just the 54 "

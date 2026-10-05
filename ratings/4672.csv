@@ -1,13 +1,13 @@
-team,alias,opta_rating
-Slovan Bratislava,SK Slovan Bratislava,80.3
-DAC 1904,Dunajska Streda,80.7
-Spartak Trnava,FC Spartak Trnava,77.8
-Žilina,MSK Zilina,77.9
-Podbrezová,Železiarne Podbrezová,75.3
-FC Košice,FK Košice,75.3
-Zemplín Michalovce,MFK Zemplin,72.5
-Skalica,MFK Skalica,71.1
-Trenčín,AS Trencin,70.6
-Ružomberok,MFK Ruzomberok,70.6
-Dukla Banská Bystrica,,70.2
-Komárno,MFK Komarno,71.1
+team,alias,opta_rating,opta_scrape_alias
+Slovan Bratislava,SK Slovan Bratislava,80.5,Slovan
+DAC 1904,Dunajska Streda,80.7,
+Spartak Trnava,FC Spartak Trnava,78.0,Spartak
+Žilina,MSK Zilina,77.9,
+Podbrezová,Železiarne Podbrezová,75.3,
+FC Košice,FK Košice,75.3,
+Zemplín Michalovce,MFK Zemplin,72.7,Zemplín
+Skalica,MFK Skalica,71.1,
+Trenčín,AS Trencin,70.6,
+Ružomberok,MFK Ruzomberok,70.6,
+Dukla Banská Bystrica,,69.2,Dukla
+Komárno,MFK Komarno,71.1,

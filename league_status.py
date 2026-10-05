@@ -37,15 +37,15 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "Spanish La Liga": {"regular": {
-        1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS", 5: "UCL - LS",
-        6: "UEL - LS", 7: "UEL - LS",
-        8: "UECL - PO",
+        1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS",
+        5: "UEL - LS", 6: "UEL - LS",
+        7: "UECL - PO",
         18: "Relegation", 19: "Relegation", 20: "Relegation",
     }},
 
     "German Bundesliga": {"regular": {
-        1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS", 5: "UEL - LS",
-        6: "UEL - LS", 7: "UECL - PO",
+        1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS", 5: "UCL - LS",
+        6: "UEL - LS", 7: "UEL - LS", 8: "UECL - PO",
         16: "Relegation - PO",
         17: "Relegation", 18: "Relegation",
     }},
@@ -75,16 +75,16 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     },
 
     "Andorran 1a Divisió": {"regular": {
-        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
+        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
         9: "Relegation - PO",
     }},
 
     "Armenian Premier League": {"regular": {
-        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
+        1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR1",
     }},
 
     "Azerbaijani Premier League": {"regular": {
-        1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR1",
+        1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
         11: "Relegation - PO", 12: "Relegation",
     }},
 
@@ -104,17 +104,18 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "Dutch Eredivisie": {"regular": {
-        1: "UCL - LS", 2: "UCL - LS", 3: "UCL - QR3 (LP)", 4: "UEL - QR2",
-        5: "UECL - PO", 6: "UEL - LS", 7: "UECL - PO", 8: "UECL - PO", 9: "UECL - PO",
+        1: "UCL - LS", 2: "UCL - QR3 (LP)",
+        3: "UEL - LS", 4: "UEL - QR2",
+        5: "UECL - QR2",
         16: "Relegation - PO", 17: "Relegation", 18: "Relegation",
     }},
 
     "Estonian Meistriliiga": {"regular": {
-        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
+        1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1",
     }},
 
     "Faroe Islands Premier League": {"regular": {
-        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
+        1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1",
     }},
 
     "Georgian Erovnuli Liga": {"regular": {
@@ -143,7 +144,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "Latvian Higher League": {"regular": {
-        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
+        1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1",
     }},
 
     "Lithuanian TOPLYGA": {"regular": {
@@ -151,11 +152,11 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "Luxembourg National Division": {"regular": {
-        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
+        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
     }},
 
     "Macedonian First League": {"regular": {
-        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
+        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
         8: "Relegation - PO", 9: "Relegation - PO",
         10: "Relegation", 11: "Relegation", 12: "Relegation",
     }},
@@ -168,13 +169,13 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             4: "Championship Group", 5: "Championship Group", 6: "Championship Group",
             7: "Relegation - PO", 8: "Relegation - PO",
         },
-        "champ": {  # 6 teams · pts ×0.5 · 2nd = cup winner Sheriff cascade (UEL – QR1)
-            1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR1",
+        "champ": {  # 6 teams · pts ×0.5
+            1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1",
         },
     },
 
     "Montenegrin First League": {"regular": {
-        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
+        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
         8: "Relegation - PO", 9: "Relegation - PO", 10: "Relegation",
     }},
 
@@ -185,12 +186,13 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "Polish Ekstraklasa": {"regular": {
-        1: "UCL - QR2", 2: "UCL - QR2 (LP)", 3: "UECL - QR2", 4: "UECL - QR2", 5: "UEL - QR3",
+        1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UEL - PO", 4: "UEL - QR2", 5: "UECL - QR2",
         16: "Relegation", 17: "Relegation", 18: "Relegation",
     }},
 
     "Portuguese Primeira Liga": {"regular": {
-        1: "UCL - LS", 2: "UCL - LS", 3: "UEL - LS", 4: "UEL - QR2", 5: "UECL - QR2",
+        1: "UCL - LS", 2: "UCL - LS", 3: "UCL - QR3 (LP)",
+        4: "UEL - LS", 5: "UEL - QR2", 6: "UECL - QR2",
         16: "Relegation - PO", 17: "Relegation", 18: "Relegation",
     }},
 
@@ -200,13 +202,11 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "San-Marino Campionato": {"regular": {
-        1: "UCL - QR1", 2: "UECL - PO", 3: "UECL - PO", 4: "UECL - QR1",
-        5: "UECL - PO", 6: "UECL - PO", 7: "UECL - PO", 8: "UECL - PO",
-        9: "UECL - PO", 10: "UECL - PO", 11: "UECL - PO", 12: "UECL - PO",
+        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
     }},
 
     "Slovenian 1. SNL": {"regular": {
-        1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2",
+        1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
         9: "Relegation - PO", 10: "Relegation",
     }},
 
@@ -222,7 +222,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "Ukrainian Premier League": {"regular": {
-        1: "UCL - PO", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UEL - QR1",
+        1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
         13: "Relegation - PO", 14: "Relegation - PO",
         15: "Relegation", 16: "Relegation",
     }},
@@ -244,8 +244,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
         },
         "champ": {  # 6 teams
-            1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UEL - QR3",
-            4: "UECL - QR2", 5: "UECL Play-offs*",
+            1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2", 5: "UECL Play-offs*",
         },
         "relg": {  # 6 teams · 1st (7th) and 2nd (8th) enter domestic UECL play-offs · last plays relegation PO
             1: "UECL Play-offs*", 2: "UECL Play-offs*",
@@ -255,7 +254,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
 
     # ── Belgian Pro League ── 18 teams · single round-robin · 34 rounds
     "Belgian Pro League": {"regular": {
-        1: "UCL - LS", 2: "UCL - QR3", 3: "UEL - QR2", 4: "UECL - QR2",
+        1: "UCL - LS", 2: "UCL - QR3 (LP)", 3: "UEL - PO", 4: "UEL - QR2", 5: "UECL - QR2",
         17: "Relegation", 18: "Relegation",
     }},
 
@@ -270,7 +269,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             12: "Relegation Group", 13: "Relegation Group", 14: "Relegation Group",
         },
         "champ": {  # 4 teams · 4th (or 3rd) plays European Group winner for UECL spot
-            1: "UCL - QR1", 2: "UEL - QR1", 4: "UECL Play-offs*",
+            1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL Play-offs*",
         },
         "mid": {  # 4 teams · winner plays Championship Group's 3rd/4th for UECL – QR2 spot
             1: "UECL Play-offs*",
@@ -292,7 +291,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             14: "Relegation Group", 15: "Relegation Group", 16: "Relegation Group",
         },
         "champ": {  # 6 teams · pts ×0.5
-            1: "UCL - LS", 2: "UCL - QR3 (LP)", 3: "UEL - QR2", 4: "UEL - PO", 5: "UECL - QR2",
+            1: "UCL - LS", 2: "UCL - QR2 (LP)", 3: "UEL - PO", 4: "UEL - QR2", 5: "UECL - QR2",
         },
         "mid": {  # 4 teams · no European spots (placement group)
         },
@@ -313,7 +312,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             13: "Relegation Group", 14: "Relegation Group",
         },
         "champ": {  # 6 teams · 4th = cup winner Pafos → UEL – QR2
-            1: "UCL - QR2", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UEL - QR2*",
+            1: "UCL - QR2", 2: "UCL - QR2 (LP)", 3: "UEL - QR3", 4: "UEL - QR2*", 5: "UECL - QR2",
         },
         "relg": {  # 8 teams (pos 7-14 overall) · 12th (6th), 13th (7th), 14th (8th) relegated
             6: "Relegation",
@@ -331,7 +330,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
         },
         "champ": {  # 6 teams
-            1: "UCL - QR2", 2: "UEL - QR2", 3: "UECL - QR3", 4: "UECL Play-offs*",
+            1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UEL - QR3", 4: "UECL Play-offs*", 5: "UECL - QR2",
         },
         "relg": {  # 6 teams · 1st plays 4th from Champ (one-legged) · 11th/12th relegated
             1: "UECL Play-offs*",
@@ -365,8 +364,8 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             4: "Championship Round", 5: "Championship Round", 6: "Championship Round",
             12: "Relegation",
         },
-        "champ": {  # 6 teams · 3rd = cup winner Lincoln Red Imps cascades here
-            1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
+        "champ": {  # 6 teams
+            1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
         },
     },
 
@@ -381,7 +380,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             12: "Relegation Group", 13: "Relegation Group", 14: "Relegation Group",
         },
         "champ": {  # 4 teams · pts ×0.5 · 3rd = cup winner PAOK cascades here
-            1: "UCL - LS", 2: "UCL - QR2 (LP)", 3: "UEL - PO", 4: "UEL - QR2",
+            1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UEL - PO", 4: "UEL - QR2",
         },
         "mid": {  # 4 teams (European Group) · winner → UECL – QR2
             1: "UECL - QR2",
@@ -403,8 +402,8 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
             13: "Relegation Group", 14: "Relegation Group",
         },
-        "champ": {  # 6 teams · 2nd = cup winner Beer Sheva cascade (UEL – QR1)
-            1: "UEL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
+        "champ": {  # 6 teams
+            1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
         },
         "relg": {  # 8 teams (pos 7-14 overall) · 12th (6th) = PO · 13th (7th), 14th (8th) = relegated
             6: "Relegation - PO",
@@ -423,7 +422,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
         },
         "champ": {  # 6 teams · pts carry over
-            1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
+            1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1",
         },
         "relg": {  # 6 teams (pos 7-12 overall) · 10th (4th) = PO · 11th (5th), 12th (6th) = relegated
             4: "Relegation - PO",
@@ -441,9 +440,8 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             7: "Relegation Group", 8: "Relegation Group", 9: "Relegation Group",
             10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
         },
-        "champ": {  # 6 teams · 2nd = cup winner Larne cascade (UECL – QR2)
-            1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1",
-            4: "UECL - PO", 5: "UECL - PO", 6: "UECL - PO",
+        "champ": {  # 6 teams
+            1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
         },
         "relg": {  # 6 teams · 1st (7th overall) enters UECL PO · 5th/6th relegated
             1: "UECL - PO",
@@ -462,8 +460,8 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             11: "Relegation Group", 12: "Relegation Group", 13: "Relegation Group", 14: "Relegation Group",
             15: "Relegation Group", 16: "Relegation Group",
         },
-        "champ": {  # 6 teams · pts ×0.5 · 2nd = Craiova (cup winner, no cascade) · 4th enters UECL PO
-            1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - PO",
+        "champ": {  # 6 teams · pts ×0.5
+            1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
         },
         "relg": {  # 10 teams (play-out) · 1st/2nd enter UECL PO · 7th/8th = Relegation PO · 9th/10th relegated
             1: "UECL - PO",
@@ -483,9 +481,8 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             7: "Relegation Group", 8: "Relegation Group", 9: "Relegation Group",
             10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
         },
-        "champ": {  # 6 teams · 3rd = cup winner Celtic cascade (UEL – QR3)
-            1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UEL - QR3",
-            4: "UECL - QR2", 5: "UECL - QR2",
+        "champ": {  # 6 teams
+            1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
         },
         "relg": {  # 6 teams · 11th overall (5th) = PO vs Championship 2nd · 12th (6th) = relegated
             5: "Relegation - PO",
@@ -504,7 +501,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             15: "Relegation Group", 16: "Relegation Group",
         },
         "champ": {  # 8 teams · pts ×0.5
-            1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
+            1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
         },
         "relg": {  # 8 teams (pos 9-16 overall) · pts ×0.5 · 13th–14th (5th–6th) = PO · 15th–16th (7th–8th) relegated
             5: "Relegation - PO",
@@ -523,7 +520,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
         },
         "champ": {  # 6 teams
-            1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
+            1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
         },
         "relg": {  # 6 teams · 11th (5th) = PO vs Slovak 2. liga · 12th (6th) = relegated
             5: "Relegation - PO",
@@ -557,7 +554,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             10: "Play-Off Conference", 11: "Play-Off Conference", 12: "Play-Off Conference",
         },
         "champ": {  # 6 teams
-            1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - PO", 4: "UECL - PO", 5: "UECL - PO",
+            1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
         },
         "relg": {  # 6 teams (pos 7-12 overall) · 1st and 2nd enter UECL play-offs
             1: "UECL - PO", 2: "UECL - PO",

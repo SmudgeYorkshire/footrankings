@@ -1,13 +1,13 @@
-team,alias,opta_rating
-Víkingur Reykjavík,Vikingur Reykjavik,77.4
-KR,KR Reykjavik,71.8
-Breiðablik,Breidablik,69.2
-Fram,Fram Reykjavik,70.4
-Valur,Valur Reykjavik,69.0
-Stjarnan,,69.0
-Keflavík,Keflavik,67.0
-ÍA,IA Akranes,69.2
-FH,FH hafnarfjordur,68.0
-KA,KA Akureyri,66.2
-ÍBV,IBV Vestmannaeyjar,65.7
-Þór,Thor Akureyri,63.9
+team,alias,opta_rating,opta_scrape_alias
+Víkingur Reykjavík,Vikingur Reykjavik,77.6,Víkingur R
+KR,KR Reykjavik,71.8,
+Breiðablik,Breidablik,69.2,
+Fram,Fram Reykjavik,70.4,
+Valur,Valur Reykjavik,69.0,
+Stjarnan,,69.0,
+Keflavík,Keflavik,67.0,
+ÍA,IA Akranes,69.2,
+FH,FH hafnarfjordur,68.0,
+KA,KA Akureyri,66.2,
+ÍBV,IBV Vestmannaeyjar,65.7,
+Þór,Thor Akureyri,63.4,Thór

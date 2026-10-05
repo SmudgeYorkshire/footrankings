@@ -1,17 +1,17 @@
-team,alias,opta_rating
-Slavia Praha,Slavia Prague,88.4
-Sparta Praha,Sparta Prague,84.2
-Viktoria Plzeň,Plzen,82.5
-Hradec Králové,Hradec Kralove,80.1
-Jablonec,FK Jablonec,80.3
-Slovan Liberec,FC Slovan Liberec,81.3
-Sigma Olomouc,SK Sigma Olomouc,79.6
-Teplice,FK Teplice,79.5
-Zbrojovka Brno,,78.8
-Mladá Boleslav,Mlada Boleslav,78.3
-Bohemians 1905,,78.0
-Baník Ostrava,Banik Ostrava,75.9
-Pardubice,FK Pardubice,77.0
-Artis Brno,Artis,74.8
-Slovácko,FC Slovacko,74.0
-Zlín,Zlin,73.2
+team,alias,opta_rating,opta_scrape_alias
+Slavia Praha,Slavia Prague,88.5,Slavia
+Sparta Praha,Sparta Prague,84.4,Sparta
+Viktoria Plzeň,Plzen,82.5,
+Hradec Králové,Hradec Kralove,80.3,Hradec Kr.
+Jablonec,FK Jablonec,80.3,
+Slovan Liberec,FC Slovan Liberec,81.5,Liberec
+Sigma Olomouc,SK Sigma Olomouc,79.8,Olomouc
+Teplice,FK Teplice,79.5,
+Zbrojovka Brno,,79.0,Zbrojovka
+Mladá Boleslav,Mlada Boleslav,78.5,Ml. Boleslav
+Bohemians 1905,,78.2,Bohemians
+Baník Ostrava,Banik Ostrava,76.1,Ostrava
+Pardubice,FK Pardubice,77.0,
+Artis Brno,Artis,74.8,
+Slovácko,FC Slovacko,74.0,
+Zlín,Zlin,73.2,

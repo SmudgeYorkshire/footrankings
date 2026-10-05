@@ -90,6 +90,7 @@ pages = [
     st.Page("football_rankings.py", title="European Leagues",       icon="⚽"),
     st.Page("football_rankings_tier2.py", title="European Leagues - 2nd Tiers", icon="🥈"),
     st.Page("european.py",          title="European Competitions",  icon="🏆"),
+    st.Page("european_2027_28.py",  title="European Competitions 2027/28", icon="🔮"),
     st.Page("nations_league.py",    title="Nations League",         icon="🌍"),
     st.Page("opta_rankings.py",     title="Opta Rankings",          icon="⭐"),
     st.Page("club_power_rankings.py", title="Club Power Rankings",  icon="🏆"),

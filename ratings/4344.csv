@@ -1,19 +1,19 @@
-team,alias,opta_rating
-Sporting CP,Sporting Lisbon,91.4
-Benfica,SL Benfica,92.4
-Porto,FC Porto,91.0
-Sporting Braga,SC Braga,86.7
-Famalicão,Famalicao,83.6
-Gil Vicente,GIL Vicente,81.4
-Vitória Guimarães,Vitória SC,80.8
-Santa Clara,CD Santa Clara,82.7
-Arouca,FC Arouca,81.6
-Estoril,Estoril Praia,78.0
-Alverca,,80.0
-Moreirense,,79.3
-Nacional,Nacional de Madeira,78.8
-Académico de Viseu,Academico Viseu,80.0
-Marítimo,Maritimo,78.9
-Rio Ave,,77.8
-Casa Pia,,77.3
-Estrela,Estrela Amadora,78.3
+team,alias,opta_rating,opta_scrape_alias
+Sporting CP,Sporting Lisbon,91.5,Sporting
+Benfica,SL Benfica,92.4,
+Porto,FC Porto,91.0,
+Sporting Braga,SC Braga,86.7,
+Famalicão,Famalicao,83.6,
+Gil Vicente,GIL Vicente,81.4,
+Vitória Guimarães,Vitória SC,80.8,
+Santa Clara,CD Santa Clara,82.7,
+Arouca,FC Arouca,81.6,
+Estoril,Estoril Praia,78.0,
+Alverca,,80.0,
+Moreirense,,79.3,
+Nacional,Nacional de Madeira,77.4,
+Académico de Viseu,Academico Viseu,80.1,Académico
+Marítimo,Maritimo,78.9,
+Rio Ave,,77.8,
+Casa Pia,,77.3,
+Estrela,Estrela Amadora,78.3,

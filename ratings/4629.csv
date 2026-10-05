@@ -1,11 +1,11 @@
-team,alias,opta_rating
-Dinamo Zagreb,GNK Dinamo Zagreb,85.9
-Rijeka,HNK Rijeka,81.8
-Hajduk Split,HNK Hajduk Split,82.7
-Varaždin,NK Varazdin,80.3
-Lokomotiva Zagreb,NK Lokomotiva Zagreb,76.5
-Osijek,NK Osijek,79.1
-Rudeš,Rudes,74.3
-Istra 1961,NK Istra 1961,76.4
-HNK Gorica,NK Gorica,75.6
-Slaven Koprivnica,NK Slaven Belupo,74.8
+team,alias,opta_rating,opta_scrape_alias
+Dinamo Zagreb,GNK Dinamo Zagreb,85.9,
+Rijeka,HNK Rijeka,81.8,
+Hajduk Split,HNK Hajduk Split,82.8,Hajduk
+Varaždin,NK Varazdin,80.3,
+Lokomotiva Zagreb,NK Lokomotiva Zagreb,76.7,Lokomotiva
+Osijek,NK Osijek,79.1,
+Rudeš,Rudes,74.3,
+Istra 1961,NK Istra 1961,76.6,Istra
+HNK Gorica,NK Gorica,75.6,
+Slaven Koprivnica,NK Slaven Belupo,75.0,Slaven

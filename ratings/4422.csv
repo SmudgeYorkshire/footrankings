@@ -1,19 +1,19 @@
-team,alias,opta_rating
-Lech Poznań,Lech Poznan,85.8
-Legia Warszawa,Legia Warsaw,83.4
-Jagiellonia Białystok,Jagiellonia,81.6
-Raków Częstochowa,Rakow Czestochowa,79.6
-Górnik Zabrze,Gornik Zabrze,83.7
-GKS Katowice,,80.5
-Cracovia,Cracovia Krakow,78.9
-Wisła Kraków,Wisla Krakow,81.3
-Pogoń Szczecin,Pogon Szczecin,81.2
-Widzew Łódź,Widzew Lodz,79.1
-Korona Kielce,,80.2
-Zagłębie Lubin,Zaglebie Lubin,79.3
-Śląsk Wrocław,Slask Wroclaw,78.3
-Piast Gliwice,,79.4
-Radomiak Radom,,77.5
-Wisła Płock,Wisla Plock,79.3
-Motor Lublin,,77.9
-Wieczysta Kraków,,77.4
+team,alias,opta_rating,opta_scrape_alias
+Lech Poznań,Lech Poznan,86.0,Lech
+Legia Warszawa,Legia Warsaw,83.5,Legia
+Jagiellonia Białystok,Jagiellonia,81.6,
+Raków Częstochowa,Rakow Czestochowa,79.8,Raków
+Górnik Zabrze,Gornik Zabrze,83.8,Górnik
+GKS Katowice,,80.5,
+Cracovia,Cracovia Krakow,78.9,
+Wisła Kraków,Wisla Krakow,81.4,Wisła
+Pogoń Szczecin,Pogon Szczecin,81.4,Pogoń
+Widzew Łódź,Widzew Lodz,79.3,Widzew
+Korona Kielce,,80.4,Kielce
+Zagłębie Lubin,Zaglebie Lubin,79.5,Zagłębie
+Śląsk Wrocław,Slask Wroclaw,78.5,Śląsk
+Piast Gliwice,,79.6,Piast
+Radomiak Radom,,77.6,Radomiak
+Wisła Płock,Wisla Plock,79.3,
+Motor Lublin,,78.1,Motor
+Wieczysta Kraków,,77.6,Wieczysta

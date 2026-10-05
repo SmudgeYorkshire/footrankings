@@ -1,17 +1,17 @@
-team,alias,opta_rating
-The New Saints,,71.0
-Connah's Quay,GAP Connah S Quay FC,64.5
-Barry Town United,Barry Town,62.1
-Caernarfon Town,,62.1
-Colwyn Bay,,60.5
-Penybont,,61.7
-Haverfordwest County,Haverfordwest County AFC,56.8
-Airbus UK,,57.5
-Briton Ferry,Briton Ferry Llansawel,55.4
-Cardiff MU,Cardiff MET,58.8
-Llandudno,,56.9
-Cambrian United,Cambrian & Clydach,57.3
-Trefelin,,52.4
-Flint Town United,,53.3
-Holywell Town,Holywell,51.6
-Ammanford,Ammanford AFC,52.0
+team,alias,opta_rating,opta_scrape_alias
+The New Saints,,71.4,TNS
+Connah's Quay,GAP Connah S Quay FC,64.5,
+Barry Town United,Barry Town,62.1,
+Caernarfon Town,,61.9,Caernarfon
+Colwyn Bay,,60.5,
+Penybont,,61.7,
+Haverfordwest County,Haverfordwest County AFC,56.2,Haverfordwest
+Airbus UK,,57.9,Airbus
+Briton Ferry,Briton Ferry Llansawel,55.4,
+Cardiff MU,Cardiff MET,58.8,
+Llandudno,,56.9,
+Cambrian United,Cambrian & Clydach,57.8,Cambrian
+Trefelin,,52.4,
+Flint Town United,,54.5,Flint Town Utd
+Holywell Town,Holywell,51.6,
+Ammanford,Ammanford AFC,52.0,

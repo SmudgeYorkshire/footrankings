@@ -1,15 +1,15 @@
-team,alias,opta_rating
-Crvena Zvezda,FK Crvena Zvezda,83.4
-Partizan,FK Partizan,75.9
-Vojvodina,FK Vojvodina,77.0
-Železničar Pančevo,Zeleznicar Pancevo,73.8
-IMT Novi Beograd,FK IMT,73.3
-OFK Beograd,,70.6
-Čukarički,Cukaricki,71.1
-Radnik Surdulica,FK Radnik Surdulica,71.9
-Radnički Kragujevac,Radnicki 1923,73.7
-Novi Pazar,FK Novi Pazar,72.0
-Radnički Niš,Radnicki NIS,70.8
-Mačva Šabac,Macva,69.0
-Mladost Lučani,Mladost Lucani,70.3
-Zemun,,67.9
+team,alias,opta_rating,opta_scrape_alias
+Crvena Zvezda,FK Crvena Zvezda,83.4,
+Partizan,FK Partizan,75.9,
+Vojvodina,FK Vojvodina,77.0,
+Železničar Pančevo,Zeleznicar Pancevo,74.0,Železničar
+IMT Novi Beograd,FK IMT,73.3,
+OFK Beograd,,70.9,OFK
+Čukarički,Cukaricki,71.1,
+Radnik Surdulica,FK Radnik Surdulica,72.2,Radnik
+Radnički Kragujevac,Radnicki 1923,73.7,
+Novi Pazar,FK Novi Pazar,72.0,
+Radnički Niš,Radnicki NIS,70.8,
+Mačva Šabac,Macva,69.0,
+Mladost Lučani,Mladost Lucani,70.3,
+Zemun,,67.9,

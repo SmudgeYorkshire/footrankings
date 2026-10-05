@@ -1,19 +1,19 @@
-team,alias,opta_rating
-Fenerbahçe,Fenerbahce,87.8
-Galatasaray,,86.8
-Beşiktaş,Besiktas,85.5
-Trabzonspor,,82.4
-İstanbul Başakşehir,Başakşehir,80.7
-Samsunspor,,79.4
-Göztepe,Goztepe,79.9
-Konyaspor,,78.2
-Rizespor,Caykur Rizespor,79.1
-Alanyaspor,,79.1
-Gençlerbirliği,Gençlerbirliği S.K.,76.8
-Erzurumspor FK,,76.8
-Kasımpaşa,Kasimpasa,78.0
-Eyüpspor,Eyupspor,75.0
-Kocaelispor,,78.0
-Çorum,Çorum FK,77.6
-Gaziantep FK,Gaziantep,77.2
-Amed,,78.7
+team,alias,opta_rating,opta_scrape_alias
+Fenerbahçe,Fenerbahce,87.8,
+Galatasaray,,86.8,
+Beşiktaş,Besiktas,85.5,
+Trabzonspor,,82.4,
+İstanbul Başakşehir,Başakşehir,80.7,
+Samsunspor,,79.4,
+Göztepe,Goztepe,79.9,
+Konyaspor,,78.2,
+Rizespor,Caykur Rizespor,79.2,Rize
+Alanyaspor,,79.1,
+Gençlerbirliği,Gençlerbirliği S.K.,76.8,
+Erzurumspor FK,,76.8,
+Kasımpaşa,Kasimpasa,78.0,
+Eyüpspor,Eyupspor,75.2,Eyüp
+Kocaelispor,,78.0,
+Çorum,Çorum FK,77.6,
+Gaziantep FK,Gaziantep,77.2,
+Amed,,78.7,

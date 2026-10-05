@@ -1,19 +1,19 @@
-team,alias,opta_rating
-Bayern München,Bayern Munich,99.3
-Borussia Dortmund,,92.8
-Bayer Leverkusen,,91.1
-Stuttgart,VfB Stuttgart,89.1
-RB Leipzig,,88.6
-Hoffenheim,1899 Hoffenheim,86.3
-Freiburg,SC Freiburg,88.9
-Mainz 05,FSV Mainz 05,86.8
-Eintracht Frankfurt,,85.3
-Augsburg,FC Augsburg,85.4
-Borussia M'Gladbach,Borussia Mönchengladbach,83.0
-Union Berlin,,83.3
-Hamburger SV,Hamburg,82.7
-Werder Bremen,,84.2
-Elversberg,SV Elversberg,84.3
-Paderborn,SC Paderborn 07,83.4
-Köln,1. FC Köln,83.1
-Schalke 04,FC Schalke 04,83.6
+team,alias,opta_rating,opta_scrape_alias
+Bayern München,Bayern Munich,99.3,FC Bayern
+Borussia Dortmund,,92.9,Dortmund
+Bayer Leverkusen,,91.1,Bayer 04
+Stuttgart,VfB Stuttgart,89.1,
+RB Leipzig,,88.7,Leipzig
+Hoffenheim,1899 Hoffenheim,86.3,
+Freiburg,SC Freiburg,88.9,
+Mainz 05,FSV Mainz 05,86.9,Mainz
+Eintracht Frankfurt,,85.5,Frankfurt
+Augsburg,FC Augsburg,85.4,
+Borussia M'Gladbach,Borussia Mönchengladbach,83.2,M'gladbach
+Union Berlin,,83.3,
+Hamburger SV,Hamburg,82.7,
+Werder Bremen,,84.3,Bremen
+Elversberg,SV Elversberg,84.3,
+Paderborn,SC Paderborn 07,83.4,
+Köln,1. FC Köln,83.1,
+Schalke 04,FC Schalke 04,83.6,

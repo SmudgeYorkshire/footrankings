@@ -1,11 +1,11 @@
-team,alias,opta_rating
-Celje,NK Celje,78.0
-Koper,NK Koper,77.0
-Maribor,NK Maribor,76.7
-Bravo,NK Bravo,75.5
-Olimpija,Olimpija Ljubljana,74.8
-Nafta,,70.2
-Brinje Grosuplje,Brinje-Grosuplje,68.9
-Radomlje,NK Radomlje,68.2
-Mura,NS Mura,67.6
-Aluminij,NK Aluminij,70.4
+team,alias,opta_rating,opta_scrape_alias
+Celje,NK Celje,78.0,
+Koper,NK Koper,77.0,
+Maribor,NK Maribor,76.7,
+Bravo,NK Bravo,75.5,
+Olimpija,Olimpija Ljubljana,74.8,
+Nafta,,70.2,
+Brinje Grosuplje,Brinje-Grosuplje,69.1,Brinje
+Radomlje,NK Radomlje,68.2,
+Mura,NS Mura,67.6,
+Aluminij,NK Aluminij,70.4,

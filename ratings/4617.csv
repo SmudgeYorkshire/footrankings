@@ -1,11 +1,11 @@
-team,alias,opta_rating
-Egnatia Rrogozhinë,Egnatia,76.8
-Dinamo City,Dinamo Tirana,74.9
-AF Elbasani,Elbasani,73.5
-Vllaznia Shkodër,Vllaznia Shkoder,70.1
-Tirana,FK Tirana,71.7
-Vora,FK Vora,70.4
-Partizani Tirana,Partizani,70.6
-Laçi,Laci,71.2
-Skënderbeu Korçë,Skenderbeu Korce,70.2
-Teuta Durrës,Teuta Durres,73.1
+team,alias,opta_rating,opta_scrape_alias
+Egnatia Rrogozhinë,Egnatia,76.8,
+Dinamo City,Dinamo Tirana,75.1,Dinamo
+AF Elbasani,Elbasani,73.5,
+Vllaznia Shkodër,Vllaznia Shkoder,70.3,Vllaznia
+Tirana,FK Tirana,71.7,
+Vora,FK Vora,70.4,
+Partizani Tirana,Partizani,70.6,
+Laçi,Laci,71.2,
+Skënderbeu Korçë,Skenderbeu Korce,70.4,Skënderbeu
+Teuta Durrës,Teuta Durres,73.3,Teuta
