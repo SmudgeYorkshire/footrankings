@@ -264,7 +264,7 @@ def simulate_group(
 def simulate_league_a_knockouts(
     group_probs: dict[str, pd.DataFrame],
     ratings_df: pd.DataFrame,
-    n_sim: int = 5_000,
+    n_sim: int = 10_000,
     home_advantage: float = 1.05,
 ) -> pd.DataFrame:
     """Monte Carlo the quarter-finals -> Finals Four for League A.
@@ -643,7 +643,7 @@ def project_league_a_finals(
     settle 3rd vs 4th, since no separate simulation tracks UEFA's actual
     3rd-place game.
     """
-    ko = simulate_league_a_knockouts(group_probs_a, ratings_df, n_sim=8_000)
+    ko = simulate_league_a_knockouts(group_probs_a, ratings_df, n_sim=10_000)
     winner = ko["won_competition"].idxmax()
     runner_up = (ko["reached_final"] - ko["won_competition"]).drop(index=winner).idxmax()
     remaining = ko.drop(index=[winner, runner_up])
@@ -862,7 +862,7 @@ def simulate_league_outcomes(
     group_states: dict[str, dict],
     outcome_rules: list[tuple],
     ratings_df: pd.DataFrame,
-    n_sim: int = 8_000,
+    n_sim: int = 10_000,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
     seed: int | None = None,
 ) -> tuple[pd.DataFrame, dict[str, pd.DataFrame]]:

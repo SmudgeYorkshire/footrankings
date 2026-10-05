@@ -577,7 +577,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
         with st.spinner("Simulating group-stage outcomes…"):
             outcome_probs, group_position_probs = simulate_league_outcomes(
                 _group_states_from(groups, league_group_standings, league_group_remaining),
-                rules, ratings_df, n_sim=8_000, seed=league_seed,
+                rules, ratings_df, n_sim=10_000, seed=league_seed,
             )
         all_outcome_probs[league_name] = outcome_probs
 
@@ -687,7 +687,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
                 with st.spinner("Simulating…"):
                     detail_probs, _ = simulate_league_outcomes(
                         _group_states_from(groups, league_group_standings, league_group_remaining),
-                        detail_rules, ratings_df, n_sim=8_000, seed=league_seed,
+                        detail_rules, ratings_df, n_sim=10_000, seed=league_seed,
                     )
                 detail_rows = []
                 for t in all_league_teams:
@@ -768,7 +768,7 @@ with knockout_chances_tab:
         "be an open draw for the Semifinals without seeding."
     )
     with st.spinner("Simulating the quarter-finals and Finals Four…"):
-        ko = simulate_league_a_knockouts(all_group_probs["League A"], ratings_df, n_sim=8_000)
+        ko = simulate_league_a_knockouts(all_group_probs["League A"], ratings_df, n_sim=10_000)
 
     ko_rows = []
     for team, r in ko.iterrows():
