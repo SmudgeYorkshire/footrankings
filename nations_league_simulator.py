@@ -767,7 +767,6 @@ def project_2028_composition(
     ratings_df: pd.DataFrame,
     all_group_standings: dict[str, dict[str, list[dict]]] | None = None,
     all_group_remaining: dict[str, dict[str, list[dict]]] | None = None,
-    league_a_outcome_probs: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Projects every nation's 2028/29 UEFA Nations League placement AND
     its exact rank within its new league, from the 2026/27 edition's
@@ -793,15 +792,23 @@ def project_2028_composition(
     _average_pairing_prevail's probability-weighted ordering, not a coin
     flip, so that part of the uncertainty is still respected).
 
-    league_a_outcome_probs: League A's simulate_league_outcomes() result
-    (nations_league.py's all_outcome_probs["League A"]) -- when given, the
-    3rd/4th-place relegation-pool split uses league_a_relegation_pool_split's
-    genuine per-team relegation probability (same method the Promotion &
-    Relegation tab's own, trusted split uses) instead of raw interim
-    standings rank, so a team sitting on points accumulated against a soft
-    schedule doesn't get spared here while the probabilistic tables
-    correctly flag it as one of the two likeliest to go down. Falls back to
-    the cruder interim-rank split only if omitted.
+    The 3rd/4th-place relegation-pool split ranks the four most-likely
+    3rd-place (and separately 4th-place) reps by their own projected final
+    points (group_expected_points) -- the single-scenario equivalent of
+    UEFA's actual points-based cross-group criterion, and self-consistent
+    with every other bucket here being decided by a single point estimate
+    rather than a simulated probability. This deliberately does NOT reuse
+    league_a_relegation_pool_split's "Relegation to League B" marginal (the
+    Promotion & Relegation tab's own, genuinely probabilistic split) --
+    that marginal integrates over every simulated scenario, including ones
+    where a different team altogether finishes 4th in its group, so it can
+    rank two teams in the opposite order from their own projected points
+    purely from Monte Carlo noise in those irrelevant scenarios. Confirmed
+    on real data: with Turkiye, Serbia, Czechia and Wales as the four
+    most-likely 4th-place reps and projected points Wales 4.06 > Turkiye
+    2.18 > Serbia 1.64 > Czechia 1.22, the marginal flipped Turkiye and
+    Serbia relative to their own point totals; ranking by each team's own
+    projected points directly does not.
 
     Returns a DataFrame with columns team, league ("League A"/"B"/"C"),
     rank (1-18, local to that league's own 18-team table), source.
@@ -845,26 +852,33 @@ def project_2028_composition(
     ])
     a_rows += [(t, f"{_ordinal(i)}-ranked quarter-final loser") for i, t in enumerate(qf_losers, start=1)]
 
-    # The two 3rd/4th-place splits use league_a_relegation_pool_split's own
-    # genuine per-team relegation probability when available -- the same
-    # method the Promotion & Relegation tab's trusted split uses -- rather
-    # than raw interim standings rank, which can rank a team above its
-    # true relegation risk (points banked against a soft remaining
-    # schedule, say) and wrongly spare it here while the probabilistic
-    # tables correctly flag it as one of the two likeliest to go down.
-    # by_interim only reorders each bucket for the "Team ranked Nth in
-    # interim ranking" text below -- it never changes bucket membership.
-    if league_a_outcome_probs is not None:
-        a_split = league_a_relegation_pool_split(all_group_probs["League A"], league_a_outcome_probs)
-        safe_third = by_interim(a_split["safe_third"])
-        playoff_third = by_interim(a_split["playoff_third"])
-        playoff_fourth = by_interim(a_split["playoff_fourth"])
-        direct_releg_fourth = by_interim(a_split["direct_releg_fourth"])
-    else:
-        third_by_interim = by_interim([order[2] for order in a_order.values()])
-        safe_third, playoff_third = third_by_interim[:2], third_by_interim[2:]
-        fourth_by_interim = by_interim([order[3] for order in a_order.values()])
-        playoff_fourth, direct_releg_fourth = fourth_by_interim[:2], fourth_by_interim[2:]
+    # Each group's own projected final points (current points + expected
+    # points from whatever's left to play) for its most-likely 3rd- and
+    # 4th-place rep -- UEFA's actual cross-group criterion for splitting
+    # these four-team buckets, and the only way to keep this split
+    # self-consistent with the rest of this function's single-scenario
+    # point estimate (see this function's own docstring for why the
+    # probabilistic "Relegation to League B" marginal isn't used here).
+    a_exp_pts = {
+        g: group_expected_points(
+            list(probs.index), ratings_df,
+            standings=(all_group_standings or {}).get("League A", {}).get(g),
+            remaining_fixtures=(all_group_remaining or {}).get("League A", {}).get(g),
+        )
+        for g, probs in all_group_probs["League A"].items()
+    }
+
+    def _rank_by_points(reps: dict[str, str]) -> list[str]:
+        """reps: {group: team}. Most projected points first; ties broken
+        by interim rank (itself GD/GF-aware -- see league_interim_order)."""
+        return sorted(reps.values(), key=lambda t: (
+            -a_exp_pts[next(g for g, rt in reps.items() if rt == t)][t], interim_rank[t],
+        ))
+
+    third_by_points = _rank_by_points({g: order[2] for g, order in a_order.items()})
+    safe_third, playoff_third = third_by_points[:2], third_by_points[2:]
+    fourth_by_points = _rank_by_points({g: order[3] for g, order in a_order.items()})
+    playoff_fourth, direct_releg_fourth = fourth_by_points[:2], fourth_by_points[2:]
 
     for t in safe_third:
         a_rows.append((t, f"Team ranked {_ordinal(interim_rank[t])} in interim ranking"))

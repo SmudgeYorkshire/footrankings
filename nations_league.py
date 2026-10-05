@@ -1152,7 +1152,6 @@ with projections_2028_tab:
     with st.spinner("Projecting the 2028/29 league composition…"):
         composition = project_2028_composition(
             all_group_probs, NL_GROUPS, ratings_df, all_group_standings, all_group_remaining,
-            league_a_outcome_probs=all_outcome_probs["League A"],
         )
 
     for league in ["League A", "League B", "League C"]:
