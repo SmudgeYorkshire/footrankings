@@ -450,13 +450,17 @@ def project_qf_entries(
             prevail_sum[home] += adv["team1_adv"]
             prevail_sum[away] += adv["team2_adv"]
 
+    # Full precision, not rounded -- the caller's own column format
+    # rounds for display; sorting on an already-rounded value can tie two
+    # teams who both display the same percentage but have different real
+    # chances, leaving their relative order arbitrary.
     n_deal = len(derangements)
     rows = []
     for g in group_names:
         rows.append({"team": winners[g], "group": g, "role": "Winner",
-                     "prevail_pct": round(prevail_sum[winners[g]] / n_deal * 100, 1)})
+                     "prevail_pct": prevail_sum[winners[g]] / n_deal * 100})
         rows.append({"team": runners_up[g], "group": g, "role": "Runner-up",
-                     "prevail_pct": round(prevail_sum[runners_up[g]] / n_deal * 100, 1)})
+                     "prevail_pct": prevail_sum[runners_up[g]] / n_deal * 100})
     return pd.DataFrame(rows).sort_values("prevail_pct", ascending=False).reset_index(drop=True)
 
 
@@ -491,8 +495,12 @@ def _average_pairing_prevail(
             prevail_sum[home] += adv["team1_adv"]
             prevail_sum[away] += adv["team2_adv"]
 
+    # Full precision, not rounded -- callers round only for display;
+    # rounding here first can tie two teams who'd otherwise sort
+    # distinctly (project_playoff_entries sorts on this directly;
+    # project_2028_composition ranks teams by it too).
     n_deal = len(pairings)
-    return {t: round(prevail_sum[t] / n_deal * 100, 1) for t in all_teams}
+    return {t: prevail_sum[t] / n_deal * 100 for t in all_teams}
 
 
 def cross_league_playoff_win_rates(

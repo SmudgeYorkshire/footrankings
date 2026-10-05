@@ -210,15 +210,22 @@ def _render_predictions(
         row = {"Flag": _flag(team), "Team": team}
         best, worst = bounds.get(team, (1, n_teams)) if bounds else (1, n_teams)
         for pos in range(1, n_teams + 1):
-            value = round(probs.loc[team, str(pos)] * 100, 1)
+            # Full precision, not rounded -- rounding before sorting can
+            # tie two teams who both display e.g. "0.0%" but have
+            # different real chances, leaving their relative order
+            # arbitrary. Only _cert_cell_format rounds, for display.
+            value = probs.loc[team, str(pos)] * 100
             certain = True if best == worst == pos else (False if not (best <= pos <= worst) else None)
             row[_ordinal(pos)] = _cert_value(value, certain)
         row["xPTS"] = round(exp_pts.get(team, 0.0), 1)
         rows.append(row)
     # Rows default-sort by 1st-place chance -- a team clinched 1st goes to
     # the top, one eliminated from 1st to the bottom (see _cert_value's
-    # sentinels), everyone else by their real chance in between.
-    rows.sort(key=lambda r: r[pos_cols[0]], reverse=True)
+    # sentinels), everyone else by their real chance in between. Ties in
+    # 1st-place chance cascade to 2nd, then 3rd, etc. (the full row of
+    # position columns, left to right) instead of leaving tied teams in
+    # arbitrary order.
+    rows.sort(key=lambda r: tuple(r[c] for c in pos_cols), reverse=True)
     display_df = pd.DataFrame(rows)
     styled = display_df.style.format(_cert_cell_format, subset=pos_cols)
 
@@ -342,17 +349,21 @@ def _render_outcome_predictions(
         row = {"Flag": _flag(t), "Team": t}
         cert = (certainty or {}).get(t, {})
         raw = {c: float(probs_df.loc[t, c]) if t in probs_df.index else 0.0 for c in probs_df.columns}
+        # Full precision throughout (not rounded) -- rounding before
+        # sorting can tie two teams who both display e.g. "0.0%" but have
+        # different real chances, leaving their order arbitrary. Only
+        # _cert_cell_format rounds, for display.
         for c, v in raw.items():
             extra_label = _COMBINE_EXTRA.get(c, "")
             extra = raw.get(extra_label, 0.0)
-            value = round((v + extra) * 100, 1)
+            value = (v + extra) * 100
             own_cert, extra_cert = cert.get(c), cert.get(extra_label) if extra_label else None
             combined = True if (own_cert or extra_cert) else (
                 False if own_cert is False and (not extra_label or extra_cert is False) else None
             )
             row[c] = _cert_value(value, combined)
         for win_col, lose_col, agg_col in active_splits:
-            value = round((raw[win_col] + raw[lose_col]) * 100, 1)
+            value = (raw[win_col] + raw[lose_col]) * 100
             pool_label = _RAW_POOL_LABEL.get((win_col, lose_col))
             pool_cert = cert.get(pool_label) if pool_label else None
             if pool_cert is None and cert.get(win_col) is False and cert.get(lose_col) is False:
@@ -360,17 +371,19 @@ def _render_outcome_predictions(
             row[agg_col] = _cert_value(value, pool_cert)
         if show_stay:
             leave_prob = sum(v for c, v in raw.items() if c in leave_labels)
-            value = round(max(0.0, 1.0 - leave_prob) * 100, 1)
+            value = max(0.0, 1.0 - leave_prob) * 100
             stay_cert = True if all(cert.get(c) is False for c in leave_labels) else None
             row[stay_label] = _cert_value(value, stay_cert)
         if extra_alias:
-            value = round(raw[extra_alias[1]] * 100, 1)
+            value = raw[extra_alias[1]] * 100
             row[extra_alias[0]] = _cert_value(value, cert.get(extra_alias[1]))
         rows.append(row)
     # Rows default-sort by cols[0] -- the league's headline qualifying
     # outcome (Quarterfinals/Promotion) -- clinched teams first, real
     # chances descending, eliminated last (see _cert_value's sentinels).
-    rows.sort(key=lambda r: r[cols[0]], reverse=True)
+    # Ties cascade through the rest of the row's own columns, left to
+    # right, instead of leaving tied teams in arbitrary order.
+    rows.sort(key=lambda r: tuple(r[c] for c in cols), reverse=True)
     df = pd.DataFrame(rows)[["Flag", "Team"] + cols]
     styled = df.style.format(_cert_cell_format, subset=cols)
 
@@ -832,16 +845,17 @@ for league_tab, league_name in zip(league_tabs, league_names):
                         detail_rules, ratings_df, n_sim=10_000, seed=league_seed,
                     )
                 detail_certainty = league_label_certainty(league_group_states, detail_rules)
+                detail_cert_cols = list(detail_probs.columns)
                 detail_rows = []
                 for t in all_league_teams:
                     row = {"Flag": _flag(t), "Team": t}
                     cert = detail_certainty.get(t, {})
-                    for col in detail_probs.columns:
-                        value = round(float(detail_probs.loc[t, col]) * 100, 1)
+                    for col in detail_cert_cols:
+                        value = float(detail_probs.loc[t, col]) * 100
                         row[col] = _cert_value(value, cert.get(col))
                     detail_rows.append(row)
+                detail_rows.sort(key=lambda r: tuple(r[c] for c in detail_cert_cols), reverse=True)
                 detail_df = pd.DataFrame(detail_rows)
-                detail_cert_cols = list(detail_probs.columns)
                 detail_styled = detail_df.style.format(_cert_cell_format, subset=detail_cert_cols)
                 detail_col_cfg = {
                     "Flag": st.column_config.ImageColumn("", width="small"),
@@ -918,34 +932,32 @@ with knockout_chances_tab:
         ko = simulate_league_a_knockouts(all_group_probs["League A"], ratings_df, n_sim=10_000)
 
     a_certainty = all_league_certainty.get("League A", {})
+    ko_cert_cols = ["Quarterfinals", "Semifinals", "Finals", "Winner"]
     ko_rows = []
     for team, r in ko.iterrows():
         qf_cert = a_certainty.get(team, {}).get("Quarterfinals")
-        qf_value = round(r["reached_qf"] * 100, 1)
         # Semifinals/Finals/Winner are knockout-contingent (an actual draw
         # and matches still to come), so they never get a "✓" from group-
         # stage math alone -- but a team eliminated from the Quarterfinals
         # is just as surely eliminated from everything past it, so "X"
         # cascades down from the same qf_cert fact.
         downstream_cert = False if qf_cert is False else None
-        qf_cell = _cert_value(qf_value, qf_cert)
-        # Sort by Quarterfinals first (clinched teams top, eliminated
-        # bottom, real chances descending in between -- see _cert_value's
-        # sentinels), Winner chance as a tiebreaker within a tier so
-        # genuine favourites still lead among teams with the same QF
-        # status rather than landing in an arbitrary order.
+        # Full precision throughout (not rounded) -- only _cert_cell_
+        # format rounds, for display. Rows sort by Quarterfinals first
+        # (clinched top, eliminated bottom, real chances descending), then
+        # cascade through Semifinals/Finals/Winner as tiebreakers so two
+        # teams level on Quarterfinals chance (or both eliminated) still
+        # land in a sensible order instead of an arbitrary one.
         ko_rows.append({
             "Flag": _flag(team),
             "Team": team,
-            "_sort": (qf_cell, r["won_competition"]),
-            "Quarterfinals": qf_cell,
-            "Semifinals": _cert_value(round(r["reached_finals_four"] * 100, 1), downstream_cert),
-            "Finals": _cert_value(round(r["reached_final"] * 100, 1), downstream_cert),
-            "Winner": _cert_value(round(r["won_competition"] * 100, 1), downstream_cert),
+            "Quarterfinals": _cert_value(r["reached_qf"] * 100, qf_cert),
+            "Semifinals": _cert_value(r["reached_finals_four"] * 100, downstream_cert),
+            "Finals": _cert_value(r["reached_final"] * 100, downstream_cert),
+            "Winner": _cert_value(r["won_competition"] * 100, downstream_cert),
         })
-    ko_rows.sort(key=lambda r: r["_sort"], reverse=True)
-    ko_df = pd.DataFrame(ko_rows).drop(columns="_sort")
-    ko_cert_cols = ["Quarterfinals", "Semifinals", "Finals", "Winner"]
+    ko_rows.sort(key=lambda r: tuple(r[c] for c in ko_cert_cols), reverse=True)
+    ko_df = pd.DataFrame(ko_rows)
     ko_styled = ko_df.style.format(_cert_cell_format, subset=ko_cert_cols)
     ko_col_cfg = {
         "Flag": st.column_config.ImageColumn("", width="small"),
@@ -1055,7 +1067,10 @@ with promo_releg_tab:
         with st.expander(title):
             rows = []
             for t in teams:
-                value = round(float(chances.get(t, 0.0)) * 100, 1)
+                # Full precision, not rounded -- rounding first can tie
+                # two teams who both display "0.0%" but have different
+                # real chances. Only _cert_cell_format rounds, for display.
+                value = float(chances.get(t, 0.0)) * 100
                 certain = (cert or {}).get(t)
                 rows.append({
                     "Flag": _flag(t), "Team": t,
