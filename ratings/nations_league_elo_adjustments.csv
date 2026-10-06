@@ -1,7 +1,7 @@
 team,adjustment
 Germany,60.0
-Belarus,-58.8
-Finland,58.8
+Belarus,-60.0
+Finland,60.0
 Greece,-45.1
 Ukraine,-44.0
 Hungary,44.0
@@ -9,10 +9,12 @@ Republic of Ireland,-41.5
 Israel,41.5
 Georgia,36.7
 Northern Ireland,-36.7
+Estonia,-34.4
+Iceland,34.4
 Bosnia and Herzegovina,-31.4
 Poland,31.4
-Estonia,-31.2
-Iceland,31.2
+Kazakhstan,-23.5
+Faroe Islands,23.5
 Sweden,22.9
 Romania,-22.9
 Azerbaijan,-22.6
@@ -28,26 +30,24 @@ Cyprus,18.1
 Serbia,-16.8
 Portugal,-16.4
 Norway,16.2
-Kazakhstan,-15.2
-Faroe Islands,15.2
 Netherlands,13.2
-England,-12.6
-Czechia,12.6
+Luxembourg,-12.9
+Bulgaria,12.9
 Malta,-11.6
 Andorra,11.6
+Moldova,-11.3
+Slovakia,11.3
 France,9.8
 Belgium,-9.8
 Albania,-9.6
 San Marino,9.6
-Spain,8.5
-Croatia,-8.5
-Moldova,-6.1
-Slovakia,6.1
-Luxembourg,-5.7
-Bulgaria,5.7
-Slovenia,-4.8
-Scotland,4.8
+England,-9.5
+Czechia,9.5
+North Macedonia,-7.0
+Switzerland,7.0
+Spain,6.0
+Croatia,-6.0
+Slovenia,-5.6
+Scotland,5.6
 Montenegro,-3.9
 Armenia,3.9
-North Macedonia,-2.1
-Switzerland,2.1
