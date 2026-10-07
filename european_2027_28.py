@@ -27,6 +27,7 @@ from flags import flag_url
 from api_football_fetcher import ApiFootballClient
 from _split_season import compute_full_standings, ensure_full_roster
 from entrants_2027_28 import ACCESS_LIST_2027_28, STAGE_ORDER_2027_28, QUALIFYING_DATES_2027_28
+from club_coefficients_2027 import get_coeff_2027
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
@@ -92,7 +93,13 @@ st.caption(
     "UEFA's official 2027/28 access list (circular 54/2026), connected live to each "
     "country's CURRENT 2026/27 league table. Every occupant below is provisional -- "
     "domestic seasons run until roughly May/June 2027, and nothing about the actual "
-    "2027/28 qualifying draw exists yet."
+    "2027/28 qualifying draw exists yet. Coefficient is each club's live UEFA 5-year "
+    "club ranking ([kassiesa.net](https://kassiesa.net/uefa/data/method5/trank2027.html), "
+    "still accumulating through 2026/27) -- a club with no individual European history "
+    "inherits its country's floor value instead. Seeding splits each stage's own clubs "
+    "into the top/bottom half by that coefficient, matching how UEFA draws each round's "
+    "pots -- not the actual qualifying bracket or League Phase's 4-pot structure, which "
+    "don't exist yet either."
 )
 
 comp_name = st.selectbox("Competition", list(ACCESS_LIST_2027_28.keys()))
@@ -132,25 +139,43 @@ for stage in STAGE_ORDER_2027_28:
     table_rows = []
     for e in sorted(rows, key=lambda r: r["country"]):
         occupant, note = _occupant(e)
+        country_key = _FLAG_ALIAS.get(e["country"], e["country"])
+        coeff = get_coeff_2027(occupant, country_key) if occupant != "—" else None
         table_rows.append({
-            "Flag": flag_url(_FLAG_ALIAS.get(e["country"], e["country"])),
+            "Flag": flag_url(country_key),
+            "Club": occupant,
             "Country": e["country"],
+            "Coefficient": coeff,
             "Label": e["label"],
             "Path": e["path"],
             "Route": e["route"],
-            "Currently": occupant,
             "Note": note,
         })
+
+    # Seeded/unseeded split for THIS stage's own pool of clubs -- UEFA draws
+    # each qualifying round (and each League Phase pot tier) from clubs
+    # ranked by this same 5-year coefficient, seeded half above unseeded
+    # half. Ties/odd counts round the seeded half up. Clubs not yet
+    # determined (no live occupant) can't be placed in either half.
+    ranked = sorted((r for r in table_rows if r["Coefficient"] is not None), key=lambda r: -r["Coefficient"])
+    cutoff = -(-len(ranked) // 2)
+    for i, r in enumerate(ranked):
+        r["Seeding"] = "Seeded" if i < cutoff else "Unseeded"
+    for r in table_rows:
+        r.setdefault("Seeding", "—")
+
     df = pd.DataFrame(table_rows)
     st.dataframe(
         df,
         column_config={
             "Flag": st.column_config.ImageColumn("", width="small"),
-            "Country": st.column_config.TextColumn("Country", width="medium"),
+            "Club": st.column_config.TextColumn("Club", width="medium"),
+            "Country": st.column_config.TextColumn("Country", width="small"),
+            "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
+            "Seeding": st.column_config.TextColumn("Seeding", width="small"),
             "Label": st.column_config.TextColumn("Label", width="small"),
             "Path": st.column_config.TextColumn("Path", width="small"),
             "Route": st.column_config.TextColumn("Route", width="small"),
-            "Currently": st.column_config.TextColumn("Currently", width="medium"),
             "Note": st.column_config.TextColumn("Note", width="large"),
         },
         use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
