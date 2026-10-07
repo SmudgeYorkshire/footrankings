@@ -3,14 +3,16 @@
 domestic league's CURRENT (2026/27) standings.
 
 Nothing about the 2027/28 qualifying draw, League Phase pairings, or pot
-seeding exists yet (UEFA won't draw any of that until mid-2027) -- the
-Projected Entries tab answers "who would currently qualify, and via which
-route, if the 2026/27 domestic seasons ended today." The Predicted
-Qualifiers tab goes one step further and projects the qualifying rounds
-themselves (own pool-chaining/pairing/win-probability model -- see its own
-section below). See european.py for the fully-live 2026/27 competitions
-(qualifying ties, League Phase table, simulations) this page will grow
-into once the real 2027/28 draw exists.
+seeding exists yet (UEFA won't draw any of that until mid-2027) -- a single
+competition selector up top feeds three tabs. Projected Entries answers
+"who would currently qualify, and via which route, if the 2026/27
+domestic seasons ended today." Predicted Qualifiers goes one step further
+and projects the qualifying rounds themselves (own pool-chaining/pairing/
+win-probability model -- see its own section below). Predicted League
+Stage combines both into the full predicted 36-club field. See european.py
+for the fully-live 2026/27 competitions (qualifying ties, League Phase
+table, simulations) this page will grow into once the real 2027/28 draw
+exists.
 
 Every row's competition/path/qualifying-round comes from
 entrants_2027_28.ACCESS_LIST_2027_28 (UEFA's own published access list,
@@ -222,111 +224,7 @@ def _seed_and_sort(table_rows: list[dict]) -> None:
     table_rows.sort(key=lambda r: (_SEED_RANK[r["Seeding"]], -(r["Coefficient"] or 0), r["Country"]))
 
 
-st.title("🔮 European Competitions 2027/28")
-
-entries_tab, qualifiers_tab = st.tabs(["📋 Projected Entries", "🏁 Predicted Qualifiers"])
-
-with entries_tab:
-    st.caption(
-        "UEFA's official 2027/28 access list (circular 54/2026), connected live to each "
-        "country's CURRENT 2026/27 league table. Every occupant below is provisional -- "
-        "domestic seasons run until roughly May/June 2027, and nothing about the actual "
-        "2027/28 qualifying draw exists yet. Coefficient is each club's live UEFA 5-year "
-        "club ranking ([kassiesa.net](https://kassiesa.net/uefa/data/method5/trank2027.html), "
-        "still accumulating through 2026/27) -- a club with no individual European history "
-        "inherits its country's floor value instead. Seeding splits each stage's own clubs "
-        "into the top/bottom half by that coefficient, matching how UEFA draws each round's "
-        "pots -- not the actual qualifying bracket or League Phase's 4-pot structure, which "
-        "don't exist yet either. Rows sort Seeded, then Unseeded, then undetermined slots "
-        "(e.g. Russia's suspended associations) last. A Cup Winner slot shows a predicted "
-        "winner (highest-rated team not yet out of its domestic cup); if that club already "
-        "holds a different slot via league position, the vacated continental slot passes to "
-        "the next unclaimed league position instead of sitting empty."
-    )
-
-    comp_name = st.selectbox("Competition", list(ACCESS_LIST_2027_28.keys()), key="entries_comp")
-    comp_entries = ACCESS_LIST_2027_28[comp_name]
-
-    n_direct = sum(1 for e in comp_entries if e["round"] == "League Phase (direct)")
-    n_total = len(comp_entries)
-    st.markdown(
-        f"**{n_total} slots** in the 2027/28 access list -- **{n_direct} already go straight "
-        f"to the 36-team League Phase**, the rest work through qualifying."
-    )
-
-    qd = QUALIFYING_DATES_2027_28[comp_name]
-
-    groups: dict[str, list[dict]] = {}
-    for e in comp_entries:
-        groups.setdefault(e["round"], []).append(e)
-
-    for stage in STAGE_ORDER_2027_28:
-        rows = groups.get(stage)
-        if not rows:
-            continue
-        dates = qd.get(
-            {
-                "First qualifying round": "First Qualifying Round",
-                "Second qualifying round": "Second Qualifying Round",
-                "Third qualifying round": "Third Qualifying Round",
-                "Play-off round": "Play-off Round",
-                "League Phase (direct)": "League Phase",
-            }[stage]
-        )
-        date_str = ""
-        if dates:
-            date_str = f" — {dates['leg1']}" + (f" / {dates['leg2']}" if dates.get("leg2") else "")
-        st.markdown(f"#### {stage}{date_str}")
-
-        table_rows = []
-        for e in rows:
-            occ_note = _resolve_country_slots(e["country"]).get((comp_name, e["code"]))
-            occupant, note = occ_note if occ_note else ("—", e.get("note") or "not yet determined")
-            country_key = _country_key(e["country"])
-            coeff = get_coeff_2027(occupant, country_key) if occupant != "—" else None
-            table_rows.append({
-                "Flag": flag_url(country_key),
-                "Club": occupant,
-                "Country": e["country"],
-                "Coefficient": coeff,
-                "Label": e["label"],
-                "Path": e["path"],
-                "Route": e["route"],
-                "Note": note,
-            })
-
-        _seed_and_sort(table_rows)
-
-        df = pd.DataFrame(table_rows)
-        st.dataframe(
-            df,
-            column_config={
-                "Flag": st.column_config.ImageColumn("", width="small"),
-                "Club": st.column_config.TextColumn("Club", width="medium"),
-                "Country": st.column_config.TextColumn("Country", width="small"),
-                "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
-                "Seeding": st.column_config.TextColumn("Seeding", width="small"),
-                "Label": st.column_config.TextColumn("Label", width="small"),
-                "Path": st.column_config.TextColumn("Path", width="small"),
-                "Route": st.column_config.TextColumn("Route", width="small"),
-                "Note": st.column_config.TextColumn("Note", width="large"),
-            },
-            use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
-        )
-
-    st.divider()
-    st.caption(
-        "Not shown: UCL/UEL defending-titleholder byes, and the Conference League "
-        "titleholder's promotion into the Europa League (all three depend on who wins "
-        "the 2026/27 finals). England and Germany's 5th Champions League slot above "
-        "assumes they again receive 2027/28's 2 \"European Performance Spot\" bonus "
-        "places -- predicted, not yet confirmed by UEFA (awarded after 2026/27 ends, by "
-        "aggregate club coefficient) -- see entrants_2027_28.py's own docstring for the "
-        "full picture, including how Russia's ongoing suspension is handled."
-    )
-
-
-# --- Predicted Qualifiers ---------------------------------------------
+# --- Predicted Qualifiers / Predicted League Stage shared engine -------
 #
 # UEFA's real qualifying bracket runs Champions Path and League Path
 # separately through most rounds with mid-bracket reseeding rules complex
@@ -436,14 +334,18 @@ def _simulate_round(pool: list[dict]) -> tuple[list[dict], list[dict]]:
     return ties, winners
 
 
-def _simulate_competition_bracket(comp: str) -> list[dict]:
-    """[{"round", "path" (or None for the PO merge), "ties", "excluded"}]
-    in bracket order, chaining each path's own winners round to round per
-    _PATH_SEQUENCES, merging all paths into one pool at the Play-off
-    round."""
+def _simulate_competition_bracket(comp: str) -> tuple[list[dict], list[dict]]:
+    """([{"round", "path" (or None for the PO merge), "ties", "excluded"}]
+    in bracket order, [Play-off round winners]) -- chaining each path's own
+    winners round to round per _PATH_SEQUENCES, merging all paths into one
+    pool at the Play-off round. The Play-off winners are also returned on
+    their own (not just inside the display rows) since they're exactly the
+    clubs who'd join the League Phase (direct) entrants to complete the
+    36-team field -- see the Predicted League Stage tab."""
     paths = list(_PATH_SEQUENCES[comp].keys())
     pool_by_path: dict[str, list[dict]] = {p: [] for p in paths}
     output = []
+    po_winners: list[dict] = []
 
     for round_name in _QUALIFYING_ROUNDS:
         active_paths = [p for p in paths if round_name in _PATH_SEQUENCES[comp][p]]
@@ -456,8 +358,9 @@ def _simulate_competition_bracket(comp: str) -> list[dict]:
             fresh, fresh_excluded = _resolve_pool_clubs(_fresh_pool_entries(comp, round_name, None), comp)
             pool.extend(fresh)
             excluded.extend(fresh_excluded)
-            ties, _winners = _simulate_round(pool)
+            ties, winners = _simulate_round(pool)
             output.append({"round": round_name, "path": None, "ties": ties, "excluded": excluded})
+            po_winners = winners
         else:
             for p in active_paths:
                 fresh, excluded = _resolve_pool_clubs(_fresh_pool_entries(comp, round_name, p), comp)
@@ -465,7 +368,116 @@ def _simulate_competition_bracket(comp: str) -> list[dict]:
                 ties, winners = _simulate_round(pool)
                 output.append({"round": round_name, "path": p, "ties": ties, "excluded": excluded})
                 pool_by_path[p] = winners
-    return output
+    return output, po_winners
+
+
+st.title("🔮 European Competitions 2027/28")
+
+comp_name = st.selectbox("Competition", list(ACCESS_LIST_2027_28.keys()), key="comp_select")
+comp_entries = ACCESS_LIST_2027_28[comp_name]
+
+with st.spinner("Projecting the qualifying rounds…"):
+    bracket, po_winners = _simulate_competition_bracket(comp_name)
+
+entries_tab, qualifiers_tab, league_stage_tab = st.tabs(
+    ["📋 Projected Entries", "🏁 Predicted Qualifiers", "🏆 Predicted League Stage"]
+)
+
+with entries_tab:
+    st.caption(
+        "UEFA's official 2027/28 access list (circular 54/2026), connected live to each "
+        "country's CURRENT 2026/27 league table. Every occupant below is provisional -- "
+        "domestic seasons run until roughly May/June 2027, and nothing about the actual "
+        "2027/28 qualifying draw exists yet. Coefficient is each club's live UEFA 5-year "
+        "club ranking ([kassiesa.net](https://kassiesa.net/uefa/data/method5/trank2027.html), "
+        "still accumulating through 2026/27) -- a club with no individual European history "
+        "inherits its country's floor value instead. Seeding splits each stage's own clubs "
+        "into the top/bottom half by that coefficient, matching how UEFA draws each round's "
+        "pots -- not the actual qualifying bracket or League Phase's 4-pot structure, which "
+        "don't exist yet either. Rows sort Seeded, then Unseeded, then undetermined slots "
+        "(e.g. Russia's suspended associations) last. A Cup Winner slot shows a predicted "
+        "winner (highest-rated team not yet out of its domestic cup); if that club already "
+        "holds a different slot via league position, the vacated continental slot passes to "
+        "the next unclaimed league position instead of sitting empty."
+    )
+
+    n_direct = sum(1 for e in comp_entries if e["round"] == "League Phase (direct)")
+    n_total = len(comp_entries)
+    st.markdown(
+        f"**{n_total} slots** in the 2027/28 access list -- **{n_direct} already go straight "
+        f"to the 36-team League Phase**, the rest work through qualifying."
+    )
+
+    qd = QUALIFYING_DATES_2027_28[comp_name]
+
+    groups: dict[str, list[dict]] = {}
+    for e in comp_entries:
+        groups.setdefault(e["round"], []).append(e)
+
+    for stage in STAGE_ORDER_2027_28:
+        rows = groups.get(stage)
+        if not rows:
+            continue
+        dates = qd.get(
+            {
+                "First qualifying round": "First Qualifying Round",
+                "Second qualifying round": "Second Qualifying Round",
+                "Third qualifying round": "Third Qualifying Round",
+                "Play-off round": "Play-off Round",
+                "League Phase (direct)": "League Phase",
+            }[stage]
+        )
+        date_str = ""
+        if dates:
+            date_str = f" — {dates['leg1']}" + (f" / {dates['leg2']}" if dates.get("leg2") else "")
+        st.markdown(f"#### {stage}{date_str}")
+
+        table_rows = []
+        for e in rows:
+            occ_note = _resolve_country_slots(e["country"]).get((comp_name, e["code"]))
+            occupant, note = occ_note if occ_note else ("—", e.get("note") or "not yet determined")
+            country_key = _country_key(e["country"])
+            coeff = get_coeff_2027(occupant, country_key) if occupant != "—" else None
+            table_rows.append({
+                "Flag": flag_url(country_key),
+                "Club": occupant,
+                "Country": e["country"],
+                "Coefficient": coeff,
+                "Label": e["label"],
+                "Path": e["path"],
+                "Route": e["route"],
+                "Note": note,
+            })
+
+        _seed_and_sort(table_rows)
+
+        df = pd.DataFrame(table_rows)
+        st.dataframe(
+            df,
+            column_config={
+                "Flag": st.column_config.ImageColumn("", width="small"),
+                "Club": st.column_config.TextColumn("Club", width="medium"),
+                "Country": st.column_config.TextColumn("Country", width="small"),
+                "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
+                "Seeding": st.column_config.TextColumn("Seeding", width="small"),
+                "Label": st.column_config.TextColumn("Label", width="small"),
+                "Path": st.column_config.TextColumn("Path", width="small"),
+                "Route": st.column_config.TextColumn("Route", width="small"),
+                "Note": st.column_config.TextColumn("Note", width="large"),
+            },
+            use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
+        )
+
+    st.divider()
+    st.caption(
+        "Not shown: UCL/UEL defending-titleholder byes, and the Conference League "
+        "titleholder's promotion into the Europa League (all three depend on who wins "
+        "the 2026/27 finals). England and Germany's 5th Champions League slot above "
+        "assumes they again receive 2027/28's 2 \"European Performance Spot\" bonus "
+        "places -- predicted, not yet confirmed by UEFA (awarded after 2026/27 ends, by "
+        "aggregate club coefficient) -- see entrants_2027_28.py's own docstring for the "
+        "full picture, including how Russia's ongoing suspension is handled."
+    )
 
 
 with qualifiers_tab:
@@ -482,12 +494,7 @@ with qualifiers_tab:
         "than inventing an opponent."
     )
 
-    qual_comp = st.selectbox("Competition", list(ACCESS_LIST_2027_28.keys()), key="qualifiers_comp")
-
-    with st.spinner("Projecting the qualifying rounds…"):
-        bracket = _simulate_competition_bracket(qual_comp)
-
-    _PATH_LABEL = {"main": " — Champions Path" if qual_comp == "Champions League" else "", "nc": " — League Path", None: ""}
+    _PATH_LABEL = {"main": " — Champions Path" if comp_name == "Champions League" else "", "nc": " — League Path", None: ""}
 
     for stage_round in bracket:
         path_label = _PATH_LABEL.get(stage_round["path"], "")
@@ -512,6 +519,81 @@ with qualifiers_tab:
 
     st.divider()
     st.caption(
-        "Play-off round winners above would join the League Phase (direct) clubs already "
-        "shown on the Projected Entries tab, completing the 36-team field."
+        "Play-off round winners above join the League Phase (direct) clubs from the Projected "
+        "Entries tab to complete the 36-team field -- see the Predicted League Stage tab."
+    )
+
+
+with league_stage_tab:
+    st.caption(
+        "The predicted 36-club League Phase: the League Phase (direct) entrants from the "
+        "Projected Entries tab, plus the Play-off round's predicted winners from the Predicted "
+        "Qualifiers tab. Sorted by live club coefficient, highest first -- the same ranking "
+        "that would set the real League Phase's 4 pots, though the actual pot draw doesn't "
+        "exist yet either."
+    )
+
+    direct_entries = [e for e in comp_entries if e["round"] == "League Phase (direct)"]
+    direct_clubs, direct_excluded = _resolve_pool_clubs(direct_entries, comp_name)
+
+    stage_rows = [
+        {
+            "Flag": flag_url(_country_key(c["country"])),
+            "Club": c["team"],
+            "Country": c["country"],
+            "Coefficient": c["coeff"],
+            "Route": "Direct entry",
+        }
+        for c in direct_clubs
+    ] + [
+        {
+            "Flag": flag_url(_country_key(c["country"])),
+            "Club": c["team"],
+            "Country": c["country"],
+            "Coefficient": c["coeff"],
+            "Route": "Qualified via play-offs",
+        }
+        for c in po_winners
+    ]
+    stage_rows.sort(key=lambda r: -r["Coefficient"])
+
+    excluded = direct_excluded + (next(
+        (sr["excluded"] for sr in bracket if sr["round"] == "Play-off round"), []
+    ))
+
+    st.markdown(f"**{len(stage_rows)} of 36 slots** currently resolve to a predicted club.")
+    if excluded:
+        st.caption("Excluded (no determined club): " + "; ".join(excluded))
+
+    stage_df = pd.DataFrame(stage_rows)
+    st.dataframe(
+        stage_df,
+        column_config={
+            "Flag": st.column_config.ImageColumn("", width="small"),
+            "Club": st.column_config.TextColumn("Club", width="medium"),
+            "Country": st.column_config.TextColumn("Country", width="small"),
+            "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
+            "Route": st.column_config.TextColumn("Route", width="medium"),
+        },
+        use_container_width=True, hide_index=True, height=len(stage_df) * 35 + 38,
+    )
+
+    st.divider()
+    st.markdown("##### Clubs per country")
+    country_counts: dict[str, int] = {}
+    for r in stage_rows:
+        country_counts[r["Country"]] = country_counts.get(r["Country"], 0) + 1
+    count_rows = [
+        {"Flag": flag_url(_country_key(country)), "Country": country, "Clubs": n}
+        for country, n in sorted(country_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    ]
+    count_df = pd.DataFrame(count_rows)
+    st.dataframe(
+        count_df,
+        column_config={
+            "Flag": st.column_config.ImageColumn("", width="small"),
+            "Country": st.column_config.TextColumn("Country", width="medium"),
+            "Clubs": st.column_config.NumberColumn("Clubs", width="small"),
+        },
+        use_container_width=True, hide_index=True, height=len(count_df) * 35 + 38,
     )
