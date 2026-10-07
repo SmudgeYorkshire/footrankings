@@ -336,7 +336,20 @@ def two_leg_advance_odds(
                         if agg1 > agg2:    t1_adv += p
                         elif agg1 == agg2: t1_adv += p * 0.5
 
-    t1_adv /= total_mass  # renormalize — tau shifts mass, doesn't conserve it exactly
+    if total_mass > 0:
+        t1_adv /= total_mass  # renormalize — tau shifts mass, doesn't conserve it exactly
+    else:
+        # Extreme rating mismatch (far wider than any domestic league's own
+        # spread ever produces, but real for club coefficients -- e.g. a
+        # top-5 giant vs a microstate's part-time champions): every
+        # scoreline within _MAX_GOALS fell under the p1 < 1e-12 skip
+        # filter above, leaving no probability mass to renormalize.
+        # Resolve deterministically from aggregate expected goals instead
+        # of dividing by zero -- the stronger side wins this tie in
+        # essentially every real-world case of a mismatch this extreme.
+        agg_t1 = xg_l1_t1 + xg_l2_t1
+        agg_t2 = xg_l1_t2 + xg_l2_t2
+        t1_adv = 1.0 if agg_t1 > agg_t2 else (0.0 if agg_t1 < agg_t2 else 0.5)
 
     return {
         "leg1":      {**leg1_odds, "xg_home": xg_l1_t1, "xg_away": xg_l1_t2},
