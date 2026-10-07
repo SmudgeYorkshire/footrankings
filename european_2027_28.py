@@ -9,9 +9,9 @@ competition selector up top feeds three tabs. Projected Entries answers
 domestic seasons finish" (predicted final table, not the current one --
 see _predicted_standings' own docstring for why), split into the real
 Champions Path/League Path (or Main Path) sections each competition
-actually used in its 2026/27 qualifying (confirmed against the 2026/27
-Champions League, Europa League and Conference League Wikipedia
-articles), not just a text column. Predicted
+actually uses for 2027/28, per Bert Kassies' own "UEFA club competitions
+2027-2030 qualifying scheme" diagram (kassiesa.net/uefa) -- not just a
+text column. Predicted
 Qualifiers goes one step further and projects the qualifying rounds
 themselves, including the real cross-competition cascade (Champions League
 Champions Path losers drop into the Europa League; Europa League losers
@@ -319,9 +319,12 @@ _ENTRIES_COLUMN_CONFIG = {
 }
 
 
-# --- Real Champions/League/Main Path structure, confirmed against the
-# 2026/27 UEFA Champions League, Europa League and Conference League
-# Wikipedia articles ------------------------------------------------------
+# --- Real Champions/League/Main Path structure, confirmed against Bert
+# Kassies' own "UEFA club competitions 2027-2030 qualifying scheme" diagram
+# (kassiesa.net/uefa) -- the authoritative source for exactly our target
+# period, superseding the 2026/27-season Wikipedia articles used to build
+# an earlier version of this model (whose single-season structure turned
+# out to differ in a few places -- see below).
 #
 # Each bucket is one (competition, round, path) qualifying pool. "fresh"
 # names the entrants_2027_28.py label whose access-list entries join this
@@ -332,22 +335,30 @@ _ENTRIES_COLUMN_CONFIG = {
 # Q3 Champions Path has no fresh entries of its own; its entire pool is
 # the 12 losers of Champions League Q2's Champions Path.
 #
-# Confirmed real cascade, round by round:
-#  - CL-Q1 (single bracket, no path split) losers all drop to Conference
-#    League's Q2 Champions Path (a small number of these ties' losers
-#    really drop to CO's Q3 Champions Path instead, for bracket-size
-#    balancing -- not replicated here, a documented simplification).
+# Full cascade per the diagram (every cross-competition arrow is LOSERS;
+# every same-competition arrow is WINNERS -- "losers in CL-Q1 go to CO",
+# "losers in CL-Q2, CL-Q3 and CL-PO go to EL", "losers in EL go to CO",
+# "losers in CO are out of competition"):
+#  - CL-Q1 (single bracket, no path split) losers ALL drop to CO-Q2
+#    Champions Path (no split needed -- simpler than the single-season
+#    2026/27 Wikipedia structure this model used to follow here).
 #  - CL-Q2 Champions Path losers drop to EL-Q3 Champions Path; CL-Q2
 #    League Path losers drop to EL-Q3 Main Path.
-#  - CL-Q3 Champions Path losers drop to EL's Play-off round (EL-PO is a
-#    single merged bracket, no path split); CL-Q3 League Path losers are
-#    not carried further (eliminated from Europe).
-#  - CL-PO (both paths) losers are not carried further.
-#  - EL-Q2 losers drop to CO-Q3 League/Main Path. EL-Q3 Champions Path
-#    losers drop to CO-PO Champions Path; EL-Q3 Main Path losers drop to
-#    CO-PO League/Main Path. EL-Q1 losers drop to CO-Q2 League/Main Path.
-#  - EL-PO and CO's Play-off round losers are not carried further --
-#    whoever wins a Play-off round joins that competition's League Phase.
+#  - CL-Q3 Champions Path losers drop to EL-PO Champions Path (its OWN
+#    bracket, separate from EL-PO Main Path until EL's League Phase --
+#    EL's Play-off round is NOT one merged bracket); CL-Q3 League Path
+#    losers skip qualifying entirely and go straight into EL's League
+#    Phase (they're already at their last possible CL round).
+#  - CL-PO (both paths) losers likewise go straight into EL's League
+#    Phase, skipping qualifying.
+#  - EL-Q1 losers drop to CO-Q2 Main Path; EL-Q2 losers drop to CO-Q3
+#    Main Path. EL-Q3 Champions Path losers drop to CO-PO Champions
+#    Path; EL-Q3 Main Path losers drop to CO-PO Main Path.
+#  - EL-PO (both paths) losers go straight into CO's League Phase,
+#    skipping qualifying -- same "last round, no further qualifying"
+#    rule one tier down.
+#  - CO's Play-off round losers are not carried further (CO is the
+#    bottom tier -- "losers in CO are out of competition").
 _BUCKETS: list[dict] = [
     {"id": "CL-Q1", "comp": "Champions League", "round": "First qualifying round", "path": None,
      "fresh": "CL-Q1", "sources": []},
@@ -372,8 +383,10 @@ _BUCKETS: list[dict] = [
      "fresh": None, "sources": [("CL-Q2-CP", "losers")]},
     {"id": "EL-Q3-MP", "comp": "Europa League", "round": "Third qualifying round", "path": "Main Path",
      "fresh": "EL-Q3", "sources": [("EL-Q2", "winners"), ("CL-Q2-LP", "losers")]},
-    {"id": "EL-PO", "comp": "Europa League", "round": "Play-off round", "path": None,
-     "fresh": "EL-PO", "sources": [("EL-Q3-CP", "winners"), ("EL-Q3-MP", "winners"), ("CL-Q3-CP", "losers")]},
+    {"id": "EL-PO-CP", "comp": "Europa League", "round": "Play-off round", "path": "Champions Path",
+     "fresh": None, "sources": [("EL-Q3-CP", "winners"), ("CL-Q3-CP", "losers")]},
+    {"id": "EL-PO-MP", "comp": "Europa League", "round": "Play-off round", "path": "Main Path",
+     "fresh": "EL-PO", "sources": [("EL-Q3-MP", "winners")]},
 
     {"id": "CO-Q1", "comp": "Conference League", "round": "First qualifying round", "path": None,
      "fresh": "CO-Q1", "sources": []},
@@ -393,24 +406,22 @@ _BUCKETS: list[dict] = [
 _BUCKETS_BY_ID = {b["id"]: b for b in _BUCKETS}
 _TERMINAL_BUCKETS = {
     "Champions League": ["CL-PO-CP", "CL-PO-LP"],
-    "Europa League": ["EL-PO"],
+    "Europa League": ["EL-PO-CP", "EL-PO-MP"],
     "Conference League": ["CO-PO-CP", "CO-PO-MP"],
 }
 # A team eliminated in a HIGHER competition's very last round doesn't drop
 # into the next competition's qualifying -- it's already proven strong
 # enough to go straight into that competition's own League Phase. Confirmed
-# against the 2026/27 Europa League and Conference League Wikipedia
-# articles' own League Phase distribution tables (which list these losers
-# by name alongside the domestic-position/cup-winner direct entries, not
-# under the Play-off round): Champions League Play-off round losers (both
-# paths) AND Champions League Third Qualifying Round League Path losers
-# (who never get a further qualifying tie at all) go straight into the
-# Europa League's League Phase; Europa League Play-off round losers go
+# against Bert Kassies' 2027-2030 qualifying scheme diagram (kassiesa.net/
+# uefa): Champions League Play-off round losers (both paths) AND Champions
+# League Third Qualifying Round League Path losers (who never get a
+# further qualifying tie at all) go straight into the Europa League's
+# League Phase; Europa League Play-off round losers (both paths) go
 # straight into the Conference League's League Phase.
 _EXTRA_LEAGUE_PHASE_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Champions League": [],
     "Europa League": [("CL-PO-CP", "losers"), ("CL-PO-LP", "losers"), ("CL-Q3-LP", "losers")],
-    "Conference League": [("EL-PO", "losers")],
+    "Conference League": [("EL-PO-CP", "losers"), ("EL-PO-MP", "losers")],
 }
 _EXTRA_LEAGUE_PHASE_ROUTE = {
     "Europa League": "Transferred from Champions League",
@@ -599,9 +610,9 @@ with entries_tab:
         "Every occupant below is provisional -- domestic seasons run until roughly "
         "May/June 2027, and nothing about the actual "
         "2027/28 qualifying draw exists yet. Each round is split into the real Champions "
-        "Path / League Path (or Main Path) sections this competition actually used in its "
-        "2026/27 qualifying, confirmed against that season's Wikipedia articles -- a path "
-        "with no access-list slots of its own (its clubs come entirely from a higher "
+        "Path / League Path (or Main Path) sections this competition actually uses for "
+        "2027/28, per Bert Kassies' own qualifying-scheme diagram (kassiesa.net/uefa) -- a "
+        "path with no access-list slots of its own (its clubs come entirely from a higher "
         "competition's eliminations) shows a short note instead of an empty table; see the "
         "Predicted Qualifiers tab for that cascade. Coefficient is each club's live UEFA "
         "5-year club ranking ([kassiesa.net](https://kassiesa.net/uefa/data/method5/trank2027.html), "
@@ -685,11 +696,7 @@ with entries_tab:
         "assumes they again receive 2027/28's 2 \"European Performance Spot\" bonus "
         "places -- predicted, not yet confirmed by UEFA (awarded after 2026/27 ends, by "
         "aggregate club coefficient) -- see entrants_2027_28.py's own docstring for the "
-        "full picture, including how Russia's ongoing suspension is handled. One real "
-        "simplification in the cross-competition cascade: a small number of Champions "
-        "League First Qualifying Round losers really drop into the Conference League's "
-        "Third (not Second) Qualifying Round Champions Path, for bracket-size balancing -- "
-        "all of them are shown dropping into the Second Qualifying Round here instead."
+        "full picture, including how Russia's ongoing suspension is handled."
     )
 
 
@@ -707,10 +714,12 @@ with qualifiers_tab:
         "order is set yet) -- which also already covers Israeli and Ukrainian clubs playing their "
         "real UEFA \"home\" matches at a neutral venue, same as the current 2026/27 competitions' "
         "own predictions. Champions Path, League Path and Main Path are kept separate exactly as "
-        "far as the real 2026/27 qualifying kept them separate, including the real cross-"
-        "competition cascade -- Champions League Champions/League Path losers drop into the "
-        "Europa League; Europa League losers (including ex-Champions League clubs) drop into the "
-        "Conference League. The top half of each round's pool by chance to prevail is what "
+        "far as the real 2027-2030 qualifying scheme keeps them separate (Bert Kassies' own "
+        "diagram, kassiesa.net/uefa), including the real cross-competition cascade -- Champions "
+        "League Champions/League Path losers drop into the Europa League (even into its own "
+        "Play-off round, which itself stays split Champions Path/Main Path all the way to the "
+        "League Phase); Europa League losers (including ex-Champions League clubs) drop into the "
+        "Conference League the same way. The top half of each round's pool by chance to prevail is what "
         "advances to the next round; an odd pool gives its single strongest club a bye rather "
         "than inventing an opponent."
     )
@@ -745,9 +754,9 @@ with league_stage_tab:
         "Qualifiers tab (both Champions/League/Main Path brackets where the competition has "
         "one), and -- for Europa League and Conference League -- the clubs eliminated at the "
         "very last hurdle of the competition above, who go straight into this League Phase "
-        "rather than drop into this competition's own qualifying (confirmed against the "
-        "2026/27 Europa League and Conference League Wikipedia articles' own League Phase "
-        "distribution). Sorted by live club coefficient, highest first -- the same ranking "
+        "rather than drop into this competition's own qualifying (per Bert Kassies' own "
+        "2027-2030 qualifying scheme diagram, kassiesa.net/uefa). Sorted by live club "
+        "coefficient, highest first -- the same ranking "
         "that would set the real League Phase's 4 pots, though the actual pot draw doesn't "
         "exist yet either."
     )
