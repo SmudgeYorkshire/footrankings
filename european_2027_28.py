@@ -1,15 +1,17 @@
 """
 2027/28 UEFA European Competitions -- access list, connected live to each
-domestic league's CURRENT (2026/27) standings.
+domestic league's PREDICTED FINAL (2026/27) standings.
 
 Nothing about the 2027/28 qualifying draw, League Phase pairings, or pot
 seeding exists yet (UEFA won't draw any of that until mid-2027) -- a single
 competition selector up top feeds three tabs. Projected Entries answers
-"who would currently qualify, and via which route, if the 2026/27
-domestic seasons ended today," split into the real Champions Path/League
-Path (or Main Path) sections each competition actually used in its 2026/27
-qualifying (confirmed against the 2026/27 Champions League, Europa League
-and Conference League Wikipedia articles), not just a text column. Predicted
+"who would most likely qualify, and via which route, once the 2026/27
+domestic seasons finish" (predicted final table, not the current one --
+see _predicted_standings' own docstring for why), split into the real
+Champions Path/League Path (or Main Path) sections each competition
+actually used in its 2026/27 qualifying (confirmed against the 2026/27
+Champions League, Europa League and Conference League Wikipedia
+articles), not just a text column. Predicted
 Qualifiers goes one step further and projects the qualifying rounds
 themselves, including the real cross-competition cascade (Champions League
 Champions Path losers drop into the Europa League; Europa League losers
@@ -33,7 +35,7 @@ import os
 import streamlit as st
 import pandas as pd
 
-from config import LEAGUES
+from config import LEAGUES, DEFAULT_HOME_ADVANTAGE
 from flags import flag_url
 from api_football_fetcher import ApiFootballClient
 from ratings_manager import load_ratings
@@ -41,8 +43,8 @@ from _split_season import compute_full_standings, ensure_full_roster
 from entrants_2027_28 import ACCESS_LIST_2027_28, STAGE_ORDER_2027_28, QUALIFYING_DATES_2027_28
 from club_coefficients_2027 import get_coeff_2027
 from cup_predictions import resolve_predicted_cup_winner, fetch_cup_fixtures
-from simulator import two_leg_advance_odds
-from nations_league_simulator import _pair_playoff_pool
+from simulator import two_leg_advance_odds, simulate_season
+from nations_league_simulator import _pair_playoff_pool, most_likely_group_order
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
@@ -66,19 +68,48 @@ for _comp, _comp_entries in ACCESS_LIST_2027_28.items():
         _ENTRIES_BY_COUNTRY.setdefault(_e["country"], []).append((_comp, _e))
 
 
+_PREDICTION_N_SIM = 1_000  # see _predicted_standings' own docstring
+
+
 @st.cache_data(ttl=60, show_spinner=False)
-def _current_standings(league_id: int, season: int, league_name: str):
-    """Mirrors football_rankings.py's own fetch_all -- same shape, same
-    staleness-avoidance (self-computed standings, not the provider's own
-    lagging aggregate) -- duplicated here rather than imported so this
-    page doesn't execute football_rankings.py's whole top-level script
-    as an import side effect."""
+def _predicted_standings(league_id: int, season: int, league_name: str):
+    """Every slot on this page resolves against the PREDICTED FINAL table,
+    not the live current-season one -- this early in a season (a handful
+    of matchweeks in), the current table is noisy (e.g. a promoted side's
+    hot start can sit them above clubs who'll finish well clear of them by
+    May; confirmed on real data, Leeds showing in a Champions League slot
+    off a small-sample current position). Runs this site's own full-season
+    Monte Carlo (the same simulate_season() the Predictions tab itself
+    uses) and reduces it to the single most-likely finishing order via
+    nations_league_simulator.most_likely_group_order -- the same
+    "most-likely single draw" convention used everywhere else on this
+    page. n_sim is deliberately much lower than the Predictions tab's own
+    DEFAULT_N_SIMULATIONS (10,000): this page needs an ORDER, not precise
+    probabilities, for up to ~50 countries at once, where the Predictions
+    tab only ever runs one league at a time.
+
+    Original standings rows (badges, etc.) are kept, just reordered and
+    re-ranked (intRank) to the predicted finish."""
     client = ApiFootballClient(api_key=_API_KEY)
     roster = client.get_standings(league_id, season)
     played, remaining = client.get_fixtures(league_id, season)
     roster = ensure_full_roster(roster, played + remaining)
-    tiebreakers = LEAGUES.get(league_name, {}).get("tiebreakers")
-    return compute_full_standings(roster, played, tiebreakers=tiebreakers) if roster else roster
+    cfg = LEAGUES.get(league_name, {})
+    tiebreakers = cfg.get("tiebreakers")
+    standings = compute_full_standings(roster, played, tiebreakers=tiebreakers) if roster else roster
+    if not standings:
+        return standings
+    ratings_df = load_ratings(cfg.get("tsdb_id", league_id), standings)
+    probs = simulate_season(
+        standings, remaining, ratings_df, n_sim=_PREDICTION_N_SIM,
+        home_advantage=cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE),
+        tiebreakers=tiebreakers, played_fixtures=played,
+    )
+    if probs.empty:
+        return standings
+    order = most_likely_group_order(probs)
+    by_team = {row["strTeam"]: row for row in standings}
+    return [{**by_team[t], "intRank": i} for i, t in enumerate(order, start=1) if t in by_team]
 
 
 @st.cache_data(ttl=60, show_spinner=False)
@@ -94,7 +125,7 @@ def _badge_lookup_for_country(country: str) -> dict[str, str]:
     if not cfg or not _API_KEY:
         return {}
     try:
-        standings = _current_standings(cfg["id"], cfg["af_season"], league_name)
+        standings = _predicted_standings(cfg["id"], cfg["af_season"], league_name)
     except Exception:
         return {}
     return {row["strTeam"]: row.get("strBadge", "") for row in (standings or []) if row.get("strBadge")}
@@ -113,7 +144,7 @@ def _position_occupant(entry: dict, standings: list[dict] | None) -> tuple[str, 
     pos = _POSITION_OF_CODE.get(entry["code"])
     if not standings or pos is None or pos > len(standings):
         return "—", own_note or "not yet determined"
-    note = "current position, may still change"
+    note = "predicted final position, may still change"
     if own_note:
         note = f"{own_note} — {note}"
     return standings[pos - 1].get("strTeam", "—"), note
@@ -171,7 +202,7 @@ def _resolve_country_slots(country: str) -> dict[tuple[str, str], tuple[str, str
         cfg = LEAGUES.get(league_name)
         if cfg and _API_KEY:
             try:
-                standings = _current_standings(cfg["id"], cfg["af_season"], league_name)
+                standings = _predicted_standings(cfg["id"], cfg["af_season"], league_name)
             except Exception:
                 standings = None
 
@@ -363,6 +394,26 @@ _TERMINAL_BUCKETS = {
     "Europa League": ["EL-PO"],
     "Conference League": ["CO-PO-CP", "CO-PO-MP"],
 }
+# A team eliminated in a HIGHER competition's very last round doesn't drop
+# into the next competition's qualifying -- it's already proven strong
+# enough to go straight into that competition's own League Phase. Confirmed
+# against the 2026/27 Europa League and Conference League Wikipedia
+# articles' own League Phase distribution tables (which list these losers
+# by name alongside the domestic-position/cup-winner direct entries, not
+# under the Play-off round): Champions League Play-off round losers (both
+# paths) AND Champions League Third Qualifying Round League Path losers
+# (who never get a further qualifying tie at all) go straight into the
+# Europa League's League Phase; Europa League Play-off round losers go
+# straight into the Conference League's League Phase.
+_EXTRA_LEAGUE_PHASE_SOURCES: dict[str, list[tuple[str, str]]] = {
+    "Champions League": [],
+    "Europa League": [("CL-PO-CP", "losers"), ("CL-PO-LP", "losers"), ("CL-Q3-LP", "losers")],
+    "Conference League": [("EL-PO", "losers")],
+}
+_EXTRA_LEAGUE_PHASE_ROUTE = {
+    "Europa League": "Transferred from Champions League",
+    "Conference League": "Transferred from Europa League",
+}
 
 
 def _fresh_entries(comp: str, label: str) -> list[dict]:
@@ -488,8 +539,10 @@ entries_tab, qualifiers_tab, league_stage_tab = st.tabs(
 with entries_tab:
     st.caption(
         "UEFA's official 2027/28 access list (circular 54/2026), connected live to each "
-        "country's CURRENT 2026/27 league table. Every occupant below is provisional -- "
-        "domestic seasons run until roughly May/June 2027, and nothing about the actual "
+        "country's PREDICTED FINAL 2026/27 league table (this site's own full-season "
+        "simulation, not the current early-season table, which is noisy this far out). "
+        "Every occupant below is provisional -- domestic seasons run until roughly "
+        "May/June 2027, and nothing about the actual "
         "2027/28 qualifying draw exists yet. Each round is split into the real Champions "
         "Path / League Path (or Main Path) sections this competition actually used in its "
         "2026/27 qualifying, confirmed against that season's Wikipedia articles -- a path "
@@ -626,11 +679,15 @@ with qualifiers_tab:
 with league_stage_tab:
     st.caption(
         "The predicted 36-club League Phase: the League Phase (direct) entrants from the "
-        "Projected Entries tab, plus the Play-off round's predicted winners from the Predicted "
+        "Projected Entries tab, the Play-off round's predicted winners from the Predicted "
         "Qualifiers tab (both Champions/League/Main Path brackets where the competition has "
-        "one). Sorted by live club coefficient, highest first -- the same ranking that would "
-        "set the real League Phase's 4 pots, though the actual pot draw doesn't exist yet "
-        "either."
+        "one), and -- for Europa League and Conference League -- the clubs eliminated at the "
+        "very last hurdle of the competition above, who go straight into this League Phase "
+        "rather than drop into this competition's own qualifying (confirmed against the "
+        "2026/27 Europa League and Conference League Wikipedia articles' own League Phase "
+        "distribution). Sorted by live club coefficient, highest first -- the same ranking "
+        "that would set the real League Phase's 4 pots, though the actual pot draw doesn't "
+        "exist yet either."
     )
 
     direct_entries = [e for e in comp_entries if e["round"] == "League Phase (direct)"]
@@ -641,6 +698,10 @@ with league_stage_tab:
     for bucket_id in _TERMINAL_BUCKETS[comp_name]:
         po_winners.extend(bracket[bucket_id]["winners"])
         po_excluded.extend(bracket[bucket_id]["excluded"])
+
+    transferred: list[dict] = []
+    for bucket_id, kind in _EXTRA_LEAGUE_PHASE_SOURCES[comp_name]:
+        transferred.extend(bracket[bucket_id][kind])
 
     stage_rows = [
         {
@@ -654,6 +715,12 @@ with league_stage_tab:
             "Country": c["country"], "Coefficient": c["coeff"], "Route": "Qualified via play-offs",
         }
         for c in po_winners
+    ] + [
+        {
+            "Badge": c["badge"], "Club": c["team"], "Flag": flag_url(_country_key(c["country"])),
+            "Country": c["country"], "Coefficient": c["coeff"], "Route": _EXTRA_LEAGUE_PHASE_ROUTE.get(comp_name, ""),
+        }
+        for c in transferred
     ]
     stage_rows.sort(key=lambda r: -r["Coefficient"])
 
