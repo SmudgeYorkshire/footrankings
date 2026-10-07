@@ -903,10 +903,18 @@ def project_2028_composition(
     buckets.append(("League A", a_rows))
 
     # --- League B: ranks 19-36 -----------------------------------------
+    # Same group-ahead-of-block ordering as League A's 11-18 split: the two
+    # lowest-ranked League A 4th-place teams (relegated straight down, no
+    # play-off) rank above the four League A/B play-off losers, not merged
+    # with them by interim rank.
     ab_losers = sorted(a_playoff_pool + b_runner_up_pool, key=lambda t: -ab_prevail[t])[4:]
     b_rows = [
-        (t, f"{_ordinal(i)}-ranked League A/B play-off loser or League A 4th place")
-        for i, t in enumerate(by_interim(direct_releg_fourth + ab_losers), start=1)
+        (t, f"{_ordinal(i)}-ranked fourth-placed team of League A")
+        for i, t in enumerate(by_interim(direct_releg_fourth), start=1)
+    ]
+    b_rows += [
+        (t, f"{_ordinal(i)}-ranked League A/B play-off loser")
+        for i, t in enumerate(by_interim(ab_losers), start=1)
     ]
     b_third_pool = [order[2] for order in b_order.values()]
     for t in by_interim(b_third_pool):
