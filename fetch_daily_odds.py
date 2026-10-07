@@ -2,22 +2,27 @@
 Single daily pull of pre-match odds from both providers -- API-Football
 (already paid for, used via ApiFootballClient.get_odds_by_date) and The Odds
 API (a separate, dedicated odds provider; confirmed live to cover ~20 of our
-54 tracked leagues with far deeper bookmaker coverage than API-Football).
+54 tracked top-flight leagues, plus 6 of our LEAGUES_TIER2 second tiers
+(England/France/Germany/Italy/Spain/Sweden -- the only 6 confirmed live
+against The Odds API's own /sports listing), with far deeper bookmaker
+coverage than API-Football.
 
 This is the one place that actually calls either odds API. Three downstream
 consumers read its output instead of hitting the APIs themselves:
   - odds_comparison_snapshot.py (logs day-by-day coverage from both, to
     decide over the next month whether paying for The Odds API is worth it)
-  - club_rating_calibration.py (fits the daily rating adjustment)
+  - club_rating_calibration.py (fits the daily rating adjustment, for both
+    LEAGUES and LEAGUES_TIER2)
   - (indirectly) build_club_power_rankings.py, via the adjustment file
 
 Writes odds_coverage/daily_odds/{date}.json -- a flat list of per-fixture
 observations, each already de-vigged to a consensus (home, draw, away)
 probability triple (averaging implied probabilities across that source's own
 bookmakers, then renormalizing to remove the overround), tagged with which
-source it came from and which of our 54 tracked leagues it belongs to (or
-"" if it's an API-Football fixture outside our tracked set -- still logged,
-since odds_comparison_snapshot.py wants the full unfiltered picture).
+source it came from and which of our tracked top-flight OR tier-2 leagues
+it belongs to (or "" if it's an API-Football fixture outside both tracked
+sets -- still logged, since odds_comparison_snapshot.py wants the full
+unfiltered picture).
 
 Usage: py fetch_daily_odds.py [--days 3]
 """
@@ -35,17 +40,17 @@ load_dotenv()
 
 import requests
 
-from config import LEAGUES
+from config import LEAGUES, LEAGUES_TIER2
 from api_football_fetcher import ApiFootballClient
 
 OUT_DIR = Path("odds_coverage") / "daily_odds"
 ODDS_API_BASE = "https://api.the-odds-api.com/v4"
 
 # Every soccer competition The Odds API names that matches one of our 54
-# tracked leagues exactly (config.py key -> their sport_key), confirmed live
-# against the real API, not their marketing site. The ~34 leagues with no
-# entry here simply aren't covered by this provider -- confirmed separately,
-# not an oversight.
+# tracked top-flight leagues exactly (config.py key -> their sport_key),
+# confirmed live against the real API, not their marketing site. The ~34
+# leagues with no entry here simply aren't covered by this provider --
+# confirmed separately, not an oversight.
 ODDS_API_SPORT_KEYS: dict[str, str] = {
     "Austrian Bundesliga":               "soccer_austria_bundesliga",
     "Belgian Pro League":                "soccer_belgium_first_div",
@@ -69,7 +74,27 @@ ODDS_API_SPORT_KEYS: dict[str, str] = {
     "Turkish Super Lig":                 "soccer_turkey_super_league",
 }
 
-_LEAGUE_ID_TO_NAME = {cfg["id"]: name for name, cfg in LEAGUES.items()}
+# Same idea, for LEAGUES_TIER2 -- confirmed live against The Odds API's own
+# /sports listing (2026-10-08). Only 6 of our ~49 tracked 2nd tiers are
+# covered at all; the rest (lower-profile leagues) simply aren't listed.
+ODDS_API_SPORT_KEYS_TIER2: dict[str, str] = {
+    "England - Championship":    "soccer_efl_champ",
+    "France - Ligue 2":          "soccer_france_ligue_two",
+    "Germany - 2. Bundesliga":   "soccer_germany_bundesliga2",
+    "Italy - Serie B":           "soccer_italy_serie_b",
+    "Spain - Segunda División":  "soccer_spain_segunda_division",
+    "Sweden - Superettan":       "soccer_sweden_superettan",
+}
+
+# Merged id->name map across both tiers -- API-Football's own league ids
+# never collide between the two dicts (they're separate real competitions),
+# so a plain merge is safe. A fixture's "tracked" flag (see pull_api_
+# football) means "one of our 54 top-flight OR ~49 tier-2 leagues", not
+# top-flight only.
+_LEAGUE_ID_TO_NAME = {
+    **{cfg["id"]: name for name, cfg in LEAGUES.items()},
+    **{cfg["id"]: name for name, cfg in LEAGUES_TIER2.items()},
+}
 
 
 def _devig(probs_raw: list[float]) -> list[float] | None:
@@ -163,7 +188,7 @@ def pull_odds_api(key: str) -> list[dict]:
         print("WARNING: no ODDS_API_KEY set -- skipping The Odds API pull", file=sys.stderr)
         return []
     observations = []
-    for league_name, sport_key in ODDS_API_SPORT_KEYS.items():
+    for league_name, sport_key in {**ODDS_API_SPORT_KEYS, **ODDS_API_SPORT_KEYS_TIER2}.items():
         try:
             r = requests.get(
                 f"{ODDS_API_BASE}/sports/{sport_key}/odds",

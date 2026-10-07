@@ -1,11 +1,12 @@
 """
 Automated, daily version of nl_odds_calibration.py's idea -- fit a small
 per-team rating adjustment from real bookmaker odds -- but for the 54
-tracked club leagues, sourced automatically from fetch_daily_odds.py's
-output instead of a hand-typed observation list, and using the site's own
-real Poisson match model (simulator.fixture_odds) to compare against the
-market instead of a generic Elo-expectancy approximation, since that's
-exactly what will actually run once this adjustment is live.
+tracked top-flight leagues AND LEAGUES_TIER2's ~52 second tiers, sourced
+automatically from fetch_daily_odds.py's output instead of a hand-typed
+observation list, and using the site's own real Poisson match model
+(simulator.fixture_odds) to compare against the market instead of a
+generic Elo-expectancy approximation, since that's exactly what will
+actually run once this adjustment is live.
 
 Refits from scratch every run (today's live odds vs. today's raw Opta
 baseline) rather than accumulating on top of yesterday's adjustment -- this
@@ -33,7 +34,7 @@ load_dotenv()
 
 import pandas as pd
 
-from config import LEAGUES
+from config import LEAGUES, LEAGUES_TIER2
 from ratings_manager import load_ratings
 from simulator import fixture_odds
 from update_ratings_from_opta import _normalize, fuzzy_token_match
@@ -131,7 +132,7 @@ def main(odds_date: str) -> None:
 
     all_adjustments: dict[str, float] = {}
     for league_name, obs in by_league.items():
-        cfg = LEAGUES.get(league_name)
+        cfg = LEAGUES.get(league_name) or LEAGUES_TIER2.get(league_name)
         if not cfg:
             continue
         league_adj = fit_league(league_name, cfg, obs)
