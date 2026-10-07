@@ -45,6 +45,7 @@ from club_coefficients_2027 import get_coeff_2027
 from cup_predictions import resolve_predicted_cup_winner, fetch_cup_fixtures
 from simulator import two_leg_advance_odds, simulate_season
 from nations_league_simulator import _pair_playoff_pool, most_likely_group_order
+from qualifying_projection import home_advantage_for
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
@@ -465,7 +466,19 @@ def _simulate_round(pool: list[dict]) -> tuple[list[dict], list[dict], list[dict
     ties, winners, losers = [], [], []
     for a, b in _pair_playoff_pool(names):
         ratings_df = pd.DataFrame({"team": [a, b], "opta_rating": [by_name[a]["coeff"], by_name[b]["coeff"]]})
-        odds = two_leg_advance_odds(a, b, ratings_df, home_advantage=1.0)
+        # Both legs already get no boost (no real draw has set a leg order
+        # yet -- see this function's own docstring), so home_advantage_for
+        # is a no-op here today (1.0 in, 1.0 out either way). Still wired
+        # in explicitly, matching european.py/league_phase_simulator.py's
+        # own pattern, so Israeli/Ukrainian clubs (who play their real
+        # UEFA "home" matches at a neutral venue) stay correctly neutral
+        # if this ever gains real per-leg home advantage once an actual
+        # draw exists.
+        odds = two_leg_advance_odds(
+            a, b, ratings_df,
+            home_advantage_team1=home_advantage_for(a, 1.0),
+            home_advantage_team2=home_advantage_for(b, 1.0),
+        )
         pct_a, pct_b = odds["team1_adv"] * 100, odds["team2_adv"] * 100
         winner, loser = (by_name[a], by_name[b]) if pct_a >= pct_b else (by_name[b], by_name[a])
         ties.append({
@@ -645,8 +658,11 @@ with qualifiers_tab:
         "draw (which doesn't exist yet) or its same-association protection. Each round's own "
         "pool is split Seeded/Unseeded by live club coefficient and paired strongest vs weakest; "
         "win probability per two-legged tie comes from this site's own Poisson match model at a "
-        "neutral venue (no real leg order is set yet). Champions Path, League Path and Main Path "
-        "are kept separate exactly as far as the real 2026/27 qualifying kept them separate, "
+        "neutral venue for both sides (no real leg order is set yet) -- which also already covers "
+        "Israeli and Ukrainian clubs playing their real UEFA \"home\" matches at a neutral venue, "
+        "same as the current 2026/27 competitions' own predictions. Champions Path, League Path "
+        "and Main Path are kept separate exactly as far as the real 2026/27 qualifying kept them "
+        "separate, "
         "including the real cross-competition cascade -- Champions League Champions/League Path "
         "losers drop into the Europa League; Europa League losers (including ex-Champions League "
         "clubs) drop into the Conference League. An odd pool gives its single strongest club a "
