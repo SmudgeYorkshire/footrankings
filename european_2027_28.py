@@ -34,6 +34,7 @@ import os
 
 import streamlit as st
 import pandas as pd
+import numpy as np
 
 from config import LEAGUES, DEFAULT_HOME_ADVANTAGE
 from flags import flag_url
@@ -44,7 +45,7 @@ from entrants_2027_28 import ACCESS_LIST_2027_28, STAGE_ORDER_2027_28, QUALIFYIN
 from club_coefficients_2027 import get_coeff_2027
 from cup_predictions import resolve_predicted_cup_winner, fetch_cup_fixtures
 from simulator import two_leg_advance_odds, simulate_season
-from nations_league_simulator import _pair_playoff_pool, most_likely_group_order
+from nations_league_simulator import most_likely_group_order
 from qualifying_projection import home_advantage_for
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
@@ -443,16 +444,40 @@ def _resolve_pool_clubs(entries: list[dict], comp: str) -> tuple[list[dict], lis
     return clubs, excluded
 
 
+_QUALIFYING_MC_DRAWS = 10_000
+_QUALIFYING_MC_SEED = 2027
+
+
 def _simulate_round(pool: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
-    """Seeded-vs-unseeded pairing (nations_league_simulator._pair_playoff_
-    pool: strongest vs weakest, same "most likely single draw" convention
-    used throughout this project) + two-legged win probability
-    (simulator.two_leg_advance_odds, neutral home advantage since no real
-    draw has set a leg order yet -- same convention project_league_a_
-    finals uses for an unknown-venue match). Returns (tie rows for
-    display, winning club dicts, losing club dicts) -- losers matter here
-    since the real cascade carries them into a DIFFERENT competition's
-    bucket (see _BUCKETS)."""
+    """Seeded vs Unseeded, Monte Carlo over the DRAW itself rather than
+    one fixed strongest-vs-weakest pairing: UEFA's own draw pairs each
+    seeded club against a RANDOM unseeded club (an open draw, no same-
+    association protection modeled -- same convention nations_league_
+    simulator._average_pairing_prevail already uses for the Nations
+    League's own play-off pools, just via Monte Carlo sampling here
+    instead of full permutation enumeration, since these pools can run to
+    dozens of clubs where enumerating every permutation isn't tractable).
+    Fixing one single opponent per club (the previous approach) produces
+    artificial 100%/0% certainty that isn't real -- a club's genuine
+    chance to advance already reflects the real uncertainty of who it
+    might actually be drawn against.
+
+    Each two-legged pairing's own win probability still comes from
+    simulator.two_leg_advance_odds (neutral venue both legs -- no real
+    leg order is set yet; home_advantage_for still applied so Israeli/
+    Ukrainian clubs stay correctly neutral if that ever changes), but is
+    precomputed ONCE per (seeded, unseeded) pair rather than recomputed
+    per draw, since a pair's own odds don't depend on who else is drawn
+    elsewhere that draw. _QUALIFYING_MC_DRAWS random draws are then
+    sampled over just the precomputed matrix (cheap), each club's own
+    "chance to prevail" being its average across every draw.
+
+    Returns (per-club display rows [Club, Seeding, Chance %] -- Seeded
+    block first, each block ranked by its own chance -- winning club
+    dicts: the top half of the whole pool by chance to prevail, losing
+    club dicts: the bottom half) -- losers matter here since the real
+    cascade carries them into a DIFFERENT competition's bucket (see
+    _BUCKETS)."""
     if not pool:
         return [], [], []
     ranked = sorted(pool, key=lambda c: -c["coeff"])
@@ -461,46 +486,66 @@ def _simulate_round(pool: list[dict]) -> tuple[list[dict], list[dict], list[dict
         bye = ranked[0]
         ranked = ranked[1:]
     by_name = {c["team"]: c for c in ranked}
-    names = list(by_name.keys())
+    half = len(ranked) // 2
+    seeded, unseeded = ranked[:half], ranked[half:]
 
-    ties, winners, losers = [], [], []
-    for a, b in _pair_playoff_pool(names):
-        ratings_df = pd.DataFrame({"team": [a, b], "opta_rating": [by_name[a]["coeff"], by_name[b]["coeff"]]})
-        # Both legs already get no boost (no real draw has set a leg order
-        # yet -- see this function's own docstring), so home_advantage_for
-        # is a no-op here today (1.0 in, 1.0 out either way). Still wired
-        # in explicitly, matching european.py/league_phase_simulator.py's
-        # own pattern, so Israeli/Ukrainian clubs (who play their real
-        # UEFA "home" matches at a neutral venue) stay correctly neutral
-        # if this ever gains real per-leg home advantage once an actual
-        # draw exists.
-        odds = two_leg_advance_odds(
-            a, b, ratings_df,
-            home_advantage_team1=home_advantage_for(a, 1.0),
-            home_advantage_team2=home_advantage_for(b, 1.0),
-        )
-        pct_a, pct_b = odds["team1_adv"] * 100, odds["team2_adv"] * 100
-        winner, loser = (by_name[a], by_name[b]) if pct_a >= pct_b else (by_name[b], by_name[a])
-        ties.append({
-            "A Badge": by_name[a]["badge"], "Club A": a, "A %": round(pct_a, 1),
-            "B Badge": by_name[b]["badge"], "Club B": b, "B %": round(pct_b, 1),
-            "Predicted winner": winner["team"],
-        })
-        winners.append(winner)
-        losers.append(loser)
+    if half == 0:
+        rows = []
+        if bye is not None:
+            rows.append({"Badge": bye["badge"], "Club": f"{bye['team']} (bye)", "Seeding": "Seeded", "Chance %": 100.0})
+        return rows, ([bye] if bye is not None else []), []
+
+    # Pairwise two-legged prevail probability, every seeded club vs every
+    # unseeded club -- precomputed once, reused across every MC draw.
+    seeded_names = [c["team"] for c in seeded]
+    unseeded_names = [c["team"] for c in unseeded]
+    prevail_matrix = np.empty((half, half))
+    for i, s in enumerate(seeded):
+        for j, u in enumerate(unseeded):
+            ratings_df = pd.DataFrame({"team": [s["team"], u["team"]], "opta_rating": [s["coeff"], u["coeff"]]})
+            odds = two_leg_advance_odds(
+                s["team"], u["team"], ratings_df,
+                home_advantage_team1=home_advantage_for(s["team"], 1.0),
+                home_advantage_team2=home_advantage_for(u["team"], 1.0),
+            )
+            prevail_matrix[i, j] = odds["team1_adv"]
+
+    rng = np.random.default_rng(_QUALIFYING_MC_SEED)
+    seeded_sum = np.zeros(half)
+    unseeded_sum = np.zeros(half)
+    for _ in range(_QUALIFYING_MC_DRAWS):
+        perm = rng.permutation(half)
+        p = prevail_matrix[np.arange(half), perm]
+        seeded_sum += p
+        unseeded_sum[perm] += 1.0 - p
+
+    pct: dict[str, float] = {}
+    for i, name in enumerate(seeded_names):
+        pct[name] = seeded_sum[i] / _QUALIFYING_MC_DRAWS * 100
+    for j, name in enumerate(unseeded_names):
+        pct[name] = unseeded_sum[j] / _QUALIFYING_MC_DRAWS * 100
+
+    rows = []
     if bye is not None:
-        ties.append({
-            "A Badge": bye["badge"], "Club A": bye["team"], "A %": None,
-            "B Badge": "", "Club B": "— (bye)", "B %": None,
-            "Predicted winner": bye["team"],
-        })
+        rows.append({"Badge": bye["badge"], "Club": f"{bye['team']} (bye)", "Seeding": "Seeded", "Chance %": 100.0})
+    for name in seeded_names:
+        rows.append({"Badge": by_name[name]["badge"], "Club": name, "Seeding": "Seeded", "Chance %": round(pct[name], 1)})
+    for name in unseeded_names:
+        rows.append({"Badge": by_name[name]["badge"], "Club": name, "Seeding": "Unseeded", "Chance %": round(pct[name], 1)})
+    rows.sort(key=lambda r: (0 if r["Seeding"] == "Seeded" else 1, -r["Chance %"]))
+
+    ranked_by_pct = sorted(pct, key=lambda t: -pct[t])
+    winner_names = set(ranked_by_pct[:half])
+    winners = [by_name[t] for t in ranked_by_pct if t in winner_names]
+    losers = [by_name[t] for t in ranked_by_pct if t not in winner_names]
+    if bye is not None:
         winners.append(bye)
-    return ties, winners, losers
+    return rows, winners, losers
 
 
 @st.cache_data(ttl=60, show_spinner=False)
 def _simulate_full_bracket() -> dict[str, dict]:
-    """Every bucket's {"ties", "winners", "losers", "excluded"}, processed
+    """Every bucket's {"rows", "winners", "losers", "excluded"}, processed
     in round order (Q1 -> Q2 -> Q3 -> PO) across all 3 competitions at
     once -- the real cross-competition cascade means a later round's
     bucket can depend on an EARLIER round's bucket from a DIFFERENT
@@ -520,20 +565,17 @@ def _simulate_full_bracket() -> dict[str, dict]:
                 excluded.extend(fresh_excluded)
             for src_id, kind in bucket["sources"]:
                 pool.extend(results[src_id][kind])
-            ties, winners, losers = _simulate_round(pool)
-            results[bucket["id"]] = {"ties": ties, "winners": winners, "losers": losers, "excluded": excluded}
+            rows, winners, losers = _simulate_round(pool)
+            results[bucket["id"]] = {"rows": rows, "winners": winners, "losers": losers, "excluded": excluded}
     return results
 
 
-_TIES_COLUMN_CONFIG = {
+_PREVAIL_COLUMN_CONFIG = {
     "No.": st.column_config.NumberColumn("No.", width="small"),
-    "A Badge": st.column_config.ImageColumn("", width="small"),
-    "Club A": st.column_config.TextColumn("Club A", width="medium"),
-    "A %": st.column_config.NumberColumn("A %", width="small", format="%.1f%%"),
-    "B Badge": st.column_config.ImageColumn("", width="small"),
-    "Club B": st.column_config.TextColumn("Club B", width="medium"),
-    "B %": st.column_config.NumberColumn("B %", width="small", format="%.1f%%"),
-    "Predicted winner": st.column_config.TextColumn("Predicted winner", width="medium"),
+    "Badge": st.column_config.ImageColumn("", width="small"),
+    "Club": st.column_config.TextColumn("Club", width="medium"),
+    "Seeding": st.column_config.TextColumn("Seeding", width="small"),
+    "Chance %": st.column_config.NumberColumn("Chance to prevail", width="small", format="%.1f%%"),
 }
 
 
@@ -654,19 +696,23 @@ with entries_tab:
 with qualifiers_tab:
     st.caption(
         "Projects the qualifying rounds themselves, round by round, from today's most-likely "
-        "occupant of every access-list slot (Projected Entries tab) -- not UEFA's actual random "
-        "draw (which doesn't exist yet) or its same-association protection. Each round's own "
-        "pool is split Seeded/Unseeded by live club coefficient and paired strongest vs weakest; "
-        "win probability per two-legged tie comes from this site's own Poisson match model at a "
-        "neutral venue for both sides (no real leg order is set yet) -- which also already covers "
-        "Israeli and Ukrainian clubs playing their real UEFA \"home\" matches at a neutral venue, "
-        "same as the current 2026/27 competitions' own predictions. Champions Path, League Path "
-        "and Main Path are kept separate exactly as far as the real 2026/27 qualifying kept them "
-        "separate, "
-        "including the real cross-competition cascade -- Champions League Champions/League Path "
-        "losers drop into the Europa League; Europa League losers (including ex-Champions League "
-        "clubs) drop into the Conference League. An odd pool gives its single strongest club a "
-        "bye rather than inventing an opponent."
+        "occupant of every access-list slot (Projected Entries tab). Each round's own pool is "
+        "split Seeded/Unseeded by live club coefficient; rather than fixing one single opponent "
+        "per club (which produces artificial 100%/0% certainty that isn't real), each club's "
+        "\"chance to prevail\" is its own two-legged win probability averaged over "
+        f"{_QUALIFYING_MC_DRAWS:,} simulated open draws against a random unseeded club -- the "
+        "same genuine draw uncertainty UEFA's own draw carries, just without its same-association "
+        "protection (which doesn't exist yet either). Each pairing's own win probability comes "
+        "from this site's own Poisson match model at a neutral venue for both sides (no real leg "
+        "order is set yet) -- which also already covers Israeli and Ukrainian clubs playing their "
+        "real UEFA \"home\" matches at a neutral venue, same as the current 2026/27 competitions' "
+        "own predictions. Champions Path, League Path and Main Path are kept separate exactly as "
+        "far as the real 2026/27 qualifying kept them separate, including the real cross-"
+        "competition cascade -- Champions League Champions/League Path losers drop into the "
+        "Europa League; Europa League losers (including ex-Champions League clubs) drop into the "
+        "Conference League. The top half of each round's pool by chance to prevail is what "
+        "advances to the next round; an odd pool gives its single strongest club a bye rather "
+        "than inventing an opponent."
     )
 
     comp_buckets = [b for b in _BUCKETS if b["comp"] == comp_name]
@@ -678,12 +724,12 @@ with qualifiers_tab:
             st.markdown(f"#### {stage}{path_label}")
             if result["excluded"]:
                 st.caption("Excluded (no determined club): " + "; ".join(result["excluded"]))
-            if not result["ties"]:
+            if not result["rows"]:
                 st.caption("No clubs in this round's pool.")
                 continue
-            tie_df = pd.DataFrame(_number_rows(result["ties"]))
-            st.dataframe(tie_df, column_config=_TIES_COLUMN_CONFIG, use_container_width=True, hide_index=True,
-                         height=len(tie_df) * 35 + 38)
+            row_df = pd.DataFrame(_number_rows(result["rows"]))
+            st.dataframe(row_df, column_config=_PREVAIL_COLUMN_CONFIG, use_container_width=True, hide_index=True,
+                         height=len(row_df) * 35 + 38)
 
     st.divider()
     st.caption(
