@@ -888,9 +888,17 @@ def project_2028_composition(
     ab_prevail = _average_pairing_prevail(a_playoff_pool, b_runner_up_pool, ratings_df, home_advantage=1.05)
     ab_winners = sorted(a_playoff_pool + b_runner_up_pool, key=lambda t: -ab_prevail[t])[:4]
     b_winners_direct = [order[0] for order in b_order.values()]
+    # UEFA ranks the group winners' whole block above the play-off winners'
+    # whole block here (not one 8-team bucket merged by interim rank) --
+    # group winners qualified for League A outright, play-off winners only
+    # survived a two-legged tie, so the group-winner tier ranks higher.
     a_rows += [
-        (t, f"{_ordinal(i)}-ranked League A/B play-off winner or League B group winner")
-        for i, t in enumerate(by_interim(ab_winners + b_winners_direct), start=1)
+        (t, f"{_ordinal(i)}-ranked League B group winner")
+        for i, t in enumerate(by_interim(b_winners_direct), start=1)
+    ]
+    a_rows += [
+        (t, f"{_ordinal(i)}-ranked League A/B play-off winner")
+        for i, t in enumerate(by_interim(ab_winners), start=1)
     ]
     buckets.append(("League A", a_rows))
 
@@ -909,9 +917,15 @@ def project_2028_composition(
     bc_prevail = _average_pairing_prevail(b_fourth_pool, c_runner_up_pool, ratings_df, home_advantage=1.05)
     bc_winners = sorted(b_fourth_pool + c_runner_up_pool, key=lambda t: -bc_prevail[t])[:4]
     c_winners_direct = [order[0] for order in c_order.values()]
+    # Same group-winners-outrank-play-off-winners ordering as the League A/B
+    # block above.
     b_rows += [
-        (t, f"{_ordinal(i)}-ranked League B/C play-off winner or League C group winner")
-        for i, t in enumerate(by_interim(bc_winners + c_winners_direct), start=1)
+        (t, f"{_ordinal(i)}-ranked League C group winner")
+        for i, t in enumerate(by_interim(c_winners_direct), start=1)
+    ]
+    b_rows += [
+        (t, f"{_ordinal(i)}-ranked League B/C play-off winner")
+        for i, t in enumerate(by_interim(bc_winners), start=1)
     ]
     buckets.append(("League B", b_rows))
 
