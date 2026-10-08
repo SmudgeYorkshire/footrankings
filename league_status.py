@@ -206,7 +206,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "Slovenian 1. SNL": {"regular": {
-        1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
+        1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UECL - QR2",
         9: "Relegation - PO", 10: "Relegation",
     }},
 

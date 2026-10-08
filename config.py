@@ -595,8 +595,10 @@ LEAGUES = {
                                      "home_advantage": 1.20,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2",
                                                         9: "Relegation - PO", 10: "Relegation"},
-                                     "cup_details": ("2025/26 Slovenian Football Cup winner Bravo qualifies for the UEL – QR1."),
-                                     "team_status_overrides": {"Bravo": "UEL - QR1*"}},
+                                     "team_status_note": "*Celje are predicted to win the 2026/27 Slovenian Football Cup, "
+                                                          "qualifying for the UEL – QR1. The league's own 2nd-placed "
+                                                          "team qualifies for the UECL – QR2 instead.",
+                                     "team_status_overrides": {"Celje": "UEL - QR1*"}},
     "Swedish Allsvenskan":          {"id": 113, "provider": "api_football", "tsdb_id": 4347, "af_season": 2026, "cup_id": 115, "country": "Sweden",      "flag": "🇸🇪", "season_type": "summer",
                                      "season_end": "29 November 2026",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_away_gf", "playoffs"],
