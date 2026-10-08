@@ -87,7 +87,7 @@ LEAGUES = {
                                          "As Egnatia are predicted to win the 2025/26 Albanian Cup and secure a European place through their league position, "
                                          "the UECL – QR1 spot is projected to pass to the 4th-placed team."
                                      )},
-    "Andorran 1a Divisió":          {"id": 312, "provider": "api_football", "tsdb_id": 4618, "af_season": 2025, "cup_id": 655, "country": "Andorra",     "flag": "🇦🇩", "season_type": "winter",
+    "Andorran 1a Divisió":          {"id": 312, "provider": "api_football", "tsdb_id": 4618, "af_season": 2026, "cup_id": 655, "country": "Andorra",     "flag": "🇦🇩", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"],
                                      "home_advantage": 1.28,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 9: "Relegation - PO", 10: "Relegation"},
