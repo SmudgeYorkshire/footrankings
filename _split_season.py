@@ -252,6 +252,7 @@ def recompute_conference_standings(
     pts_factor: float = 1.0,
     pts_round: str = "down",
     tiebreakers: list[str] | None = None,
+    points_adjustments: dict[str, int] | None = None,
 ) -> list[dict]:
     """
     Build conference standings from scratch using the presplit snapshot as
@@ -263,6 +264,12 @@ def recompute_conference_standings(
     when not supplied, matching simulator.py's own default).
     Called for every conference (champ / mid / relg) because the provider
     does not update split-league tables post-split.
+
+    points_adjustments: {team: delta} applied once, after real results are
+    tallied but before ranking -- for disciplinary/admin point deductions
+    (match-fixing, insolvency, etc.) the live-data provider's own fixture
+    results never reflect, since no actual match produced them. Sourced
+    from a league's own config.py "points_deductions" field.
     """
     import copy
     import math
@@ -325,6 +332,11 @@ def recompute_conference_standings(
             rows[away]["intDraw"]   += 1
             rows[away]["intPoints"] += 1
 
+    if points_adjustments:
+        for team, delta in points_adjustments.items():
+            if team in rows:
+                rows[team]["intPoints"] += delta
+
     row_list = list(rows.values())
     for row in row_list:
         row["intGoalDifference"] = row["intGoalsFor"] - row["intGoalsAgainst"]
@@ -375,6 +387,7 @@ def ensure_full_roster(roster_rows: list[dict], fixtures: list[dict]) -> list[di
 
 def compute_full_standings(
     roster_rows: list[dict], played_fixtures: list[dict], tiebreakers: list[str] | None = None,
+    points_adjustments: dict[str, int] | None = None,
 ) -> list[dict]:
     """
     Build a whole league's table from scratch: every team at 0 played, then
@@ -390,6 +403,9 @@ def compute_full_standings(
     tiebreakers should be the league's own configured rule order (e.g.
     cfg["tiebreakers"]) so ties resolve the same way here as they do on the
     Predictions tab's simulation — defaults to GD → GF when not supplied.
+
+    points_adjustments: see recompute_conference_standings' own docstring
+    (e.g. cfg.get("points_deductions")).
     """
     zeroed = []
     for r in roster_rows:
@@ -402,4 +418,5 @@ def compute_full_standings(
         zeroed.append(row)
     return recompute_conference_standings(
         zeroed, played_fixtures, pts_factor=1.0, pts_round="down", tiebreakers=tiebreakers,
+        points_adjustments=points_adjustments,
     )

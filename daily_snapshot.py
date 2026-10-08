@@ -60,7 +60,9 @@ def snapshot_league(cfg: dict, key: str, client: ApiFootballClient):
     played, remaining = client.get_fixtures(league_id, season)
     roster = ensure_full_roster(roster, played + remaining)
     tiebreakers = cfg.get("tiebreakers")
-    standings = compute_full_standings(roster, played, tiebreakers=tiebreakers)
+    standings = compute_full_standings(
+        roster, played, tiebreakers=tiebreakers, points_adjustments=cfg.get("points_deductions"),
+    )
     if not standings:
         return None
 

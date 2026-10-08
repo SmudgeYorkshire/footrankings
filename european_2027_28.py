@@ -98,7 +98,9 @@ def _predicted_standings(league_id: int, season: int, league_name: str):
     roster = ensure_full_roster(roster, played + remaining)
     cfg = LEAGUES.get(league_name, {})
     tiebreakers = cfg.get("tiebreakers")
-    standings = compute_full_standings(roster, played, tiebreakers=tiebreakers) if roster else roster
+    standings = compute_full_standings(
+        roster, played, tiebreakers=tiebreakers, points_adjustments=cfg.get("points_deductions"),
+    ) if roster else roster
     if not standings:
         return standings
     ratings_df = load_ratings(cfg.get("tsdb_id", league_id), standings)

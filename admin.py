@@ -208,8 +208,11 @@ def fetch_all(lid, ssn, key, league_name_=None):
     played, remaining = c.get_fixtures(lid, ssn)
     info = c.get_league_info(lid)
     roster = ensure_full_roster(roster, played + remaining) if roster else roster
-    tiebreakers = LEAGUES.get(league_name_, {}).get("tiebreakers")
-    standings = compute_full_standings(roster, played, tiebreakers=tiebreakers) if roster else roster
+    _cfg = LEAGUES.get(league_name_, {})
+    tiebreakers = _cfg.get("tiebreakers")
+    standings = compute_full_standings(
+        roster, played, tiebreakers=tiebreakers, points_adjustments=_cfg.get("points_deductions"),
+    ) if roster else roster
     return standings, played, remaining, info
 
 

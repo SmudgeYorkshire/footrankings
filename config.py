@@ -298,6 +298,11 @@ LEAGUES = {
                                      "split_round": 26, "n_champ": 4, "n_mid": 4, "pts_factor": 0.5,
                                      "mid_label": "European Group",
                                      "zone_notes": {"europa": "5th–8th play an additional round-robin (European Group, pts halved). Winner qualifies for UECL – QR2.", "relegation": "Bottom 2 of the 6-team Relegation Play-out Group (13th–14th) are directly relegated; no play-off against a Super League 2 side under the current format."},
+                                     # Volos docked 3pts for match-fixing with Panserraikos in the
+                                     # 2024/25 Relegation Play-out (both avoided relegation; Athens
+                                     # Kallithea relegated instead). Confirmed via Wikipedia's
+                                     # 2026/27 Super League Greece table footnote.
+                                     "points_deductions": {"Volos NFC": -3},
                                      "cup_details": (
                                          "2025/26 Greek Football Cup winner qualifies for the UEL – PO. "
                                          "As PAOK are predicted to win the 2025/26 Greek Football Cup and secure a European place through their league position, "

@@ -490,8 +490,11 @@ def fetch_all(lid, ssn, key, league_name_=None):
     # fixtures; same bug existed here, just never triggered by any of the
     # 54 tracked top-flight leagues).
     roster = ensure_full_roster(roster, played + remaining)
-    tiebreakers = LEAGUES.get(league_name_, {}).get("tiebreakers")
-    standings = compute_full_standings(roster, played, tiebreakers=tiebreakers) if roster else roster
+    _cfg = LEAGUES.get(league_name_, {})
+    tiebreakers = _cfg.get("tiebreakers")
+    standings = compute_full_standings(
+        roster, played, tiebreakers=tiebreakers, points_adjustments=_cfg.get("points_deductions"),
+    ) if roster else roster
     return standings, played, remaining, info
 
 
