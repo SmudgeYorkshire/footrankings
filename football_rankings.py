@@ -1764,7 +1764,14 @@ def main_content():
                 # Use pre-computed _main_zones (same source as Current Table)
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
                                   status_map=_main_zones, team_overrides=_team_overrides)
-                render_title_probability_history(ratings_id)
+                # For a true split league, full-table position 1 isn't the real title
+                # race (that's decided within the Championship Play-off after the
+                # split) -- shown below that section instead, where the probabilities
+                # are the realistic ones. Simple (non-split) and Final Four leagues
+                # have no such split, so it stays here.
+                _is_true_split = bool(cfg.get("n_champ")) and not cfg.get("final_four")
+                if not _is_true_split:
+                    render_title_probability_history(ratings_id)
 
                 # ── Projected groups by probability (pre-split leagues) ───────
                 _nc = cfg.get("n_champ") or (4 if cfg.get("final_four") else None)
@@ -1852,6 +1859,7 @@ def main_content():
                             render_prob_table(st.session_state["po_sims"][_po_c], badge_lookup,
                                               status_map=_champ_zones,
                                               title="Championship play-off finish probabilities")
+                            render_title_probability_history(ratings_id)
 
                         if _nm:
                             mid_pos = [str(i) for i in range(_nc + 1, _nc + _nm + 1) if str(i) in probs_df.columns]
