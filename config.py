@@ -584,10 +584,12 @@ LEAGUES = {
                                      "home_advantage": 1.07,
                                      "champ_tiebreakers": ["regular_pts", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
                                      "relg_tiebreakers":  ["regular_pts", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
-                                     "european_spots": {1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
+                                     "european_spots": {1: "UCL - QR2", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UECL - QR2",
                                                         11: "Relegation - PO", 12: "Relegation"},
-                                     "cup_details": ("2025/26 Slovak Cup winner Žilina qualifies directly for the UEL – QR1."),
-                                     "team_status_overrides": {"Žilina": "UEL - QR1*"},
+                                     "team_status_note": "*Slovan Bratislava are predicted to win the 2026/27 Slovak Cup, "
+                                                          "qualifying for the UEL – QR1. The Play-offs' own 2nd-placed "
+                                                          "team qualifies for the UECL – QR2 instead.",
+                                     "team_status_overrides": {"Slovan Bratislava": "UEL - QR1*"},
                                      "split_round": 22, "n_champ": 6, "pts_factor": 1.0,
                                      "zone_notes": {"relegation": "11th plays two-legged play-off against 2nd of Slovak 2. liga. 12th is directly relegated."}},
     "Slovenian 1. SNL":             {"id": 373, "provider": "api_football", "tsdb_id": 4692, "af_season": 2026, "cup_id": 375, "country": "Slovenia",    "flag": "🇸🇮", "season_type": "winter",

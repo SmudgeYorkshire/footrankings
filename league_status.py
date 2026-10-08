@@ -520,7 +520,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
         },
         "champ": {  # 6 teams
-            1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
+            1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UECL - QR2",
         },
         "relg": {  # 6 teams · 11th (5th) = PO vs Slovak 2. liga · 12th (6th) = relegated
             5: "Relegation - PO",
