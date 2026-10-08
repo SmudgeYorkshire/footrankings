@@ -39,14 +39,14 @@ import numpy as np
 from config import LEAGUES, DEFAULT_HOME_ADVANTAGE
 from flags import flag_url
 from api_football_fetcher import ApiFootballClient
-from ratings_manager import load_ratings
+from ratings_manager import load_ratings, load_club_rating_adjustments
 from _split_season import compute_full_standings, ensure_full_roster
 from entrants_2027_28 import ACCESS_LIST_2027_28, STAGE_ORDER_2027_28, QUALIFYING_DATES_2027_28
 from club_coefficients_2027 import get_coeff_2027
 from cup_predictions import resolve_predicted_cup_winner, fetch_cup_fixtures
 from simulator import two_leg_advance_odds, simulate_season
 from nations_league_simulator import most_likely_group_order
-from qualifying_projection import home_advantage_for
+from qualifying_projection import home_advantage_for, _load_combined_ratings
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
@@ -458,6 +458,38 @@ def _resolve_pool_clubs(entries: list[dict], comp: str) -> tuple[list[dict], lis
 _QUALIFYING_MC_DRAWS = 10_000
 _QUALIFYING_MC_SEED = 2027
 
+@st.cache_data(ttl=60, show_spinner=False)
+def _load_combined_power_ratings() -> pd.DataFrame:
+    """Every tracked club's own Power Rating (Opta + today's odds-driven
+    adjustment) in one combined DataFrame -- the exact ratings_manager.
+    load_ratings() scale every other live match prediction on this site
+    uses, via qualifying_projection._load_combined_ratings()'s already-
+    established raw-Opta combine (the same one european.py's own live
+    2026/27 qualifying ties use for cross-country pairings) with
+    club_rating_calibration.py's daily adjustment overlaid on top -- the
+    same overlay load_ratings() itself applies per-league.
+
+    UEFA club coefficients (get_coeff_2027) are deliberately NOT used
+    here -- they exist purely to determine seeding/pot placement for the
+    draw, same as UEFA's own use of them, not to estimate match strength.
+    Using them for the Poisson model too (an earlier version of this
+    function did) was wrong on two counts: it's not what they're for, and
+    their natural spread within one qualifying pool is far wider than
+    simulator.OPTA_K's domestic-rating calibration can handle without
+    saturating almost every pairing to literal 0%/100% -- contradicted by
+    real UEFA history (Sheriff Tiraspol, coefficient ~13 at the time,
+    beat Real Madrid, coefficient ~130+, in the 2021/22 UCL group stage)."""
+    ratings = _load_combined_ratings()
+    adjustments = load_club_rating_adjustments()
+    if not adjustments or ratings.empty:
+        return ratings
+    out = ratings.copy()
+    out["opta_rating"] = out.apply(
+        lambda r: r["opta_rating"] + adjustments.get(r["team"], adjustments.get(str(r.get("alias", "")), 0.0)),
+        axis=1,
+    )
+    return out
+
 
 def _simulate_round(pool: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
     """Seeded vs Unseeded, Monte Carlo over the DRAW itself rather than
@@ -508,14 +540,20 @@ def _simulate_round(pool: list[dict]) -> tuple[list[dict], list[dict], list[dict
 
     # Pairwise two-legged prevail probability, every seeded club vs every
     # unseeded club -- precomputed once, reused across every MC draw.
+    # Match strength comes from each club's own Power Rating (Opta + odds
+    # adjustment), not the coefficient used above just to seed this pool --
+    # see _load_combined_power_ratings' own docstring. One shared, stable
+    # combined ratings_df (all tracked clubs together) is used for every
+    # pairing, matching european.py's own live cross-country-tie
+    # convention, rather than re-centering per pair.
     seeded_names = [c["team"] for c in seeded]
     unseeded_names = [c["team"] for c in unseeded]
+    power_ratings = _load_combined_power_ratings()
     prevail_matrix = np.empty((half, half))
     for i, s in enumerate(seeded):
         for j, u in enumerate(unseeded):
-            ratings_df = pd.DataFrame({"team": [s["team"], u["team"]], "opta_rating": [s["coeff"], u["coeff"]]})
             odds = two_leg_advance_odds(
-                s["team"], u["team"], ratings_df,
+                s["team"], u["team"], power_ratings,
                 home_advantage_team1=home_advantage_for(s["team"], 1.0),
                 home_advantage_team2=home_advantage_for(u["team"], 1.0),
             )
@@ -737,7 +775,7 @@ with qualifiers_tab:
                 st.caption("No clubs in this round's pool.")
                 continue
             row_df = pd.DataFrame(_number_rows(result["rows"]))
-            st.dataframe(row_df, column_config=_PREVAIL_COLUMN_CONFIG, use_container_width=True, hide_index=True,
+            st.dataframe(row_df, column_config=_PREVAIL_COLUMN_CONFIG, width="content", hide_index=True,
                          height=len(row_df) * 35 + 38)
 
     st.divider()
