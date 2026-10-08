@@ -244,10 +244,13 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
         },
         "champ": {  # 6 teams
-            1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2", 5: "UECL Play-offs*",
+            # Simplified for now (no Play-offs modeling yet) -- see Bulgarian First
+            # League's own note for the same pattern.
+            1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2", 5: "UECL - QR1",
         },
         "relg": {  # 6 teams · 1st (7th) and 2nd (8th) enter domestic UECL play-offs · last plays relegation PO
-            1: "UECL Play-offs*", 2: "UECL Play-offs*",
+            # Simplified: only the higher-ranked of the two contenders shown directly.
+            1: "UECL - QR1",
             6: "Relegation",
         },
     },
@@ -269,7 +272,9 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             12: "Relegation Group", 13: "Relegation Group", 14: "Relegation Group",
         },
         "champ": {  # 4 teams · 4th (or 3rd) plays European Group winner for UECL spot
-            1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL Play-offs*",
+            # Simplified for now (no Play-offs modeling yet) -- 4th shown with a direct
+            # UECL - QR1, not the real Play-off uncertainty vs the European Group winner.
+            1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR1",
         },
         "mid": {  # 4 teams · winner plays Championship Group's 3rd/4th for UECL – QR2 spot
             1: "UECL Play-offs*",
@@ -330,10 +335,12 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
         },
         "champ": {  # 6 teams
-            1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UEL - QR3", 4: "UECL Play-offs*", 5: "UECL - QR2",
+            # Simplified for now (no Play-offs modeling yet) -- see Bulgarian First
+            # League's own note for the same pattern.
+            1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UEL - QR3", 4: "UECL - QR1", 5: "UECL - QR2",
         },
         "relg": {  # 6 teams · 1st plays 4th from Champ (one-legged) · 11th/12th relegated
-            1: "UECL Play-offs*",
+            1: "UECL - QR1",
             5: "Relegation",
             6: "Relegation",
         },

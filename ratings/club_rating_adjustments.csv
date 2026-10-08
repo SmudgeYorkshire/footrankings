@@ -162,6 +162,7 @@ Shinnik Yaroslavl,-1.51
 Beşiktaş,1.51
 Szentlőrinc SE,-1.51
 Cardiff Draconians,1.5
+Lokomotiv Plovdiv,-1.5
 Mallorca,1.5
 PSV,1.49
 Levante,-1.49
@@ -277,6 +278,7 @@ Trenčín,1.08
 Nordsjælland,1.07
 Norwich,1.06
 Real Betis,1.06
+Lokomotiv Sofia 1929,1.06
 KuPS,1.05
 Start,1.05
 Utrecht,-1.05
@@ -425,11 +427,11 @@ Castellón,-0.7
 Djurgården,-0.69
 ADO Den Haag,0.69
 Antalyaspor,0.69
+Slavia Sofia,-0.69
 Club Brugge II,0.68
 Ústí nad Labem,-0.68
 Arezzo,-0.68
 APOEL,0.68
-Slavia Sofia,-0.68
 Cadiz,-0.68
 Halmstad,-0.67
 Molde,0.67
@@ -621,7 +623,6 @@ Arminia Bielefeld,0.37
 Jenis,-0.37
 Žalgiris,0.37
 Como,-0.37
-Lokomotiv Sofia 1929,-0.37
 Wolfsberger AC,0.37
 SJK,0.36
 Montpellier,0.36
@@ -665,7 +666,6 @@ FC Volendam,-0.31
 Epitsentr,-0.31
 AVS,-0.31
 Iğdır FK,0.31
-Lokomotiv Plovdiv,-0.31
 UTA Arad,-0.3
 Chindia Targoviste,0.3
 Esbjerg,-0.3
@@ -700,11 +700,11 @@ Bray Wanderers,-0.25
 UCD,0.25
 Angers SCO,0.25
 Hamburger SV,-0.25
-Botev Plovdiv,0.25
+Botev Vratsa,-0.25
 Bournemouth,-0.25
 Iraklis 1908,-0.25
 Freiburg,-0.24
-Botev Vratsa,-0.24
+Botev Plovdiv,0.24
 Haverfordwest County,0.22
 Ballkani,-0.22
 OFK Beograd,0.22

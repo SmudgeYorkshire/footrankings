@@ -1002,7 +1002,7 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1001,U. Concepción,,73.3,0.0,629.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4y5xl8r1nkg1n9hnjzo53v8xk
 1002,Mel Victory,,73.3,0.0,629.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9xmhnv6im8h7c9e17oqvcx8gl
 1003,Nea Salamis,🇨🇾 Cypriot First Division,74.0,-0.71,629.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=amj59k1dx265x2bsgv5tbeaum
-1004,Botev,🇧🇬 Bulgarian First League,73.0,0.25,628.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4410w9r2fza5ruwgcv0b2kz3
+1004,Botev,🇧🇬 Bulgarian First League,73.0,0.24,628.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4410w9r2fza5ruwgcv0b2kz3
 1005,Hermannstadt,,73.2,0.0,627.9,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=emg199zltqfkhovwtju2g9vrg
 1006,JEF Utd,,73.2,0.0,627.9,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=29cmppm4tntuasdgyxjpck882
 1007,RCA Zemamra,,73.2,0.0,627.9,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a2xjb7e4c247foutrirrful0p
@@ -1192,103 +1192,103 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1191,Tobol,🇰🇿 Kazakhstan Premier League,71.3,0.58,611.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6q0da0czmcq4ymj63mdxyvs46
 1192,Kiryat Shmona,🇮🇱 Israeli Premier League,72.2,-0.39,610.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e2ryr6aied781hzc7hx9yntk8
 1193,San Lorenzo,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=t71on2dbrfyknxq990h6l0dc
-1194,Franciscain,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6kznc814urz5tzy9m59afga1n
-1195,Athletic,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9snrf8lxwl8ih0ko7xaz88xrd
-1196,Osasuna II,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=815ulvrd2v1t6pxxkqufi438g
-1197,Bnei Yehuda,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4b2pcnte15yq3idxwenrgxd4l
-1198,Riffa,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=beegl2qpjdfw2j7hce681eoo6
-1199,Versailles,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dse1eu8y1o3t00rlbxpgo084c
-1200,San Pedro,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2higf5jwcgxpqvnlustk6jykw
-1201,Eupen,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9njsy633rh1tyri7l2jaju5o
+1194,Athletic,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9snrf8lxwl8ih0ko7xaz88xrd
+1195,Franciscain,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6kznc814urz5tzy9m59afga1n
+1196,Bnei Yehuda,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4b2pcnte15yq3idxwenrgxd4l
+1197,Osasuna II,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=815ulvrd2v1t6pxxkqufi438g
+1198,Eupen,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9njsy633rh1tyri7l2jaju5o
+1199,Riffa,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=beegl2qpjdfw2j7hce681eoo6
+1200,Versailles,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dse1eu8y1o3t00rlbxpgo084c
+1201,San Pedro,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2higf5jwcgxpqvnlustk6jykw
 1202,Bucheon,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=43rl9oirbg0nsrtzg5ou1icfq
 1203,Temuco,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3offzg5j5vzqmrra2lx73kbu7
-1204,ASCK,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5rqjhlznyyh55iao9ef0opca2
-1205,Gjilani,🇽🇰 Kosovan Superleague,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=57m9hz7bq5v1va8q1pyr1u1nt
-1206,Cobán,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ae81rqu5m0swd4j9ux3s0txp3
-1207,ABB,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e9d9hqcad8iq0ujm2g86sscug
-1208,Coria,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=chwfecijktet8vr5btd1fpsh7
-1209,Port,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7jcrup71jomor3wsw6sipb2ps
-1210,Aluminium Arak,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=95o1ye7nq9w5yb5r2dicre8l
-1211,Tirana,🇦🇱 Albanian Superliga,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e5a3ui266dzcn56sbub3j027x
-1212,Marquense,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=22n4dbplcsmsa11emk780q71s
+1204,Gjilani,🇽🇰 Kosovan Superleague,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=57m9hz7bq5v1va8q1pyr1u1nt
+1205,ASCK,,71.8,0.0,610.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5rqjhlznyyh55iao9ef0opca2
+1206,Port,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7jcrup71jomor3wsw6sipb2ps
+1207,Coria,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=chwfecijktet8vr5btd1fpsh7
+1208,Marquense,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=22n4dbplcsmsa11emk780q71s
+1209,Cobán,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ae81rqu5m0swd4j9ux3s0txp3
+1210,Tirana,🇦🇱 Albanian Superliga,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e5a3ui266dzcn56sbub3j027x
+1211,Aluminium Arak,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=95o1ye7nq9w5yb5r2dicre8l
+1212,ABB,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e9d9hqcad8iq0ujm2g86sscug
 1213,Adelaide Utd,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6lezh5aazy0xca1800e5dqxwl
-1214,Skalica,🇸🇰 Slovak First Football League,71.1,0.6,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8z6b1xgghbcalbv9dg1jcmb5k
-1215,Portimonense,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=co1i764h6b02husae71w6scs8
+1214,Portimonense,,71.7,0.0,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=co1i764h6b02husae71w6scs8
+1215,Skalica,🇸🇰 Slovak First Football League,71.1,0.6,609.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8z6b1xgghbcalbv9dg1jcmb5k
 1216,Trenčín,🇸🇰 Slovak First Football League,70.6,1.08,608.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d9r4z4nqawrz7mfu3t4o05rd2
 1217,Kolos,🇺🇦 Ukrainian Premier League,72.2,-0.55,608.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3b7ks0rmvl18grrlcitbbaew9
-1218,Argentino MM,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4bj0cmqhhhmbjvblrf5dgiplg
-1219,Oak,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8sbkpo3rdxtrq77tt4vfdg2te
-1220,Biskra,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=afw5ala5cyutcspnn4xsn161k
+1218,Amorebieta,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8tfkd45peu8mad2s3abk7sl4p
+1219,Biskra,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=afw5ala5cyutcspnn4xsn161k
+1220,Chadormalu,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ugzmh25fvdlhai0q89ihffo4
 1221,Fayha,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ebcxfnmnxrxvv6lcjsahgd38j
 1222,Al Nasr,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a2xvg4kgk3vstz9xumhvuk614
 1223,Vargas Torres,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bnt191a6dmrdph8f4nvx6xo4q
 1224,Sol de América,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=an573q9co58ebwecdvo8w3osc
-1225,Al Fidaa,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9mmwz3zbp3b7j360ub0pvdfac
-1226,Amorebieta,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8tfkd45peu8mad2s3abk7sl4p
+1225,Oak,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8sbkpo3rdxtrq77tt4vfdg2te
+1226,Zimbru,🇲🇩 Moldovan National Division,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2yzlrvk4m7lpi4wa4leshqagk
 1227,Cavalry,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=41ewt71n8fqwy6trsqta1bjvu
-1228,Zimbru,🇲🇩 Moldovan National Division,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2yzlrvk4m7lpi4wa4leshqagk
-1229,Genesis PN,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=gpsdj05y7o4a9yb1b3ue6rdg
-1230,Suwon,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=25yplfulilqz11lp1qbii7sf3
-1231,Chadormalu,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ugzmh25fvdlhai0q89ihffo4
+1228,Genesis PN,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=gpsdj05y7o4a9yb1b3ue6rdg
+1229,Suwon,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=25yplfulilqz11lp1qbii7sf3
+1230,Argentino MM,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4bj0cmqhhhmbjvblrf5dgiplg
+1231,Al Fidaa,,71.6,0.0,607.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9mmwz3zbp3b7j360ub0pvdfac
 1232,Radnik,🇷🇸 Serbian Super Liga,72.2,-0.61,607.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c3uvbv6uzqxzqqqm7hw86885g
 1233,M Petah Tikva,🇮🇱 Israeli Premier League,71.4,0.12,606.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=salasr5qer65t60k1e4c0vxf
 1234,Hardrock,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ahhb6r469m63quuk6mpjfl7v8
-1235,Basconia,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8s5ynd6jeeyfv81w2qtjdvd7q
-1236,Venados,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b8v11vsx233o49n8jg3ya8opc
-1237,Real Tomayapo,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a2yy3p6tihu263x73yayp9r3e
-1238,Salford,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2dakjegmrc2cxx2hqq5wzegt
+1235,Salford,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2dakjegmrc2cxx2hqq5wzegt
+1236,UCAM,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=et4eadbyew2dwn3qmm4z878z2
+1237,Navbahor,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7wiwxjo7a9yudfe72ls12i4q5
+1238,Moquegua,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9g5mp88zg397bg063qer5p82c
 1239,Ingolstadt,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=auoply899efk4rs1a0ew6v9jq
 1240,Black Bulls,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8snlchnuv4ozl93zr4bvtt756
-1241,UCAM,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=et4eadbyew2dwn3qmm4z878z2
-1242,Durban City,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7jteczn8iisfhke7thtllxs7o
+1241,Basconia,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8s5ynd6jeeyfv81w2qtjdvd7q
+1242,Grimsby,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6ipyteigr21t78l6fro3ig10j
 1243,Talavera,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c2adz2qg303m6mrqxfykziu2t
-1244,Grimsby,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6ipyteigr21t78l6fro3ig10j
-1245,Moquegua,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9g5mp88zg397bg063qer5p82c
-1246,Navbahor,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7wiwxjo7a9yudfe72ls12i4q5
+1244,Venados,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b8v11vsx233o49n8jg3ya8opc
+1245,Durban City,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7jteczn8iisfhke7thtllxs7o
+1246,Real Tomayapo,,71.5,0.0,606.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a2yy3p6tihu263x73yayp9r3e
 1247,Kryvbas KR,🇺🇦 Ukrainian Premier League,73.0,-1.54,606.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5cha7mvdiuah487zu1e6sfmn7
-1248,ASO Chlef,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=75ecvl9uaua4r0x6ynzgd0njc
-1249,Piratas,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=adfeijzx5c9bplrvfjmvrksus
-1250,Vegalta,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d56o9d2908hm2482deln4t9yi
-1251,Cherno more,🇧🇬 Bulgarian First League,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8dvknzmkpm7sdaxjpqoawxis
-1252,Cumbayá,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6yrb3b8dowlxog09xzm4rdwtm
-1253,LDU Portoviejo,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=49mh8p1hkxyv1bzarkeb1ppgq
-1254,Maniema U.,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d3d6m7d5zfdyo3xf5li133m34
-1255,Comunicaciones,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=di07a8qafp5ox30suh1thuq07
-1256,Hamrun,🇲🇹 Maltese Premier League,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=acdg6tq939mzvm80c0z90uxbi
+1248,Maniema U.,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d3d6m7d5zfdyo3xf5li133m34
+1249,ASO Chlef,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=75ecvl9uaua4r0x6ynzgd0njc
+1250,LDU Portoviejo,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=49mh8p1hkxyv1bzarkeb1ppgq
+1251,Vegalta,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d56o9d2908hm2482deln4t9yi
+1252,Piratas,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=adfeijzx5c9bplrvfjmvrksus
+1253,Cherno more,🇧🇬 Bulgarian First League,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8dvknzmkpm7sdaxjpqoawxis
+1254,Hamrun,🇲🇹 Maltese Premier League,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=acdg6tq939mzvm80c0z90uxbi
+1255,Patro,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cz6529flu1ynqzvmcwzu7ziyn
+1256,Comunicaciones,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=di07a8qafp5ox30suh1thuq07
 1257,Bromley,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b6fvcpudsv2xhd8jd9ste749x
-1258,Patro,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cz6529flu1ynqzvmcwzu7ziyn
+1258,Abu Qair Semad,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9g4d0xv0srveu6ukr5069ot7l
 1259,Porto II,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bviyo2cuobo1dmlchlmpwdrgj
-1260,Abu Qair Semad,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9g4d0xv0srveu6ukr5069ot7l
+1260,Cumbayá,,71.4,0.0,605.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6yrb3b8dowlxog09xzm4rdwtm
 1261,Sūduva,🇱🇹 Lithuanian TOPLYGA,71.7,-0.35,604.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2u2qoroat2qxz5tupc3ide2ou
 1262,Etoile M.,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ep7ueth1g6ysjoqly01lsdfqh
-1263,Mangasport,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=m3sk9quc1aio2tev23txkqhu
-1264,ŁKS Łódź,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8hdo96y4a5eotkg1fbbtbyk7t
+1263,Lupopo,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=16245tyzivgxs6snosv45qbs5
+1264,Mangasport,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=m3sk9quc1aio2tev23txkqhu
 1265,Polokwane,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=10gsgscz6bzjl2aj6zrqoia1q
-1266,Alcoyano,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=f2mzt6gcd0uzikrznqsxsf6j4
-1267,Alianza,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=afuoxixzmtsj98rh1q644jnvt
-1268,Feirense,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1eqgbl6a2ulf74tjbscpo7h6f
+1266,ŁKS Łódź,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8hdo96y4a5eotkg1fbbtbyk7t
+1267,Alcoyano,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=f2mzt6gcd0uzikrznqsxsf6j4
+1268,Alianza,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=afuoxixzmtsj98rh1q644jnvt
 1269,Dakota,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=23srcdxo7qxlq54e0uasj9rvj
 1270,Mineros,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5ivtc1gd8ic11uojuvypoozu2
-1271,Rayo Zuliano,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bvbi0j28621b5aiqzbin4lzbo
+1271,Feirense,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1eqgbl6a2ulf74tjbscpo7h6f
 1272,Željezničar,🇧🇦 Bosnian Premier Liga,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=doer7kikrtjedg8uuwa8rrrn5
 1273,GyE Chivilcoy,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5lo7kgl0pq8tk0pz1nr0gh8no
-1274,Lupopo,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=16245tyzivgxs6snosv45qbs5
+1274,Rayo Zuliano,,71.3,0.0,604.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bvbi0j28621b5aiqzbin4lzbo
 1275,Ypsonas,🇨🇾 Cypriot First Division,71.9,-0.64,603.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bq2f4qok18jsefzb9ynynf1lh
 1276,Komárno,🇸🇰 Slovak First Football League,71.1,0.14,603.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a5t4sy4a6qkknlm03h6e2jq39
 1277,Águilas,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=egzh8d35o0fdgv9p2ql5wm7ql
 1278,Utebo,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d6nvkgtwizny6pz1ymw1ytb0q
-1279,Loko Plovdiv,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3j83f5kj3zeed0f5qg85d3lws
-1280,Réal Bamako,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=40u8i3sbxoc3wmeijk7dykh2m
+1279,Réal Bamako,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=40u8i3sbxoc3wmeijk7dykh2m
+1280,Real Avilés,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e3o55xt0ted6vdho96ktvldao
 1281,Fateh,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=aekjg4wbxaixtwu4aicmiju92
 1282,Jaiba Brava,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=84n31t8k50hf0h9wq0n7lym8k
 1283,Iberia,🇬🇪 Georgian Erovnuli Liga,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8sdwl1q76c1wmj5pj0hz2w8cz
 1284,Portmore,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6g7gropq1hjqf4tumpj5f41sn
 1285,Riyadh,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e8vx5q2foz1r1ytu2mgbfj0m
 1286,Port,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5x5hvs5xtbbh8b0zg5ehyyudv
-1287,Real Avilés,,71.2,0.0,602.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e3o55xt0ted6vdho96ktvldao
-1288,H Petah Tikva,🇮🇱 Israeli Premier League,71.7,-0.54,602.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1f4f869ya31jh0biwiipqxpj2
-1289,Aluminij,🇸🇮 Slovenian 1. SNL,70.4,0.75,602.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=etiok6l4bubrxpx7k1q0k40z9
-1290,OFK,🇷🇸 Serbian Super Liga,70.9,0.22,601.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7kto5aea8tybeo2qmspftn1nz
+1287,H Petah Tikva,🇮🇱 Israeli Premier League,71.7,-0.54,602.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1f4f869ya31jh0biwiipqxpj2
+1288,Aluminij,🇸🇮 Slovenian 1. SNL,70.4,0.75,602.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=etiok6l4bubrxpx7k1q0k40z9
+1289,OFK,🇷🇸 Serbian Super Liga,70.9,0.22,601.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7kto5aea8tybeo2qmspftn1nz
+1290,Kimberley MdP,,71.1,0.0,601.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3uzh6kl61xmzq1zxa59e1jul2
 1291,Laçi,🇦🇱 Albanian Superliga,71.1,0.0,601.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2f2pcb72rvijnkapexty1acgi
 1292,SC Villa,,71.1,0.0,601.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5xxq48k2p3yzen1csskoaqkl6
 1293,Gomel,🇧🇾 Belarus Vyscha Liga,71.1,0.0,601.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ar727fz6cjjhn98ysl37rg5nv
@@ -1296,8 +1296,8 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1295,Santo Domingo,,71.1,0.0,601.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e2ivlsbo0fvgbnpvtvad2f6s4
 1296,Arenas,,71.1,0.0,601.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=eqojc0yyx5ccwhz8i29q8gl1i
 1297,Ebro,,71.1,0.0,601.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dulp0utcvbz6y6byglfbdsc0w
-1298,Kimberley MdP,,71.1,0.0,601.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3uzh6kl61xmzq1zxa59e1jul2
-1299,Žalgiris,🇱🇹 Lithuanian TOPLYGA,70.7,0.37,601.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=tqszs9t9rn0xzxxjuhr2ujob
+1298,Žalgiris,🇱🇹 Lithuanian TOPLYGA,70.7,0.37,601.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=tqszs9t9rn0xzxxjuhr2ujob
+1299,Lokomotiv Sf,🇧🇬 Bulgarian First League,70.0,1.06,601.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=aq7e6kamphe8xgeacluqpll28
 1300,Halmstad,🇸🇪 Swedish Allsvenskan,71.7,-0.67,600.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6i936isoyj6d0uuxdj537uc97
 1301,9 de Julio,,71.0,0.0,600.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7fk3c5yqffveuhlrva9ug7sfq
 1302,Nieciecza,,71.0,0.0,600.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2rmvyrkwubmzhn40z6bjgduaj
@@ -1341,14 +1341,14 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1340,Regensburg,,70.7,0.0,596.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d4p104ikzzt5hfwdzppbmp7e0
 1341,Ilves,🇫🇮 Finnish Veikkausliiga,72.9,-2.21,596.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2rdnn9p03qrmmv34tyx1nahpa
 1342,VPS,🇫🇮 Finnish Veikkausliiga,70.1,0.55,595.9,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=duspptyvnr5kpx2iko5gerhnz
-1343,Nahda,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bnimkr5ov2hggi7r2t7y6xgow
-1344,Barau,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3z3d5burqmmwzlqzud12shno4
-1345,Erfurt,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=77lwltdi0f6p082se7qcit1t4
-1346,Ružomberok,🇸🇰 Slovak First Football League,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d7ju1d8fvjwosjm62zph5tqql
-1347,Gaborone,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2zey1838on6k9x3ld3nkyzeyz
-1348,Tapatío,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3yydy4z5h0gwpg2f9ctp98jmy
-1349,Okzhetpes,🇰🇿 Kazakhstan Premier League,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=322qvzahyuuq6xyoo6p2qcrbr
-1350,Conquense,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5wvcu42lcgasdssr1d62780vr
+1343,Okzhetpes,🇰🇿 Kazakhstan Premier League,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=322qvzahyuuq6xyoo6p2qcrbr
+1344,Nahda,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bnimkr5ov2hggi7r2t7y6xgow
+1345,Conquense,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5wvcu42lcgasdssr1d62780vr
+1346,Barau,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3z3d5burqmmwzlqzud12shno4
+1347,Ružomberok,🇸🇰 Slovak First Football League,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d7ju1d8fvjwosjm62zph5tqql
+1348,Gaborone,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2zey1838on6k9x3ld3nkyzeyz
+1349,Tapatío,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3yydy4z5h0gwpg2f9ctp98jmy
+1350,Erfurt,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=77lwltdi0f6p082se7qcit1t4
 1351,Lechia,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=13tihpiruaaa1xreofk5ovk43
 1352,Voluntari,🇷🇴 Romanian Liga I,71.2,-0.6,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c9vx2qcl04ab9uiab1gb7jk3k
 1353,Torremolinos,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1ns4wmqvdyif7lfkwmfv6i4np
@@ -1357,100 +1357,100 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1356,Milford,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=evb332he5ndbwo3egr7lkmu8g
 1357,Teruel,,70.6,0.0,595.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ekjw1mwnbe9inyjyvwsijf890
 1358,SJK,🇫🇮 Finnish Veikkausliiga,70.2,0.36,594.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ea3yd0dgq6uy6pupkpn17j5xg
-1359,Fleury,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1z48unyzdkaoulghr9kkgt1g0
-1360,Salcedo,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=yg622y5b990kgbd6papvy978
+1359,Salcedo,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=yg622y5b990kgbd6papvy978
+1360,Rotherham,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6m5s30n9ej0dqfk1hfyrlkhdw
 1361,Partizani,🇦🇱 Albanian Superliga,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6wqpjldp6k1dpun59bqsz7jrt
-1362,Keçiörengücü,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=v61524b090j2y3qskkjgzveq
-1363,Wilstermann,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=788ii0y8wg9veyuglme99rtk8
-1364,Fatih,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c3txoz57mu7w9y1jprvnv2flr
+1362,Fatih,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c3txoz57mu7w9y1jprvnv2flr
+1363,Keçiörengücü,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=v61524b090j2y3qskkjgzveq
+1364,Fleury,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1z48unyzdkaoulghr9kkgt1g0
 1365,Bergantiños,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cck0ydjvrbqdz1e4cnh637il1
-1366,Suwon,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=229s1iq39lf40k945q50hauqw
-1367,Bendel Ins.,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3ckx9sysl6jw4ufrm9lfgtwrw
-1368,Falkenberg,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6y1lmgb8k00h3jwjaqwcvimiv
-1369,Polonia,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=27f5i7xxwz5jorbxppx0052oq
-1370,Drenica,🇽🇰 Kosovan Superleague,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8e3f0v5auvmlgq1b3hkyubnhv
-1371,Botafogo SP,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=53r1xghhsn5zog9gxjkt2am8o
-1372,Rotherham,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6m5s30n9ej0dqfk1hfyrlkhdw
-1373,Exeter,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dv9l02o316cd9hbkxaho2u12f
-1374,Dila,🇬🇪 Georgian Erovnuli Liga,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2udrm008c4g48fy6s25m1zfd9
+1366,Bendel Ins.,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3ckx9sysl6jw4ufrm9lfgtwrw
+1367,Falkenberg,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6y1lmgb8k00h3jwjaqwcvimiv
+1368,Polonia,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=27f5i7xxwz5jorbxppx0052oq
+1369,Drenica,🇽🇰 Kosovan Superleague,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8e3f0v5auvmlgq1b3hkyubnhv
+1370,Botafogo SP,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=53r1xghhsn5zog9gxjkt2am8o
+1371,Dila,🇬🇪 Georgian Erovnuli Liga,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2udrm008c4g48fy6s25m1zfd9
+1372,Exeter,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dv9l02o316cd9hbkxaho2u12f
+1373,Suwon,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=229s1iq39lf40k945q50hauqw
+1374,Boca,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=elmwjbnkh0ncouhialyp2qru2
 1375,NSÍ,🇫🇴 Faroe Islands Premier League,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=92v4fx009zyhcp8kjlvd2x4yv
-1376,Boca,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=elmwjbnkh0ncouhialyp2qru2
+1376,Wilstermann,,70.5,0.0,594.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=788ii0y8wg9veyuglme99rtk8
 1377,Shelbourne,🇮🇪 Irish Premier Division,70.3,0.13,593.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7e5odtzvbyx4ubpzwyphao0sv
-1378,Guadalajara,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=az0j5k3k9wc5talc24u08yyeu
+1378,TNS,🏴󠁧󠁢󠁷󠁬󠁳󠁿 Welsh Cymru Premier,71.4,-1.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=85l2ewv17mqmw3otdletjc36
 1379,Vora,🇦🇱 Albanian Superliga,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1kyat02dlluzi3jpklkfay9ou
-1380,Avaí,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4junv0ald7bkwrsr0hynf05iz
-1381,USFA,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=df1xb6t408pqj8k4jugq4uz4d
-1382,Akhdar,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=49gz9yv5jngrq9knyakuh0pg5
-1383,Ústí,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ak34n8sqs7cu70ozs7tftg7ju
-1384,Hoffenheim II,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b9b7wdgsx5lvie7f43kng1g5y
-1385,Caen,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ab80vest6tgco121qtfyphq7c
-1386,Def Belgrano,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=47ymf59mjid6vsq72z9dwju7n
-1387,Skënderbeu,🇦🇱 Albanian Superliga,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3vnqos1ox6bgi7xqw55itvqvs
-1388,Naft,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5lat9h2cc55gvpsbpvkc87c32
-1389,Fram,🇮🇸 Icelandic Besta deild karla,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ta7x6ep3lniyckj6la77zw
-1390,Port Vale,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ejm092fnt9zoxbpuklzd52ji8
-1391,Yokohama,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ctm9as17rs95yhuz7qf53wfke
+1380,Guadalajara,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=az0j5k3k9wc5talc24u08yyeu
+1381,Naft,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5lat9h2cc55gvpsbpvkc87c32
+1382,Ústí,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ak34n8sqs7cu70ozs7tftg7ju
+1383,Hoffenheim II,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b9b7wdgsx5lvie7f43kng1g5y
+1384,Fram,🇮🇸 Icelandic Besta deild karla,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ta7x6ep3lniyckj6la77zw
+1385,Skënderbeu,🇦🇱 Albanian Superliga,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3vnqos1ox6bgi7xqw55itvqvs
+1386,Caen,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ab80vest6tgco121qtfyphq7c
+1387,Avaí,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4junv0ald7bkwrsr0hynf05iz
+1388,USFA,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=df1xb6t408pqj8k4jugq4uz4d
+1389,Def Belgrano,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=47ymf59mjid6vsq72z9dwju7n
+1390,Akhdar,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=49gz9yv5jngrq9knyakuh0pg5
+1391,Port Vale,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ejm092fnt9zoxbpuklzd52ji8
 1392,FADEP,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6iune9ohxbo7mm50g6v4tociy
 1393,Asyut Petrol,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8y48y7oigo67a3fgsvik3y8d2
-1394,TNS,🏴󠁧󠁢󠁷󠁬󠁳󠁿 Welsh Cymru Premier,71.4,-1.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=85l2ewv17mqmw3otdletjc36
+1394,Yokohama,,70.4,0.0,592.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ctm9as17rs95yhuz7qf53wfke
 1395,Derry,🇮🇪 Irish Premier Division,70.7,-0.32,592.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=90mig1t9vpe2a8ckksz0oo29g
-1396,Botev Vratsa,🇧🇬 Bulgarian First League,70.6,-0.24,592.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a209967pc0sb0o2gocc4grf5s
+1396,Botev Vratsa,🇧🇬 Bulgarian First League,70.6,-0.25,592.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a209967pc0sb0o2gocc4grf5s
 1397,Trujillanos,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dfniir1h9c7k0gg1r9htdekgf
-1398,NEC,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7wmoofgmdh15v3hakw2oocw7o
-1399,Sochi,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dv01yd3xywvn4tyrad7pcqjht
-1400,San-Pédro,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2pgvconoyesc87ys7evjauf8l
-1401,Louisville,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=83cpn99fh7ulkwe8nezy8a3mx
-1402,Miedź,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dr2kq4jv0qx4qtui51vrkft6k
-1403,Fajr,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ajx1b1ep693ee6fvmbtu7rz87
-1404,Aduana,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=m3b8uodk0btw5uoam6b05qzf
+1398,Bangkok Utd,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5qkdtvpyv4wikybmruo7u17qh
+1399,İmişli,🇦🇿 Azerbaijani Premier League,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4jgfntp8n9aiyexfb20okjol5
+1400,Louisville,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=83cpn99fh7ulkwe8nezy8a3mx
+1401,Miedź,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dr2kq4jv0qx4qtui51vrkft6k
+1402,Fajr,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ajx1b1ep693ee6fvmbtu7rz87
+1403,Aduana,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=m3b8uodk0btw5uoam6b05qzf
+1404,San-Pédro,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2pgvconoyesc87ys7evjauf8l
 1405,Siwelele,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3tfdm0dm10ryrso9uk80hvpxw
-1406,İmişli,🇦🇿 Azerbaijani Premier League,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4jgfntp8n9aiyexfb20okjol5
-1407,Bangkok Utd,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5qkdtvpyv4wikybmruo7u17qh
-1408,Montego Bay,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a7exfko2i2xgo46s13mh26k2a
+1406,NEC,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7wmoofgmdh15v3hakw2oocw7o
+1407,Montego Bay,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a7exfko2i2xgo46s13mh26k2a
+1408,Sochi,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dv01yd3xywvn4tyrad7pcqjht
 1409,Vllaznia,🇦🇱 Albanian Superliga,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9woncasw0yu6hdqn2ovft81uh
 1410,UTC,,70.3,0.0,591.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cmwqt4rqrdeeaghzxn0z3xl8w
-1411,Concarneau,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=33u2ehjypfcu7w3s0pul7tmm7
-1412,Forge,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c2pdzdl3dgf5b0siidn2ay5ii
-1413,Colombe,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5l8i9lf9sdnkp29162zava0gx
-1414,Veres Rivne,🇺🇦 Ukrainian Premier League,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=93vmx55l1tyvrb8v60qmhsbje
+1411,Poblense,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=54p6skcpjiof9ymp533yhdpbx
+1412,Nafta,🇸🇮 Slovenian 1. SNL,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4cdcec3e97o031q44o1ik9d1o
+1413,Cibalia,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2jf123bgqrh3eqck40c5nn9hp
+1414,Port City,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7r9t4lvt4rf4x1mip3xnsq5g4
 1415,Estepona,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2aztd5xu8pesckg1if2bhcl0q
-1416,Port City,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7r9t4lvt4rf4x1mip3xnsq5g4
-1417,Cibalia,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2jf123bgqrh3eqck40c5nn9hp
-1418,Dynamos,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a71qymrx9wfi63sq5r3q5yg6c
-1419,Nafta,🇸🇮 Slovenian 1. SNL,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4cdcec3e97o031q44o1ik9d1o
-1420,Poblense,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=54p6skcpjiof9ymp533yhdpbx
-1421,UPNFM,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5o37slslblsqabedmed42ybu2
-1422,Drochtersen,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=17ccx252e281sarbjun3r3dq
-1423,Ikorodu City,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=61puofds2bt8xhkmpbj08cd90
-1424,Malacateco,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=eztz9ot4kdjgid167qtlif1a7
-1425,Hallescher FC,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=18a3r3xjq2heoy0u127k92ab5
-1426,Kheybar,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7hjbhagjedlx2oyii9hp5n1l
-1427,HB,🇫🇴 Faroe Islands Premier League,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6foqbb98vw3n9fvcmgjm6wdqn
+1416,Dynamos,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a71qymrx9wfi63sq5r3q5yg6c
+1417,Forge,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c2pdzdl3dgf5b0siidn2ay5ii
+1418,Colombe,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5l8i9lf9sdnkp29162zava0gx
+1419,Concarneau,,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=33u2ehjypfcu7w3s0pul7tmm7
+1420,Veres Rivne,🇺🇦 Ukrainian Premier League,70.2,0.0,590.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=93vmx55l1tyvrb8v60qmhsbje
+1421,Kheybar,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7hjbhagjedlx2oyii9hp5n1l
+1422,Malacateco,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=eztz9ot4kdjgid167qtlif1a7
+1423,HB,🇫🇴 Faroe Islands Premier League,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6foqbb98vw3n9fvcmgjm6wdqn
+1424,Ikorodu City,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=61puofds2bt8xhkmpbj08cd90
+1425,UPNFM,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5o37slslblsqabedmed42ybu2
+1426,Hallescher FC,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=18a3r3xjq2heoy0u127k92ab5
+1427,Haras,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7j8kq66frwp7bu4kviuwbet97
 1428,Curicó Unido,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bd1veyn5g4r8zbaquf8b8pksp
-1429,Kahraba,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5zlswi3fqki2d9z6tbp9xjmzm
-1430,Melipilla,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=435djgwa4ch5t8owl07wc5u6j
-1431,Seoul E-Land,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=61cmqd65o9guclf2vdaxyk2qx
-1432,BGPU,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=drq4soebshygrssltwdwl142z
-1433,UD Ourense,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=emm8k0hwe9mrauurghgs28m54
+1429,Melipilla,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=435djgwa4ch5t8owl07wc5u6j
+1430,Kahraba,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5zlswi3fqki2d9z6tbp9xjmzm
+1431,Drochtersen,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=17ccx252e281sarbjun3r3dq
+1432,Seoul E-Land,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=61cmqd65o9guclf2vdaxyk2qx
+1433,Charleston,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e3k8yw2rbmphyfu5htn4yi5jk
 1434,Sevilla II,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=25bij6ez3hljofmhszmfp6clx
-1435,Charleston,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e3k8yw2rbmphyfu5htn4yi5jk
-1436,Haras,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7j8kq66frwp7bu4kviuwbet97
-1437,Ashdod,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3xbrfd77vj0zi8vbrnwqz54z
-1438,Abha,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d47tf49ishm9qnfd8zyc8wv0j
-1439,Wiesbaden,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3uen3s9ki7hwcg867jcmimjgq
-1440,Ruch,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bvn916e9momkzgb2v3mqln2un
-1441,Dreams,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7vub720i9o9vc6gtsavs43oab
-1442,Karviná,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4i7i27ldbc5wm2xwwumjpeopn
-1443,Vejle,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c165yjiny1qnmfdvefxvflnkc
+1435,BGPU,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=drq4soebshygrssltwdwl142z
+1436,UD Ourense,,70.1,0.0,589.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=emm8k0hwe9mrauurghgs28m54
+1437,Ponce,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c51bxffgld9fmh7khry4yjllg
+1438,Ruch,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bvn916e9momkzgb2v3mqln2un
+1439,Orléans,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d79cmam5svw9j2mplbu9kut7p
+1440,Ashdod,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3xbrfd77vj0zi8vbrnwqz54z
+1441,Vejle,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c165yjiny1qnmfdvefxvflnkc
+1442,Dreams,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7vub720i9o9vc6gtsavs43oab
+1443,Wiesbaden,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3uen3s9ki7hwcg867jcmimjgq
 1444,Mictlán,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=vg3z3pa60s1k56zkjoji3p2c
-1445,Bursaspor,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=86aq9jbei8h8p1ftxbmy8y2kk
-1446,Orléans,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d79cmam5svw9j2mplbu9kut7p
-1447,Tikvesh,🇲🇰 Macedonian First League,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=egnlds79ik8mz3occc0zbsfku
-1448,Costa Brava,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2haeqavfcp6gzlymad77skrxm
-1449,Ponce,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c51bxffgld9fmh7khry4yjllg
+1445,Karviná,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4i7i27ldbc5wm2xwwumjpeopn
+1446,Costa Brava,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2haeqavfcp6gzlymad77skrxm
+1447,Abha,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d47tf49ishm9qnfd8zyc8wv0j
+1448,Tikvesh,🇲🇰 Macedonian First League,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=egnlds79ik8mz3occc0zbsfku
+1449,Bursaspor,,70.0,0.0,587.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=86aq9jbei8h8p1ftxbmy8y2kk
 1450,Banská Bystric,🇸🇰 Slovak First Football League,70.5,-0.56,587.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4wplsg3qopnhc3v741nbme1re
 1451,Torpedo BelAZ,🇧🇾 Belarus Vyscha Liga,69.8,0.13,586.9,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=11qjb788x4nw7zznnhx18gf83
-1452,Hafia,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ag6jmjhx5vr78sxi8609i28l
+1452,First Vienna,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1gurvegli2702alzniefj6e0t
 1453,Persija,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9tso4j9g3bdtddj9n4byzod99
 1454,Bastia,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6l07ga27xfsr7485fuc1ilkkc
 1455,Ranheim,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=91dykmg9sb24ri8vkorcp4t84
@@ -1459,7 +1459,7 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1458,NAC,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=59t7flioj4w4mpwnrwbm0m8ck
 1459,Bukovyna,🇺🇦 Ukrainian Premier League,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4njgio80bzz5rdz8jiylt350e
 1460,Zob Ahan,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9cei5mfth34kkq3up9xps1j7u
-1461,First Vienna,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1gurvegli2702alzniefj6e0t
+1461,Nejmeh,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=co2uhptbvwy7aus6ruw93nhs0
 1462,Zakho,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6akf1fuv4d5thnajakpp18u41
 1463,Liège,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4xh8rj4z6innctbx7vu46tqix
 1464,RW Oberhausen,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=925i1ptjg446oakfwffmese4t
@@ -1467,13 +1467,13 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1466,Galaxy,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9fjzy739uj2borv29vzra2vl6
 1467,Phönix Lübeck,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a06qw1dwq11461ptolkqrk9yi
 1468,Sanluqueño,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9k1p1xqdeomcn74rikn52viet
-1469,Nejmeh,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=co2uhptbvwy7aus6ruw93nhs0
+1469,Ratchaburi,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=edzwqfv0kita8wxi5oyo49do4
 1470,ZESCO,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2nb51v7p1p2n5j9872nb6qyzx
-1471,Ratchaburi,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=edzwqfv0kita8wxi5oyo49do4
+1471,Hafia,,69.9,0.0,586.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ag6jmjhx5vr78sxi8609i28l
 1472,Gnistan,🇫🇮 Finnish Veikkausliiga,72.0,-2.14,586.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3cbke8cbou2ms925872vk6dwx
-1473,Oulu,🇫🇮 Finnish Veikkausliiga,68.7,1.1,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cy6zs39z79dcfbr4xzkp38z7q
+1473,Cavalier,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3v5e2q2vqn0fgqrbkz6dbfs3i
 1474,San Antonio,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cptxo7ytrql01nuxr7qt3ut5g
-1475,Varberg,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4mo3tith28qu9za01e8siplsn
+1475,Oulu,🇫🇮 Finnish Veikkausliiga,68.7,1.1,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cy6zs39z79dcfbr4xzkp38z7q
 1476,Macarthur,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7jv344gvcvgqg7oeuc9u554dm
 1477,AGMK,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a52k8aggl2a4tu3tfcqz3ulm1
 1478,Würzburg,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2r8iavmgjceyjzntsl8vnzw7j
@@ -1485,29 +1485,29 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1484,Francs Borains,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5g75yizfkepv8ez7027z9p5pd
 1485,Real Oviedo II,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c9hjzw6a478wd1qnzcuijldbm
 1486,Real Valladolid II,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=47w2ejlzttvwnl39tlcwnpjdb
-1487,Spartak Ks,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ewsy6e2c2xdxmbvpa94inljjb
+1487,Varberg,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4mo3tith28qu9za01e8siplsn
 1488,Chrobry,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8r2ri05isgxasodd32k7udrxf
 1489,Xerez,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8trd1ls946ni9tz6k1wp31gur
 1490,MO Béjaïa,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c35c5sqkvk8fw74w9nszafsz3
-1491,Cavalier,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3v5e2q2vqn0fgqrbkz6dbfs3i
+1491,Spartak Ks,,69.8,0.0,585.3,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ewsy6e2c2xdxmbvpa94inljjb
 1492,Epitsentr,🇺🇦 Ukrainian Premier League,70.1,-0.31,585.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6aj67v16g603x3u3o60f0yn84
 1493,Espanyol II,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5p0rclpdhiu7bc5l43v3avzsc
-1494,Rincón,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bqb2418t8pxzp98nguhydn6um
+1494,Durango,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=63z9vl54htkz9y86pevwhuhy5
 1495,Valletta,🇲🇹 Maltese Premier League,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cvdi6jj9pdy3uee5218wd21zf
 1496,Egersund,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9aztuasocx1dd40j3p67wf3tv
 1497,Comerciantes,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3p6js2euxpk5l7jcm3iiotlka
-1498,Meppen,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=19qtgsgkohb1oito15hwruc12
+1498,Rincón,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bqb2418t8pxzp98nguhydn6um
 1499,Fortuna Köln,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bgt6ymfxaqp0k2wnqvp03jhnr
-1500,Árabe,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=symb3x7i8v247jtown7vfbvn
-1501,Gwangju,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dxrq5ce9fljcf0vrbrz89rp0k
-1502,Viettel,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=76abk4q0gl4z93luyopkkkuzc
+1500,Meppen,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=19qtgsgkohb1oito15hwruc12
+1501,Viettel,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=76abk4q0gl4z93luyopkkkuzc
+1502,Walsall,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1tev1lioyfaxbk2uod5uekzyj
 1503,VfB Oldenburg,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b1p4sg1dtinfs0hhl6zyvcasn
-1504,Walsall,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1tev1lioyfaxbk2uod5uekzyj
-1505,AFAD,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=84cmokm61uh9ngaujr99fwfxv
+1504,Spezia,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4klvxyeh3xcus4ongu7c00mgc
+1505,Gwangju,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dxrq5ce9fljcf0vrbrz89rp0k
 1506,Santa Cruz,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6n1i99d69ktxseecp7cpfu971
-1507,Spezia,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4klvxyeh3xcus4ongu7c00mgc
-1508,Durango,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=63z9vl54htkz9y86pevwhuhy5
-1509,Lokomotiv Sf,🇧🇬 Bulgarian First League,70.0,-0.37,583.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=aq7e6kamphe8xgeacluqpll28
+1507,AFAD,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=84cmokm61uh9ngaujr99fwfxv
+1508,Árabe,,69.7,0.0,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=symb3x7i8v247jtown7vfbvn
+1509,Loko Plovdiv,🇧🇬 Bulgarian First League,71.2,-1.5,584.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3j83f5kj3zeed0f5qg85d3lws
 1510,Tampa Bay,,69.6,0.0,582.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5qfq6cwtrgzd2szijivns7rjl
 1511,Arka,,69.6,0.0,582.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=78hmc5v0fn49k70uhbsd5z3ri
 1512,Génération Ft.,,69.6,0.0,582.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5rgyzb6u7pjwzlnjnrx193xqr
@@ -1524,11 +1524,11 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1523,Jaraaf,,69.6,0.0,582.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=88b0mskwk0ivz4yspdrllu4sf
 1524,Black Stars,,69.6,0.0,582.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3937hay1g0ohrue2m0hgj3j10
 1525,Londrina,,69.6,0.0,582.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2384oiijiadr9rtnttyghcpy1
-1526,Slavia Sofia,🇧🇬 Bulgarian First League,70.2,-0.68,581.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=eoktekjf13w5pah96wubgv5w0
-1527,Safa,🇦🇿 Azerbaijani Premier League,69.5,0.0,581.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a38pi633lyv9cut12rj80p17q
+1526,Slavia Sofia,🇧🇬 Bulgarian First League,70.2,-0.69,581.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=eoktekjf13w5pah96wubgv5w0
+1527,Independiente,,69.5,0.0,581.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=72r9uac6d2k8e9zb456ylzn37
 1528,Douanes,,69.5,0.0,581.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=81jie1dd1lcqkckgckgvj9s7o
 1529,Kecskemét,,69.5,0.0,581.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c536sj6mlkbx89sp5lu7c2kyr
-1530,Independiente,,69.5,0.0,581.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=72r9uac6d2k8e9zb456ylzn37
+1530,Safa,🇦🇿 Azerbaijani Premier League,69.5,0.0,581.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a38pi633lyv9cut12rj80p17q
 1531,Csikszereda,🇷🇴 Romanian Liga I,69.5,0.0,581.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a8dd7jbmqd5sfzpsnn5fbq3du
 1532,Masar,,69.5,0.0,581.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=12ditpnjkwfws8vzgnswxuxhw
 1533,Marbella,,69.5,0.0,581.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9hk5fueqbtsbpd3bcokr4r7ko
@@ -1805,133 +1805,133 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1804,Correcaminos,,68.2,0.0,565.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=47jqytp1lvawmtx81gfjh7qbg
 1805,Daquilema,,68.2,0.0,565.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=buj5ud5kkximc1kmdgsqb6904
 1806,Valur,🇮🇸 Icelandic Besta deild karla,69.0,-0.87,564.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=khmdmbol7850k3i07yusgpn
-1807,Ind Chivilcoy,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5nmtc9sgrmwf3eut8ckb22rx1
-1808,Juventud Ita.,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b5kw43cu1gtzgnkbrxjej5x7u
-1809,Río Aguarico,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bfozrw2f1ld29cix1zti5u904
+1807,Juventud Ita.,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b5kw43cu1gtzgnkbrxjej5x7u
+1808,Río Aguarico,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bfozrw2f1ld29cix1zti5u904
+1809,Kagoshima Utd,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=41z024syj3mi4jpyjj68k4ptx
 1810,Rhode Island,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=daicfonrbj124lu2la2rctxck
-1811,Bogotá,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1nhaevziff7obqkpiy92ibwz1
-1812,Příbram,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9j524yu0rrhy8fempb1x158xt
-1813,Kagoshima Utd,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=41z024syj3mi4jpyjj68k4ptx
-1814,Kun Khalifat,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=au6ljs8hyt3z44u808gx6upec
-1815,Highlanders,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4buzqtf5xp6nfgos5gdji1uc
-1816,Wally Daan,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ce3s5vdb20aymbg196tjjzlec
+1811,Kun Khalifat,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=au6ljs8hyt3z44u808gx6upec
+1812,Bogotá,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1nhaevziff7obqkpiy92ibwz1
+1813,Příbram,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9j524yu0rrhy8fempb1x158xt
+1814,Ind Chivilcoy,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5nmtc9sgrmwf3eut8ckb22rx1
+1815,Wally Daan,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ce3s5vdb20aymbg196tjjzlec
+1816,Highlanders,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4buzqtf5xp6nfgos5gdji1uc
 1817,Rapperswil,,68.1,0.0,564.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=59viwky8c7g3bq3japwgwn4z4
 1818,Mariehamn,🇫🇮 Finnish Veikkausliiga,65.2,2.83,563.1,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3ptum5fjcgw51mqui0gu6uuf4
-1819,Tembetary,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8v5tea76k9utwjqpq4u2uetey
-1820,ES Mostaganem,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=14nfjsmolgicy9t1d1llp6j4h
-1821,Lusail City,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5a44o1t7sto160javdivqxox6
-1822,Alianza Univ,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=28pux5pb0uijvfqtq69wkyrqv
-1823,Amstetten,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1xmid87fkbcqkezkukhggmuqz
-1824,Radnik,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=azzhazc1jl4zlclpajwpe5qvs
-1825,Tokushima,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6dq0duhp2l658aa8qiezr4fgf
-1826,Júbilo,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4hm0p4fs807r60m5cumrdn6w5
-1827,Salernitana,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=49rkyo4do8uwj06geomw0xr4i
-1828,All Blacks,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ad4mv3pwn87bvkwpdt9vdnwow
-1829,Sanat Naft,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=18masxsd4v3ewfhtnp6xaljob
-1830,Kazma,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=36epxud830wf1nbx421p9z9id
-1831,Holy Stars,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ckdxpba5dof28uqxak5mi5ono
-1832,Atert,🇱🇺 Luxembourg National Division,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4sa4ljzex8f1chmo0vcyzzq4o
-1833,América MG,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d0tpuy1w8ckf8iiea01t1aob5
-1834,Pl Bytom,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6z83iw9oblyg0bct1jmqz7utq
+1819,Kazma,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=36epxud830wf1nbx421p9z9id
+1820,Tembetary,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8v5tea76k9utwjqpq4u2uetey
+1821,ES Mostaganem,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=14nfjsmolgicy9t1d1llp6j4h
+1822,Lusail City,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5a44o1t7sto160javdivqxox6
+1823,Alianza Univ,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=28pux5pb0uijvfqtq69wkyrqv
+1824,Júbilo,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4hm0p4fs807r60m5cumrdn6w5
+1825,Amstetten,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1xmid87fkbcqkezkukhggmuqz
+1826,Radnik,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=azzhazc1jl4zlclpajwpe5qvs
+1827,All Blacks,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ad4mv3pwn87bvkwpdt9vdnwow
+1828,Salernitana,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=49rkyo4do8uwj06geomw0xr4i
+1829,Holy Stars,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ckdxpba5dof28uqxak5mi5ono
+1830,Sanat Naft,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=18masxsd4v3ewfhtnp6xaljob
+1831,Atert,🇱🇺 Luxembourg National Division,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4sa4ljzex8f1chmo0vcyzzq4o
+1832,Tokushima,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6dq0duhp2l658aa8qiezr4fgf
+1833,Pl Bytom,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6z83iw9oblyg0bct1jmqz7utq
+1834,América MG,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d0tpuy1w8ckf8iiea01t1aob5
 1835,Ávila,,68.0,0.0,562.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6hkk7s0sbtq4yihxwr9o50u25
-1836,Pars Jam,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bsk4ffenpmqy0ia8u2a01kgvm
-1837,Ferizaj,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=26midi4sfzgl4gefgw7zmmy8u
+1836,Hannover 96 II,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=76srs3o1mg7m0ky71cdqq86q3
+1837,Pars Jam,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bsk4ffenpmqy0ia8u2a01kgvm
 1838,Henan,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1eaept8dld85s894brcrkrq5p
 1839,Ger Rawson,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a74fme5viiiafhaezmsni73pn
 1840,Switchbacks,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ak0rmms5xl49w57i2rvid1tk9
 1841,Rentistas,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1jo5chfqowzcapj5ut60tgj4k
-1842,11 de Mayo,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5apmw2ne3lzk0wp3y3f1euec4
-1843,Palmeira,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cpj168kvmm2pnu80xk7oveezu
-1844,Colón,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cj68g7psgmrw4nwka2pvpys6t
-1845,Kuching City,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c9qu8s39g7o06ax5z88kxapk9
-1846,Hannover 96 II,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=76srs3o1mg7m0ky71cdqq86q3
-1847,Zemun,🇷🇸 Serbian Super Liga,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4ppegvbl5hgavq8ter9xctwes
-1848,Gallants,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4t8n4gm2xoifc6e5qxkfohgfp
-1849,Yenisey,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=36ry3uqjui4210d52sxvuoe7v
-1850,1860 München,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1e25o4gxxxnibjh9lgr9ykdfe
-1851,FC St. Coloma,🇦🇩 Andorran 1a Divisió,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ct5bxskoczd1sizdp0sv6up7s
-1852,CS-Disciples,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=108i5h5cl8czdryzqiyki26q3
-1853,Mineros,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9hnwqztsvnn1ijnuxhe4vy99m
-1854,Carapeguá,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1rykgvr4dqfkhp88sqhci9ajw
+1842,Colón,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cj68g7psgmrw4nwka2pvpys6t
+1843,Carapeguá,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1rykgvr4dqfkhp88sqhci9ajw
+1844,Palmeira,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cpj168kvmm2pnu80xk7oveezu
+1845,11 de Mayo,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5apmw2ne3lzk0wp3y3f1euec4
+1846,Kuching City,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c9qu8s39g7o06ax5z88kxapk9
+1847,CS-Disciples,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=108i5h5cl8czdryzqiyki26q3
+1848,Zemun,🇷🇸 Serbian Super Liga,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4ppegvbl5hgavq8ter9xctwes
+1849,Gallants,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4t8n4gm2xoifc6e5qxkfohgfp
+1850,Yenisey,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=36ry3uqjui4210d52sxvuoe7v
+1851,1860 München,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1e25o4gxxxnibjh9lgr9ykdfe
+1852,Ferizaj,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=26midi4sfzgl4gefgw7zmmy8u
+1853,FC St. Coloma,🇦🇩 Andorran 1a Divisió,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ct5bxskoczd1sizdp0sv6up7s
+1854,Mineros,,67.9,0.0,561.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9hnwqztsvnn1ijnuxhe4vy99m
 1855,Banja Luka,🇧🇦 Bosnian Premier Liga,66.9,0.96,561.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2y9bb1ig3wovtzfbb0p99z00l
 1856,Stockholm Int.,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3y52ef3c6825kpyv1jdpx5yei
-1857,Manacor,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5c3jouslhukm7i4yy3kav4nfk
+1857,Defence,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e9m9ysb5c4xf3b6yxmiq5cytx
 1858,Kapaz,🇦🇿 Azerbaijani Premier League,67.4,0.4,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bvajvatode80d4lx90fl86hi
 1859,Thionville,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9i961vvra5pvahu0hxjj7kqhg
-1860,Defence,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e9m9ysb5c4xf3b6yxmiq5cytx
-1861,Öster,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cfvya7igkhkas7wvsktwz6j8k
-1862,Dundalk,🇮🇪 Irish Premier Division,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=436hohrrikc4zq7qgoquszrfq
+1860,Manacor,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5c3jouslhukm7i4yy3kav4nfk
+1861,Sandviken,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6gmmnqqkjtnd06ciw8plcoy3c
+1862,Öster,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cfvya7igkhkas7wvsktwz6j8k
 1863,Xamax,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6298wfdiblmkqf747cilzuh8o
 1864,Bani Yas,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=853tk9c9zgvx9duqwwov2wf2m
-1865,Roda JC,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7rmv5ns2rj7bn4otpkur0mx0x
-1866,Kaspiy,🇰🇿 Kazakhstan Premier League,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a8lb8lptc6gav8x48rjc95rt7
-1867,Laredo,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dogv0awdv4xy4e671s4450cnm
-1868,Kamsar,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7jln3sg3je1bv4anafux02qlw
-1869,SOA,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1c5ujp8jhp4ps5uvn8m723gcp
-1870,Kansanshi,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=57v4vm4ndq0vunhpp645h5ilm
-1871,Miranda,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2mrshjdgjb5tffdjzlcgxcwqp
-1872,Sandviken,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6gmmnqqkjtnd06ciw8plcoy3c
+1865,Kaspiy,🇰🇿 Kazakhstan Premier League,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a8lb8lptc6gav8x48rjc95rt7
+1866,Roda JC,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7rmv5ns2rj7bn4otpkur0mx0x
+1867,Kansanshi,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=57v4vm4ndq0vunhpp645h5ilm
+1868,SOA,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1c5ujp8jhp4ps5uvn8m723gcp
+1869,Laredo,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dogv0awdv4xy4e671s4450cnm
+1870,Kamsar,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7jln3sg3je1bv4anafux02qlw
+1871,Dundalk,🇮🇪 Irish Premier Division,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=436hohrrikc4zq7qgoquszrfq
+1872,Miranda,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2mrshjdgjb5tffdjzlcgxcwqp
 1873,Sacachispas,,67.8,0.0,560.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=aeego4lgvefadxc9doloj0t4o
 1874,Coleraine,🇬🇧 Northern Irish Premiership,68.2,-0.48,559.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bo2mfvxkf0m8xmh03xh1hv3db
 1875,Quick Boys,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e9i5c1vh3e9dz6tltpadbunjq
-1876,Mallorca II,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=29wpu5y0xphngrrvrlnl9txb3
-1877,Dewa United,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=eznxcetmxett4pgr17qhoiuc4
-1878,Ferro Beira,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8f4na860794f0j62t9pl4eggz
-1879,Melgar II,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9cs135glct536x8tedf883evo
-1880,Señor,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6kniupcvhamdqk6cndo35xnh0
-1881,WE,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9zi5ezh0v3q84v3h7dy28gq3l
-1882,Defensores V.,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9mgldmp7kpzd1zqayr1epgy96
+1876,Vysočina,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8383nfuaz8orp79fjkq45k3of
+1877,Mallorca II,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=29wpu5y0xphngrrvrlnl9txb3
+1878,Dewa United,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=eznxcetmxett4pgr17qhoiuc4
+1879,Bayelsa Utd,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2oro9vzjnqgdvumlszfmrby2l
+1880,Etoile Carouge,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c3njr6p0pl0j0bsvazdc1jffw
+1881,Señor,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6kniupcvhamdqk6cndo35xnh0
+1882,Wakrah,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c392huxdsfk82c1mvvt2mze6q
 1883,Gim Concepción,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7e6097a7pv8vvkall34b7kxld
-1884,Cittadella,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dlda35ece1taoufqhscwnf6jq
-1885,Wakrah,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c392huxdsfk82c1mvvt2mze6q
-1886,Aviced,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=28l39yv01nlvl2oo8e2u3baqc
-1887,Odra,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3afenq5eu78v543hri8otr3ms
-1888,Vysočina,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8383nfuaz8orp79fjkq45k3of
-1889,Kazincbarcika,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=93jgs8iidqpjpynqao1w1yxrv
-1890,Fénix,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=15cf6oyedsbwy63nqhfp0ce6u
+1884,Defensores V.,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9mgldmp7kpzd1zqayr1epgy96
+1885,Atlético Madrid III,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4elwhvd3dv4dg1zr0occqyvyt
+1886,WE,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9zi5ezh0v3q84v3h7dy28gq3l
+1887,Kabuscorp,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5v6urev4begbcuh89zw4t56by
+1888,Aviced,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=28l39yv01nlvl2oo8e2u3baqc
+1889,Cittadella,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dlda35ece1taoufqhscwnf6jq
+1890,Lexington,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ck22dnk93ng8ax7wonlff7yms
 1891,Toledo,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d2cq7sk4ofy4n6m7zrryf6ssd
-1892,Kabuscorp,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5v6urev4begbcuh89zw4t56by
-1893,Atlético Madrid III,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4elwhvd3dv4dg1zr0occqyvyt
-1894,Lexington,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ck22dnk93ng8ax7wonlff7yms
-1895,Bayelsa Utd,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2oro9vzjnqgdvumlszfmrby2l
-1896,Cheltenham,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=fvr504m6gaxsfmtx4fwm7iq1
-1897,Peña Sport,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cn2rk4qpq92hd03sg3zfgpkoc
-1898,Delfines,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7ktgymlaq7fwwdendi92yy0nz
-1899,Lok Leipzig,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2bdu0qfswqktxubmbrxq7rseh
-1900,Etoile Carouge,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c3njr6p0pl0j0bsvazdc1jffw
-1901,Tornadoes,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=aa9dw3lguc6zl0gx241kyxusm
+1892,Cheltenham,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=fvr504m6gaxsfmtx4fwm7iq1
+1893,Fénix,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=15cf6oyedsbwy63nqhfp0ce6u
+1894,Odra,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3afenq5eu78v543hri8otr3ms
+1895,Kazincbarcika,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=93jgs8iidqpjpynqao1w1yxrv
+1896,Peña Sport,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cn2rk4qpq92hd03sg3zfgpkoc
+1897,Delfines,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7ktgymlaq7fwwdendi92yy0nz
+1898,Tornadoes,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=aa9dw3lguc6zl0gx241kyxusm
+1899,Melgar II,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9cs135glct536x8tedf883evo
+1900,Ferro Beira,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8f4na860794f0j62t9pl4eggz
+1901,Lok Leipzig,,67.7,0.0,559.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2bdu0qfswqktxubmbrxq7rseh
 1902,Cuarte,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=azlpuqc45yu5bkgsrh7jawgn9
-1903,Aigle Noir,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ct28dmmojb1fw867nfj6ojend
-1904,Métlaoui,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5gn5kjewqnr9t45abrezl7gjd
-1905,St Maur Lusita,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3d5piliqk9rps2f29l0279z40
-1906,Dorados,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1rdo0fj09ktx5po4kf8cmto3m
-1907,Hurricanes,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=54a4ohib9jz71pqwxhj8ar1u0
-1908,Brisbane,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=v046no35g7ebk8lytdjmfb43
-1909,Simba Bhora,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=95401yrpb9r2hb9js82jeynmc
-1910,Liefering,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bkrmyopzqndrathh3vwhr8plb
-1911,Warri,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=54j80mjjkqe2iue7i9e0gzufd
-1912,Khorfakkan,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3035tdn0w3qcgh89y0w5cn0ct
-1913,Debibi,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8aja50zmkekr7q0ampwxex4b8
-1914,Zhejiang,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a3l87ozfq8bjwpy0nxvs5w28o
-1915,Golden Lion,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cgfb5qq3h5vq1lxnrv0vea1ok
-1916,Le Geldar,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=duantu5iv9f1t6k87telro6ph
-1917,Seraing,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=jb4xejoxjfk5a0a50bo8hvst
-1918,Portugalete,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=795vg8ri89szd23nu6dntjqug
-1919,Gütersloh,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=es856yq0h295jgn38tfke9g1x
-1920,Stella,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5n5qtlzunx6a38vzsczmrszrm
-1921,Guaranda,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=hovjswsaz29y3msx11l7nbpw
-1922,Stal Rzeszów,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=oubq5v4lp1eowdxvdkn4o5sj
-1923,Astorga,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=est42s6seg929ozi4ucozy9rq
-1924,Santa Rosa,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4cekewseqmtu0beffmnfgcvf8
-1925,Capiatá,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8jk4e6ru0oe99tjavt72dqvxo
-1926,Mačva,🇷🇸 Serbian Super Liga,69.0,-1.41,557.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ajxqiqjev2oopks7tsbxqx9ar
-1927,Chicken Inn,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6za4yp51452dic7136m7oxh2i
+1903,St Maur Lusita,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3d5piliqk9rps2f29l0279z40
+1904,Warri,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=54j80mjjkqe2iue7i9e0gzufd
+1905,Liefering,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bkrmyopzqndrathh3vwhr8plb
+1906,Aigle Noir,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ct28dmmojb1fw867nfj6ojend
+1907,Simba Bhora,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=95401yrpb9r2hb9js82jeynmc
+1908,Dorados,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1rdo0fj09ktx5po4kf8cmto3m
+1909,Brisbane,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=v046no35g7ebk8lytdjmfb43
+1910,Hurricanes,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=54a4ohib9jz71pqwxhj8ar1u0
+1911,Métlaoui,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5gn5kjewqnr9t45abrezl7gjd
+1912,Golden Lion,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cgfb5qq3h5vq1lxnrv0vea1ok
+1913,Khorfakkan,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3035tdn0w3qcgh89y0w5cn0ct
+1914,Debibi,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8aja50zmkekr7q0ampwxex4b8
+1915,Zhejiang,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a3l87ozfq8bjwpy0nxvs5w28o
+1916,Astorga,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=est42s6seg929ozi4ucozy9rq
+1917,Le Geldar,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=duantu5iv9f1t6k87telro6ph
+1918,Seraing,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=jb4xejoxjfk5a0a50bo8hvst
+1919,Portugalete,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=795vg8ri89szd23nu6dntjqug
+1920,Lokomotiv,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7epsjq80qba0l33gprs3dr71v
+1921,Gütersloh,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=es856yq0h295jgn38tfke9g1x
+1922,Stella,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5n5qtlzunx6a38vzsczmrszrm
+1923,Guaranda,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=hovjswsaz29y3msx11l7nbpw
+1924,Stal Rzeszów,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=oubq5v4lp1eowdxvdkn4o5sj
+1925,Santa Rosa,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4cekewseqmtu0beffmnfgcvf8
+1926,Capiatá,,67.6,0.0,557.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8jk4e6ru0oe99tjavt72dqvxo
+1927,Mačva,🇷🇸 Serbian Super Liga,69.0,-1.41,557.6,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ajxqiqjev2oopks7tsbxqx9ar
 1928,Bayadh,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dgl9lic4lzyo6pgy0y0r7rb97
 1929,Ayacucho,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a4ugkpppjjtej0q36j8o71jw1
 1930,Llanera,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9oi8be5sxfh2x6bgw66e93h7
-1931,Las Heras,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dk2quzwbt80mto89bulkitruv
-1932,Trento,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=34i6pgpvcfqd4qf79tmfh6eel
-1933,Saipa,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=31j3guwplunkc6ckeriwr1dh0
+1931,Trento,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=34i6pgpvcfqd4qf79tmfh6eel
+1932,Las Heras,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dk2quzwbt80mto89bulkitruv
+1933,Zanaco,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b7nrpbjmc1o6btvjgo6ewlf48
 1934,P Siedlce,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7sebrbpzpphiu02bvuuspuczi
 1935,Strikers,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5f2bmp0mk0h12kasjt1cqdlmu
 1936,Sivas,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=f432akygffyamal3h6poig65t
@@ -1941,15 +1941,15 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1940,Sogndal,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=d8xwx2hkvusrydy31t526qm0t
 1941,Izarra,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1x0nugpv4vym69ydmkmdnt7o6
 1942,Grorud,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a760sshaq9k8m7fbpgwpo1jai
-1943,Zanaco,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b7nrpbjmc1o6btvjgo6ewlf48
-1944,Batna,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4bsiyrx3wyqmaox8quqbb1x5q
-1945,Wil,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=988hdd0jedgyvm4978w95vma9
-1946,Yukun,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3n4jrcw6w965v1qvp0azx5kwk
-1947,Casa,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cv5w3m4dsjcx0t3x09lyw29ee
+1943,Chicken Inn,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6za4yp51452dic7136m7oxh2i
+1944,Wil,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=988hdd0jedgyvm4978w95vma9
+1945,Batna,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4bsiyrx3wyqmaox8quqbb1x5q
+1946,Saipa,,67.5,0.0,556.5,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=31j3guwplunkc6ckeriwr1dh0
+1947,Yukun,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3n4jrcw6w965v1qvp0azx5kwk
 1948,Mezőkövesd,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dxbf0hf648hkzljtso7eizt3k
 1949,Veraguas Utd,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=75p8zmf12hsmgzwwqyh8cxkr4
 1950,Llacuabamba,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4o1v3r2j0dggg6jwvwboaldnu
-1951,Matlama,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6sdo5tgjwsec86vypj2og9z0f
+1951,Casa,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cv5w3m4dsjcx0t3x09lyw29ee
 1952,Annaba,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9fkngh6ufh6cukite9hkh6ory
 1953,Septemvri,🇧🇬 Bulgarian First League,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4c7h8bsug5a4unc8x6eo80kmt
 1954,St Joseph's,🇬🇮 Gibraltarian National League,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=117gebg7w7g65l2gfzcy1i575
@@ -1960,13 +1960,13 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1959,Nam Định,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=672z96yvkbv5uo7melm3rhexx
 1960,Znicz,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=70grerukn3ef4zbdb7nyyt0h3
 1961,Wanderers,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ba5ee7scb8vz8gzrdkw9ufkyp
-1962,VVV,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cv5ftekuejf0ryxvd5h2my47r
-1963,Veles,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=51ipkehno80dh13a5yi6968oa
+1962,Matlama,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6sdo5tgjwsec86vypj2og9z0f
+1963,VVV,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cv5ftekuejf0ryxvd5h2my47r
 1964,Kalba,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=djdso06gmsozbzspxyc1jes3n
-1965,Víkingur,🇫🇴 Faroe Islands Premier League,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=du6s5ma69psb2yrcg7o83jneb
-1966,KA,🇮🇸 Icelandic Besta deild karla,66.2,1.17,554.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4mo70a9j7p2ersbrieg5aw3dg
-1967,BATE,🇧🇾 Belarus Vyscha Liga,67.8,-0.44,554.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dt1p3v926refyx025719o2pc2
-1968,Jerv,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4uhob9fidndruy140dh5ayd6a
+1965,Veles,,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=51ipkehno80dh13a5yi6968oa
+1966,Víkingur,🇫🇴 Faroe Islands Premier League,67.4,0.0,555.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=du6s5ma69psb2yrcg7o83jneb
+1967,KA,🇮🇸 Icelandic Besta deild karla,66.2,1.17,554.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4mo70a9j7p2ersbrieg5aw3dg
+1968,BATE,🇧🇾 Belarus Vyscha Liga,67.8,-0.44,554.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dt1p3v926refyx025719o2pc2
 1969,Persebaya,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b48xfswheqa0tzbhexi17kbmi
 1970,Thróttur R,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6i1575n1j1cvs42smzn8b3y7t
 1971,H Kfar Shalem,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2z2ul5bml1hrzoc45xicnlib0
@@ -1976,7 +1976,7 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1975,FCTVZ,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=aijz3tdw20shf3ndztgvkw42k
 1976,Pittsburgh,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=224tl8u2smnbyliroayk69nt0
 1977,Hyères,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7qgv9f8none07479hfvr299z6
-1978,Maysan,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5fd6w6rtppcfog4ekf49boluo
+1978,Jerv,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4uhob9fidndruy140dh5ayd6a
 1979,Rafsanjan,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=72q6wun8eup5w3idb9s78lk1g
 1980,Shrewsbury,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=82kapkjwonlv9j1ui0ytv5sii
 1981,Paide,🇪🇪 Estonian Meistriliiga,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5vwu7oi4z4a3vd0yqmre7kdk
@@ -1984,11 +1984,11 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 1983,Club Brugge II,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5ukcnyjjogw7wlb0lrgwg8siy
 1984,Omrane,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=64yzt1whjqx5l3lhqi6yyhkv
 1985,Yaracuyanos,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6vborhmppvyoeg38nhkkfp6z9
-1986,Maleyet,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=shmvr25wf90xx2ifv0l8yiff
+1986,Maysan,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=5fd6w6rtppcfog4ekf49boluo
 1987,Hwaseong,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b671t8effnfu3bvgku5i7t16f
 1988,Stal Mielec,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3ail506t69cxr60r1p6wlfqmb
 1989,Opava,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6f79y34rnrjvou6ay6976225i
-1990,Lokomotiv,🇧🇬 Bulgarian First League,67.6,-0.31,553.8,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7epsjq80qba0l33gprs3dr71v
+1990,Maleyet,,67.3,0.0,554.0,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=shmvr25wf90xx2ifv0l8yiff
 1991,R. Mons 44,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ax2o8wwf8nud1bqp692yvfgl
 1992,Jijel,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a0g89a09po6urln296078xsrf
 1993,King's,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=a3f15r0878qzla45ncrif1d7p
@@ -2009,10 +2009,10 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 2008,3 de Noviembre,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8b811aa3b48lw41ullfvhe3h0
 2009,Big Bullets,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4hsnyq7d052ftb8pqwuzmdksx
 2010,Bantu,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=apfkk65nec7r5vjwql3maj4zi
-2011,Náxara,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=68cadnad97ccgotrkjda3e856
-2012,Ertis,🇰🇿 Kazakhstan Premier League,66.6,0.6,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=pb51n3i50oigj1g5agjsu1vk
-2013,Mardin,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=557g9se5mnin5ot3ou3z8iv6y
-2014,Bouaké,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1k8r11a8gz2y1eo5mwc84re8l
+2011,Ertis,🇰🇿 Kazakhstan Premier League,66.6,0.6,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=pb51n3i50oigj1g5agjsu1vk
+2012,Bouaké,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1k8r11a8gz2y1eo5mwc84re8l
+2013,Náxara,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=68cadnad97ccgotrkjda3e856
+2014,Mardin,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=557g9se5mnin5ot3ou3z8iv6y
 2015,Bari,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e2hi197ydanctu9i74tonpt4r
 2016,Aue,,67.2,0.0,552.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=m5tpogrj0txk7qjdbb57wba
 2017,Gimpo,,67.1,0.0,551.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ecpv85oiiuo9owjvqdmf4q5q9
@@ -2081,7 +2081,7 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 2080,Gimnástica,,66.9,0.0,548.9,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9jfjd6rherahv4z9s7tgtvm2b
 2081,Mijas,,66.9,0.0,548.9,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=44thhylrhcmws6shtke0gw2s4
 2082,Motema,,66.9,0.0,548.9,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3vq7ul9picxkr3m9cg41mhn94
-2083,Eidsvold,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cm0e6ajnldc9q80pe2badz0b7
+2083,Buchbach,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6ccg5j362nbt3svvutk3hd2r1
 2084,Trident,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=bo2h4afo5jwj6poyyaer90mc4
 2085,Reggiana,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=fdzmkrqxu2s0x9cioolazpy
 2086,Dynamo,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6ghct9hel3icz8uei3l9982rc
@@ -2105,41 +2105,41 @@ rank,team,tracked_league,opta_rating_raw,adjustment,rating_1000,badge_url
 2104,De Graafschap,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=xcevba75jfkrg4s6tl89zl3y
 2105,Seongnam,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e4098etb1vn25d4lvecv9mygk
 2106,Värnamo,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=durq4oppf7c08tnbzrlebt0uz
-2107,Buchbach,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6ccg5j362nbt3svvutk3hd2r1
-2108,Strømmen,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=493kmqygwt2ktmu1rkuapsk1n
+2107,Strømmen,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=493kmqygwt2ktmu1rkuapsk1n
+2108,Eidsvold,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cm0e6ajnldc9q80pe2badz0b7
 2109,Juticalpa,,66.8,0.0,547.7,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2iqr56y2jdkxbaxea7atmmll
 2110,UCV,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=9w6cgjhec46w7beqcj0wu7zqz
-2111,Paris 13,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=f0ticxo5bjjif0gb54ewfdppm
+2111,Radnik,🇧🇦 Bosnian Premier Liga,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=15xmagscegf6zxibryschiz6s
 2112,Huehuetecos,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=aaau9sdpfauk1uoxb6xp1c178
-2113,Magesi,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=84urxkxbbdaskm7e0ta3abtr1
-2114,Radnik,🇧🇦 Bosnian Premier Liga,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=15xmagscegf6zxibryschiz6s
+2113,Kaloum,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c4dic29pxg10oufh09f1ij1u0
+2114,Magesi,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=84urxkxbbdaskm7e0ta3abtr1
 2115,Atl. Escobar,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7gkdxdukcg6127ygv47twx72s
-2116,Borussia M'gladbach II,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=f2ajykd4zvo08erdzby360kgm
-2117,Hà Nội,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4ejjxrwogon59c9le0zcj2wfi
-2118,Emmen,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3t0vjqtxc8wpjzv82i3oi2ova
-2119,Podbeskidzie,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=arh9tr23q0ik61fpdwpd4uymi
-2120,Kaloum,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=c4dic29pxg10oufh09f1ij1u0
+2116,Paris 13,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=f0ticxo5bjjif0gb54ewfdppm
+2117,Podbeskidzie,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=arh9tr23q0ik61fpdwpd4uymi
+2118,Hà Nội,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4ejjxrwogon59c9le0zcj2wfi
+2119,Borussia M'gladbach II,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=f2ajykd4zvo08erdzby360kgm
+2120,Emmen,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3t0vjqtxc8wpjzv82i3oi2ova
 2121,Brattvåg,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=513q2ohd92p2qrkgh7uxes9hz
 2122,Muğla,,66.7,0.0,546.4,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6xbuv81bmc64noaw6kj3tooys
 2123,Al Salt,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8u2wvlnw6mm3qol9qkw4km9vj
-2124,Racing,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8k1u9vuetmkqc1d74i44i7drx
-2125,Real Native,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2p3zxtu4bsnh9xx75ns1yo8b8
-2126,Aragua,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=eoxfl1k0e48ox01u85imh4kss
-2127,Elazığspor,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6z89w1ygjwjw0mkhjrrneqa3r
-2128,Busan IPark,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e9twivogr054fsu2o1wzb7zdq
-2129,Kaisar,🇰🇿 Kazakhstan Premier League,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dylyv84fm75boynxo945venz3
-2130,Blaublitz,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e7oi5pollofadw2silxqfy3va
-2131,Buffaloes,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8p9274stuicq0hfdja7cgddco
-2132,Džiugas,🇱🇹 Lithuanian TOPLYGA,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1b3l2i8nzvrx5u24zjbg8wjx1
-2133,Sekka El Hadid,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4qw489yi55ymmliy1c8oweupr
-2134,TSC,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ee85k7vpo1yzn2ecre71ebydx
+2124,Džiugas,🇱🇹 Lithuanian TOPLYGA,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=1b3l2i8nzvrx5u24zjbg8wjx1
+2125,Racing,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8k1u9vuetmkqc1d74i44i7drx
+2126,Atlético,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=achsgp4kxkpn7jzdugqa46kob
+2127,Aragua,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=eoxfl1k0e48ox01u85imh4kss
+2128,Elazığspor,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6z89w1ygjwjw0mkhjrrneqa3r
+2129,Blaublitz,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e7oi5pollofadw2silxqfy3va
+2130,Nordic,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dejuj32hqejc9prnc72tbzok4
+2131,Kaisar,🇰🇿 Kazakhstan Premier League,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dylyv84fm75boynxo945venz3
+2132,Busan IPark,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=e9twivogr054fsu2o1wzb7zdq
+2133,TSC,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=ee85k7vpo1yzn2ecre71ebydx
+2134,Sekka El Hadid,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=4qw489yi55ymmliy1c8oweupr
 2135,SD Logroñés,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=3cv1xqeliv80ssnetni92jyxm
-2136,Nordic,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dejuj32hqejc9prnc72tbzok4
-2137,Shahaniya,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cwpjyxfnrkd8q4anxjbhqff5g
-2138,Ismaily,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b79t25o1zj01kz3rqudr7q5v4
-2139,Miramar,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7162pj1mpc0xpgrg8gheeo95y
-2140,Don Bosco,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dipxeg98ecbx6dd4st52yb5ln
-2141,Atlético,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=achsgp4kxkpn7jzdugqa46kob
+2136,Real Native,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=2p3zxtu4bsnh9xx75ns1yo8b8
+2137,Buffaloes,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=8p9274stuicq0hfdja7cgddco
+2138,Shahaniya,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=cwpjyxfnrkd8q4anxjbhqff5g
+2139,Ismaily,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=b79t25o1zj01kz3rqudr7q5v4
+2140,Miramar,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=7162pj1mpc0xpgrg8gheeo95y
+2141,Don Bosco,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=dipxeg98ecbx6dd4st52yb5ln
 2142,Elche II,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=rqpdd2gbxntchn5kb2ecver7
 2143,Prishtina e Re,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=6pup73oud1emfdxa9krtyo1zo
 2144,Moss,,66.6,0.0,545.2,https://omo.akamai.opta.net/image.php?secure=true&h=omo.akamai.opta.net&sport=football&entity=team&description=badges&dimensions=150&id=swyuo5m1btglprlr6vsl4cqd
