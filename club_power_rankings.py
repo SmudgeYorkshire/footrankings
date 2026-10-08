@@ -26,7 +26,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 from config import LEAGUES
-from league_display import DROPDOWN_LABELS, DROPDOWN_ORDER
+from league_display import DROPDOWN_LABELS, DROPDOWN_ORDER, TOP5_LEAGUES
 
 load_dotenv()
 
@@ -87,48 +87,64 @@ col_metric3.metric("With a live odds adjustment", f"{(_df['adjustment'] != 0).su
 
 st.divider()
 
-col_search, col_league, col_toggle = st.columns([3, 3, 1])
-with col_search:
-    _search = st.text_input("Search club", key="club_power_search", placeholder="e.g. Boca Juniors")
-with col_league:
-    _league_options = ["All leagues"] + DROPDOWN_ORDER
-    _league_choice = st.selectbox(
-        "League", options=_league_options,
-        format_func=lambda n: DROPDOWN_LABELS.get(n, n) if n != "All leagues" else n,
-        key="club_power_league_select",
+# tracked_league stores "{flag} {league name}" (see build_club_power_rankings.py's
+# tracked_league_map) -- match by suffix so the flag emoji doesn't need repeating here.
+_TOP5_LABELS = tuple(f" {name}" for name in TOP5_LEAGUES)
+
+
+def _render_table(df: pd.DataFrame, key_prefix: str, league_options: list[str]) -> None:
+    col_search, col_league, col_toggle = st.columns([3, 3, 1])
+    with col_search:
+        search = st.text_input("Search club", key=f"{key_prefix}_search", placeholder="e.g. Boca Juniors")
+    with col_league:
+        options = ["All leagues"] + league_options
+        league_choice = st.selectbox(
+            "League", options=options,
+            format_func=lambda n: DROPDOWN_LABELS.get(n, n) if n != "All leagues" else n,
+            key=f"{key_prefix}_league_select",
+        )
+    with col_toggle:
+        tracked_only = st.checkbox("Tracked leagues only", key=f"{key_prefix}_tracked_only")
+
+    view = df
+    if search:
+        view = view[view["team"].str.contains(search, case=False, na=False)]
+    if league_choice != "All leagues":
+        league_label = f"{LEAGUES[league_choice]['flag']} {league_choice}"
+        view = view[view["tracked_league"] == league_label]
+    elif tracked_only:
+        view = view[view["tracked_league"] != ""]
+
+    view = view.rename(columns={
+        "rank": "Rank", "team": "Club", "tracked_league": "Tracked League",
+        "opta_rating_raw": "Opta Rating", "adjustment": "Odds Adjustment",
+        "rating_1000": "Power Rating", "badge_url": "Badge",
+    })[["Rank", "Badge", "Club", "Tracked League", "Opta Rating", "Odds Adjustment", "Power Rating"]]
+
+    st.dataframe(
+        view,
+        column_config={
+            "Rank":            st.column_config.NumberColumn("Rank", width="small"),
+            "Badge":           st.column_config.ImageColumn("", width="small"),
+            "Club":            st.column_config.TextColumn("Club", width="medium"),
+            "Tracked League":  st.column_config.TextColumn("Tracked League", width="medium"),
+            "Opta Rating":     st.column_config.NumberColumn("Opta Rating", format="%.1f", width="small"),
+            "Odds Adjustment": st.column_config.NumberColumn("Odds Adjustment", format="%+.1f", width="small"),
+            "Power Rating":    st.column_config.NumberColumn("Power Rating", format="%.1f", width="small"),
+        },
+        use_container_width=True,
+        hide_index=True,
+        height=600,
     )
-with col_toggle:
-    _tracked_only = st.checkbox("Tracked leagues only", key="club_power_tracked_only")
 
-_view = _df
-if _search:
-    _view = _view[_view["team"].str.contains(_search, case=False, na=False)]
-if _league_choice != "All leagues":
-    # tracked_league stores "{flag} {league name}" (see build_club_power_rankings.py's
-    # tracked_league_map) -- the dropdown itself only offers the bare league name.
-    _league_label = f"{LEAGUES[_league_choice]['flag']} {_league_choice}"
-    _view = _view[_view["tracked_league"] == _league_label]
-elif _tracked_only:
-    _view = _view[_view["tracked_league"] != ""]
 
-_view = _view.rename(columns={
-    "rank": "Rank", "team": "Club", "tracked_league": "Tracked League",
-    "opta_rating_raw": "Opta Rating", "adjustment": "Odds Adjustment",
-    "rating_1000": "Power Rating", "badge_url": "Badge",
-})[["Rank", "Badge", "Club", "Tracked League", "Opta Rating", "Odds Adjustment", "Power Rating"]]
+tab_overall, tab_non_top5 = st.tabs(["🌍 Overall", "🌐 Non-Top 5"])
 
-st.dataframe(
-    _view,
-    column_config={
-        "Rank":            st.column_config.NumberColumn("Rank", width="small"),
-        "Badge":           st.column_config.ImageColumn("", width="small"),
-        "Club":            st.column_config.TextColumn("Club", width="medium"),
-        "Tracked League":  st.column_config.TextColumn("Tracked League", width="medium"),
-        "Opta Rating":     st.column_config.NumberColumn("Opta Rating", format="%.1f", width="small"),
-        "Odds Adjustment": st.column_config.NumberColumn("Odds Adjustment", format="%+.1f", width="small"),
-        "Power Rating":    st.column_config.NumberColumn("Power Rating", format="%.1f", width="small"),
-    },
-    use_container_width=True,
-    hide_index=True,
-    height=600,
-)
+with tab_overall:
+    _render_table(_df, "club_power_overall", DROPDOWN_ORDER)
+
+with tab_non_top5:
+    st.caption("Every ranked club except those from the Top 5 leagues (England, Spain, Germany, Italy, France).")
+    _non_top5_df = _df[~_df["tracked_league"].str.endswith(_TOP5_LABELS)]
+    _non_top5_leagues = [n for n in DROPDOWN_ORDER if n not in TOP5_LEAGUES]
+    _render_table(_non_top5_df, "club_power_non_top5", _non_top5_leagues)
