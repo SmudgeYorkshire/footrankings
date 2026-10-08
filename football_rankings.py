@@ -1551,15 +1551,22 @@ def main_content():
                     st.markdown("#### 🏆 Championship Group")
                     if _pf_note:
                         st.caption(_pf_note)
-                    _render_table(_table_rows(_sorted_st[:_nc], zones=_spot_zones))
+                    # zones=_champ_zones (not _spot_zones): split leagues' "regular" phase
+                    # labels are pure group-assignment placeholders ("Championship Group"
+                    # etc, see league_status.py's own docstring), so _spot_zones -- derived
+                    # by filtering THOSE labels for European-spot keywords -- comes back
+                    # empty here. The real per-position European-spot labels live in the
+                    # "champ"/"mid"/"relg" phases instead, same source the post-split table
+                    # above (split_info branch) and Predictions tab already use correctly.
+                    _render_table(_table_rows(_sorted_st[:_nc], zones=_champ_zones))
 
                     if _nm:
                         st.markdown(f"#### 🔵 {_mid_label}")
-                        _render_table(_table_rows(_sorted_st[_nc:_nc + _nm], zones=_spot_zones))
+                        _render_table(_table_rows(_sorted_st[_nc:_nc + _nm], zones=_mid_zones, relative_zones=True))
 
                     if not cfg.get("champ_only"):
                         st.markdown("#### ⚠️ Relegation Group")
-                        _render_table(_table_rows(_sorted_st[_nc + _nm:], zones=_spot_zones))
+                        _render_table(_table_rows(_sorted_st[_nc + _nm:], zones=_relg_zones, relative_zones=True))
 
         if split_info:
             tbs = cfg.get("tiebreakers", ["gd", "gf"])[:8]
@@ -1840,7 +1847,7 @@ def main_content():
                                     )
                                 st.session_state["po_sims"][_po_c] = _po_probs
                             render_prob_table(st.session_state["po_sims"][_po_c], badge_lookup,
-                                              status_map=_main_zones,
+                                              status_map=_champ_zones,
                                               title="Championship play-off finish probabilities")
 
                         if _nm:
@@ -1864,6 +1871,7 @@ def main_content():
                                         )
                                     st.session_state["po_sims"][_po_m] = _po_probs
                                 render_prob_table(st.session_state["po_sims"][_po_m], badge_lookup,
+                                                  status_map=_mid_zones,
                                                   title="Middle group finish probabilities")
 
                         if p_relg is not None:
