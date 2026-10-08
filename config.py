@@ -342,6 +342,10 @@ LEAGUES = {
                                          "the UEL – QR1 spot is projected to pass to the 2nd-placed team."
                                      ),
                                      "team_status_overrides": {"Hapoel Beer Sheva": "UEL - QR2*"},
+                                     # Ironi Tiberias docked 6pts this season (on top of 8pts already
+                                     # deducted last season) over the dual-contracts scandal. Confirmed
+                                     # via Wikipedia's 2026/27 Israeli Premier League table footnote.
+                                     "points_deductions": {"Ironi Tiberias": -6},
                                      "split_round": 26, "n_champ": 6, "pts_factor": 1.0},
     "Kazakhstan Premier League":    {"id": 389, "provider": "api_football", "tsdb_id": 4649, "af_season": 2026, "cup_id": 498, "country": "Kazakhstan",  "flag": "🇰🇿", "season_type": "summer",
                                      "season_end": "1 November 2026",
