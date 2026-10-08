@@ -1,13 +1,10 @@
 team,adjustment
 Ekibastuz,-10.0
-Aston Villa,10.0
 Khan Tengri,8.36
 Be1 NFA,-8.09
 Roda,6.49
 Turan Turkistan,-6.23
-Newcastle United,-5.87
 Jong PSV U21,-5.79
-Brentford,-5.63
 Dainava,5.56
 FC Aarau,5.05
 De Graafschap,4.98
@@ -21,7 +18,6 @@ Jong Ajax,-3.72
 Jong Utrecht,-3.59
 Stade Nyonnais,-3.49
 Vanspor FK,-3.49
-Coventry City,-3.47
 Pogoń Siedlce,-3.46
 Barcelona,3.35
 Helmond Sport,3.34
@@ -54,13 +50,13 @@ Rapid,2.23
 Cagliari,-2.23
 Nõmme United II,2.19
 FC WIL 1900,-2.18
-Chelsea,2.18
 Akademiya Ontustik,2.17
 Waalwijk,-2.14
 Mariehamn,2.13
+Hull City,-2.09
+Chelsea,2.07
 Ilves,-2.06
 CSA Steaua Bucureşti,-2.04
-Hull City,-2.03
 NAC Breda,-1.98
 Arsenal Tivat,-1.91
 Finn Harps,1.87
@@ -81,13 +77,12 @@ Prostějov,1.69
 Valencia,-1.69
 Falkenbergs FF,-1.63
 Krasnodar,-1.6
-Fulham,1.6
 FK Neftekhimik,-1.58
+Manchester United,1.57
 Rostov,-1.53
 Beşiktaş,1.53
-Liverpool,-1.52
+Fulham,1.53
 Reims,-1.5
-Manchester United,1.48
 Mallorca,1.46
 Ruthin Town,1.45
 Lecce,-1.45
@@ -104,6 +99,7 @@ Piast Gliwice,-1.4
 Opatija,-1.4
 IFK Norrkoping,-1.4
 Västerås,-1.38
+Tottenham Hotspur,1.37
 Burgos,-1.37
 Beveren,1.36
 Athlone Town,1.35
@@ -114,6 +110,7 @@ Llandudno,1.34
 Juve Stabia,-1.33
 Juventus,1.32
 Häcken,1.31
+Coventry City,-1.31
 Mika,1.3
 Glentoran,-1.3
 KuPS Akatemia,1.29
@@ -130,6 +127,7 @@ Varbergs BoIS FC,-1.22
 Saint Etienne,1.21
 Union Berlin,1.21
 Oulu,1.2
+Aston Villa,-1.2
 Gnistan,-1.19
 Rayo Vallecano,-1.19
 Sarıyer,-1.18
@@ -149,12 +147,13 @@ Borussia Dortmund,1.12
 Utrecht,-1.11
 Portadown,1.11
 Casa Pia,-1.11
+Manchester City,1.11
 Inter Turku II,1.1
 Charlton,-1.09
 Vålerenga,1.08
-Arsenal,1.08
 Pogoń Szczecin,-1.08
 Lokomotiv Moskva,-1.08
+Crystal Palace,-1.08
 Real Sociedad,1.07
 Paderborn,-1.07
 Celtic,1.07
@@ -167,7 +166,6 @@ Girona,-1.03
 Estrela,1.02
 Start,1.01
 LASK,1.01
-Crystal Palace,-1.01
 Lens,-1.0
 Rio Ave,-1.0
 Omonia Nicosia,1.0
@@ -181,17 +179,18 @@ Cesena,-0.98
 Rudeš,-0.97
 Táborsko,-0.97
 Hartberg,-0.97
+Arsenal,0.96
 HNK Gorica,0.96
 Widzew Łódź,0.96
 Dender,-0.96
 Orebro SK,0.96
 Hvidovre,-0.95
-Ipswich Town,-0.95
 Cobh Ramblers,-0.94
 Dynamo Dresden,0.94
 Aris,-0.94
 Lommel,-0.92
 Slavia Praha,-0.92
+Ipswich Town,-0.92
 Nordsjælland,0.91
 ADO Den Haag,0.91
 Raków Częstochowa,-0.9
@@ -207,6 +206,7 @@ GAIS,0.88
 Legia Warszawa,-0.88
 First Vienna,0.88
 Bala Town,0.88
+Liverpool,0.88
 Strasbourg,-0.87
 Stuttgart,0.87
 Kalamata,0.87
@@ -218,6 +218,7 @@ Guingamp,-0.83
 Orenburg,-0.83
 Villarreal,0.83
 Barry Town United,-0.83
+Brentford,0.83
 AD Ceuta FC,-0.83
 Lech Poznań,0.81
 FC BW Linz,0.81
@@ -253,7 +254,6 @@ Karvan,-0.72
 Akhmat Grozny,-0.72
 Elche,-0.72
 VfL Bochum,-0.72
-Tottenham Hotspur,0.72
 St.Gallen,-0.72
 Ümraniyespor,0.71
 Ried,0.71
@@ -333,7 +333,6 @@ Waterford,0.49
 Mjällby,0.49
 Spartak Kostroma,0.49
 SJK,0.48
-Manchester City,0.48
 FC Andorra,0.48
 Drogheda United,-0.47
 AZ,0.47
@@ -371,6 +370,7 @@ Telstar,-0.38
 Cambuur,0.38
 Opava,0.38
 Osasuna,0.38
+Nottingham Forest,-0.38
 Servette,0.38
 Zürich,0.38
 Sligo Rovers,-0.37
@@ -394,6 +394,7 @@ Samsunspor,-0.34
 Padova,0.34
 Sandefjord,-0.33
 Austria Lustenau,-0.33
+Sunderland,-0.33
 Roma,0.33
 Derry City,-0.32
 Ararat-Armenia II,0.32
@@ -401,7 +402,6 @@ Tromsø,-0.32
 Silkeborg,0.32
 Elversberg,0.32
 Holywell Town,0.32
-Nottingham Forest,-0.32
 Angers SCO,0.31
 FC Winterthur,-0.31
 Stoke City,0.31
@@ -426,16 +426,17 @@ Korona Kielce,0.27
 Fratria,-0.27
 Eintracht Braunschweig,0.27
 Wolfsberger AC,0.27
+Newcastle United,0.27
 KuPS,0.26
 St Patrick's Athletic,-0.26
 Malmö FF,0.26
 Gaziantep FK,-0.26
 Arezzo,-0.26
 Catanzaro,-0.26
-Sunderland,-0.26
 Sabadell,0.26
 Lorient,-0.25
 Vihren,-0.25
+Leeds United,-0.25
 Como,-0.25
 UCD,0.24
 OB,0.24
@@ -456,7 +457,6 @@ Sporting Charleroi,-0.22
 Dinamo Makhachkala,-0.22
 Freiburg,-0.22
 Vitória Guimarães,0.22
-Leeds United,-0.22
 Bologna,0.22
 Almeria,-0.22
 Midtjylland,-0.21
@@ -484,6 +484,7 @@ Brest,0.16
 Briton Ferry,0.16
 Amed,-0.16
 Sivasspor,0.16
+Bournemouth,-0.16
 Shamrock Rovers,-0.15
 Genk,0.15
 Hamburger SV,-0.15
@@ -500,3 +501,4 @@ CFR Cluj,-0.11
 Almere City FC,-0.11
 Alverca,-0.11
 Sampdoria,-0.11
+Everton,-0.11
