@@ -69,6 +69,8 @@ finals.
 Last updated: 2026-10-05
 """
 
+import functools
+
 ACCESS_LIST_2027_28 = {
     "Champions League": [
         {"country": 'Italy', "league": 'Italian Serie A', "code": 'CH', "route": 'League champion', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)'},
@@ -353,3 +355,77 @@ STAGE_ORDER_2027_28 = [
     "Play-off round",
     "League Phase (direct)",
 ]
+
+
+# ---------------------------------------------------------------------------
+# Connecting this access list to league_status.py's current-season Status
+# column, per explicit instruction (2026-10-09): ACCESS_LIST_2027_28 is the
+# single source of truth for which European competition/round a league
+# position or cup winner leads to, for BOTH "what does this season's Status
+# column show" and "what does 2027/28 Projected Entries show" -- a league's
+# Status labels are derived from here, not independently hand-kept, so
+# editing a country's entry above is the one place that needs to change for
+# both to move together automatically.
+#
+# Deliberately literal: Russia's own entries use their nominal, undisturbed
+# label (e.g. "CL-Q1") exactly as this file already stores it -- the
+# suspension's real-world redistribution is already baked into the OTHER
+# affected countries' promoted labels (see this module's own docstring), not
+# applied a second time here. No separate suspension handling needed.
+# ---------------------------------------------------------------------------
+
+_STATUS_LABEL = {
+    ("CL", "LS"): "UCL - LS", ("CL", "PO"): "UCL - PO",
+    ("CL", "Q1"): "UCL - QR1", ("CL", "Q2"): "UCL - QR2", ("CL", "Q3"): "UCL - QR3",
+    ("EL", "LS"): "UEL - LS", ("EL", "PO"): "UEL - PO",
+    ("EL", "Q1"): "UEL - QR1", ("EL", "Q2"): "UEL - QR2", ("EL", "Q3"): "UEL - QR3",
+    ("CO", "LS"): "UECL - LS", ("CO", "PO"): "UECL - PO",
+    ("CO", "Q1"): "UECL - QR1", ("CO", "Q2"): "UECL - QR2", ("CO", "Q3"): "UECL - QR3",
+}
+
+_POSITION_CODE = {1: "CH", 2: "N2", 3: "N3", 4: "N4", 5: "N5", 6: "N6", 7: "N7"}
+
+
+def label_to_status(label: str) -> str:
+    """Convert an access-list `label` (e.g. "CL-Q2nc") into this site's
+    display Status string (e.g. "UCL - QR2 (LP)"). The "nc" suffix (League
+    Path, Champions League only) becomes the existing "(LP)" display
+    convention league_status.py already used before this connection."""
+    is_lp = label.endswith("nc")
+    base = label[:-2] if is_lp else label
+    comp, rnd = base.split("-", 1)
+    status = _STATUS_LABEL[(comp, rnd)]
+    return f"{status} (LP)" if is_lp else status
+
+
+@functools.lru_cache(maxsize=1)
+def _access_by_country() -> dict[str, dict[str, str]]:
+    """{country: {code: label}} flattened across all three competitions --
+    cached since ACCESS_LIST_2027_28 is static module data."""
+    by_country: dict[str, dict[str, str]] = {}
+    for entries in ACCESS_LIST_2027_28.values():
+        for e in entries:
+            by_country.setdefault(e["country"], {})[e["code"]] = e["label"]
+    return by_country
+
+
+def european_status_zones(country: str) -> dict[int, str]:
+    """{league position: Status label} for this country's 2027/28-access-
+    list-derived European qualification (CH/N2.../N7 only -- CW is
+    position-independent, see cup_winner_status). Empty for a country with
+    no access-list entries at this position (e.g. no N5+ slot)."""
+    access = _access_by_country().get(country, {})
+    return {
+        pos: label_to_status(access[code])
+        for pos, code in _POSITION_CODE.items() if code in access
+    }
+
+
+def cup_winner_status(country: str) -> str | None:
+    """This country's cup-winner Status label (e.g. "UEL - QR1"), or None
+    if it has no CW entry in the access list. Which TEAM currently holds
+    it is a separate, season-specific question (predicted cup winner,
+    cascaded if they already occupy a league-position spot) --
+    config.py's own team_status_overrides, same as before."""
+    label = _access_by_country().get(country, {}).get("CW")
+    return label_to_status(label) if label else None
