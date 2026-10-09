@@ -1650,6 +1650,7 @@ def main_content():
                     render_prob_table(probs_champ, badge_lookup, champ_exp_pts,
                                       status_map=_champ_zones)
                     render_zone_table(probs_champ, split_info["champ_current"], cfg.get("zones"))
+                    render_title_probability_history(ratings_id)
                 if split_info.get("mid_teams") and probs_mid is not None and not probs_mid.empty:
                     st.markdown(f"### 🔵 {_mid_label}")
                     st.markdown(_conf_progress_html(
