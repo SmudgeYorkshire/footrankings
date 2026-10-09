@@ -248,8 +248,11 @@ LEAGUES = {
                                      "season_end": "1 November 2026",
                                      "tiebreakers": ["gd", "gf"],
                                      "home_advantage": 1.22,
-                                     "european_spots": {1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR1"},
-                                     "cup_details": "Cup winner will enter 2027/28 European competitions."},
+                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UECL - QR1"},
+                                     "team_status_note": "*Bohemians are predicted to win the 2026/27 FAI Cup, "
+                                                          "qualifying for the UEL – QR1. The league's own 2nd-placed "
+                                                          "team qualifies for the UECL – QR2 instead.",
+                                     "team_status_overrides": {"Bohemians": "UEL - QR1*"}},
     "Israeli Premier League":       {"id": 383, "provider": "api_football", "tsdb_id": 4644, "af_season": 2026, "cup_id": 384, "country": "Israel",      "flag": "🇮🇱", "season_type": "winter",
                                      "tiebreakers": ["gd", "wins", "gf", "h2h_pts", "h2h_gd", "h2h_gf", "playoffs"],
                                      "home_advantage": 1.05,

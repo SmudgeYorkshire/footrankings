@@ -132,7 +132,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "Irish Premier Division": {"regular": {
-        1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR1",
+        1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UECL - QR1",
     }},
 
     "Kazakhstan Premier League": {"regular": {
