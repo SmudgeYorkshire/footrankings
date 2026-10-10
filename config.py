@@ -237,7 +237,16 @@ LEAGUES = {
                                                           "qualifying for the UECL – QR1 (they currently sit outside "
                                                           "the automatic European positions in the league).",
                                      "team_status_overrides": {"Dila": "UECL - QR1*"}},
-    "Gibraltarian National League": {"id": 758, "provider": "api_football", "tsdb_id": 4964, "af_season": 2025, "cup_id": 837, "country": "Gibraltar",   "flag": "🇬🇮", "season_type": "winter",
+    "Gibraltarian National League": {"id": 758, "provider": "api_football", "tsdb_id": 4964, "af_season": 2026, "cup_id": 837, "country": "Gibraltar",   "flag": "🇬🇮", "season_type": "winter",
+                                     # Same off-by-one as Norway's NM Cupen (see that league's own
+                                     # comment): API-Football files the Rock Cup under the calendar
+                                     # year it's actually played in (Jan-Mar), one ahead of the
+                                     # league's own af_season (Aug-start). Querying cup_id 837 with
+                                     # af_season (2026) returns last cycle's complete Jan-Mar 2026
+                                     # cup (11 played, 0 remaining); 2027 is the real in-progress one
+                                     # once API-Football populates it (empty as of 2026-10-10, too
+                                     # early in the season for the draw to exist yet).
+                                     "cup_af_seasons": {837: 2027},
                                      "season_end": "25 April 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
                                      "home_advantage": 1.00,
@@ -472,7 +481,7 @@ LEAGUES = {
                                                           "in the league).",
                                      "team_status_overrides": {"Zenit": "UEL - QR1*"},
                                      },
-    "San-Marino Campionato":        {"id": 404, "provider": "api_football", "tsdb_id": 4667, "af_season": 2025, "cup_id": 729, "country": "San Marino",  "flag": "🇸🇲", "season_type": "winter",
+    "San-Marino Campionato":        {"id": 404, "provider": "api_football", "tsdb_id": 4667, "af_season": 2026, "cup_id": 729, "country": "San Marino",  "flag": "🇸🇲", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"],
                                      "home_advantage": 0.97,
                                      "european_spots": {1: "UCL - QR1", 4: "UECL - QR1",

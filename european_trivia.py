@@ -64,17 +64,19 @@ def _sweep_all_leagues(api_key: str) -> tuple[list[dict], list[str], str]:
 def _build_table(rows: list[dict]) -> pd.DataFrame:
     return pd.DataFrame([
         {
+            "No.": i,
             "Badge": r["badge"],
             "Club": r["team"],
             "League": f"{r['flag']} {r['league']}",
             "P": r["P"],
             "Record (W-D-L)": f"{r['W']}-{r['D']}-{r['L']}",
         }
-        for r in rows
+        for i, r in enumerate(rows, start=1)
     ])
 
 
 _COL_CFG = {
+    "No.":    st.column_config.NumberColumn("No.", width="small"),
     "Badge":  st.column_config.ImageColumn("", width="small"),
     "Club":   st.column_config.TextColumn("Club", width="medium"),
     "League": st.column_config.TextColumn("League", width="medium"),
@@ -84,13 +86,13 @@ _COL_CFG = {
 
 
 def _render_section(title: str, rows: list[dict], empty_msg: str) -> None:
-    st.markdown(f"#### {title}")
+    st.markdown(f"#### {title} ({len(rows)})")
     if not rows:
         st.caption(empty_msg)
         return
     df = _build_table(rows)
     st.dataframe(df, column_config=_COL_CFG, hide_index=True,
-                 use_container_width=True, height=min(len(df), 10) * 35 + 38)
+                 width="content", height=min(len(df), 10) * 35 + 38)
 
 
 def render_european_trivia() -> None:
