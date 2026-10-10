@@ -691,7 +691,7 @@ with entries_tab:
             ]
             _seed_and_sort(rows)
             df = pd.DataFrame(_number_rows(rows))
-            st.dataframe(df, column_config=_ENTRIES_COLUMN_CONFIG, use_container_width=True, hide_index=True,
+            st.dataframe(df, column_config=_ENTRIES_COLUMN_CONFIG, width="content", hide_index=True,
                          height=len(df) * 35 + 38)
             continue
 
@@ -725,7 +725,7 @@ with entries_tab:
             ]
             _seed_and_sort(rows)
             df = pd.DataFrame(_number_rows(rows))
-            st.dataframe(df, column_config=_ENTRIES_COLUMN_CONFIG, use_container_width=True, hide_index=True,
+            st.dataframe(df, column_config=_ENTRIES_COLUMN_CONFIG, width="content", hide_index=True,
                          height=len(df) * 35 + 38)
 
     st.divider()
@@ -852,7 +852,7 @@ with league_stage_tab:
             "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
             "Route": st.column_config.TextColumn("Route", width="medium"),
         },
-        use_container_width=True, hide_index=True, height=len(stage_df) * 35 + 38,
+        width="content", hide_index=True, height=len(stage_df) * 35 + 38,
     )
 
     st.divider()
@@ -873,5 +873,5 @@ with league_stage_tab:
             "Country": st.column_config.TextColumn("Country", width="medium"),
             "Clubs": st.column_config.NumberColumn("Clubs", width="small"),
         },
-        use_container_width=True, hide_index=True, height=len(count_df) * 35 + 38,
+        width="content", hide_index=True, height=len(count_df) * 35 + 38,
     )

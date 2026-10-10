@@ -103,7 +103,7 @@ def render_zone_table(probs: pd.DataFrame, standings: list[dict] = None, zone_ov
             cols = [p for p in pos_strs if p in probs.columns]
             row[zone_name] = f"{probs.loc[team, cols].sum():.1%}" if cols else "—"
         rows.append(row)
-    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(rows), width="content", hide_index=True)
 
 
 def _green_col(s: pd.Series) -> list[str]:
@@ -157,7 +157,7 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None, expected_p
         "xPts":  st.column_config.NumberColumn("xPts", format="%.1f", width="small"),
     }
     st.markdown("#### Season finish probabilities *(click any column header to sort)*")
-    st.dataframe(styled, column_config=col_cfg, use_container_width=True,
+    st.dataframe(styled, column_config=col_cfg, width="content",
                  height=len(probs) * 35 + 42)
 
 
@@ -318,24 +318,24 @@ with tab_table:
         st.markdown("### Championship Conference")
         champ_rows = _admin_table_rows(split_info["champ_current"])
         st.dataframe(pd.DataFrame(champ_rows), column_config=_admin_col_cfg,
-                     use_container_width=True, hide_index=True,
+                     width="content", hide_index=True,
                      height=_df_height(len(champ_rows)))
         st.markdown("### Relegation Conference")
         relg_rows = _admin_table_rows(split_info["relg_current"])
         st.dataframe(pd.DataFrame(relg_rows), column_config=_admin_col_cfg,
-                     use_container_width=True, hide_index=True,
+                     width="content", hide_index=True,
                      height=_df_height(len(relg_rows)))
         with st.expander("Regular Season Final Table"):
             pre_rows = _admin_table_rows(split_info["pre_split"])
             st.dataframe(pd.DataFrame(pre_rows), column_config=_admin_col_cfg,
-                         use_container_width=True, hide_index=True,
+                         width="content", hide_index=True,
                          height=_df_height(len(pre_rows)))
     else:
         all_rows = _admin_table_rows(standings)
         st.dataframe(
             pd.DataFrame(all_rows),
             column_config=_admin_col_cfg,
-            use_container_width=True,
+            width="content",
             hide_index=True,
             height=_df_height(len(all_rows)),
         )
@@ -503,7 +503,7 @@ with tab_ratings:
                 "Opta Rating ★", min_value=0.0, max_value=100.0, step=0.1, format="%.1f"
             ),
         },
-        use_container_width=True,
+        width="content",
         hide_index=True,
         num_rows="fixed",
     )
@@ -545,7 +545,7 @@ with tab_users:
         }
         for uname, udata in users.items()
     ]
-    st.dataframe(pd.DataFrame(user_rows), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(user_rows), width="content", hide_index=True)
 
     st.divider()
     st.markdown(

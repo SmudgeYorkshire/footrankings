@@ -189,7 +189,7 @@ _col_cfg = {
              "of being fully out.",
     ),
 }
-st.dataframe(_df, column_config=_col_cfg, use_container_width=True,
+st.dataframe(_df, column_config=_col_cfg, width="content",
              hide_index=True, height=len(_df) * 35 + 38)
 st.caption(
     "22/23–25/26: frozen snapshot from kassiesa.net (2026-08-11). "
@@ -242,7 +242,7 @@ st.dataframe(
         "26/27": st.column_config.NumberColumn("2026/27 points", format="%.3f", width="small"),
         "Clubs": st.column_config.TextColumn("Clubs", width="small"),
     },
-    use_container_width=True, hide_index=True, height=len(_race_df) * 35 + 38,
+    width="content", hide_index=True, height=len(_race_df) * 35 + 38,
 )
 if len(_race_df) >= 2:
     _gold, _silver = _race_df.iloc[0], _race_df.iloc[1]
@@ -313,7 +313,7 @@ st.dataframe(
         "Top 15": st.column_config.NumberColumn("Top 15", format="%.1f%%", width="small"),
         "Top 20": st.column_config.NumberColumn("Top 20", format="%.1f%%", width="small"),
     },
-    use_container_width=True, hide_index=True, height=len(_pred_df) * 35 + 38,
+    width="content", hide_index=True, height=len(_pred_df) * 35 + 38,
 )
 st.caption(
     "\"Predicted rank\" is the average finishing position (in the *5-season* ranking, not "
@@ -364,7 +364,7 @@ st.dataframe(
         "Top 1": st.column_config.NumberColumn("Top 1", format="%.1f%%", width="small"),
         "Top 2": st.column_config.NumberColumn("Top 2", format="%.1f%%", width="small"),
     },
-    use_container_width=True, hide_index=True, height=len(_eps_pred_df) * 35 + 38,
+    width="content", hide_index=True, height=len(_eps_pred_df) * 35 + 38,
 )
 if len(_eps_pred_df) >= 2:
     _pred_gold, _pred_silver = _eps_pred_df.iloc[0], _eps_pred_df.iloc[1]
@@ -615,7 +615,7 @@ else:
             "Clubs lost": st.column_config.NumberColumn("Clubs lost", width="small"),
             "Eliminated": st.column_config.TextColumn("Eliminated", width="large"),
         },
-        use_container_width=True, hide_index=True, height=len(_elim_df) * 35 + 38,
+        width="content", hide_index=True, height=len(_elim_df) * 35 + 38,
     )
     st.caption("Conference League eliminations only — see the note above on why.")
 
@@ -665,7 +665,7 @@ else:
             "Clubs entered": st.column_config.NumberColumn("Clubs entered", width="small"),
             "Eliminated this week": st.column_config.TextColumn("Eliminated this week", width="large"),
         },
-        use_container_width=True, hide_index=True, height=len(_nations_out_df) * 35 + 38,
+        width="content", hide_index=True, height=len(_nations_out_df) * 35 + 38,
     )
     st.caption(
         "Nations that had at least one club still active going into this week, and now "

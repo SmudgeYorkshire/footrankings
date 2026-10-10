@@ -132,7 +132,7 @@ def _render_table(standings: list[dict], height: int, league_name: str) -> None:
             "Team": st.column_config.TextColumn("Team", width="medium"),
             "Status": st.column_config.TextColumn("Status", width="large"),
         },
-        use_container_width=True, hide_index=True, height=height,
+        width="content", hide_index=True, height=height,
     )
 
 
@@ -159,7 +159,7 @@ def _render_fixtures(played: list[dict], remaining: list[dict], height: int) -> 
             "HB": st.column_config.ImageColumn("", width="small"),
             "AB": st.column_config.ImageColumn("", width="small"),
         },
-        use_container_width=True, hide_index=True, height=height,
+        width="content", hide_index=True, height=height,
     )
 
 
@@ -195,7 +195,7 @@ def _render_match_odds(teams: list[str], played: list[dict], remaining: list[dic
             "Draw %": st.column_config.NumberColumn("Draw %", format="%.1f%%", width="small"),
             "Away %": st.column_config.NumberColumn("Away %", format="%.1f%%", width="small"),
         },
-        use_container_width=True, hide_index=True, height=height,
+        width="content", hide_index=True, height=height,
     )
 
 
@@ -240,7 +240,7 @@ def _render_predictions(
     )
 
     st.dataframe(
-        styled, column_config=col_cfg, use_container_width=True,
+        styled, column_config=col_cfg, width="content",
         hide_index=True, height=len(display_df) * 35 + 38,
     )
 
@@ -401,7 +401,7 @@ def _render_outcome_predictions(
     }
     for c in cols:
         col_cfg[c] = st.column_config.NumberColumn(display_overrides.get(c, c))
-    st.dataframe(styled, column_config=col_cfg, use_container_width=True, hide_index=True, height=len(df) * 35 + 38)
+    st.dataframe(styled, column_config=col_cfg, width="content", hide_index=True, height=len(df) * 35 + 38)
 
 
 def _blank_third_fourth_reps(groups: dict[str, list[str]], position: int) -> list[dict]:
@@ -498,7 +498,7 @@ def _render_ranking_table(reps: list[dict], rule: tuple, pts_key: str = "Pts", b
         col_cfg["xPts"] = st.column_config.NumberColumn("xPts", format="%.1f")
 
     if blank:
-        st.dataframe(df, column_config=col_cfg, use_container_width=True, hide_index=True, height=len(df) * 35 + 38)
+        st.dataframe(df, column_config=col_cfg, width="content", hide_index=True, height=len(df) * 35 + 38)
         return
 
     def _row_style(row):
@@ -506,7 +506,7 @@ def _render_ranking_table(reps: list[dict], rule: tuple, pts_key: str = "Pts", b
         return [f"background-color: {'#fbdcdc' if pink else ''}" for _ in row]
 
     styled = df.style.apply(_row_style, axis=1).set_properties(subset=["Team"], **{"font-weight": "bold"})
-    st.dataframe(styled, column_config=col_cfg, use_container_width=True, hide_index=True, height=len(df) * 35 + 38)
+    st.dataframe(styled, column_config=col_cfg, width="content", hide_index=True, height=len(df) * 35 + 38)
 
 
 def _group_states_from(groups: dict[str, list[str]], standings_by_group: dict[str, list[dict]],
@@ -566,7 +566,7 @@ def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict]
             "AB": st.column_config.ImageColumn("", width="small"),
         },
         disabled=["Date", "HB", "Home", "Away", "AB"],
-        use_container_width=True, hide_index=True, height=height, key=editor_key,
+        width="content", hide_index=True, height=height, key=editor_key,
     )
 
     filled_mask = edited_df[["HG", "AG"]].notna().all(axis=1)
@@ -866,7 +866,7 @@ for league_tab, league_name in zip(league_tabs, league_names):
                 for col in detail_cert_cols:
                     detail_col_cfg[col] = st.column_config.NumberColumn(col)
                 st.dataframe(
-                    detail_styled, column_config=detail_col_cfg, use_container_width=True,
+                    detail_styled, column_config=detail_col_cfg, width="content",
                     hide_index=True, height=len(detail_df) * 35 + 38,
                 )
 
@@ -892,7 +892,7 @@ with knockout_chances_tab:
           "1st leg": "25–27 Mar", "2nd leg": "28–30 Mar"}
          for _ in range(4)]
     )
-    st.dataframe(qf_format_df, hide_index=True, use_container_width=True, height=len(qf_format_df) * 35 + 38)
+    st.dataframe(qf_format_df, hide_index=True, width="content", height=len(qf_format_df) * 35 + 38)
 
     st.divider()
     st.markdown("##### Projected Quarterfinals Entries")
@@ -921,7 +921,7 @@ with knockout_chances_tab:
             "Role": st.column_config.TextColumn("Role", width="small"),
             "Chance to prevail": st.column_config.NumberColumn("Chance to prevail", format="%.1f%%", width="small"),
         },
-        use_container_width=True, hide_index=True, height=len(qf_entries_df) * 35 + 38,
+        width="content", hide_index=True, height=len(qf_entries_df) * 35 + 38,
     )
 
     st.divider()
@@ -970,7 +970,7 @@ with knockout_chances_tab:
         "Winner": st.column_config.NumberColumn("Winner", width="small"),
     }
     st.dataframe(
-        ko_styled, column_config=ko_col_cfg, use_container_width=True,
+        ko_styled, column_config=ko_col_cfg, width="content",
         hide_index=True, height=len(ko_df) * 35 + 38,
     )
 
@@ -988,7 +988,7 @@ with promo_releg_tab:
             [{"Team 1": team1_label, "Agg.": "", "Team 2": team2_label, "1st leg": "25–27 Mar", "2nd leg": "28–30 Mar"}
              for _ in range(4)]
         )
-        st.dataframe(df, hide_index=True, use_container_width=True, height=len(df) * 35 + 38)
+        st.dataframe(df, hide_index=True, width="content", height=len(df) * 35 + 38)
 
     st.markdown("##### League A vs League B")
     _bracket_table("League A third place/fourth place", "League B runner-up")
@@ -1047,7 +1047,7 @@ with promo_releg_tab:
                 "Pool": st.column_config.TextColumn("Pool", width="medium"),
                 "Chance to prevail": st.column_config.NumberColumn("Chance to prevail", format="%.1f%%", width="small"),
             },
-            use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
+            width="content", hide_index=True, height=len(df) * 35 + 38,
         )
 
     st.markdown("###### League A vs League B")
@@ -1088,7 +1088,7 @@ with promo_releg_tab:
                     "Team": st.column_config.TextColumn("Team", width="medium"),
                     "Chance": st.column_config.NumberColumn("Chance"),
                 },
-                use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
+                width="content", hide_index=True, height=len(df) * 35 + 38,
             )
 
     a_cert = {t: c.get("Relegation Play-offs") for t, c in all_league_certainty.get("League A", {}).items()}
@@ -1169,5 +1169,5 @@ with projections_2028_tab:
                 "Team": st.column_config.TextColumn("Team", width="medium"),
                 "Source": st.column_config.TextColumn("How they got there", width="large"),
             },
-            use_container_width=True, hide_index=True, height=len(df) * 35 + 38,
+            width="content", hide_index=True, height=len(df) * 35 + 38,
         )

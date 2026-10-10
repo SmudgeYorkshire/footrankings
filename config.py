@@ -42,10 +42,8 @@ LEAGUES = {
                                      "home_advantage": 1.17,
                                      "european_spots": {1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - QR3 (LP)", 5: "UEL - LS", 6: "UECL - PO"},
                                      "zone_notes": {"relegation - po": "16th plays a two-legged play-off against the winner of the Ligue 2 play-offs (3rd–5th placed teams). Away goals do not apply; extra time and penalties if level after two legs."},
-                                     "team_status_note": "*Paris Saint Germain are predicted to win the 2026/27 Coupe "
-                                                          "de France, qualifying for the UEL – LS (better than their "
-                                                          "own 6th-placed league entitlement, UECL – PO).",
-                                     "team_status_overrides": {"Paris Saint Germain": "UEL - LS*"},
+
+
                                      },
     # ── Rest (alphabetical) ──────────────────────────────────────────────────
     "Albanian Superliga":           {"id": 310, "provider": "api_football", "tsdb_id": 4617, "af_season": 2026, "cup_id": 707, "country": "Albania",     "flag": "🇦🇱", "season_type": "winter",
@@ -69,9 +67,7 @@ LEAGUES = {
                                      # 2nd in the regular season, heading into the Final Four itself -- this
                                      # doesn't yet account for who that tournament's own winner turns out to
                                      # be (1st in the Final Four -> UCL - QR1, better than this UECL - QR2).
-                                     "team_status_note": "*Egnatia (highest Opta Rating) are predicted to win "
-                                                          "the 2026/27 Albanian Cup, qualifying for the UECL – QR2.",
-                                     "team_status_overrides": {"Egnatia Rrogozhinë": "UECL - QR2*"},
+
                                      },
     "Andorran 1a Divisió":          {"id": 312, "provider": "api_football", "tsdb_id": 4618, "af_season": 2026, "cup_id": 655, "country": "Andorra",     "flag": "🇦🇩", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"],
@@ -86,7 +82,9 @@ LEAGUES = {
     "Armenian Premier League":      {"id": 342, "provider": "api_football", "tsdb_id": 4619, "af_season": 2026, "cup_id": 709, "country": "Armenia",     "flag": "🇦🇲", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "wins", "gd", "less_red_cards", "less_yellow_cards", "fair_play", "draw"],
                                      "home_advantage": 1.42,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"}},
+                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
+
+},
     "Austrian Bundesliga":          {"id": 218, "provider": "api_football", "tsdb_id": 4621, "af_season": 2026, "cup_id": 220, "country": "Austria",     "flag": "🇦🇹", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"],
                                      "home_advantage": 1.10,
@@ -95,20 +93,15 @@ LEAGUES = {
                                      "split_round": 22, "n_champ": 6, "pts_factor": 1.0,
                                      "uecl_playoff": True,
                                      "zone_notes": {"relegation": "Last-placed team in the Relegation Round plays a two-legged play-off against 2nd-placed team from 2. Liga. Home team in first leg is the lower-ranked club."},
-                                     "team_status_note": "*Red Bull Salzburg are predicted to win the 2026/27 "
-                                                          "Austrian Cup, qualifying for the UEL – QR1 (better than "
-                                                          "their own 2nd-placed league entitlement, UECL – QR2).",
-                                     "team_status_overrides": {"Red Bull Salzburg": "UEL - QR1*"},
+
+
                                      },
     "Azerbaijani Premier League":   {"id": 419, "provider": "api_football", "tsdb_id": 4693, "af_season": 2026, "cup_id": 420, "country": "Azerbaijan",  "flag": "🇦🇿", "season_type": "winter",
                                      "season_end": "24 May 2027",
                                      "tiebreakers": ["wins", "gd", "gf", "h2h_pts", "h2h_gd", "disciplinary", "draw"],
                                      "home_advantage": 1.00,
                                      "european_spots": {1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR1", 11: "Relegation - PO", 12: "Relegation"},
-                                     "team_status_note": "*Sabah FA are predicted to win the 2026/27 Azerbaijan Cup, "
-                                                          "qualifying for the UEL – QR1 (better than their own "
-                                                          "2nd-placed league entitlement, UECL – QR2).",
-                                     "team_status_overrides": {"Sabah FA": "UEL - QR1*"},
+
                                      },
     "Belarus Vyscha Liga":          {"id": 116, "provider": "api_football", "tsdb_id": 4622, "af_season": 2026, "cup_id": 486, "country": "Belarus",     "flag": "🇧🇾", "season_type": "summer",
                                      "season_end": "29 November 2026",
@@ -122,12 +115,16 @@ LEAGUES = {
                                      "home_advantage": 1.13,
                                      "european_spots": {1: "UCL - LS", 2: "UCL - QR3", 3: "UEL - QR2", 4: "UECL - QR2", 17: "Relegation", 18: "Relegation"},
                                      "cup_details": "2026/27 Belgian Cup winner qualifies for the UEL – PO.",
+
+
                                      },
     "Bosnian Premier Liga":         {"id": 315, "provider": "api_football", "tsdb_id": 4624, "af_season": 2026, "cup_id": 314, "country": "Bosnia",      "flag": "🇧🇦", "season_type": "winter",
                                      "season_end": "30 May 2027",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_away_gf", "h2h_gf", "playoffs"],
                                      "home_advantage": 1.47,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1", 9: "Relegation", 10: "Relegation"},
+
+
                                      },
     "Bulgarian First League":       {"id": 172, "provider": "api_football", "tsdb_id": 4626, "af_season": 2026, "cup_id": 174, "country": "Bulgaria",    "flag": "🇧🇬", "season_type": "winter",
                                      "season_end": "29 May 2027",
@@ -148,10 +145,8 @@ LEAGUES = {
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.25,
                                      "european_spots": {1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2", 10: "Relegation"},
-                                     "team_status_note": "*Dinamo Zagreb are predicted to win the 2026/27 Croatian "
-                                                          "Football Cup, qualifying for the UEL – QR1 (better than "
-                                                          "their own 3rd-placed league entitlement, UECL – QR2).",
-                                     "team_status_overrides": {"Dinamo Zagreb": "UEL - QR1*"},
+
+
                                      },
     "Czech First League":           {"id": 345, "provider": "api_football", "tsdb_id": 4631, "af_season": 2026, "cup_id": 347, "country": "Czech Rep.",  "flag": "🇨🇿", "season_type": "winter",
                                      "season_end": "29 May 2027",
@@ -160,16 +155,17 @@ LEAGUES = {
                                      "european_spots": {1: "UCL - LS", 2: "UCL - QR3 (LP)", 3: "UEL - QR2", 4: "UEL - PO", 5: "UECL - QR2"},
                                      "split_round": 30, "n_champ": 6, "n_mid": 6, "pts_factor": 1.0,
                                      "mid_label": "Middle Group",
-                                     "zone_notes": {"relegation": "16th is directly relegated. 14th and 15th play two-legged play-offs against 2nd and 3rd of Czech National Football League."}},
+                                     "zone_notes": {"relegation": "16th is directly relegated. 14th and 15th play two-legged play-offs against 2nd and 3rd of Czech National Football League."},
+
+},
     "Cypriot First Division":       {"id": 318, "provider": "api_football", "tsdb_id": 4630, "af_season": 2026, "cup_id": 321, "country": "Cyprus",      "flag": "🇨🇾", "season_type": "winter",
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.25,
                                      "european_spots": {1: "UCL - QR2", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UEL - QR2", 12: "Relegation", 13: "Relegation", 14: "Relegation"},
                                      "split_round": 26, "n_champ": 6, "pts_factor": 1.0,
-                                     "team_status_note": "*Omonia Nicosia are predicted to win the 2026/27 Cypriot Cup, "
-                                                          "qualifying for the UEL – QR3.",
-                                     "team_status_overrides": {"Omonia Nicosia": "UEL - QR3*"}},
+
+},
     "Danish Superliga":             {"id": 119, "provider": "api_football", "tsdb_id": 4340, "af_season": 2026, "cup_id": 121, "country": "Denmark",     "flag": "🇩🇰", "season_type": "winter",
                                      "season_end": "30 May 2027",
                                      "tiebreakers": ["gd", "gf", "away_gf", "playoffs", "draw"],
@@ -184,7 +180,9 @@ LEAGUES = {
                                          "away_label": "1st (Relegation Round / 7th overall)",
                                          "winner_spot": "UECL - QR3",
                                          "caption": "4th-placed team (Championship Round) hosts a one-legged tie against the 1st-placed team of the Relegation Round (7th overall). Winner qualifies for UECL – QR3.",
-                                     }},
+                                     },
+
+},
     "Dutch Eredivisie":             {"id": 88, "provider": "api_football", "tsdb_id": 4337, "af_season": 2026, "cup_id": 90, "country": "Netherlands", "flag": "🇳🇱", "season_type": "winter",
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["less_losses", "gd", "gf", "h2h_pts", "h2h_gd", "h2h_away_gf", "playoffs"],
@@ -192,10 +190,8 @@ LEAGUES = {
                                      "european_spots": {1: "UCL - LS", 2: "UCL - LS", 3: "UCL - QR3 (LP)", 4: "UEL - QR2",
                                                         5: "UECL - PO", 6: "UEL - LS", 7: "UECL - PO", 8: "UECL - PO", 9: "UECL - PO",
                                                         16: "Relegation - PO", 17: "Relegation", 18: "Relegation"},
-                                     "team_status_note": "*PSV Eindhoven are predicted to win the 2026/27 KNVB Cup, "
-                                                          "qualifying for the UEL – LS (better than their own "
-                                                          "3rd-placed league entitlement, UEL – QR2).",
-                                     "team_status_overrides": {"PSV Eindhoven": "UEL - LS*"},
+
+
                                      "uecl_4team_playoff": {
                                          "sf1_home": 5, "sf1_away": 9,
                                          "sf2_home": 7, "sf2_away": 8,
@@ -210,13 +206,16 @@ LEAGUES = {
                                      "tiebreakers": ["less_losses", "h2h_pts", "h2h_gd", "wins", "gd", "gf", "away_gf", "fair_play", "draw"],
                                      "home_advantage": 1.20,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1"},
-                                     "cup_details": "Cup winner will enter 2027/28 European competitions."},
+                                     "cup_details": "Cup winner will enter 2027/28 European competitions.",
+
+},
     "Faroe Islands Premier League": {"id": 367, "provider": "api_football", "tsdb_id": 4635, "af_season": 2026, "cup_id": 491, "country": "Faroe Isl.",  "flag": "🇫🇴", "season_type": "summer",
                                      "season_end": "25 October 2026",
                                      "tiebreakers": ["gd", "gf"],
                                      "home_advantage": 1.10,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1"},
-                                     "cup_details": "Cup winner will enter 2027/28 European competitions."},
+                                     "cup_details": "Cup winner will enter 2027/28 European competitions.",
+},
     "Finnish Veikkausliiga":        {"id": 244, "provider": "api_football", "tsdb_id": 4636, "af_season": 2026, "cup_id": 246, "country": "Finland",     "flag": "🇫🇮", "season_type": "summer",
                                      "season_end": "1 November 2026",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
@@ -225,7 +224,9 @@ LEAGUES = {
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1"},
                                      "split_round": 22, "n_champ": 6, "pts_factor": 1.0,
                                      "zone_notes": {"relegation": "11th is directly relegated. 12th plays two-legged play-off against a Ykkönen team. Higher-ranked club plays second leg at home."},
-                                     "cup_details": "Cup winner will enter 2027/28 European competitions."},
+                                     "cup_details": "Cup winner will enter 2027/28 European competitions.",
+
+},
     "Georgian Erovnuli Liga":       {"id": 327, "provider": "api_football", "tsdb_id": 4638, "af_season": 2026, "cup_id": 672, "country": "Georgia",     "flag": "🇬🇪", "season_type": "summer",
                                      "season_end": "6 December 2026",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"],
@@ -233,10 +234,8 @@ LEAGUES = {
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
                                                         8: "Relegation - PO", 9: "Relegation - PO", 10: "Relegation"},
                                      "zone_notes": {"relegation - po": "9th plays a two-legged play-off against the Erovnuli Liga 2 runner-up; 8th plays a two-legged play-off against the Erovnuli Liga 2 3rd-placed team."},
-                                     "team_status_note": "*Dila Gori are predicted to win the 2026/27 Georgian Cup, "
-                                                          "qualifying for the UECL – QR1 (they currently sit outside "
-                                                          "the automatic European positions in the league).",
-                                     "team_status_overrides": {"Dila": "UECL - QR1*"}},
+
+},
     "Gibraltarian National League": {"id": 758, "provider": "api_football", "tsdb_id": 4964, "af_season": 2026, "cup_id": 837, "country": "Gibraltar",   "flag": "🇬🇮", "season_type": "winter",
                                      # Same off-by-one as Norway's NM Cupen (see that league's own
                                      # comment): API-Football files the Rock Cup under the calendar
@@ -252,10 +251,8 @@ LEAGUES = {
                                      "home_advantage": 1.00,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
                                      "split_round": 22, "n_champ": 6, "pts_factor": 1.0, "champ_only": True,
-                                     "team_status_note": "*FCB Magpies are predicted to win the 2026/27 Gibraltar "
-                                                          "Rock Cup, qualifying for the UECL – QR1 (they currently "
-                                                          "sit outside the automatic European positions in the league).",
-                                     "team_status_overrides": {"Magpies": "UECL - QR1*"},
+
+
                                      },
     "Greek Super League 1":         {"id": 197, "provider": "api_football", "tsdb_id": 4336, "af_season": 2026, "cup_id": 199, "country": "Greece",      "flag": "🇬🇷", "season_type": "winter",
                                      "season_end": "23 May 2027",
@@ -271,10 +268,8 @@ LEAGUES = {
                                      # Kallithea relegated instead). Confirmed via Wikipedia's
                                      # 2026/27 Super League Greece table footnote.
                                      "points_deductions": {"Volos NFC": -3},
-                                     "team_status_note": "*AEK Athens are predicted to win the 2026/27 Greek "
-                                                          "Football Cup, qualifying for the UEL – PO (better than "
-                                                          "their own 3rd-placed Championship Round entitlement, UEL – QR2).",
-                                     "team_status_overrides": {"AEK Athens FC": "UEL - PO*"},
+
+
                                      },
     "Hungarian NB I":               {"id": 271, "provider": "api_football", "tsdb_id": 4690, "af_season": 2026, "cup_id": 273, "country": "Hungary",     "flag": "🇭🇺", "season_type": "winter",
                                      "season_end": "23 May 2027",
@@ -285,28 +280,20 @@ LEAGUES = {
                                      "zone_notes": {"relegation - po": "New for 2026-27: only 12th is directly relegated. 11th plays a single-match play-off, at a neutral venue, against the NB II runner-up."},
                                      # Keyed by the live provider's own name (strTeam), not the ratings "team"
                                      # column -- team_status_overrides matches against strTeam directly.
-                                     "team_status_note": "*Ferencváros are predicted to win the 2026/27 Magyar Kupa, "
-                                                          "qualifying for the UEL – QR1 (they currently sit outside "
-                                                          "the automatic European positions in the league).",
-                                     "team_status_overrides": {"Ferencvarosi TC": "UEL - QR1*"}},
+
+},
     "Icelandic Besta deild karla":  {"id": 164, "provider": "api_football", "tsdb_id": 4642, "af_season": 2026, "cup_id": 167, "country": "Iceland",     "flag": "🇮🇸", "season_type": "summer",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "playoffs", "draw"],
                                      "home_advantage": 1.40,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1"},
-                                     "team_status_note": "*Breiðablik won the 2026 Icelandic Cup (Final played "
-                                                          "11 September 2026), qualifying for the UEL – QR1. The "
-                                                          "league's own 2nd-placed team qualifies for the UECL – "
-                                                          "QR2, and 3rd-placed for the UECL – QR1.",
-                                     "team_status_overrides": {"Breidablik": "UEL - QR1*"}},
+},
     "Irish Premier Division":       {"id": 357, "provider": "api_football", "tsdb_id": 4643, "af_season": 2026, "cup_id": 359, "country": "Ireland",     "flag": "🇮🇪", "season_type": "summer",
                                      "season_end": "1 November 2026",
                                      "tiebreakers": ["gd", "gf"],
                                      "home_advantage": 1.22,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UECL - QR1"},
-                                     "team_status_note": "*Bohemians are predicted to win the 2026/27 FAI Cup, "
-                                                          "qualifying for the UEL – QR1. The league's own 2nd-placed "
-                                                          "team qualifies for the UECL – QR2 instead.",
-                                     "team_status_overrides": {"Bohemians": "UEL - QR1*"}},
+                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1"},
+
+},
     "Israeli Premier League":       {"id": 383, "provider": "api_football", "tsdb_id": 4644, "af_season": 2026, "cup_id": 384, "country": "Israel",      "flag": "🇮🇱", "season_type": "winter",
                                      "tiebreakers": ["gd", "wins", "gf", "h2h_pts", "h2h_gd", "h2h_gf", "playoffs"],
                                      "home_advantage": 1.05,
@@ -315,42 +302,43 @@ LEAGUES = {
                                      # deducted last season) over the dual-contracts scandal. Confirmed
                                      # via Wikipedia's 2026/27 Israeli Premier League table footnote.
                                      "points_deductions": {"Ironi Tiberias": -6},
-                                     "split_round": 26, "n_champ": 6, "pts_factor": 1.0},
+                                     "split_round": 26, "n_champ": 6, "pts_factor": 1.0,
+
+},
     "Kazakhstan Premier League":    {"id": 389, "provider": "api_football", "tsdb_id": 4649, "af_season": 2026, "cup_id": 498, "country": "Kazakhstan",  "flag": "🇰🇿", "season_type": "summer",
                                      "season_end": "1 November 2026",
                                      "tiebreakers": ["gd", "wins", "gf", "away_gf", "h2h_pts", "h2h_wins", "h2h_gd", "h2h_gf", "h2h_away_gf", "draw"],
                                      "home_advantage": 1.27,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1"},
-                                     "cup_details": "Cup winner will enter 2027/28 European competitions."},
+                                     "cup_details": "Cup winner will enter 2027/28 European competitions.",
+
+},
     "Kosovan Superleague":          {"id": 664, "provider": "api_football", "tsdb_id": 4968, "af_season": 2026, "cup_id": 665, "country": "Kosovo",      "flag": "🇽🇰", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.07,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
-                                     "team_status_note": "*Malisheva are predicted to win the 2026/27 Kosovar Cup, "
-                                                          "qualifying for the UECL – QR2 (better than their own "
-                                                          "2nd-placed league entitlement, UECL – QR1).",
-                                     "team_status_overrides": {"Malisheva": "UECL - QR2*"}},
+
+},
     "Latvian Higher League":        {"id": 365, "provider": "api_football", "tsdb_id": 4650, "af_season": 2026, "cup_id": 658, "country": "Latvia",      "flag": "🇱🇻", "season_type": "summer",
                                      "season_end": "8 November 2026",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "fair_play", "playoffs"],
                                      "home_advantage": 1.07,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
-                                     "team_status_note": "*Riga are predicted to win the 2026/27 Latvian Cup, "
-                                                          "qualifying for the UECL – QR2 (better than their own "
-                                                          "2nd-placed league entitlement, UECL – QR1).",
-                                     "team_status_overrides": {"Riga": "UECL - QR2*"}},
+},
     "Lithuanian TOPLYGA":           {"id": 362, "provider": "api_football", "tsdb_id": 4651, "af_season": 2026, "cup_id": 661, "country": "Lithuania",   "flag": "🇱🇹", "season_type": "summer",
                                      "season_end": "8 November 2026",
                                      "tiebreakers": ["playoffs_champion", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_wins", "gd", "gf", "wins", "fair_play", "draw"],
                                      "home_advantage": 1.17,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1"},
-                                     "cup_details": "Cup winner will enter 2027/28 European competitions."},
+                                     "cup_details": "Cup winner will enter 2027/28 European competitions.",
+
+},
     "Luxembourg National Division": {"id": 261, "provider": "api_football", "tsdb_id": 4694, "af_season": 2026, "cup_id": 721, "country": "Luxembourg",  "flag": "🇱🇺", "season_type": "winter",
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["gd", "wins", "h2h_pts", "h2h_gd", "h2h_gf", "playoffs"],
                                      "home_advantage": 1.20,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1"},
-                                     "team_status_overrides": {"FC Differdange 03": "UECL - QR1*"}},
+},
     "Macedonian First League":      {"id": 371, "provider": "api_football", "tsdb_id": 4652, "af_season": 2026, "cup_id": 756, "country": "N. Macedonia","flag": "🇲🇰", "season_type": "winter",
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_away_gf", "h2h_gf", "draw", "playoffs"],
@@ -367,7 +355,9 @@ LEAGUES = {
                                      "zone_notes": {
                                          "championship": "Opening Round (Rd 1–16) and Closing Round (Rd 17–32) each split into a top-6 Championship Group and bottom-6 Relegation Group. Points reset to zero between rounds.",
                                          "relegation": "Teams finishing 11th/12th across both rounds face relegation or a playoff depending on the scenario.",
-                                     }},
+                                     },
+
+},
     "Moldovan National Division":   {"id": 394, "provider": "api_football", "tsdb_id": 4655, "af_season": 2026, "cup_id": 674, "country": "Moldova",     "flag": "🇲🇩", "season_type": "winter",
                                      "season_end": "22 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "wins", "gd", "gf", "less_red_cards", "less_yellow_cards"],
@@ -382,17 +372,16 @@ LEAGUES = {
                                          "Bălți": 8, "Dacia Buiucani": 1,
                                      },
                                      "zone_notes": {"relegation": "7th and 8th are relegated directly to Liga 1, which promotes 2 clubs of its own (champion + a knockout-bracket winner) through a fully separate mechanism — no merged play-off with Liga 1 clubs."},
-                                     "team_status_overrides": {"Sheriff Tiraspol": "UCL - QR1*"}},
+
+},
     "Montenegrin First League":     {"id": 355, "provider": "api_football", "tsdb_id": 4656, "af_season": 2026, "cup_id": 723, "country": "Montenegro",  "flag": "🇲🇪", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "draw"],
                                      "home_advantage": 1.47,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
                                                         8: "Relegation - PO", 9: "Relegation - PO", 10: "Relegation"},
                                      "zone_notes": {"relegation - po": "8th and 9th play two-legged play-offs against 3rd and 2nd of the Second League. The First League side hosts the first leg; the Second League side hosts the decisive second leg."},
-                                     "team_status_note": "*Sutjeska are predicted to win the 2026/27 Montenegrin Cup, "
-                                                          "qualifying for the UECL – QR1 (they currently sit outside "
-                                                          "the automatic European positions in the league).",
-                                     "team_status_overrides": {"Sutjeska": "UECL - QR1*"}},
+
+},
     "Northern Irish Premiership":   {"id": 408, "provider": "api_football", "tsdb_id": 4659, "af_season": 2026, "cup_id": 757, "country": "N. Ireland",  "flag": "🇬🇧", "season_type": "winter",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "draw"],
                                      "home_advantage": 1.20,
@@ -409,6 +398,8 @@ LEAGUES = {
                                          "caption": ("4th-placed team hosts 7th in SF1; 5th-placed team hosts 6th in SF2 (one-legged ties). "
                                                      "Final hosted by the highest-ranked SF winner. Winner qualifies for UECL – QR1."),
                                      },
+
+
                                      "split_round": 33, "n_champ": 6, "pts_factor": 1.0},
     "Norwegian Eliteserien":        {"id": 103, "provider": "api_football", "tsdb_id": 4358, "af_season": 2026, "cup_id": 105, "country": "Norway",      "flag": "🇳🇴", "season_type": "summer",
                                      # API-Football files the current NM Cupen under season 2027,
@@ -425,24 +416,25 @@ LEAGUES = {
                                      "european_spots": {1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UEL - QR3", 4: "UECL - QR2", 5: "UECL - QR2",
                                                         14: "Relegation - PO", 15: "Relegation", 16: "Relegation"},
                                      "zone_notes": {"relegation - po": "14th plays two-legged play-off against 3rd of OBOS-ligaen. Away goals do not apply; the lower-tier (First Division) side hosts the decisive second leg."},
-                                     "cup_details": "Cup winner will enter 2027/28 European competitions."},
+
+},
     "Polish Ekstraklasa":           {"id": 106, "provider": "api_football", "tsdb_id": 4422, "af_season": 2026, "cup_id": 108, "country": "Poland",      "flag": "🇵🇱", "season_type": "winter",
                                      "season_end": "22 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "wins", "away_wins", "disciplinary", "fair_play", "draw"],
                                      "home_advantage": 1.33,
                                      "european_spots": {1: "UCL - QR2", 2: "UCL - QR2 (LP)", 3: "UECL - QR2", 4: "UECL - QR2", 5: "UEL - QR3",
                                                         16: "Relegation", 17: "Relegation", 18: "Relegation"},
-                                     "team_status_note": "*Lech Poznan are predicted to win the 2026/27 Polish Cup, "
-                                                          "qualifying for the UEL – PO (better than their own "
-                                                          "3rd-placed league entitlement, UEL – QR2).",
-                                     "team_status_overrides": {"Lech Poznan": "UEL - PO*"}},
+
+},
     "Portuguese Primeira Liga":     {"id": 94, "provider": "api_football", "tsdb_id": 4344, "af_season": 2026, "cup_id": 96, "country": "Portugal",    "flag": "🇵🇹", "season_type": "winter",
                                      "season_end": "16 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "wins", "gf", "playoffs"],
                                      "home_advantage": 1.30,
                                      "european_spots": {1: "UCL - LS", 2: "UCL - LS", 3: "UEL - LS", 4: "UEL - QR2", 5: "UECL - QR2",
                                                         16: "Relegation - PO", 17: "Relegation", 18: "Relegation"},
-                                     "zone_notes": {"relegation - po": "16th plays a two-legged play-off against 3rd of Liga Portugal 2. The Liga Portugal 2 side hosts the decisive second leg."}},
+                                     "zone_notes": {"relegation - po": "16th plays a two-legged play-off against 3rd of Liga Portugal 2. The Liga Portugal 2 side hosts the decisive second leg."},
+
+},
     "Romanian Liga I":              {"id": 283, "provider": "api_football", "tsdb_id": 4691, "af_season": 2026, "cup_id": 285, "country": "Romania",     "flag": "🇷🇴", "season_type": "winter",
                                      "season_end": "24 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "playoffs"],
@@ -452,7 +444,7 @@ LEAGUES = {
                                                         4: "UECL - PO", 7: "UECL - PO", 8: "UECL - PO",
                                                         13: "Relegation - PO", 14: "Relegation - PO",
                                                         15: "Relegation", 16: "Relegation"},
-                                     "team_status_overrides": {"Universitatea Craiova": "UEL - QR1*"},
+
                                      "uecl_3team_playoff": {
                                          "bye_home": 4, "bye_home_rank": 4,
                                          "sf_home": 1, "sf_home_rank": 7,
@@ -475,11 +467,8 @@ LEAGUES = {
                                      # No cup fixture data available to run the usual predicted-cup-winner
                                      # engine -- per explicit instruction, predicting the highest-Opta-rated
                                      # club (Zenit) as winner instead.
-                                     "team_status_note": "*Zenit (highest Opta Rating) are predicted to win the "
-                                                          "2026/27 Russian Cup, qualifying for the UEL – QR1 (they "
-                                                          "currently sit outside the automatic European positions "
-                                                          "in the league).",
-                                     "team_status_overrides": {"Zenit": "UEL - QR1*"},
+
+
                                      },
     "San-Marino Campionato":        {"id": 404, "provider": "api_football", "tsdb_id": 4667, "af_season": 2026, "cup_id": 729, "country": "San Marino",  "flag": "🇸🇲", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"],
@@ -488,7 +477,11 @@ LEAGUES = {
                                                         2: "UECL - PO", 3: "UECL - PO", 5: "UECL - PO",
                                                         6: "UECL - PO", 7: "UECL - PO", 8: "UECL - PO",
                                                         9: "UECL - PO", 10: "UECL - PO", 11: "UECL - PO", 12: "UECL - PO"},
-                                     "team_status_overrides": {"La Fiorita": "UECL - QR1*"},
+                                     # Virtus (predicted 2026/27 Coppa Titano winner) are projected
+                                     # to finish 1st, which already gives UCL - QR1 -- better than
+                                     # the cup winner's own UECL - QR1, so no override is needed (one
+                                     # would actively suppress their better natural status). Revisit
+                                     # if the table projection changes and they fall out of 1st.
                                      "uecl_8team_playoff": {
                                          "winner_spot": "UECL - QR1",
                                          "caption": ("R1 (one-legged): 9th vs 12th, 10th vs 11th. "
@@ -504,7 +497,9 @@ LEAGUES = {
                                                         4: "UECL - QR2", 5: "UECL - QR2",
                                                         11: "Relegation - PO", 12: "Relegation"},
                                      "split_round": 33, "n_champ": 6, "pts_factor": 1.0,
-                                     "zone_notes": {"relegation": "11th plays two-legged play-off against 2nd of the Championship. Higher-placed team plays second leg at home. 12th is directly relegated."}},
+                                     "zone_notes": {"relegation": "11th plays two-legged play-off against 2nd of the Championship. Higher-placed team plays second leg at home. 12th is directly relegated."},
+
+},
     "Serbian Super Liga":           {"id": 286, "provider": "api_football", "tsdb_id": 4671, "af_season": 2026, "cup_id": 732, "country": "Serbia",      "flag": "🇷🇸", "season_type": "winter",
                                      "season_end": "16 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
@@ -522,10 +517,7 @@ LEAGUES = {
                                      "relg_tiebreakers":  ["regular_pts", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
                                      "european_spots": {1: "UCL - QR2", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UECL - QR2",
                                                         11: "Relegation - PO", 12: "Relegation"},
-                                     "team_status_note": "*Slovan Bratislava are predicted to win the 2026/27 Slovak Cup, "
-                                                          "qualifying for the UEL – QR1. The Play-offs' own 2nd-placed "
-                                                          "team qualifies for the UECL – QR2 instead.",
-                                     "team_status_overrides": {"Slovan Bratislava": "UEL - QR1*"},
+
                                      "split_round": 22, "n_champ": 6, "pts_factor": 1.0,
                                      "zone_notes": {"relegation": "11th plays two-legged play-off against 2nd of Slovak 2. liga. 12th is directly relegated."}},
     "Slovenian 1. SNL":             {"id": 373, "provider": "api_football", "tsdb_id": 4692, "af_season": 2026, "cup_id": 375, "country": "Slovenia",    "flag": "🇸🇮", "season_type": "winter",
@@ -533,10 +525,7 @@ LEAGUES = {
                                      "home_advantage": 1.20,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2",
                                                         9: "Relegation - PO", 10: "Relegation"},
-                                     "team_status_note": "*Celje are predicted to win the 2026/27 Slovenian Football Cup, "
-                                                          "qualifying for the UEL – QR1. The league's own 2nd-placed "
-                                                          "team qualifies for the UECL – QR2 instead.",
-                                     "team_status_overrides": {"Celje": "UEL - QR1*"}},
+},
     "Swedish Allsvenskan":          {"id": 113, "provider": "api_football", "tsdb_id": 4347, "af_season": 2026, "cup_id": 115, "country": "Sweden",      "flag": "🇸🇪", "season_type": "summer",
                                      "season_end": "29 November 2026",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_away_gf", "playoffs"],
@@ -544,10 +533,7 @@ LEAGUES = {
                                      "european_spots": {1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
                                                         14: "Relegation - PO", 15: "Relegation", 16: "Relegation"},
                                      "zone_notes": {"relegation - po": "14th plays two-legged play-off against 3rd of Superettan. Higher-placed club plays second leg at home."},
-                                     "team_status_note": "*Hammarby are predicted to win the 2026/27 Svenska Cupen, "
-                                                          "qualifying for the UEL – QR1 (better than their own "
-                                                          "2nd-placed league entitlement, UECL – QR2).",
-                                     "team_status_overrides": {"Hammarby FF": "UEL - QR1*"}},
+},
     "Swiss Super League":           {"id": 207, "provider": "api_football", "tsdb_id": 4675, "af_season": 2026, "cup_id": 209, "country": "Switzerland", "flag": "🇨🇭", "season_type": "winter",
                                      "season_end": "30 May 2027",
                                      "tiebreakers": ["gd", "gf", "h2h_gd", "h2h_gf", "away_gf", "draw"],
@@ -555,13 +541,17 @@ LEAGUES = {
                                      "european_spots": {1: "UCL - QR2", 2: "UEL - QR2", 3: "UECL - QR2", 4: "UECL - QR2",
                                                         11: "Relegation - PO", 12: "Relegation"},
                                      "split_round": 33, "n_champ": 6, "pts_factor": 1.0,
-                                     "zone_notes": {"relegation": "11th plays two-legged play-off against 2nd of Challenge League. 12th is directly relegated."}},
+                                     "zone_notes": {"relegation": "11th plays two-legged play-off against 2nd of Challenge League. 12th is directly relegated."},
+
+},
     "Turkish Super Lig":            {"id": 203, "provider": "api_football", "tsdb_id": 4339, "af_season": 2026, "cup_id": 206, "country": "Turkey",      "flag": "🇹🇷", "season_type": "winter",
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.10,
                                      "european_spots": {1: "UCL - LS", 2: "UCL - QR3 (LP)", 3: "UEL - PO", 4: "UEL - QR2", 5: "UECL - QR2",
-                                                        16: "Relegation", 17: "Relegation", 18: "Relegation"}},
+                                                        16: "Relegation", 17: "Relegation", 18: "Relegation"},
+
+},
     "Ukrainian Premier League":     {"id": 333, "provider": "api_football", "tsdb_id": 4354, "af_season": 2026, "cup_id": 335, "country": "Ukraine",     "flag": "🇺🇦", "season_type": "winter",
                                      "season_end": "4 June 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "draw"],
@@ -570,10 +560,8 @@ LEAGUES = {
                                                         13: "Relegation - PO", 14: "Relegation - PO",
                                                         15: "Relegation", 16: "Relegation"},
                                      "zone_notes": {"relegation - po": "13th and 14th play two-legged play-offs against the 3rd- and 4th-placed teams of the Ukrainian First League (the top 2 First League teams are promoted automatically instead)."},
-                                     "team_status_note": "*Shakhtar Donetsk are predicted to win the 2026/27 Ukrainian Cup, "
-                                                          "qualifying for the UEL – QR1 (better than their own "
-                                                          "2nd-placed league entitlement, UECL – QR2).",
-                                     "team_status_overrides": {"Shakhtar Donetsk": "UEL - QR1*"}},
+
+},
     "Welsh Cymru Premier":          {"id": 110, "provider": "api_football", "tsdb_id": 4472, "af_season": 2026, "cup_id": 112, "country": "Wales",       "flag": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "season_type": "winter",
                                      "tiebreakers": ["gd", "gf", "h2h_gd", "h2h_gf", "h2h_away_gf", "wins", "away_wins", "playoffs"],
                                      "home_advantage": 1.06,

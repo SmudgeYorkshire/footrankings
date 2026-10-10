@@ -148,7 +148,7 @@ with tab_overall:
     st.dataframe(
         _ranked(_all_df),
         column_config=_RATING_COL_CFG,
-        use_container_width=True,
+        width="content",
         hide_index=True,
     )
 
@@ -173,7 +173,7 @@ with tab_league:
     st.dataframe(
         league_df,
         column_config=_RATING_COL_CFG,
-        use_container_width=True,
+        width="content",
         hide_index=True,
     )
 
@@ -185,7 +185,7 @@ with tab_non_top5:
     st.dataframe(
         _ranked(non_top5_df),
         column_config=_RATING_COL_CFG,
-        use_container_width=True,
+        width="content",
         hide_index=True,
     )
 
@@ -253,7 +253,7 @@ with tab_global:
                 "7-Day Change":   st.column_config.NumberColumn("7-Day Change", width="small"),
                 "Tracked League": st.column_config.TextColumn("Tracked League", width="medium"),
             },
-            use_container_width=True,
+            width="content",
             hide_index=True,
             height=600,
         )

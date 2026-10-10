@@ -132,7 +132,7 @@ def _render_table(df: pd.DataFrame, key_prefix: str, league_options: list[str]) 
             "Odds Adjustment": st.column_config.NumberColumn("Odds Adjustment", format="%+.1f", width="small"),
             "Power Rating":    st.column_config.NumberColumn("Power Rating", format="%.1f", width="small"),
         },
-        use_container_width=True,
+        width="content",
         hide_index=True,
         height=600,
     )

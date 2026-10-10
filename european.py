@@ -527,7 +527,7 @@ if tab_league is not None:
             }
             st.caption("🟢 Direct to Round of 16  🟡 Knockout Play-offs  🔴 Eliminated")
             st.dataframe(styled_lp, column_config=_lp_cfg,
-                         use_container_width=True, hide_index=True,
+                         width="content", hide_index=True,
                          height=len(lp_rows) * 35 + 42)
             st.caption(
                 "Tiebreakers: 1) Head-to-head points; 2) Head-to-head goal difference; "
@@ -569,7 +569,7 @@ if tab_lp_results is not None:
                 _lpr_styled = pd.DataFrame(rows).style.set_properties(
                     subset=["Home", "Away"], **{"font-weight": "bold"})
                 st.dataframe(_lpr_styled, column_config=_lpr_cfg,
-                             use_container_width=True, hide_index=True)
+                             width="content", hide_index=True)
 
 
 # ---------------------------------------------------------------------------
@@ -658,7 +658,7 @@ if tab_lp_pred is not None:
             for _c in _pct_cols:
                 _ls_col_cfg[_c] = st.column_config.NumberColumn(_c, format="%.1f%%", width="small")
             st.dataframe(
-                _ls_df, column_config=_ls_col_cfg, use_container_width=True,
+                _ls_df, column_config=_ls_col_cfg, width="content",
                 hide_index=True, height=len(_ls_df) * 35 + 38,
             )
 
@@ -741,7 +741,7 @@ if tab_lp_pred is not None:
                             "Draw": st.column_config.NumberColumn("Draw (pre-match)", format="%.1f%%"),
                             "Away Win": st.column_config.NumberColumn("Away Win (pre-match)", format="%.1f%%"),
                         },
-                        use_container_width=True, hide_index=True, height=len(_md_rows) * 35 + 38,
+                        width="content", hide_index=True, height=len(_md_rows) * 35 + 38,
                     )
             elif _real_schedule_ready:
                 st.caption(
@@ -773,7 +773,7 @@ if tab_lp_pred is not None:
                         "Draw": st.column_config.NumberColumn("Draw (pre-match)", format="%.1f%%"),
                         "Away Win": st.column_config.NumberColumn("Away Win (pre-match)", format="%.1f%%"),
                     },
-                    use_container_width=True, hide_index=True, height=len(_fx_rows) * 35 + 38,
+                    width="content", hide_index=True, height=len(_fx_rows) * 35 + 38,
                 )
             else:
                 st.caption(
@@ -820,7 +820,7 @@ if tab_lp_pred is not None:
                         "Avg Opponent Opta Rating": st.column_config.NumberColumn(
                             "Avg Opponent Opta Rating", format="%.1f"),
                     },
-                    use_container_width=True, hide_index=True, height=len(_diff_df) * 35 + 38,
+                    width="content", hide_index=True, height=len(_diff_df) * 35 + 38,
                 )
             else:
                 st.caption(
@@ -1015,7 +1015,7 @@ with tab_trivia:
     st.markdown(f"#### 🏆 League Phase — {_lp_clubs} clubs from {len(_lp_by_country)} nations")
     _lp_df = _country_table(_lp_by_country)
     st.dataframe(
-        _lp_df, use_container_width=True, hide_index=True,
+        _lp_df, width="content", hide_index=True,
         column_config={"Clubs": st.column_config.NumberColumn("Clubs", width="small")},
         height=len(_lp_df) * 35 + 38,
     )
@@ -1031,7 +1031,7 @@ with tab_trivia:
     )
     _elim_df = _country_table(_elim_by_country)
     st.dataframe(
-        _elim_df, use_container_width=True, hide_index=True,
+        _elim_df, width="content", hide_index=True,
         column_config={"Clubs": st.column_config.NumberColumn("Clubs", width="small")},
         height=min(len(_elim_df) * 35 + 38, 700),
     )

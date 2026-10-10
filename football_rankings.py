@@ -22,6 +22,7 @@ from historical import fetch_historical_season
 from cup_predictions import (
     _cup_campaign_status, _team_name_set, resolve_predicted_cup_winner, fetch_cup_fixtures,
 )
+from cup_cascade import resolve_live_overrides
 from european_trivia import render_european_trivia
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
@@ -243,7 +244,7 @@ def render_zone_table(probs: pd.DataFrame, standings: list[dict] = None, zone_ov
     col_cfg = {"Team": st.column_config.TextColumn("Team")}
     for zn in zones:
         col_cfg[zn] = st.column_config.NumberColumn(zn, format="%.1f%%")
-    st.dataframe(zone_df, column_config=col_cfg, use_container_width=True, hide_index=True,
+    st.dataframe(zone_df, column_config=col_cfg, width="content", hide_index=True,
                  height=len(zone_df) * 35 + 42)
 
 
@@ -376,7 +377,14 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
                       expected_pts: dict = None, european_spots: dict = None,
                       title: str = "Season finish probabilities", zones: dict = None,
                       status_map: dict = None, team_overrides: dict = None):
-    """Color-coded finish-probability table, sorted by xPts descending.
+    """Color-coded finish-probability table, sorted by expected finishing
+    position (Σ position × probability, ascending) -- the single-number
+    summary of each team's whole distribution, consistent with what this
+    table actually shows. xPts (season points expectation) is a related
+    but distinct stat -- still displayed as its own column when supplied,
+    but no longer the sort key, since it can disagree with the position
+    probabilities sitting right next to it (e.g. a team with a fatter
+    title-chance tail outranking a steadier, slightly-higher-xPts rival).
 
     status_map: unified {pos: label} dict from league_status.py (preferred).
     european_spots / zones: legacy params, used only if status_map is not provided.
@@ -385,11 +393,9 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
     # Resolve unified status map
     _smap = status_map if status_map is not None else (european_spots or {})
 
-    if expected_pts:
-        sorted_teams = sorted(probs.index, key=lambda t: expected_pts.get(t, 0), reverse=True)
-        probs = probs.loc[sorted_teams]
-    else:
-        probs = probs.sort_values(probs.columns[0], ascending=False)
+    pos_nums = pd.Series({c: int(c) for c in probs.columns})
+    expected_rank = probs.mul(pos_nums, axis=1).sum(axis=1)
+    probs = probs.loc[expected_rank.sort_values(ascending=True).index]
     df = (probs * 100).round(1)
     badge_lookup = badge_lookup or {}
     teams = list(probs.index)
@@ -425,7 +431,7 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
         "Status": st.column_config.TextColumn("Status", width=110),
     }
     st.markdown(f"#### {title}")
-    st.dataframe(styled, column_config=col_cfg, use_container_width=True,
+    st.dataframe(styled, column_config=col_cfg, width="content",
                  height=len(probs) * 35 + 42)
 
 
@@ -1031,7 +1037,6 @@ def main_content():
     # Live provider data is NOT used for status labels
     _ls           = LEAGUE_STATUS.get(league_name, {})
     _main_zones      = _ls.get("regular", {})   # pos → label for regular season
-    _team_overrides  = cfg.get("team_status_overrides", {})  # team name → fixed label
     _champ_zones  = _ls.get("champ",   {})   # pos → label within championship conf
     _mid_zones    = _ls.get("mid",     {})   # pos → label within middle conf
     _relg_zones   = _ls.get("relg",    {})   # pos → label within relegation conf
@@ -1044,6 +1049,31 @@ def main_content():
     _spot_zones = {pos: lbl for pos, lbl in (_main_zones or {}).items()
                    if any(kw in lbl.lower() for kw in _SPOT_KW)
                    and not any(lbl.lower().endswith(s) for s in _GROUP_SUFFIX)}
+    _champ_spot_zones = {pos: lbl for pos, lbl in (_champ_zones or {}).items()
+                         if any(kw in lbl.lower() for kw in _SPOT_KW)
+                         and not any(lbl.lower().endswith(s) for s in _GROUP_SUFFIX)}
+    _EURO_KW = ("ucl", "uel", "uecl")
+
+    # team_status_overrides — resolved live (which team is predicted to win
+    # the domestic cup, where they're projected to finish, and whether that
+    # already beats the cup-winner Status slot) rather than read as a static
+    # config.py value, so a shifted prediction or table position updates the
+    # Status column on its own instead of needing another manual pass like
+    # today's. See cup_cascade.py. config.py's own team_status_overrides
+    # (if still present on a league) is kept only as a fallback for when the
+    # live resolution can't produce anything (API hiccup, no cup data yet).
+    _has_euro_zone = lambda d: any(kw in lbl.lower() for lbl in d.values() for kw in _EURO_KW)
+    _cascade_zones = _spot_zones if _has_euro_zone(_spot_zones) else _champ_spot_zones
+    _cascade_key = (league_id, season, len(played_fixtures), _ratings_fingerprint,
+                     tuple(sorted(_cascade_zones.items())))
+    if st.session_state.get(f"cascade_key_{league_id}") != _cascade_key:
+        st.session_state[f"cascade_overrides_{league_id}"] = resolve_live_overrides(
+            league_name, cfg, standings, played_fixtures, remaining_fixtures,
+            ratings_df, _cascade_zones, _API_KEY,
+        )
+        st.session_state[f"cascade_key_{league_id}"] = _cascade_key
+    _team_overrides = (st.session_state.get(f"cascade_overrides_{league_id}")
+                        or cfg.get("team_status_overrides", {}))
 
     _UECL_PO_FOOTNOTE = "* These clubs enter additional domestic play-offs to determine the last UECL qualifying spot."
 
@@ -1147,7 +1177,7 @@ def main_content():
                 col_cfg["Form"] = st.column_config.TextColumn("Form", width=130)
             if "Next" in df.columns:
                 col_cfg["Next"] = st.column_config.ImageColumn("Next", width=32)
-            st.dataframe(style_obj, column_config=col_cfg, use_container_width=True,
+            st.dataframe(style_obj, column_config=col_cfg, width="content",
                          hide_index=True, height=len(rows) * 35 + 38)
 
         if split_info:
@@ -1826,7 +1856,7 @@ def main_content():
                         if status_map:
                             _col_cfg["Status"] = st.column_config.TextColumn("Status", width=130)
                         st.dataframe(_styled, column_config=_col_cfg,
-                                     use_container_width=True, hide_index=True,
+                                     width="content", hide_index=True,
                                      height=len(rows) * 35 + 38)
 
                     # Build group membership by summing P(positions in range)
@@ -2215,7 +2245,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             edited_df_c = st.data_editor(
                 styled_c, column_config=_pred_col_cfg,
                 disabled=["Rd", "HB", "Home", "Away", "AB"],
-                use_container_width=True, hide_index=True,
+                width="content", hide_index=True,
                 height=height_c, key=editor_key_c,
             )
 
@@ -2251,7 +2281,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                 subset=["Team", "Pts"], **{"font-weight": "bold"}
             ).set_properties(**{"font-size": "12px", "padding": "2px 6px"})
             st.dataframe(upd_styled_c, column_config=_upd_col_cfg,
-                         use_container_width=True, hide_index=True, height=height_c)
+                         width="content", hide_index=True, height=height_c)
 
             pred_fp_c = (
                 tuple(sorted((f["strHomeTeam"], f["strAwayTeam"], f["pred_hg"], f["pred_ag"])
@@ -2974,7 +3004,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     subset=["Team", "Pts"], **{"font-weight": "bold"})
                 st.dataframe(_hist_df, column_config={
                     "Badge": st.column_config.ImageColumn("", width="small"),
-                }, use_container_width=True, hide_index=True,
+                }, width="content", hide_index=True,
                     height=len(hist_rows) * 35 + 42)
 
             st.divider()

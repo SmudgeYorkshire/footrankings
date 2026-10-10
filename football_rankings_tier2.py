@@ -239,7 +239,7 @@ def render_zone_table(probs: pd.DataFrame, standings: list[dict] = None, zone_ov
     col_cfg = {"Team": st.column_config.TextColumn("Team")}
     for zn in zones:
         col_cfg[zn] = st.column_config.NumberColumn(zn, format="%.1f%%")
-    st.dataframe(zone_df, column_config=col_cfg, use_container_width=True, hide_index=True,
+    st.dataframe(zone_df, column_config=col_cfg, width="content", hide_index=True,
                  height=len(zone_df) * 35 + 42)
 
 
@@ -421,7 +421,7 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
         "Status": st.column_config.TextColumn("Status", width=110),
     }
     st.markdown(f"#### {title}")
-    st.dataframe(styled, column_config=col_cfg, use_container_width=True,
+    st.dataframe(styled, column_config=col_cfg, width="content",
                  height=len(probs) * 35 + 42)
 
 
@@ -1225,7 +1225,7 @@ def main_content():
                 col_cfg["Form"] = st.column_config.TextColumn("Form", width=130)
             if "Next" in df.columns:
                 col_cfg["Next"] = st.column_config.ImageColumn("Next", width=32)
-            st.dataframe(style_obj, column_config=col_cfg, use_container_width=True,
+            st.dataframe(style_obj, column_config=col_cfg, width="content",
                          hide_index=True, height=len(rows) * 35 + 38)
 
         if split_info:
@@ -1883,7 +1883,7 @@ def main_content():
                         if status_map:
                             _col_cfg["Status"] = st.column_config.TextColumn("Status", width=130)
                         st.dataframe(_styled, column_config=_col_cfg,
-                                     use_container_width=True, hide_index=True,
+                                     width="content", hide_index=True,
                                      height=len(rows) * 35 + 38)
 
                     # Build group membership by summing P(positions in range)
@@ -2270,7 +2270,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             edited_df_c = st.data_editor(
                 styled_c, column_config=_pred_col_cfg,
                 disabled=["Rd", "HB", "Home", "Away", "AB"],
-                use_container_width=True, hide_index=True,
+                width="content", hide_index=True,
                 height=height_c, key=editor_key_c,
             )
 
@@ -2306,7 +2306,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                 subset=["Team", "Pts"], **{"font-weight": "bold"}
             ).set_properties(**{"font-size": "12px", "padding": "2px 6px"})
             st.dataframe(upd_styled_c, column_config=_upd_col_cfg,
-                         use_container_width=True, hide_index=True, height=height_c)
+                         width="content", hide_index=True, height=height_c)
 
             pred_fp_c = (
                 tuple(sorted((f["strHomeTeam"], f["strAwayTeam"], f["pred_hg"], f["pred_ag"])
@@ -3029,7 +3029,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     subset=["Team", "Pts"], **{"font-weight": "bold"})
                 st.dataframe(_hist_df, column_config={
                     "Badge": st.column_config.ImageColumn("", width="small"),
-                }, use_container_width=True, hide_index=True,
+                }, width="content", hide_index=True,
                     height=len(hist_rows) * 35 + 42)
 
             st.divider()
