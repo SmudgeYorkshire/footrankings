@@ -175,7 +175,9 @@ def _predict_cup_winner(country: str) -> tuple[str | None, str]:
         season = cfg.get("cup_af_seasons", {}).get(cup_id, league_season)
         played, remaining = fetch_cup_fixtures(cup_id, season, _API_KEY)
         ratings_df = load_ratings(cfg.get("tsdb_id", cfg["id"]), [])
-        pred_row, _pred_status, _skipped = resolve_predicted_cup_winner(ratings_df, played, remaining)
+        pred_row, _pred_status, _skipped = resolve_predicted_cup_winner(
+            ratings_df, played, remaining, home_advantage=cfg.get("home_advantage", 1.0)
+        )
     except Exception:
         return None, "live cup fetch failed"
     alias = str(pred_row.get("alias", "")).strip()

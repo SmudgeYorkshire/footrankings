@@ -123,7 +123,7 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
 
     try:
         predicted_row, _predicted_status, _skipped = resolve_predicted_cup_winner(
-            ratings_df, cup_played, cup_remaining
+            ratings_df, cup_played, cup_remaining, home_advantage=cfg.get("home_advantage", 1.0)
         )
     except Exception:
         return {}

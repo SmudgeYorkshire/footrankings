@@ -13,6 +13,7 @@ import pandas as pd
 import streamlit as st
 
 from api_football_fetcher import ApiFootballClient
+from simulator import fixture_odds
 
 
 def _cup_campaign_status(team_names: set[str], played: list[dict], remaining: list[dict]) -> dict:
@@ -84,24 +85,78 @@ def _team_name_set(row) -> set[str]:
     return {n for n in (str(row.get("team", "")).strip(), str(row.get("alias", "")).strip()) if n}
 
 
-def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], remaining: list[dict]):
+def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], remaining: list[dict],
+                                  home_advantage: float = 1.0):
     """Highest-Opta-rated team in this league that hasn't already been
-    knocked out of this season's cup, plus any higher-rated teams skipped
-    over because they're already eliminated. Returns
-    (predicted_row, predicted_status, [(skipped_row, skipped_status), ...])."""
+    knocked out of this season's cup AND isn't the underdog in its own
+    next scheduled tie, plus any higher-rated teams skipped over because
+    they're already eliminated. Returns
+    (predicted_row, predicted_status, [(skipped_row, skipped_status), ...]).
+
+    A team with a known upcoming fixture gets its actual prevail
+    probability for that specific tie (home advantage + opponent
+    strength, via the project's own Poisson model -- same one the
+    Predictions tabs use) attached to its status dict as "prevail_pct";
+    among non-eliminated teams, anyone currently an underdog in their own
+    tie (prevail_pct < 0.5) is ranked below every team that isn't, with
+    Opta rating breaking ties within each group. A draw is split 50/50
+    toward either side advancing (most of these rounds are one-legged,
+    decided by extra time/penalties if level -- a reasonable simplification
+    rather than modelling penalty shoot-outs). A team with no scheduled
+    fixture yet (next round not drawn) gets prevail_pct=None and is treated
+    as not ruled out -- "keep it general" until there's something concrete
+    to weight against."""
     ranked = ratings_df.sort_values("opta_rating", ascending=False)
     skipped = []
+    candidates = []
     for _, row in ranked.iterrows():
         status = _cup_campaign_status(_team_name_set(row), played, remaining)
         if status["state"] == "eliminated":
             skipped.append((row, status))
             continue
-        return row, status, skipped
-    # Everyone we track has been eliminated -- fall back to the top-rated
-    # team anyway rather than showing nothing.
-    row = ranked.iloc[0]
-    status = _cup_campaign_status(_team_name_set(row), played, remaining)
-    return row, status, skipped[1:]
+        candidates.append((row, status))
+
+    if not candidates:
+        # Everyone we track has been eliminated -- fall back to the top-rated
+        # team anyway rather than showing nothing.
+        row = ranked.iloc[0]
+        status = _cup_campaign_status(_team_name_set(row), played, remaining)
+        return row, status, skipped[1:]
+
+    _attach_prevail_pct(candidates, ratings_df, home_advantage)
+
+    def _sort_key(item):
+        _row, status = item
+        p = status.get("prevail_pct")
+        favoured = p is None or p >= 0.5
+        return (0 if favoured else 1, -_row["opta_rating"])
+
+    candidates.sort(key=_sort_key)
+    predicted_row, predicted_status = candidates[0]
+    return predicted_row, predicted_status, skipped
+
+
+def _attach_prevail_pct(candidates: list[tuple], ratings_df: pd.DataFrame, home_advantage: float) -> None:
+    """Mutates each status dict in `candidates` ([(row, status), ...]) with
+    a "prevail_pct" key -- this team's probability of advancing past its
+    *next known* tie, or None when no fixture is scheduled yet."""
+    fixtures, slots = [], []
+    for i, (row, status) in enumerate(candidates):
+        if status["state"] != "active":
+            status["prevail_pct"] = None
+            continue
+        is_home = status["is_home"]
+        home_team = row["team"] if is_home else status["opponent"]
+        away_team = status["opponent"] if is_home else row["team"]
+        fixtures.append({"strHomeTeam": home_team, "strAwayTeam": away_team})
+        slots.append((i, is_home))
+
+    if not fixtures:
+        return
+    odds = fixture_odds(fixtures, ratings_df, home_advantage=home_advantage)
+    for (i, is_home), o in zip(slots, odds):
+        p = o["home_win"] + 0.5 * o["draw"] if is_home else o["away_win"] + 0.5 * o["draw"]
+        candidates[i][1]["prevail_pct"] = p
 
 
 @st.cache_data(ttl=3_600, show_spinner=False)

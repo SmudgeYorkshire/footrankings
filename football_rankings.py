@@ -606,6 +606,7 @@ def render_cup_details(cfg: dict, key: str):
     league_season = cfg.get("af_season") or int(str(get_current_season(cfg["season_type"]))[:4])
     cup_season_overrides = cfg.get("cup_af_seasons", {})
     ratings_df = load_ratings(cfg.get("tsdb_id", cfg["id"]), [])
+    home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
     for i, cup_id in enumerate(cup_ids):
         if i:
             st.markdown("<hr style='margin:4px 0'>", unsafe_allow_html=True)
@@ -613,23 +614,28 @@ def render_cup_details(cfg: dict, key: str):
         # always match the league's (see Norway's config entry) -- prefer
         # a per-cup override when one's configured.
         season = cup_season_overrides.get(cup_id, league_season)
-        _render_one_cup(cup_id, season, ratings_df, key)
+        _render_one_cup(cup_id, season, ratings_df, key, home_advantage)
 
 
 def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str,
-                              played_all: list[dict], remaining_all: list[dict]):
+                              played_all: list[dict], remaining_all: list[dict],
+                              home_advantage: float = 1.0):
     """The 🔮 Predicted winner line (+ any already-eliminated higher-rated
     teams flagged below it), in plain (non-caption, i.e. non-gray) text so
     it reads as the headline fact it is rather than a footnote."""
-    pred_row, pred_status, skipped = resolve_predicted_cup_winner(ratings_df, played_all, remaining_all)
+    pred_row, pred_status, skipped = resolve_predicted_cup_winner(
+        ratings_df, played_all, remaining_all, home_advantage=home_advantage
+    )
     pred_name = _display_team_name(pred_row)
     state = pred_status["state"]
 
     if state == "active":
         side = "home" if pred_status["is_home"] else "away"
+        prevail = pred_status.get("prevail_pct")
+        prevail_str = f" ({prevail:.0%} to prevail)" if prevail is not None else ""
         st.markdown(
             f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
-            f"next plays {pred_status['opponent']} ({side}) in the {pred_status['next_round']} "
+            f"next plays {pred_status['opponent']} ({side}) in the {pred_status['next_round']}{prevail_str} "
             f"on {_fmt_long_date(pred_status['next_date'])}. Entered this season at: {pred_status['entry_round']} "
             f"({_fmt_long_date(pred_status['entry_date'])})."
         )
@@ -673,7 +679,7 @@ def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame,
         )
 
 
-def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str):
+def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str, home_advantage: float = 1.0):
     try:
         cup = fetch_cup_status(cup_id, season, key)
     except RuntimeError as e:
@@ -690,7 +696,7 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
         # season's entry round, since this season has nothing to look at).
         st.markdown(f"##### {fetch_cup_name(cup_id, key) or 'Cup'}")
         if not ratings_df.empty:
-            _render_predicted_winner(cup_id, season, ratings_df, key, [], [])
+            _render_predicted_winner(cup_id, season, ratings_df, key, [], [], home_advantage)
         st.markdown("📅 Fixtures will be released soon.")
         return
 
@@ -732,7 +738,7 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
             played_all, remaining_all = fetch_cup_fixtures(cup_id, season, key)
         except RuntimeError:
             played_all, remaining_all = [], []
-        _render_predicted_winner(cup_id, season, ratings_df, key, played_all, remaining_all)
+        _render_predicted_winner(cup_id, season, ratings_df, key, played_all, remaining_all, home_advantage)
 
     render_cup_fixture_browser(cup_id, season, key, current_round=cup.get("round"))
 
