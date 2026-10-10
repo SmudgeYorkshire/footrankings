@@ -22,6 +22,7 @@ from historical import fetch_historical_season
 from cup_predictions import (
     _cup_campaign_status, _team_name_set, resolve_predicted_cup_winner, fetch_cup_fixtures,
 )
+from european_trivia import render_european_trivia
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
@@ -432,6 +433,8 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
 # Sidebar — league selector and simulation settings
 # ---------------------------------------------------------------------------
 
+_TRIVIA_SENTINEL = "__european_trivia__"
+
 with st.sidebar:
     _auth = st.session_state.get("_authenticator")
     if _auth:
@@ -440,14 +443,15 @@ with st.sidebar:
     st.divider()
     league_name = st.selectbox(
         "European Leagues",
-        options=_DROPDOWN_ORDER,
-        format_func=lambda n: _DROPDOWN_LABELS.get(n, n),
+        options=_DROPDOWN_ORDER + [_TRIVIA_SENTINEL],
+        format_func=lambda n: "📊 European Leagues - Trivia" if n == _TRIVIA_SENTINEL else _DROPDOWN_LABELS.get(n, n),
     )
-    cfg = LEAGUES[league_name]
-    league_id = cfg["id"]
-    ratings_id = cfg.get("tsdb_id", cfg["id"])  # ratings CSVs stay on their original stable ID
-    season = cfg.get("af_season") or get_current_season(cfg["season_type"])
-    home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
+    if league_name != _TRIVIA_SENTINEL:
+        cfg = LEAGUES[league_name]
+        league_id = cfg["id"]
+        ratings_id = cfg.get("tsdb_id", cfg["id"])  # ratings CSVs stay on their original stable ID
+        season = cfg.get("af_season") or get_current_season(cfg["season_type"])
+        home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
     st.divider()
     st.markdown(
         """
@@ -464,6 +468,10 @@ with st.sidebar:
         """,
         unsafe_allow_html=True,
     )
+
+if league_name == _TRIVIA_SENTINEL:
+    render_european_trivia()
+    st.stop()
 
 n_sim = DEFAULT_N_SIMULATIONS
 home_advantage = DEFAULT_HOME_ADVANTAGE
