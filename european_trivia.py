@@ -23,6 +23,39 @@ from config import LEAGUES
 from api_football_fetcher import ApiFootballClient
 from _split_season import compute_full_standings, ensure_full_roster
 from league_display import TOP5_LEAGUES
+from coefficients_baseline import COUNTRY_BASELINE
+
+# config.py's "country" field uses short display names for a handful of
+# countries that don't match COUNTRY_BASELINE's real UEFA names.
+_COUNTRY_ALIASES = {
+    "Bosnia": "Bosnia-Herzegovina",
+    "Czech Rep.": "Czechia",
+    "Faroe Isl.": "Faroe Islands",
+    "N. Ireland": "Northern Ireland",
+    "N. Macedonia": "North Macedonia",
+    "Turkey": "Türkiye",
+}
+
+_COUNTRY_RANK = {
+    country: rank
+    for rank, country in enumerate(
+        sorted(COUNTRY_BASELINE, key=lambda c: sum(
+            v for k, v in COUNTRY_BASELINE[c].items() if k not in ("clubs_entered", "clubs_active")
+        ), reverse=True),
+        start=1,
+    )
+}
+
+
+def _country_rank(country: str) -> int:
+    """1 = strongest (frozen 4-season UEFA country-coefficient total, same
+    baseline coefficients.py's own ranking starts from) -- used only to
+    break a tie when two clubs match on every other sort key (matches
+    played, wins, draws), so e.g. Barcelona/Porto/Noah/UNA Strassen all
+    sitting at a perfect 8-0-0 sort by their countries' actual European
+    strength rather than arbitrary insertion order. A country not in the
+    baseline (shouldn't happen for a tracked league) sorts last."""
+    return _COUNTRY_RANK.get(_COUNTRY_ALIASES.get(country, country), len(_COUNTRY_RANK) + 1)
 
 
 @st.cache_data(ttl=3_600, show_spinner=False)
@@ -50,6 +83,7 @@ def _sweep_all_leagues(api_key: str) -> tuple[list[dict], list[str], str]:
             rows.append({
                 "team": r.get("strTeam", ""),
                 "league": league_name,
+                "country": cfg.get("country", ""),
                 "flag": cfg.get("flag", ""),
                 "badge": r.get("strBadge", ""),
                 "P": p,
@@ -123,15 +157,15 @@ def render_european_trivia() -> None:
     top5_rows = [r for r in rows if r["league"] in TOP5_LEAGUES]
 
     undefeated_top5 = sorted((r for r in top5_rows if r["L"] == 0),
-                              key=lambda r: (-r["P"], -r["W"], -r["D"]))
+                              key=lambda r: (-r["P"], -r["W"], -r["D"], _country_rank(r["country"])))
     undefeated_all = sorted((r for r in rows if r["L"] == 0),
-                             key=lambda r: (-r["P"], -r["W"], -r["D"]))
+                             key=lambda r: (-r["P"], -r["W"], -r["D"], _country_rank(r["country"])))
     winless_top5 = sorted((r for r in top5_rows if r["W"] == 0),
-                           key=lambda r: (-r["P"], -r["L"]))
+                           key=lambda r: (-r["P"], -r["L"], _country_rank(r["country"])))
     winless_all = sorted((r for r in rows if r["W"] == 0),
-                          key=lambda r: (-r["P"], -r["L"]))
+                          key=lambda r: (-r["P"], -r["L"], _country_rank(r["country"])))
     perfect_all = sorted((r for r in rows if r["D"] == 0 and r["L"] == 0),
-                          key=lambda r: -r["P"])
+                          key=lambda r: (-r["P"], _country_rank(r["country"])))
 
     st.divider()
     _render_section("🛡️ Undefeated Clubs — Top 5 Leagues", undefeated_top5,
