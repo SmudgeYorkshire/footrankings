@@ -119,14 +119,17 @@ _COL_CFG = {
 }
 
 
-def _render_section(title: str, rows: list[dict], empty_msg: str) -> None:
+def _render_section(title: str, rows: list[dict], empty_msg: str, full_height: bool = False) -> None:
     st.markdown(f"#### {title} ({len(rows)})")
     if not rows:
         st.caption(empty_msg)
         return
     df = _build_table(rows)
+    # full_height: these sections are small enough to show every row with
+    # no internal scrollbar; the others still cap at 10 rows tall.
+    row_count = len(df) if full_height else min(len(df), 10)
     st.dataframe(df, column_config=_COL_CFG, hide_index=True,
-                 width="content", height=min(len(df), 10) * 35 + 38)
+                 width="content", height=row_count * 35 + 38)
 
 
 def render_european_trivia() -> None:
@@ -169,16 +172,16 @@ def render_european_trivia() -> None:
 
     st.divider()
     _render_section("🛡️ Undefeated Clubs — Top 5 Leagues", undefeated_top5,
-                     "No undefeated clubs in the Top 5 leagues right now.")
+                     "No undefeated clubs in the Top 5 leagues right now.", full_height=True)
+    st.divider()
+    _render_section("💔 Winless Clubs — Top 5 Leagues", winless_top5,
+                     "No winless clubs in the Top 5 leagues right now.", full_height=True)
+    st.divider()
+    _render_section("🏆 Perfect Season (all wins) — All European Leagues", perfect_all,
+                     "No club has a perfect season across tracked leagues right now.", full_height=True)
     st.divider()
     _render_section("🛡️ Undefeated Clubs — All European Leagues", undefeated_all,
                      "No undefeated clubs across tracked leagues right now.")
     st.divider()
-    _render_section("💔 Winless Clubs — Top 5 Leagues", winless_top5,
-                     "No winless clubs in the Top 5 leagues right now.")
-    st.divider()
     _render_section("💔 Winless Clubs — All European Leagues", winless_all,
                      "No winless clubs across tracked leagues right now.")
-    st.divider()
-    _render_section("🏆 Perfect Season (all wins) — All European Leagues", perfect_all,
-                     "No club has a perfect season across tracked leagues right now.")
