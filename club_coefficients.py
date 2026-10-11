@@ -491,14 +491,17 @@ CLUB_ALIASES: dict[str, str] = {
     "Basaksehir": "Istanbul Basaksehir",
     # Greece
     "Olympiakos": "Olympiakos Piraeus",
+    "Olympiacos": "Olympiakos Piraeus",
     "PAOK": "PAOK Thessaloniki",
     # Croatia
     "Dinamo Zagreb": "Dinamo Zagreb",
     # Serbia
     "Red Star": "Red Star Belgrade",
+    "Crvena Zvezda": "Red Star Belgrade",
     "Partizan": "Partizan Belgrade",
     # Austria
     "Salzburg": "FC Salzburg",
+    "Red Bull Salzburg": "FC Salzburg",
     "LASK Linz": "LASK",
     # Czechia
     "Viktoria Plzen": "Viktoria Plzen",

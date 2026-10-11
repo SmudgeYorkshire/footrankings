@@ -632,9 +632,277 @@ _PREVAIL_COLUMN_CONFIG = {
 }
 
 
+# --- Titleholders: potential replacements for a defending titleholder that
+# doesn't requalify through its own domestic route (UEFA access-list
+# regulations, Champions League Article 3 / Europa League's equivalent
+# clause for the Conference League titleholder's EL promotion slot).
+# Three separate pools -- see _render_titleholders' own caption for the
+# regulation-derived rule each one follows. "TQ %" is this site's own live
+# chance of the club actually reaching the specific domestic outcome
+# (title / required league position / cup win) that would put it in the
+# running -- a first pass meant to be refined, not a final list (per the
+# UEFA circular's own example table, which the user supplied as a target
+# shape rather than an exact spec).
+_TITLEHOLDER_TOP_N = 50
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _season_position_probs(league_id: int, season: int, league_name: str) -> pd.DataFrame:
+    """Full team x finishing-position probability matrix for one league --
+    the same simulate_season() run _predicted_standings() already does,
+    just returning the raw matrix instead of collapsing it to one
+    most-likely order. Powers the Titleholders tables' TQ % column."""
+    client = ApiFootballClient(api_key=_API_KEY)
+    roster = client.get_standings(league_id, season)
+    played, remaining = client.get_fixtures(league_id, season)
+    roster = ensure_full_roster(roster, played + remaining)
+    cfg = LEAGUES.get(league_name, {})
+    tiebreakers = cfg.get("tiebreakers")
+    standings = compute_full_standings(
+        roster, played, tiebreakers=tiebreakers, points_adjustments=cfg.get("points_deductions"),
+    ) if roster else roster
+    if not standings:
+        return pd.DataFrame()
+    ratings_df = load_ratings(cfg.get("tsdb_id", league_id), standings)
+    return simulate_season(
+        standings, remaining, ratings_df, n_sim=_PREDICTION_N_SIM,
+        home_advantage=cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE),
+        tiebreakers=tiebreakers, played_fixtures=played,
+    )
+
+
+def _position_chance(probs: pd.DataFrame, team: str, position: int) -> float | None:
+    """simulate_season()'s own docstring promises int position columns, but
+    st.cache_data's serialization round-trip stringifies them (confirmed
+    via a live debug call -- probs.columns comes back ['1', '2', ...]),
+    so accept either."""
+    if probs is None or probs.empty or team not in probs.index:
+        return None
+    col = position if position in probs.columns else str(position)
+    if col not in probs.columns:
+        return None
+    return float(probs.loc[team, col])
+
+
+def _country_suspended(country: str) -> bool:
+    return any((e.get("note") or "").startswith("Suspended") for _, e in _ENTRIES_BY_COUNTRY.get(country, []))
+
+
+def _country_league_data(country: str) -> tuple[str, list[dict], pd.DataFrame] | tuple[None, None, None]:
+    """(league_name, predicted standings, position-probability matrix) for
+    a country's tracked top flight, or (None, None, None) if untracked,
+    suspended, or the live fetch failed."""
+    if _country_suspended(country):
+        return None, None, None
+    entries = _ENTRIES_BY_COUNTRY.get(country, [])
+    league_name = next((e["league"] for _, e in entries if e["league"]), None)
+    if not league_name or not _API_KEY:
+        return None, None, None
+    cfg = LEAGUES.get(league_name)
+    if not cfg:
+        return None, None, None
+    try:
+        standings = _predicted_standings(cfg["id"], cfg["af_season"], league_name)
+        probs = _season_position_probs(cfg["id"], cfg["af_season"], league_name)
+    except Exception:
+        return None, None, None
+    if not standings:
+        return None, None, None
+    return league_name, standings, probs
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _ucl_titleholder_pool() -> list[dict]:
+    """Pool: every club in a Champions-Path-only association (its domestic
+    champion enters 2027/28 CL qualifying rather than going straight to
+    the League Phase) -- confirmed against the UEFA circular's own example
+    table, which lists multiple clubs per such country (e.g. both Rangers
+    and Celtic for Scotland), not just the current league leader. TQ % is
+    each club's live chance of actually winning its domestic title."""
+    rows: list[dict] = []
+    for e in ACCESS_LIST_2027_28["Champions League"]:
+        if e["code"] != "CH" or e["path"] != "Champions Path":
+            continue
+        country = e["country"]
+        league_name, standings, probs = _country_league_data(country)
+        if not league_name:
+            continue
+        country_key = _country_key(country)
+        for row in standings:
+            team = row.get("strTeam", "")
+            if not team:
+                continue
+            rows.append({
+                "Club": team, "Country": country, "Flag": flag_url(country_key),
+                "Badge": row.get("strBadge", ""), "Route": e["route"],
+                "Coefficient": get_coeff_2027(team, country_key),
+                "TQ %": _position_chance(probs, team, 1),
+            })
+    rows.sort(key=lambda r: -(r["Coefficient"] or 0))
+    return rows[:_TITLEHOLDER_TOP_N]
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _uel_titleholder_pool() -> list[dict]:
+    """Pool: every club in an association whose Champions League qualifying
+    entry is a runner-up spot (N2/N3/N4, League Path) rather than the
+    champion -- the next tier of clubs that would be in contention if a
+    higher CL slot needs filling. TQ % is each club's live chance of
+    finishing in that country's specific required league position."""
+    rows: list[dict] = []
+    for e in ACCESS_LIST_2027_28["Champions League"]:
+        if e["code"] == "CH" or e["path"] not in ("Champions Path", "League Path"):
+            continue
+        pos = _POSITION_OF_CODE.get(e["code"])
+        if pos is None:
+            continue
+        country = e["country"]
+        league_name, standings, probs = _country_league_data(country)
+        if not league_name:
+            continue
+        country_key = _country_key(country)
+        for row in standings:
+            team = row.get("strTeam", "")
+            if not team:
+                continue
+            rows.append({
+                "Club": team, "Country": country, "Flag": flag_url(country_key),
+                "Badge": row.get("strBadge", ""), "Route": e["route"],
+                "Coefficient": get_coeff_2027(team, country_key),
+                "TQ %": _position_chance(probs, team, pos),
+            })
+    rows.sort(key=lambda r: -(r["Coefficient"] or 0))
+    return rows[:_TITLEHOLDER_TOP_N]
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _uecl_titleholder_pool() -> list[dict]:
+    """Pool: the Europa League's own Qualifying-path access-list entries --
+    a mix of each association's domestic-cup-winner (CW) slot and its
+    highest-remaining league-position slot -- the exact pool the real EL
+    regulations draw from to fill the UECL titleholder's EL promotion slot
+    when that club already qualifies for the League Phase on its own
+    merit. Cup-winner rows show this site's predicted winner as a point
+    estimate (no full-tournament win probability is modelled, same as
+    every other cup-winner prediction on this site); league-position rows
+    get a live TQ %."""
+    rows: list[dict] = []
+    for e in ACCESS_LIST_2027_28["Europa League"]:
+        if e["path"] != "Qualifying":
+            continue
+        country = e["country"]
+        if _country_suspended(country):
+            continue
+        if e["code"] == "CW":
+            pred_name, _note = _predict_cup_winner(country)
+            if not pred_name:
+                continue
+            country_key = _country_key(country)
+            rows.append({
+                "Club": pred_name, "Country": country, "Flag": flag_url(country_key),
+                "Badge": _badge_lookup_for_country(country).get(pred_name, ""),
+                "Route": "Predicted domestic cup winner",
+                "Coefficient": get_coeff_2027(pred_name, country_key),
+                "TQ %": None,
+            })
+            continue
+        pos = _POSITION_OF_CODE.get(e["code"])
+        if pos is None:
+            continue
+        league_name, standings, probs = _country_league_data(country)
+        if not league_name:
+            continue
+        country_key = _country_key(country)
+        for row in standings:
+            team = row.get("strTeam", "")
+            if not team:
+                continue
+            rows.append({
+                "Club": team, "Country": country, "Flag": flag_url(country_key),
+                "Badge": row.get("strBadge", ""), "Route": e["route"],
+                "Coefficient": get_coeff_2027(team, country_key),
+                "TQ %": _position_chance(probs, team, pos),
+            })
+    rows.sort(key=lambda r: -(r["Coefficient"] or 0))
+    return rows[:_TITLEHOLDER_TOP_N]
+
+
+_TITLEHOLDER_COLUMN_CONFIG = {
+    "No.": st.column_config.NumberColumn("No.", width="small"),
+    "Badge": st.column_config.ImageColumn("", width="small"),
+    "Club": st.column_config.TextColumn("Club", width="medium"),
+    "Flag": st.column_config.ImageColumn("", width="small"),
+    "Country": st.column_config.TextColumn("Country", width="small"),
+    "Route": st.column_config.TextColumn("Route", width="medium"),
+    "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
+    "TQ %": st.column_config.NumberColumn("TQ %", width="small", format="%.1f%%"),
+}
+
+
+def _render_titleholder_table(title: str, pool_fn, caption: str) -> None:
+    st.markdown(f"#### {title}")
+    st.caption(caption)
+    with st.spinner("Ranking eligible clubs by UEFA club coefficient…"):
+        rows = pool_fn()
+    if not rows:
+        st.caption("No eligible clubs could be resolved right now (API key missing or a live fetch failed).")
+        return
+    cols = ("Badge", "Club", "Flag", "Country", "Route", "Coefficient", "TQ %")
+    df = pd.DataFrame(_number_rows([{k: r[k] for k in cols} for r in rows]))
+    st.dataframe(df, column_config=_TITLEHOLDER_COLUMN_CONFIG, hide_index=True,
+                 width="content", height=min(len(df), 15) * 35 + 38)
+
+
+def _render_titleholders() -> None:
+    st.caption(
+        "If a 2026/27 titleholder -- the UCL or UEL champion, or the UECL champion once it "
+        "also qualifies for the Europa League on its own domestic merit -- doesn't requalify "
+        "for next season's League Phase through its own route, UEFA's access-list "
+        "regulations fill its guaranteed slot from a specific pool of clubs: the one with "
+        "the highest individual UEFA club coefficient "
+        "([kassiesa.net](https://kassiesa.net/uefa/data/method5/trank2027.html), still "
+        "accumulating through 2026/27), provided that club is the country's cup winner or "
+        "its highest-ranked club not already otherwise qualified. The three tables below "
+        "rank each pool's Top 50 eligible clubs by that live coefficient, with a TQ % column "
+        "for this site's own chance of the club actually reaching the domestic outcome that "
+        "puts it in the running. Nobody's titleholder status for 2026/27 is decided yet -- "
+        "this is a first pass at the shape UEFA's own circular uses, meant to be refined."
+    )
+    ucl_tab, uel_tab, uecl_tab = st.tabs(
+        ["UCL Titleholder replacement", "UEL Titleholder replacement", "UECL Titleholder replacement"]
+    )
+    with ucl_tab:
+        _render_titleholder_table(
+            "UCL Titleholder replacement", _ucl_titleholder_pool,
+            "Pool: every club in a Champions-Path-only association (domestic champion enters "
+            "qualifying, not the League Phase directly). TQ % = live chance of winning the "
+            "domestic title.",
+        )
+    with uel_tab:
+        _render_titleholder_table(
+            "UEL Titleholder replacement", _uel_titleholder_pool,
+            "Pool: every club in an association whose Champions League qualifying entry is a "
+            "runner-up spot (not the champion). TQ % = live chance of finishing in that "
+            "country's specific required league position.",
+        )
+    with uecl_tab:
+        _render_titleholder_table(
+            "UECL Titleholder replacement", _uecl_titleholder_pool,
+            "Pool: the Europa League's own domestic-cup-winner and highest-remaining-league-"
+            "position qualifying entries -- the pool the real EL regulations draw from for "
+            "this exact vacancy. Cup-winner rows show a predicted winner (point estimate, no "
+            "TQ %); league-position rows get a live TQ %.",
+        )
+
+
 st.title("🔮 European Competitions 2027/28")
 
-comp_name = st.selectbox("Competition", list(ACCESS_LIST_2027_28.keys()), key="comp_select")
+comp_name = st.selectbox(
+    "Competition", list(ACCESS_LIST_2027_28.keys()) + ["Titleholders"], key="comp_select"
+)
+if comp_name == "Titleholders":
+    _render_titleholders()
+    st.stop()
 comp_entries = ACCESS_LIST_2027_28[comp_name]
 
 with st.spinner("Projecting the qualifying rounds…"):
