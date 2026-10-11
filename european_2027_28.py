@@ -897,9 +897,12 @@ def _render_titleholders() -> None:
 
 st.title("🔮 European Competitions 2027/28")
 
-comp_name = st.selectbox(
-    "Competition", list(ACCESS_LIST_2027_28.keys()) + ["Titleholders"], key="comp_select"
-)
+with st.sidebar:
+    st.divider()
+    comp_name = st.selectbox(
+        "Competition", list(ACCESS_LIST_2027_28.keys()) + ["Titleholders"], key="comp_select"
+    )
+
 if comp_name == "Titleholders":
     _render_titleholders()
     st.stop()
