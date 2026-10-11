@@ -24,13 +24,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Pull today's odds from API-Football and The Odds API
+      - name: Pull today's odds from API-Football
         env:
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: python fetch_daily_odds.py
 
-      - name: Log today's provider-coverage comparison
+      - name: Log today's API-Football coverage
         run: python odds_comparison_snapshot.py
 
       - name: Fit today's odds-driven club rating adjustments
@@ -42,7 +41,6 @@ jobs:
       - name: Fit today's odds-driven Nations League rating adjustments
         env:
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: python nl_odds_calibration_auto.py
 
       - name: Commit and push changes

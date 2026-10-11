@@ -1,21 +1,24 @@
 """
 Automated, daily version of nl_odds_calibration.py's manual workflow --
-pulls Nations League match odds from both odds providers instead of a
-human web-searching and hand-typing OBSERVATIONS, then reuses that script's
-exact fitting functions (fit_match_adjustments / apply_outright_adjustments)
+pulls Nations League match odds from API-Football instead of a human
+web-searching and hand-typing OBSERVATIONS, then reuses that script's exact
+fitting functions (fit_match_adjustments / apply_outright_adjustments)
 unchanged, so the math stays identical to the manual process that's already
 been running safely for weeks.
 
-The Odds API's soccer_uefa_nations_league sport_key alone already returns
-every upcoming Nations League fixture across all four leagues (A/B/C/D) in
-one call, 1 credit -- confirmed live: 35 fixtures including Azerbaijan vs
-Liechtenstein and Malta vs Gibraltar, with 27+ bookmakers even on the
-smallest nations. API-Football's /odds is added as a second source the same
-way fetch_daily_odds.py treats club leagues. No outright (tournament
-winner) market is available automatically from either provider -- The Odds
-API returns a hard 422 for this sport, and API-Football's whole bet-type
-catalog has no tournament-outright market at all -- so this only ever
-builds "match" observations; apply_outright_adjustments is still called for
+The Odds API (removed 2026-10-11, see club_odds_calibration_pipeline.md in
+project memory for the fuller history) used to be the primary source here
+-- its soccer_uefa_nations_league sport_key covered every fixture across
+all four leagues (A/B/C/D) in one call, including tiny nations like
+Liechtenstein and Malta, with deep bookmaker counts. API-Football was only
+ever a secondary source alongside it, and confirmed to return ZERO Nations
+League odds as of 2026-10-11 -- so right now this pipeline has no live
+observations most days and main() just leaves the adjustments file
+untouched until API-Football starts carrying this market (or someone goes
+back to nl_odds_calibration.py's manual workflow). No outright (tournament
+winner) market is available from API-Football at all -- its whole bet-type
+catalog has no tournament-outright market -- so this only ever builds
+"match" observations; apply_outright_adjustments is still called for
 consistency with the manual script but is a no-op without "outright" rows.
 
 Like nl_odds_calibration.py's own manual process, this carries the
@@ -32,8 +35,6 @@ import sys
 from dotenv import load_dotenv
 load_dotenv()
 
-import requests
-
 from api_football_fetcher import ApiFootballClient
 from nations_league_simulator import RATINGS_ADJUSTMENTS_PATH, load_raw_nl_ratings, load_nl_rating_adjustments
 from nl_odds_calibration import fit_match_adjustments, apply_outright_adjustments
@@ -41,8 +42,6 @@ from update_ratings_from_opta import _normalize, fuzzy_token_match
 
 import pandas as pd
 
-ODDS_API_BASE = "https://api.the-odds-api.com/v4"
-ODDS_API_SPORT_KEY = "soccer_uefa_nations_league"
 API_FOOTBALL_DAYS = 10  # NL matchdays are spaced ~weeks apart -- a wider window than club leagues
 
 
@@ -58,55 +57,6 @@ def _resolve_team(name: str, ratings_df: pd.DataFrame) -> str | None:
         if fuzzy_token_match(name, (row["team"], str(row.get("alias", "")))):
             return row["team"]
     return None
-
-
-def pull_odds_api(key: str, ratings_df: pd.DataFrame) -> list[dict]:
-    if not key:
-        print("WARNING: no ODDS_API_KEY set -- skipping The Odds API pull", file=sys.stderr)
-        return []
-    try:
-        r = requests.get(
-            f"{ODDS_API_BASE}/sports/{ODDS_API_SPORT_KEY}/odds",
-            params={"apiKey": key, "regions": "eu", "markets": "h2h"},
-            timeout=15,
-        )
-        r.raise_for_status()
-        matches = r.json()
-    except (requests.RequestException, ValueError) as e:
-        print(f"WARNING: The Odds API fetch failed: {e}", file=sys.stderr)
-        return []
-    if not isinstance(matches, list):
-        print(f"WARNING: The Odds API returned an error: {matches}", file=sys.stderr)
-        return []
-
-    observations = []
-    for m in matches:
-        home_raw, away_raw = m.get("home_team"), m.get("away_team")
-        home, away = _resolve_team(home_raw, ratings_df), _resolve_team(away_raw, ratings_df)
-        if not home or not away:
-            print(f"WARNING: couldn't resolve '{home_raw}' vs '{away_raw}' to a tracked nation", file=sys.stderr)
-            continue
-        home_prices, draw_prices, away_prices = [], [], []
-        for bm in m.get("bookmakers") or []:
-            for market in bm.get("markets") or []:
-                if market.get("key") != "h2h":
-                    continue
-                for outcome in market.get("outcomes") or []:
-                    price = outcome.get("price")
-                    if not price:
-                        continue
-                    if outcome.get("name") == home_raw:
-                        home_prices.append(price)
-                    elif outcome.get("name") == away_raw:
-                        away_prices.append(price)
-                    elif outcome.get("name") == "Draw":
-                        draw_prices.append(price)
-        if not (home_prices and draw_prices and away_prices):
-            continue
-        avg = lambda prices: sum(prices) / len(prices)
-        observations.append({"type": "match", "home": home, "away": away,
-                              "odds": (avg(home_prices), avg(draw_prices), avg(away_prices))})
-    return observations
 
 
 def pull_api_football(key: str, ratings_df: pd.DataFrame) -> list[dict]:
@@ -175,16 +125,9 @@ def main() -> None:
     base_elo = dict(zip(ratings_df["team"], ratings_df["opta_rating"]))
     current_adj = load_nl_rating_adjustments()
 
-    oa_obs = pull_odds_api(os.getenv("ODDS_API_KEY", ""), ratings_df)
-    af_obs = pull_api_football(os.getenv("API_FOOTBALL_KEY", ""), ratings_df)
-    # Keep one observation per (home, away) pair rather than double-counting
-    # a fixture both providers happen to cover -- prefer The Odds API's
-    # (confirmed deeper bookmaker pool) over API-Football's for overlaps.
-    seen = {(o["home"], o["away"]) for o in oa_obs}
-    observations = oa_obs + [o for o in af_obs if (o["home"], o["away"]) not in seen]
+    observations = pull_api_football(os.getenv("API_FOOTBALL_KEY", ""), ratings_df)
 
-    print(f"Collected {len(observations)} match observations "
-          f"({len(oa_obs)} odds_api, {len(observations) - len(oa_obs)} api_football)")
+    print(f"Collected {len(observations)} match observations (api_football)")
     if not observations:
         print("No observations today -- leaving the existing adjustments file untouched.")
         return

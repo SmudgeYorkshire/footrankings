@@ -47,6 +47,19 @@ L2_SHRINKAGE = 0.03     # per-epoch pull toward 0
 EPOCHS = 40
 ADJUSTMENT_CAP = 10.0   # opta ratings only span ~23-100 -- a 10pt swing is already large
 
+# A team with only ONE observed fixture that day has no corroborating match
+# to average against -- a single lopsided line (strong favourite at home
+# against a weak side, say) can otherwise swing that team's whole daily
+# adjustment on its own. Confirmed as a real issue 2026-10-11: Besiktas'
+# adjustment was being driven entirely by one home fixture vs a bottom-half
+# side, further inflated (now fixed separately) by The Odds API and
+# API-Football both reporting that same real match as two "independent"
+# observations. Scaling a team's effective learning rate by how many
+# distinct fixtures it has that day -- full strength at 2+, half strength
+# at exactly 1 -- softens that single-match whiplash without muting the
+# normal case (most teams only ever have 1-2 fixtures in a few days).
+MIN_OBS_FOR_FULL_WEIGHT = 2
+
 
 def _resolve_team(name: str, ratings_df: pd.DataFrame) -> str | None:
     """Match an odds provider's team name against a league's own ratings_df
@@ -94,6 +107,14 @@ def fit_league(league_name: str, cfg: dict, observations: list[dict]) -> dict[st
     if not resolved:
         return {}
 
+    obs_count: dict[str, int] = {}
+    for o in resolved:
+        obs_count[o["home_team"]] = obs_count.get(o["home_team"], 0) + 1
+        obs_count[o["away_team"]] = obs_count.get(o["away_team"], 0) + 1
+
+    def _weight(team: str) -> float:
+        return min(1.0, obs_count.get(team, 0) / MIN_OBS_FOR_FULL_WEIGHT)
+
     adj: dict[str, float] = {t: 0.0 for t in ratings_df["team"]}
     for _ in range(EPOCHS):
         working = ratings_df.copy()
@@ -105,8 +126,8 @@ def fit_league(league_name: str, cfg: dict, observations: list[dict]) -> dict[st
             )[0]
             err_home = o["home_prob"] - model["home_win"]
             err_away = o["away_prob"] - model["away_win"]
-            adj[o["home_team"]] = adj.get(o["home_team"], 0.0) + LEARNING_RATE * err_home
-            adj[o["away_team"]] = adj.get(o["away_team"], 0.0) + LEARNING_RATE * err_away
+            adj[o["home_team"]] = adj.get(o["home_team"], 0.0) + LEARNING_RATE * _weight(o["home_team"]) * err_home
+            adj[o["away_team"]] = adj.get(o["away_team"], 0.0) + LEARNING_RATE * _weight(o["away_team"]) * err_away
         for t in adj:
             adj[t] *= (1.0 - L2_SHRINKAGE)
 
