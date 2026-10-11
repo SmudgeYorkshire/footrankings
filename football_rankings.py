@@ -314,15 +314,32 @@ def _apply_predictions(standings: list[dict], pred_fixtures: list[dict]) -> list
     return list(updated.values())
 
 
-def _playoff_standings(teams: list, standings_lookup: dict, pts_factor: float) -> list:
-    """Mock standings for a play-off group: points adjusted by pts_factor, goals zeroed."""
+def _playoff_standings(teams: list, standings_lookup: dict, pts_factor: float,
+                        exp_pts: dict[str, float] | None = None) -> list:
+    """Mock standings for a play-off group: points adjusted by pts_factor,
+    goals zeroed. Seeded from each team's PROJECTED points at the real
+    split round (exp_pts, from _compute_expected_pts over the same
+    pre-split remaining fixtures the main simulation already uses) rather
+    than today's raw current points -- the split round is typically weeks
+    or months away for a true-split league, and teams rarely have played
+    an equal number of games by then. Seeding from raw current points
+    understates a team with games in hand and can flip who looks like the
+    play-off favourite: confirmed as a real bug 2026-10-11 (Northern Irish
+    Premiership -- Larne, with 4 fewer games played, projects to lead at
+    the split on games in hand alone, but the old code seeded the
+    play-off from today's incomplete table, where Coleraine's then-current
+    9-point lead doesn't yet reflect Larne's unplayed matches, handing
+    Coleraine a misleading play-off-favourite status against Larne's own
+    much higher chance of topping the pre-split table). Falls back to
+    today's raw points if a team is missing from exp_pts (shouldn't happen
+    in practice)."""
     rows = []
     for i, team in enumerate(teams, 1):
         orig = standings_lookup.get(team, {})
-        pts  = int(orig.get("intPoints", 0) or 0)
+        pts  = (exp_pts or {}).get(team, int(orig.get("intPoints", 0) or 0))
         rows.append({
             "strTeam":           team,
-            "intPoints":         int(pts * pts_factor),
+            "intPoints":         round(pts * pts_factor),
             "intPlayed":         0,
             "intWin":            0,
             "intDraw":           0,
@@ -1894,7 +1911,7 @@ def main_content():
                             if _po_c not in st.session_state.get("po_sims", {}):
                                 with st.spinner("Simulating championship play-off…"):
                                     _po_probs = simulate_season(
-                                        standings=_playoff_standings(top_champ, _st_lookup, _pf),
+                                        standings=_playoff_standings(top_champ, _st_lookup, _pf, exp_pts=exp_pts),
                                         remaining_fixtures=_roundrobin_fixtures(top_champ),
                                         ratings=ratings_df, n_sim=n_sim,
                                         home_advantage=home_advantage,
@@ -1919,7 +1936,7 @@ def main_content():
                                 if _po_m not in st.session_state.get("po_sims", {}):
                                     with st.spinner("Simulating middle group…"):
                                         _po_probs = simulate_season(
-                                            standings=_playoff_standings(top_mid, _st_lookup, _pf),
+                                            standings=_playoff_standings(top_mid, _st_lookup, _pf, exp_pts=exp_pts),
                                             remaining_fixtures=_roundrobin_fixtures(top_mid),
                                             ratings=ratings_df, n_sim=n_sim,
                                             home_advantage=home_advantage,
@@ -1943,7 +1960,7 @@ def main_content():
                             if _po_r not in st.session_state.get("po_sims", {}):
                                 with st.spinner("Simulating relegation play-out…"):
                                     _po_probs = simulate_season(
-                                        standings=_playoff_standings(top_relg, _st_lookup, _pf),
+                                        standings=_playoff_standings(top_relg, _st_lookup, _pf, exp_pts=exp_pts),
                                         remaining_fixtures=_roundrobin_fixtures(top_relg),
                                         ratings=ratings_df, n_sim=n_sim,
                                         home_advantage=home_advantage,
