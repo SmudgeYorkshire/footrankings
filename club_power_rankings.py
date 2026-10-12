@@ -1,5 +1,5 @@
 """
-Club Power Rankings — public page.
+Club Strength Rankings — public page.
 
 A new, standalone 0-1000 rating scale covering every club Opta rates
 worldwide (not just the 54 tracked top-flight leagues) — built by
@@ -45,7 +45,7 @@ def _load_opta_meta() -> dict:
 
 
 st.markdown(
-    "<h3 style='margin:0'>🏆 Club Power Rankings</h3>",
+    "<h3 style='margin:0'>🏆 Club Strength Rankings</h3>",
     unsafe_allow_html=True,
 )
 st.caption(
@@ -58,7 +58,7 @@ st.caption(
 
 if not Path(_RANKINGS_PATH).exists():
     st.info(
-        f"No club power ranking found yet. Run `build_club_power_rankings.py` "
+        f"No club strength ranking found yet. Run `build_club_power_rankings.py` "
         f"(scheduled daily via the odds/ratings workflow) to generate {_RANKINGS_PATH}."
     )
     st.stop()
@@ -118,8 +118,8 @@ def _render_table(df: pd.DataFrame, key_prefix: str, league_options: list[str]) 
     view = view.rename(columns={
         "rank": "Rank", "team": "Club", "tracked_league": "Tracked League",
         "opta_rating_raw": "Opta Rating", "adjustment": "Odds Adjustment",
-        "rating_1000": "Power Rating", "badge_url": "Badge",
-    })[["Rank", "Badge", "Club", "Tracked League", "Opta Rating", "Odds Adjustment", "Power Rating"]]
+        "rating_1000": "Strength Rating", "badge_url": "Badge",
+    })[["Rank", "Badge", "Club", "Tracked League", "Opta Rating", "Odds Adjustment", "Strength Rating"]]
 
     st.dataframe(
         view,
@@ -130,7 +130,7 @@ def _render_table(df: pd.DataFrame, key_prefix: str, league_options: list[str]) 
             "Tracked League":  st.column_config.TextColumn("Tracked League", width="medium"),
             "Opta Rating":     st.column_config.NumberColumn("Opta Rating", format="%.1f", width="small"),
             "Odds Adjustment": st.column_config.NumberColumn("Odds Adjustment", format="%+.1f", width="small"),
-            "Power Rating":    st.column_config.NumberColumn("Power Rating", format="%.1f", width="small"),
+            "Strength Rating": st.column_config.NumberColumn("Strength Rating", format="%.1f", width="small"),
         },
         width="content",
         hide_index=True,
