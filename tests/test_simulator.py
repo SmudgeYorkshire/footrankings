@@ -1,15 +1,24 @@
 """
 Tests for the Monte Carlo season simulator (simulator.py). Covers the
 regressions found and fixed in this pass: the extra-time goal-rate
-constant, the fast-path/slow-path tiebreak-order guard, and the
-now-consistent NegBin goals model in simulate_final_four.
+constant, the fast-path/slow-path tiebreak-order guard, the
+now-consistent NegBin goals model in simulate_final_four, the
+clinched/eliminated position-bounds helpers, and the SEASON_STRENGTH_SIGMA
+season-level variance fix.
 """
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from simulator import (
     EXTRA_TIME_FRACTION,
+    SEASON_STRENGTH_SIGMA,
+    CLINCHED_SENTINEL,
+    ELIMINATED_SENTINEL,
+    cert_value,
+    cert_cell_format,
+    position_bounds,
     simulate_season,
     simulate_final_four,
     two_leg_advance_odds,
@@ -110,3 +119,98 @@ def test_two_leg_advance_odds_sum_to_one():
     ratings = _ratings(teams, [80.0, 70.0])
     odds = two_leg_advance_odds("A", "B", ratings)
     assert odds["team1_adv"] + odds["team2_adv"] == pytest.approx(1.0, abs=1e-6)
+
+
+# ── Mathematically clinched/eliminated position markers (position_bounds /
+# cert_value / cert_cell_format, added 2026-10-12 for the ✓/X feature) ─────
+
+def test_cert_value_maps_certain_flag_to_sentinels():
+    assert cert_value(42.0, True) == CLINCHED_SENTINEL
+    assert cert_value(42.0, False) == ELIMINATED_SENTINEL
+    assert cert_value(42.0, None) == 42.0
+
+
+def test_cert_cell_format_renders_checkmark_cross_or_percentage():
+    assert cert_cell_format(CLINCHED_SENTINEL) == "✓"
+    assert cert_cell_format(ELIMINATED_SENTINEL) == "X"
+    assert cert_cell_format(46.1) == "46.1%"
+
+
+def test_position_bounds_pins_a_runaway_leader_and_a_dead_last_team():
+    # Leader has clinched 1st: its current points alone already beat every
+    # rival's ceiling (current + 3*remaining). Bottom can never catch Mid.
+    standings = [
+        {"strTeam": "Leader", "intPoints": 80},
+        {"strTeam": "Mid", "intPoints": 40},
+        {"strTeam": "Bottom", "intPoints": 5},
+    ]
+    remaining = (
+        [{"strHomeTeam": "Mid", "strAwayTeam": "Bottom"}] * 3
+        + [{"strHomeTeam": "Leader", "strAwayTeam": "Mid"}] * 1
+    )
+    bounds = position_bounds(standings, remaining)
+    assert bounds["Leader"] == (1, 1)
+    assert bounds["Bottom"] == (3, 3)
+
+
+def test_position_bounds_leaves_an_open_race_unpinned():
+    standings = [
+        {"strTeam": "A", "intPoints": 20},
+        {"strTeam": "B", "intPoints": 18},
+    ]
+    remaining = [{"strHomeTeam": "A", "strAwayTeam": "B"}] * 5
+    bounds = position_bounds(standings, remaining)
+    # Either could still finish either 1st or 2nd with 5 games apiece left.
+    assert bounds["A"] == (1, 2)
+    assert bounds["B"] == (1, 2)
+
+
+def test_position_bounds_pins_everyone_once_no_fixtures_remain():
+    standings = [
+        {"strTeam": "A", "intPoints": 30},
+        {"strTeam": "B", "intPoints": 20},
+        {"strTeam": "C", "intPoints": 10},
+    ]
+    assert position_bounds(standings, []) == {"A": (1, 1), "B": (2, 2), "C": (3, 3)}
+
+
+# ── Season-level strength variance (SEASON_STRENGTH_SIGMA, added 2026-10-12
+# to fix the overconfident title/finish odds flagged against EuroClubIndex/
+# Opta/StatsUltra -- see the constant's own comment in simulator.py for the
+# full diagnosis) ───────────────────────────────────────────────────────────
+
+def test_season_sigma_widens_title_odds_without_flipping_the_favourite(monkeypatch):
+    teams = ["Strong", "Weak"]
+    standings = [
+        {"strTeam": "Strong", "intRank": 1, "intPoints": 20, "intGoalDifference": 0, "intGoalsFor": 0, "intPlayed": 10},
+        {"strTeam": "Weak", "intRank": 2, "intPoints": 17, "intGoalDifference": 0, "intGoalsFor": 0, "intPlayed": 10},
+    ]
+    ratings = _ratings(teams, [78.0, 72.0])
+    # Plenty of head-to-head fixtures left so per-match noise alone would
+    # mostly average out -- isolates the season-level effect being tested.
+    remaining = [
+        {"strHomeTeam": "Strong" if k % 2 == 0 else "Weak",
+         "strAwayTeam": "Weak" if k % 2 == 0 else "Strong"}
+        for k in range(24)
+    ]
+
+    # simulate_season seeds its own rng internally with no way to pass a
+    # seed in; force it to a fixed seed so both runs below are reproducible.
+    original_default_rng = np.random.default_rng
+    monkeypatch.setattr(np.random, "default_rng", lambda *a, **k: original_default_rng(12345))
+
+    no_variance = simulate_season(standings, remaining, ratings, n_sim=4000,
+                                   season_sigma=0.0, apply_form=False)
+    with_variance = simulate_season(standings, remaining, ratings, n_sim=4000,
+                                     season_sigma=SEASON_STRENGTH_SIGMA, apply_form=False)
+
+    p_no_variance = no_variance.loc["Strong", "1"]
+    p_with_variance = with_variance.loc["Strong", "1"]
+
+    # Strong stays the favourite either way, but per-match noise alone
+    # (season_sigma=0) is the source of the overconfidence this constant
+    # fixes -- with it applied, the title race should look meaningfully
+    # less like a foregone conclusion.
+    assert p_no_variance > 0.97
+    assert 0.5 < p_with_variance < 0.97
+    assert p_with_variance < p_no_variance

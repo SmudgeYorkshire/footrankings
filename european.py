@@ -21,7 +21,7 @@ from api_football_fetcher import ApiFootballClient
 from _split_season import build_h2h, rank_tied_group
 from simulator import two_leg_advance_odds, position_bounds
 from qualifying_bracket import PLAYOFF_BRACKET, CONFIRMED_LEAGUE_PHASE
-from club_coefficients import CLUB_COEFFICIENTS, get_coeff
+from club_coefficients import get_coeff
 from league_phase_simulator import simulate_competition_winner, build_predicted_bracket, single_match_outcome_probs
 from prob_table import render_prob_table
 from league_phase_fixtures import (
@@ -29,11 +29,10 @@ from league_phase_fixtures import (
 )
 from competition_trivia import competition_trivia, overall_trivia
 from qualifying_projection import (
-    _PLAYOFF_ROUND_NAMES,
     _load_combined_ratings, _resolve_field_ratings,
     _leg_aggregate_winner, _resolve_bracket_side,
     _resolve_playoff_tie_odds, _project_league_phase_field,
-    _normalize_club_name, _fuzzy_key, real_league_phase_results,
+    _fuzzy_key, real_league_phase_results,
     home_advantage_for,
 )
 

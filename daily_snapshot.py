@@ -14,6 +14,14 @@ day: pre-split (or non-split) leagues simulate the whole table; once a
 split-format league has actually split, position probabilities come from
 the Championship conference simulation instead (that's where the title
 race happens post-split).
+
+Also writes a second history/{tsdb_id}_relg.csv once a split-format
+league has actually split: from that point on, the main file above only
+covers the Championship conference, so render_relegation_probability_history
+(football_rankings.py / football_rankings_tier2.py) needs the Relegation
+conference's own position matrix from somewhere else. Pre-split, no second
+file is needed -- the relegation signal is already in the main file's
+bottom rows.
 """
 
 import csv
@@ -27,7 +35,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
+from config import LEAGUES, LEAGUES_TIER2, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
 from api_football_fetcher import ApiFootballClient
 from ratings_manager import load_ratings
 from _split_season import get_split_info, compute_full_standings, conference_fixtures, ensure_full_roster
@@ -48,15 +56,22 @@ def _load_presplit_snapshot(league_id, season):
 
 
 def snapshot_league(cfg: dict, key: str, client: ApiFootballClient):
-    """Return a position-probability DataFrame for one league, or None if
-    there's not enough data yet (season hasn't started, etc.)."""
+    """Return (probs, relg_probs) for one league, or (None, None) if
+    there's not enough data yet (season hasn't started, etc.).
+
+    probs is whichever conference the real title race is in right now --
+    the same thing this function always returned (whole table pre-split,
+    Championship conference once split). relg_probs is None except once a
+    real split has happened, when it's the Relegation conference's own
+    position matrix (see this module's docstring for why that needs its
+    own history file)."""
     league_id = cfg["id"]
     ratings_id = cfg.get("tsdb_id", cfg["id"])
     season = cfg.get("af_season") or get_current_season(cfg["season_type"])
 
     roster = client.get_standings(league_id, season)
     if not roster:
-        return None
+        return None, None
     played, remaining = client.get_fixtures(league_id, season)
     roster = ensure_full_roster(roster, played + remaining)
     tiebreakers = cfg.get("tiebreakers")
@@ -64,7 +79,7 @@ def snapshot_league(cfg: dict, key: str, client: ApiFootballClient):
         roster, played, tiebreakers=tiebreakers, points_adjustments=cfg.get("points_deductions"),
     )
     if not standings:
-        return None
+        return None, None
 
     ratings_df = load_ratings(ratings_id, standings)
     home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
@@ -87,9 +102,9 @@ def snapshot_league(cfg: dict, key: str, client: ApiFootballClient):
         target_fixtures = remaining
 
     if not target_standings:
-        return None
+        return None, None
 
-    return simulate_season(
+    probs = simulate_season(
         standings=target_standings,
         remaining_fixtures=target_fixtures,
         ratings=ratings_df,
@@ -98,6 +113,20 @@ def snapshot_league(cfg: dict, key: str, client: ApiFootballClient):
         tiebreakers=tiebreakers,
         played_fixtures=played,
     )
+
+    relg_probs = None
+    if split_info and split_info.get("relg_current"):
+        relg_probs = simulate_season(
+            standings=split_info["relg_current"],
+            remaining_fixtures=conference_fixtures(remaining, split_info["relg_teams"]),
+            ratings=ratings_df,
+            n_sim=DEFAULT_N_SIMULATIONS,
+            home_advantage=home_advantage,
+            tiebreakers=tiebreakers,
+            played_fixtures=played,
+        )
+
+    return probs, relg_probs
 
 
 def append_snapshot(tsdb_id, probs, date_str) -> dict[str, float] | None:
@@ -158,15 +187,22 @@ def main():
     ok, skipped, failed = 0, 0, []
     swings = []  # (league_name, team, delta, from_pct, to_pct)
 
-    for league_name, cfg in LEAGUES.items():
+    # Tier-2 leagues use their own tsdb_id range (20000+, see config.py) so
+    # there's no collision with tier-1's real TheSportsDB ids -- safe to
+    # snapshot both through the same loop/history directory.
+    all_leagues = {**LEAGUES, **LEAGUES_TIER2}
+    for league_name, cfg in all_leagues.items():
         try:
-            before = _yesterdays_title_probs(cfg.get("tsdb_id", cfg["id"]), date_str)
-            probs = snapshot_league(cfg, key, client)
-            title_probs = append_snapshot(cfg.get("tsdb_id", cfg["id"]), probs, date_str)
+            tsdb_id = cfg.get("tsdb_id", cfg["id"])
+            before = _yesterdays_title_probs(tsdb_id, date_str)
+            probs, relg_probs = snapshot_league(cfg, key, client)
+            title_probs = append_snapshot(tsdb_id, probs, date_str)
             if title_probs is None:
                 skipped += 1
                 print(f"  SKIP {league_name} (no data yet)")
                 continue
+            if relg_probs is not None:
+                append_snapshot(f"{tsdb_id}_relg", relg_probs, date_str)
             ok += 1
             print(f"  OK   {league_name}")
             for team, new_p in title_probs.items():
@@ -178,7 +214,7 @@ def main():
             print(f"  FAIL {league_name}: {e}")
         time.sleep(1.2)  # avoid the burst-block seen on rapid sequential API calls
 
-    print(f"\n{ok}/{len(LEAGUES)} leagues snapshotted, {skipped} skipped, {len(failed)} failed")
+    print(f"\n{ok}/{len(all_leagues)} leagues snapshotted, {skipped} skipped, {len(failed)} failed")
     if failed:
         print("Failures:")
         for name, err in failed:

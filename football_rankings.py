@@ -146,6 +146,91 @@ def render_title_probability_history(tsdb_id: int):
     st.plotly_chart(fig, use_container_width=True)
 
 
+def _relegation_positions(main_zones: dict, relg_zones: dict, n_total: int) -> list[int]:
+    """Whole-table positions that represent relegation risk, for whichever
+    zone map is currently meaningful.
+
+    When a split-format league has a Relegation conference configured
+    (relg_zones non-empty), its own "relega"-labelled positions are known
+    precisely only within that conference (e.g. Austrian Bundesliga's lone
+    local position 6) -- main_zones's "regular" dict only has the coarser
+    "Relegation Group" label pre-split, naming everyone who *might* end up
+    relegated, not who actually will. Translate the conference-local count
+    into the equivalent last-N whole-table positions instead, which is
+    always exact regardless of split timing (relegation is definitionally
+    the bottom N of the final overall standings, however the schedule gets
+    there). Without a Relegation conference at all, main_zones's own
+    "regular" labels are already exact whole-table positions."""
+    if relg_zones:
+        n_relg = sum(1 for label in relg_zones.values() if "relega" in str(label).lower())
+        return list(range(n_total - n_relg + 1, n_total + 1)) if n_relg else []
+    return sorted(int(p) for p, label in main_zones.items() if "relega" in str(label).lower())
+
+
+def render_relegation_probability_history(tsdb_id: int, relegation_positions: list[int], suffix: str = ""):
+    """Line chart of each team's combined relegation-zone probability trend
+    over time -- the relegation counterpart to render_title_probability_history,
+    sharing its daily-snapshot data and chart style exactly, but summing
+    whichever pos_N columns `relegation_positions` names instead of just
+    pos_1.
+
+    `suffix` picks a different history file: "" for the main file
+    (whole-table positions -- correct both pre-split and for a simple,
+    non-split league), "_relg" for the dedicated Relegation-conference
+    snapshot daily_snapshot.py writes once a real split has happened (see
+    that module's own docstring -- the main file alone stops covering
+    relegation at that point, since it switches to the Championship
+    conference). Shows nothing until at least 2 days of that file's history
+    have accumulated, same as the title chart."""
+    if not relegation_positions:
+        return
+    path = Path("history") / f"{tsdb_id}{suffix}.csv"
+    if not path.exists():
+        return
+    hist_df = pd.read_csv(path)
+    pos_cols = [f"pos_{i}" for i in relegation_positions if f"pos_{i}" in hist_df.columns]
+    if hist_df.empty or not pos_cols:
+        return
+    dates = sorted(hist_df["date"].unique())
+    if len(dates) < 2:
+        st.caption(
+            f"📉 Tracking relegation-probability trends daily — {len(dates)} day"
+            f"{'s' if len(dates) != 1 else ''} of history so far. Check back as it builds up."
+        )
+        return
+
+    hist_df = hist_df.copy()
+    hist_df["relg_prob"] = hist_df[pos_cols].sum(axis=1)
+    pivot = hist_df.pivot(index="date", columns="team", values="relg_prob").sort_index()
+
+    # Only plot teams that have shown meaningful relegation risk at some
+    # point in the history -- otherwise most of the division's flat 0%
+    # lines would drown out the handful of teams this chart is actually
+    # for. Falls back to showing everyone rather than an empty chart on
+    # the rare day where nobody clears the threshold yet.
+    at_risk = [t for t in pivot.columns if pivot[t].max() >= 0.01]
+    if not at_risk:
+        at_risk = list(pivot.columns)
+
+    fig = go.Figure()
+    for team in at_risk:
+        fig.add_trace(go.Scatter(
+            x=pivot.index, y=(pivot[team] * 100).round(1),
+            mode="lines", name=team,
+            hovertemplate="%{y:.1f}%<extra>%{fullData.name}</extra>",
+        ))
+    fig.update_layout(
+        title="Relegation probability over time",
+        yaxis_title="Probability (%)", yaxis=dict(range=[0, 100]),
+        xaxis_title="",
+        height=450,
+        legend=dict(font=dict(size=10)),
+        margin=dict(l=10, r=10, t=40, b=10),
+    )
+    st.markdown("#### 📉 Relegation Probability History")
+    st.plotly_chart(fig, use_container_width=True)
+
+
 def _season_progress_html(played_r: int, total_r: int, n_played_m: int, n_remaining_m: int) -> str:
     """Compact progress bar showing season round progress."""
     pct = (played_r / total_r * 100) if total_r else 0
@@ -1403,7 +1488,6 @@ def main_content():
             st.markdown("### 📋 Regular Season Final Table")
             _render_table(_table_rows(split_info["pre_split"], zones=_spot_zones, show_form=False))
         else:
-            _is_split = bool(cfg.get("n_champ") or cfg.get("final_four"))
             st.markdown(
                 _season_progress_html(played_rounds, total_rounds, len(played_fixtures), len(remaining_fixtures)),
                 unsafe_allow_html=True,
@@ -1635,6 +1719,11 @@ def main_content():
                                           status_map=_relg_zones,
                                           bounds=position_bounds(split_info["relg_current"], relg_fix))
                         render_zone_table(probs_relg, split_info["relg_current"], cfg.get("zones"))
+                        render_relegation_probability_history(
+                            ratings_id,
+                            sorted(int(p) for p, label in _relg_zones.items() if "relega" in str(label).lower()),
+                            suffix="_relg",
+                        )
 
                 # ── UECL Play-offs simulation (split leagues) ─────────────
                 if cfg.get("uecl_playoff") and not probs_champ.empty and probs_relg is not None and not probs_relg.empty:
@@ -1739,6 +1828,9 @@ def main_content():
                 _is_true_split = bool(cfg.get("n_champ")) and not cfg.get("final_four")
                 if not _is_true_split:
                     render_title_probability_history(ratings_id)
+                    render_relegation_probability_history(
+                        ratings_id, _relegation_positions(_main_zones, _relg_zones, len(standings)),
+                    )
 
                 # ── Projected groups by probability (pre-split leagues) ───────
                 _nc = cfg.get("n_champ") or (4 if cfg.get("final_four") else None)
@@ -1875,13 +1967,15 @@ def main_content():
                             render_prob_table(st.session_state["po_sims"][_po_r], badge_lookup,
                                               status_map=_relg_zones,
                                               title="Relegation play-out finish probabilities")
+                            render_relegation_probability_history(
+                                ratings_id, _relegation_positions(_main_zones, _relg_zones, n_total),
+                            )
 
                         # ── UECL Play-offs ────────────────────────────────────────────
                         if (cfg.get("uecl_playoff")
                                 and p_champ is not None and p_relg is not None
                                 and _po_c in st.session_state.get("po_sims", {})
                                 and _po_r in st.session_state.get("po_sims", {})):
-                            _champ_sim = st.session_state["po_sims"][_po_c]
                             _relg_sim  = st.session_state["po_sims"][_po_r]
                             # Bye = predicted 5th in championship group (avoids duplicate
                             # picks). No actual split has happened yet in this branch, so
