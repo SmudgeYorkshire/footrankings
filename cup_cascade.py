@@ -101,6 +101,52 @@ def _playoff_claimed_positions(cfg: dict) -> set[int]:
     return claimed
 
 
+def _effective_claimed(zones: dict[int, str], cfg: dict) -> set[int]:
+    """Positions treated as already spoken for before any cup cascade
+    runs -- cup_cascade's own starting `claimed` set, before
+    _playoff_claimed_positions is added on top.
+
+    For a league with extra_cup_ids (more domestic cup competitions than
+    league_status.py's own data models for -- currently only England,
+    whose League Cup route has no equivalent anywhere in
+    access_list_permutations_2027_28's data at all, see this module's own
+    docstring), the TRAILING non-UCL zone entries -- as many of them as
+    there are extra cups -- are excluded here rather than claimed
+    outright: that's where those extra cups' own slots belong once
+    resolved, confirmed directly 2026-10-13 against TWO separate
+    worked examples (both cup winners already in the Champions League
+    zone): "5th and 6th should be UEL, 7th UECL - PO" at the 4-UCL
+    baseline, "6th and 7th UEL, 8th UECL - PO" once the 5th Champions
+    League spot applied -- in both, only ONE non-UCL position (the
+    natural UEL one) stayed fixed; the next one down was NOT a second,
+    independent, untouchable route, it was simply where the cascade
+    landed once the first one did.
+
+    Treating league_status.py's trailing "...UECL - PO" entry as already
+    claimed -- which a plain `set(zones.keys())` does -- was exactly the
+    bug: it's generated from entrants_2027_28.ACCESS_LIST_2027_28, which
+    has no concept of England's second, this-season-only cup route at
+    all, so that entry is only really valid as a label in the simplest
+    case (neither cup winner redundant). Treating it as a hard claim made
+    a cascade skip past it to some unrelated further-down position instead
+    of being allowed to flow into it, the same way a league with only one
+    cup already correctly lets a cascade claim its own single trailing
+    non-UCL position.
+
+    Every other league's zones entries (no extra_cup_ids) stay fully
+    claimed exactly as before -- this function is a no-op for them."""
+    n_extra = len(cfg.get("extra_cup_ids", []))
+    if n_extra == 0:
+        return set(zones.keys())
+    non_ucl_positions = sorted(
+        pos for pos, label in zones.items()
+        if (tier := _parse_tier(label)) is not None and tier[0] != _COMP_RANK["UCL"]
+    )
+    keep = max(0, len(non_ucl_positions) - n_extra)
+    excluded = set(non_ucl_positions[keep:])
+    return set(zones.keys()) - excluded
+
+
 def _match_live_name(candidates: set[str], ranked_teams: list[str]) -> tuple[int, str] | None:
     """(1-indexed position, live team name) for the first ranked_teams entry
     matching one of `candidates` (ratings-file team/alias strings) -- exact
@@ -166,7 +212,7 @@ def _resolve_one_cup(cup_id, cw_status: str, cfg: dict, ratings_df: pd.DataFrame
         # (genuinely below every zone, or only in an uncertain multi-team
         # play-off pool) -- guarantee them the cup-winner slot directly
         # rather than leaving it to a play-off's probabilistic outcome.
-        overrides[cw_live_name] = f"{cw_status}*"
+        overrides[cw_live_name] = cw_status
         claimed.add(cw_pos)
     elif natural_tier >= cw_tier:
         # Their own projected position already matches or beats the
@@ -175,17 +221,17 @@ def _resolve_one_cup(cup_id, cw_status: str, cfg: dict, ratings_df: pd.DataFrame
         target = _first_unclaimed(ranked_teams, claimed)
         if target:
             t_pos, t_name = target
-            overrides[t_name] = f"{cw_status}*"
+            overrides[t_name] = cw_status
             claimed.add(t_pos)
     else:
         # Cup-winner slot beats their natural zone -- upgrade them
         # directly, and their vacated natural zone cascades down.
-        overrides[cw_live_name] = f"{cw_status}*"
+        overrides[cw_live_name] = cw_status
         claimed.add(cw_pos)
         target = _first_unclaimed(ranked_teams, claimed, exclude=frozenset({cw_live_name}))
         if target:
             t_pos, t_name = target
-            overrides[t_name] = f"{natural_label}*"
+            overrides[t_name] = natural_label
             claimed.add(t_pos)
 
     return overrides
@@ -195,8 +241,13 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
                             played_fixtures: list[dict], remaining_fixtures: list[dict],
                             ratings_df: pd.DataFrame, zones: dict[int, str],
                             api_key: str, n_sim: int = 3_000) -> dict[str, str]:
-    """{team_name: "STATUS*"} for this league's cup-winner cascade(s),
-    resolved live -- see module docstring. zones should be whichever
+    """{team_name: "STATUS"} for this league's cup-winner cascade(s),
+    resolved live -- see module docstring. No "*" or other marker on the
+    label itself (dropped 2026-10-13: it was reading as a parsing/display
+    error rather than "derived live" and causing more confusion than it
+    resolved -- a per-spot footnote explaining a live override may come
+    back later, but as separate text below the table, not punctuation
+    stuck on the label). zones should be whichever
     {pos: label} dict actually reflects real UCL/UEL/UECL zones for this
     league/phase (the "regular"-phase spot zones for a non-split league, or
     the "champ" zones treated as overall rank 1..n for a split one -- the
@@ -243,7 +294,7 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
     expected_rank = probs.mul(pos_nums, axis=1).sum(axis=1)
     ranked_teams = expected_rank.sort_values(ascending=True).index.tolist()
 
-    claimed = set(zones.keys()) | _playoff_claimed_positions(cfg)
+    claimed = _effective_claimed(zones, cfg) | _playoff_claimed_positions(cfg)
     overrides: dict[str, str] = {}
     for cup_id, cw_status in cups:
         new_overrides = _resolve_one_cup(cup_id, cw_status, cfg, ratings_df, ranked_teams, zones, claimed, api_key)
@@ -252,8 +303,8 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
                 # A double cup winner (rare, but has happened) -- keep
                 # whichever tier is higher instead of letting the cup
                 # processed later silently clobber the earlier one's label.
-                existing_tier = _parse_tier(overrides[team].rstrip("*"))
-                new_tier = _parse_tier(label.rstrip("*"))
+                existing_tier = _parse_tier(overrides[team])
+                new_tier = _parse_tier(label)
                 if existing_tier is not None and new_tier is not None and existing_tier >= new_tier:
                     continue
             overrides[team] = label

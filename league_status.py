@@ -292,7 +292,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1",
         },
         "mid": {  # 4 teams · winner plays Championship Group's 3rd/4th for UECL – QR2 spot
-            1: "UECL Play-offs*",
+            1: "UECL Play-offs",
         },
         "relg": {  # 6 teams (pos 9-14 overall) · 13th (5th) plays PO · 14th (6th) relegated
             5: "Relegation - PO",

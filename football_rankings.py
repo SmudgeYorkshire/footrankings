@@ -1256,9 +1256,6 @@ def main_content():
     _team_overrides = (st.session_state.get(f"cascade_overrides_{league_id}")
                         or cfg.get("team_status_overrides", {}))
 
-    _UECL_PO_FOOTNOTE = "* These clubs enter additional domestic play-offs to determine the last UECL qualifying spot."
-
-
     tab_table, tab_proj, tab_manual, tab_fixtures, tab_results, tab_format, tab_history = st.tabs(
         ["📊 Current Table", "🎯 Predictions", "🔮 Manual Predictions", "📅 Fixtures", "📋 Results", "🗂️ Format", "🕰️ History"]
     )
@@ -1304,7 +1301,7 @@ def main_content():
             return rows
 
         def _status_style(val):
-            s = str(val).lower().rstrip("*").rstrip()
+            s = str(val).lower().rstrip()
             if "relega"           in s: return "color: #ea4335; font-weight: bold"
             if "champions league" in s: return "color: #1a73e8; font-weight: bold"
             if "europa league"    in s: return "color: #f9ab00; font-weight: bold"
@@ -1318,7 +1315,7 @@ def main_content():
             return ""
 
         def _europe_style(val):
-            s = str(val).upper().rstrip("*").rstrip()
+            s = str(val).upper().rstrip()
             if "UCL"  in s: return "color: #1a73e8; font-weight: bold"
             if "UEL"  in s: return "color: #f9ab00; font-weight: bold"
             if "UECL" in s: return "color: #34a853; font-weight: bold"
@@ -1401,8 +1398,6 @@ def main_content():
             st.caption(_pts_note)
             _render_table(_table_rows(split_info["champ_current"], zones=_champ_zones, show_next=True))
             st.caption(_tb_caption(_champ_tbs))
-            if any(str(v).endswith("*") for v in (_champ_zones or {}).values()):
-                st.caption(_UECL_PO_FOOTNOTE)
 
             # ── Cup Details ──────────────────────────────────────────────────────
             render_cup_details(cfg, _API_KEY)
@@ -1421,8 +1416,6 @@ def main_content():
                 st.caption(_relg_pts_note)
                 _render_table(_table_rows(split_info["relg_current"], zones=_relg_zones, relative_zones=True, show_next=True))
                 st.caption(_tb_caption(_relg_tbs))
-                if any(str(v).endswith("*") for v in (_relg_zones or {}).values()):
-                    st.caption(_UECL_PO_FOOTNOTE)
 
             # ── UECL Play-offs (e.g. Austrian Bundesliga) ────────────────────
             if cfg.get("uecl_playoff"):

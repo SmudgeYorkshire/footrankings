@@ -58,7 +58,7 @@ def _euro_style_cell(val):
 
 def _status_style_pred(val):
     """Colour + bold for status labels in the predicted-standings Status column."""
-    s = str(val).lower().rstrip("*").rstrip()
+    s = str(val).lower().rstrip()
     if "relega"           in s: return "color: #ea4335; font-weight: bold"
     if "champions league" in s: return "color: #1a73e8; font-weight: bold"
     if "europa league"    in s: return "color: #f9ab00; font-weight: bold"
