@@ -1,12 +1,20 @@
 """
 Automated, daily version of nl_odds_calibration.py's idea -- fit a small
 per-team rating adjustment from real bookmaker odds -- but for the 54
-tracked top-flight leagues AND LEAGUES_TIER2's ~52 second tiers, sourced
-automatically from fetch_daily_odds.py's output instead of a hand-typed
-observation list, and using the site's own real Poisson match model
-(simulator.fixture_odds) to compare against the market instead of a
-generic Elo-expectancy approximation, since that's exactly what will
-actually run once this adjustment is live.
+tracked top-flight leagues, LEAGUES_TIER2's ~52 second tiers, AND the
+Champions/Europa/Conference League, sourced automatically from
+fetch_daily_odds.py's output instead of a hand-typed observation list, and
+using the site's own real Poisson match model (simulator.fixture_odds) to
+compare against the market instead of a generic Elo-expectancy
+approximation, since that's exactly what will actually run once this
+adjustment is live.
+
+A European-competition fixture pairs two teams from two DIFFERENT domestic
+rosters (no single cfg/tsdb_id to load_ratings() against the way a
+same-league fixture has), so those three competitions are fit separately
+from the main per-league loop, against one combined cross-league ratings
+table built once per run -- see fit_european_competition and
+_load_tracked_ratings_combined.
 
 PERSISTENT per team: this is meant to be the site's own permanent club
 strength rating, not a daily snapshot that happens to use Opta as a
@@ -74,7 +82,7 @@ load_dotenv()
 
 import pandas as pd
 
-from config import LEAGUES, LEAGUES_TIER2
+from config import LEAGUES, LEAGUES_TIER2, EUROPEAN_COMPETITIONS
 from ratings_manager import load_ratings
 from simulator import fixture_odds
 from update_ratings_from_opta import _normalize, fuzzy_token_match
@@ -134,21 +142,9 @@ def _resolve_team(name: str, ratings_df: pd.DataFrame) -> str | None:
     return None
 
 
-def fit_league(league_name: str, cfg: dict, observations: list[dict]) -> dict[str, float]:
-    """Fit (and return) an adjustment for every team that has at least one
-    resolved odds observation in `observations` -- NOT every team in the
-    league. A team with zero observations this run is deliberately left out
-    of the return value entirely (rather than returned as 0.0) so the
-    caller's persistent merge (see main()) leaves that team's own last
-    fitted value untouched instead of overwriting it with a fresh "no
-    evidence" zero."""
-    # apply_adjustments=False: fit against the true raw Opta baseline, never
-    # against an already-adjusted value -- each refit is independent of a
-    # team's own previous adjustment (see module docstring: this is what
-    # keeps persistence, added separately in main(), from compounding).
-    ratings_df = load_ratings(cfg.get("tsdb_id", cfg["id"]), [], apply_adjustments=False)
-    home_advantage = cfg.get("home_advantage", 1.20)
-
+def _resolve_observations(label: str, ratings_df: pd.DataFrame, observations: list[dict]) -> list[dict]:
+    """Resolve every observation's home/away team names against ratings_df,
+    dropping (and warning about) any that don't match anyone on it."""
     resolved = []
     unresolved = set()
     for o in observations:
@@ -159,7 +155,23 @@ def fit_league(league_name: str, cfg: dict, observations: list[dict]) -> dict[st
         else:
             unresolved.add((o["home_team"], o["away_team"]))
     for h, a in unresolved:
-        print(f"  [{league_name}] WARNING: couldn't resolve '{h}' vs '{a}' to a tracked team", file=sys.stderr)
+        print(f"  [{label}] WARNING: couldn't resolve '{h}' vs '{a}' to a tracked team", file=sys.stderr)
+    return resolved
+
+
+def _fit_observations(ratings_df: pd.DataFrame, home_advantage: float, resolved: list[dict]) -> dict[str, float]:
+    """Core gradient-descent fit, shared by a single domestic league's own
+    roster (fit_league) and the cross-league roster a European competition
+    needs (fit_european_competition) -- same algorithm either way, just a
+    different-shaped ratings_df/home_advantage and, consequently, a
+    different team universe in `resolved`.
+
+    Returns an adjustment for every team that has at least one observation
+    in `resolved` -- NOT every team in ratings_df. A team with zero
+    observations this run is deliberately left out of the return value
+    entirely (rather than returned as 0.0) so the caller's persistent merge
+    (see main()) leaves that team's own last fitted value untouched instead
+    of overwriting it with a fresh "no evidence" zero."""
     if not resolved:
         return {}
 
@@ -196,6 +208,48 @@ def fit_league(league_name: str, cfg: dict, observations: list[dict]) -> dict[st
         t: max(-ADJUSTMENT_CAP, min(ADJUSTMENT_CAP, round(adj[t], 2)))
         for t in obs_count
     }
+
+
+def fit_league(league_name: str, cfg: dict, observations: list[dict]) -> dict[str, float]:
+    # apply_adjustments=False: fit against the true raw Opta baseline, never
+    # against an already-adjusted value -- each refit is independent of a
+    # team's own previous adjustment (see module docstring: this is what
+    # keeps persistence, added separately in main(), from compounding).
+    ratings_df = load_ratings(cfg.get("tsdb_id", cfg["id"]), [], apply_adjustments=False)
+    home_advantage = cfg.get("home_advantage", 1.20)
+    resolved = _resolve_observations(league_name, ratings_df, observations)
+    return _fit_observations(ratings_df, home_advantage, resolved)
+
+
+def _load_tracked_ratings_combined() -> pd.DataFrame:
+    """Every tracked LEAGUES + LEAGUES_TIER2 team's raw (apply_adjustments=
+    False) rating in one table, for resolving a European-competition
+    fixture's two teams against -- who almost always come from two
+    DIFFERENT domestic rosters, so fit_league's single-league load_ratings()
+    call can't serve them; there's no single cfg/tsdb_id a Champions League
+    fixture belongs to. Carries the same small collision risk _resolve_
+    team's own docstring already accepts for a single league (two different
+    tracked clubs sharing one exact name string) over a wider roster --
+    acceptable since European entrants are almost always well-known clubs
+    with distinctive exact name strings."""
+    frames = [
+        df for cfg in list(LEAGUES.values()) + list(LEAGUES_TIER2.values())
+        if not (df := load_ratings(cfg.get("tsdb_id", cfg["id"]), [], apply_adjustments=False)).empty
+    ]
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=["team", "alias", "opta_rating"])
+
+
+def fit_european_competition(comp_name: str, observations: list[dict], combined_ratings: pd.DataFrame) -> dict[str, float]:
+    """European-competition counterpart to fit_league. combined_ratings
+    (built once by the caller via _load_tracked_ratings_combined and reused
+    across all three competitions, rather than rebuilt per call) stands in
+    for the single-league roster fit_league loads itself. home_advantage
+    uses this competition's own EUROPEAN_COMPETITIONS value -- there's no
+    single "home league" for a fixture between two different countries'
+    clubs."""
+    home_advantage = EUROPEAN_COMPETITIONS.get(comp_name, {}).get("home_advantage", 1.20)
+    resolved = _resolve_observations(comp_name, combined_ratings, observations)
+    return _fit_observations(combined_ratings, home_advantage, resolved)
 
 
 def _load_windowed_observations(end_date: str, window_days: int) -> list[dict]:
@@ -249,17 +303,42 @@ def main(odds_date: str, window_days: int = WINDOW_DAYS) -> None:
     # (has >=1 observation for it below), never because it's simply absent
     # from this run's window. See module docstring.
     all_adjustments = _load_persisted_adjustments()
-    touched = 0
+    # A team can legitimately be touched twice in the same run -- its own
+    # domestic league AND a European competition both had fresh evidence
+    # for it (confirmed as a real, common case 2026-10-12: Arsenal got
+    # +0.27 from the Premier League fit and +8.54 from a single Champions
+    # League fixture in the same run). Collecting every source's fit per
+    # team and averaging them, instead of merging source-by-source (which
+    # would just let whichever source happens to be processed last silently
+    # overwrite the other), keeps both pieces of evidence instead of
+    # discarding one of them by accident of dict iteration order.
+    fresh_touches: dict[str, list[float]] = {}
+    # Built lazily (only if a European competition actually has
+    # observations this run) and reused across all three -- it reads every
+    # tracked league's ratings CSV, which isn't free, and most runs won't
+    # need it at all.
+    combined_ratings = None
     for league_name, obs in by_league.items():
-        cfg = LEAGUES.get(league_name) or LEAGUES_TIER2.get(league_name)
-        if not cfg:
-            continue
-        league_adj = fit_league(league_name, cfg, obs)
+        if league_name in EUROPEAN_COMPETITIONS:
+            if combined_ratings is None:
+                combined_ratings = _load_tracked_ratings_combined()
+            league_adj = fit_european_competition(league_name, obs, combined_ratings)
+        else:
+            cfg = LEAGUES.get(league_name) or LEAGUES_TIER2.get(league_name)
+            if not cfg:
+                continue
+            league_adj = fit_league(league_name, cfg, obs)
         if league_adj:
             changed = sum(1 for t, v in league_adj.items() if round(all_adjustments.get(t, 0.0), 2) != v)
             print(f"{league_name}: {len(obs)} observations -> {len(league_adj)} teams refit ({changed} changed)")
-        touched += len(league_adj)
-        all_adjustments.update(league_adj)
+        for t, v in league_adj.items():
+            fresh_touches.setdefault(t, []).append(v)
+
+    touched = len(fresh_touches)
+    multi_touched = sum(1 for vs in fresh_touches.values() if len(vs) > 1)
+    if multi_touched:
+        print(f"({multi_touched} teams had fresh evidence from more than one source this run -- averaged)")
+    all_adjustments.update({t: round(sum(vs) / len(vs), 2) for t, vs in fresh_touches.items()})
 
     # Prune only here, at the final merged set -- a team refit down to
     # ~0.0 this run correctly drops out (the fresh evidence says it no

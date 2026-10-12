@@ -29,7 +29,20 @@ tracked top-flight OR tier-2 leagues it belongs to (or "" if it's a fixture
 outside both tracked sets -- still logged, since odds_comparison_snapshot.py
 wants the full unfiltered picture).
 
-Usage: py fetch_daily_odds.py [--days 3]
+Usage: py fetch_daily_odds.py [--days 7]
+
+--days N pulls odds for today plus the next N-1 days (range(N), so N=3
+actually only reaches 2 days ahead of today, not 3 -- worth remembering
+before changing it). Checked live against the API 2026-10-12: odds for a
+Thursday UEL/UECL round 3 calendar days out already had full bookmaker
+coverage (10 books/fixture), but the OLD default of 3 stopped one day
+short of reaching it. Also checked how far realistically useful coverage
+extends before raising this: every UCL/UEL/UECL item vanished to exactly 0
+for every date tried from 8 to 24 days out, only trickling back around day
+31 -- so a much larger window (30+ days, floated at one point) would
+mostly burn API calls for nothing. 7 comfortably covers one full weekly
+fixture cycle (every day-of-week's Thursday/midweek/weekend slate) from
+whatever day this actually runs on, with real coverage the whole way.
 """
 
 import argparse
@@ -43,19 +56,26 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-from config import LEAGUES, LEAGUES_TIER2
+from config import LEAGUES, LEAGUES_TIER2, EUROPEAN_COMPETITIONS
 from api_football_fetcher import ApiFootballClient
 
 OUT_DIR = Path("odds_coverage") / "daily_odds"
 
-# Merged id->name map across both tiers -- API-Football's own league ids
-# never collide between the two dicts (they're separate real competitions),
-# so a plain merge is safe. A fixture's "tracked" flag (see pull_api_
-# football) means "one of our 54 top-flight OR ~49 tier-2 leagues", not
-# top-flight only.
+# Merged id->name map across both tiers plus the three UEFA club
+# competitions -- API-Football's own league ids never collide across these
+# three dicts (they're all separate real competitions), so a plain merge is
+# safe. A fixture's "tracked" flag (see pull_api_football) means "one of
+# our 54 top-flight OR ~49 tier-2 leagues OR the Champions/Europa/
+# Conference League", not top-flight only. UCL/UEL/UECL odds were silently
+# excluded from club_rating_calibration.py's fit before this (confirmed
+# 2026-10-12: 19 real UEFA Champions League observations sat in the raw
+# daily-odds files over the last 14 days, all tagged tracked=False and
+# never used) even though European fixtures are some of the most heavily-
+# bet, highest-signal matches a club plays all season.
 _LEAGUE_ID_TO_NAME = {
     **{cfg["id"]: name for name, cfg in LEAGUES.items()},
     **{cfg["id"]: name for name, cfg in LEAGUES_TIER2.items()},
+    **{cfg["id"]: name for name, cfg in EUROPEAN_COMPETITIONS.items()},
 }
 
 
@@ -147,7 +167,7 @@ def pull_api_football(days: int, key: str) -> list[dict]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--days", type=int, default=3)
+    parser.add_argument("--days", type=int, default=7)
     args = parser.parse_args()
 
     api_football_key = os.getenv("API_FOOTBALL_KEY", "")
