@@ -5,8 +5,10 @@ Replaces config.py's static, hand-maintained team_status_overrides with a
 value computed fresh from live data: which team is currently predicted to
 win this country's domestic cup, where that team is projected to finish in
 the league, and whether their cup-winner Status slot (from
-entrants_2027_28.cup_winner_status) actually improves on what their
-projected table position already gives them. If it doesn't, the extra slot
+access_list_permutations_2027_28.cup_winner_status -- the permutation-
+applied access list, not entrants_2027_28's untouched default) actually
+improves on what their projected table position already gives them. If it
+doesn't, the extra slot
 cascades down to the first team not already covered by a real zone or
 multi-team play-off -- the exact logic this project's hand-applied fixes
 have followed all session (Ireland, Montenegro, Moldova, Turkey, ...), now
@@ -23,7 +25,7 @@ import re
 import pandas as pd
 
 from cup_predictions import resolve_predicted_cup_winner, fetch_cup_fixtures, _team_name_set
-from entrants_2027_28 import cup_winner_status
+from access_list_permutations_2027_28 import cup_winner_status
 from simulator import simulate_season
 from update_ratings_from_opta import _normalize
 

@@ -41,7 +41,14 @@ from flags import flag_url
 from api_football_fetcher import ApiFootballClient
 from ratings_manager import load_ratings, load_club_rating_adjustments
 from _split_season import compute_full_standings, ensure_full_roster
-from entrants_2027_28 import ACCESS_LIST_2027_28, STAGE_ORDER_2027_28, QUALIFYING_DATES_2027_28
+from entrants_2027_28 import STAGE_ORDER_2027_28, QUALIFYING_DATES_2027_28
+from access_list_permutations_2027_28 import apply_permutations, PERMUTATIONS, ACTIVE_PERMUTATIONS
+
+# The permutation-applied access list -- see access_list_permutations_2027_28.py's
+# own docstring. Every existing reference to ACCESS_LIST_2027_28 below keeps
+# working unchanged; which permutations are layered on top is controlled
+# entirely by that module's ACTIVE_PERMUTATIONS, not anything here.
+ACCESS_LIST_2027_28 = apply_permutations()
 from club_coefficients_2027 import get_coeff_2027
 from cup_predictions import resolve_predicted_cup_winner, fetch_cup_fixtures
 from simulator import two_leg_advance_odds, simulate_season
@@ -632,11 +639,12 @@ _PREVAIL_COLUMN_CONFIG = {
 }
 
 
-# --- Titleholders: potential replacements for a defending titleholder that
-# doesn't requalify through its own domestic route (UEFA access-list
-# regulations, Champions League Article 3 / Europa League's equivalent
-# clause for the Conference League titleholder's EL promotion slot).
-# Three separate pools -- see _render_titleholders' own caption for the
+# --- Titleholder Replacements (one of the Permutation Info tabs): potential
+# replacements for a defending titleholder that doesn't requalify through
+# its own domestic route (UEFA access-list regulations, Champions League
+# Article 3 / Europa League's equivalent clause for the Conference League
+# titleholder's EL promotion slot).
+# Three separate pools -- see _render_permutation_info's own caption for the
 # regulation-derived rule each one follows. "TQ %" is this site's own live
 # chance of the club actually reaching the specific domestic outcome
 # (title / required league position / cup win) that would put it in the
@@ -651,7 +659,8 @@ def _season_position_probs(league_id: int, season: int, league_name: str) -> pd.
     """Full team x finishing-position probability matrix for one league --
     the same simulate_season() run _predicted_standings() already does,
     just returning the raw matrix instead of collapsing it to one
-    most-likely order. Powers the Titleholders tables' TQ % column."""
+    most-likely order. Powers the Titleholder Replacements tables' TQ %
+    column."""
     client = ApiFootballClient(api_key=_API_KEY)
     roster = client.get_standings(league_id, season)
     played, remaining = client.get_fixtures(league_id, season)
@@ -853,21 +862,145 @@ def _render_titleholder_table(title: str, pool_fn, caption: str) -> None:
                  width="content", height=min(len(df), 15) * 35 + 38)
 
 
-def _render_titleholders() -> None:
-    st.caption(
-        "If a 2026/27 titleholder -- the UCL or UEL champion, or the UECL champion once it "
-        "also qualifies for the Europa League on its own domestic merit -- doesn't requalify "
-        "for next season's League Phase through its own route, UEFA's access-list "
-        "regulations fill its guaranteed slot from a specific pool of clubs: the one with "
-        "the highest individual UEFA club coefficient "
-        "([kassiesa.net](https://kassiesa.net/uefa/data/method5/trank2027.html), still "
-        "accumulating through 2026/27), provided that club is the country's cup winner or "
-        "its highest-ranked club not already otherwise qualified. The three tables below "
-        "rank each pool's Top 50 eligible clubs by that live coefficient, with a TQ % column "
-        "for this site's own chance of the club actually reaching the domestic outcome that "
-        "puts it in the running. Nobody's titleholder status for 2026/27 is decided yet -- "
-        "this is a first pass at the shape UEFA's own circular uses, meant to be refined."
+@st.cache_data(ttl=3_600, show_spinner=False)
+def _extra_cl_spot_race_top10() -> pd.DataFrame:
+    """Top 10 of the Coefficients page's own "Race for an extra Champions
+    League spot" table -- same data (coefficients_live._build_ranking_df,
+    cached there at ttl=60 so calling it again here is cheap), same European
+    Performance Spot rule: the two associations with the best THIS-SEASON
+    coefficient alone (not the 5-year total) earn an extra CL place the
+    following season. Reused as-is rather than recomputed -- see
+    coefficients.py's own "Race for an extra Champions League spot" section
+    for the identical logic this mirrors."""
+    from coefficients_live import _build_ranking_df
+    from coefficients_baseline import COUNTRY_BASELINE
+
+    df = _build_ranking_df()
+    race_df = df[df["Country"].map(
+        lambda c: COUNTRY_BASELINE.get(c, {}).get("clubs_entered", 0) > 0
+    )].sort_values(["26/27", "5-Year Total"], ascending=[False, False])[
+        ["Flag", "Country", "26/27", "Clubs"]
+    ].reset_index(drop=True)
+    race_df.insert(0, "Rank", race_df.index + 1)
+    return race_df.head(10)
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def _predicted_extra_cl_spot_race_top10() -> tuple[pd.DataFrame, list[str]]:
+    """Top 10 of the Coefficients page's own "Predicted Race for an extra
+    Champions League spot" table -- same Monte Carlo simulation
+    (country_ranking_simulator.project_country_predicted_ranking, which
+    projects every association's rest-of-season). That function isn't
+    cached anywhere else and is expensive (simulates all three
+    competitions for every association), so this page caches it
+    separately rather than re-running it on every view."""
+    from club_coefficients import get_coeff
+    from qualifying_projection import _project_league_phase_field, _resolve_field_ratings, _load_combined_ratings
+    from country_ranking_simulator import project_country_predicted_ranking
+
+    pred_ratings_df = _load_combined_ratings()
+    pred_table, warnings = project_country_predicted_ranking(
+        project_league_phase_field=_project_league_phase_field,
+        resolve_field_ratings=_resolve_field_ratings,
+        ratings_df=pred_ratings_df,
+        get_coeff=get_coeff,
+        api_key=_API_KEY,
+        n_sim=2_000,
     )
+    rows = []
+    for country, r in pred_table.iterrows():
+        if r["clubs"] <= 0 or r["season_mean_rank"] is None:
+            continue
+        rows.append({
+            "Flag": flag_url(country),
+            "Country": country,
+            "Clubs": r["clubs"],
+            "Projected 2026/27 points": r["mean_season_coeff"],
+            "Top 1": r["season_pct_top1"] * 100,
+            "Top 2": r["season_pct_top2"] * 100,
+        })
+    df = pd.DataFrame(rows).sort_values("Projected 2026/27 points", ascending=False).reset_index(drop=True)
+    df.insert(0, "Rank", df.index + 1)
+    return df.head(10), warnings
+
+
+def _render_extra_cl_spot_race() -> None:
+    st.caption(
+        "Since 2024/25, the two national associations with the best coefficient for the "
+        "CURRENT season alone (not the 5-year total) are each awarded one extra Champions "
+        "League place the following season -- same rule and the exact same underlying data "
+        "as the Coefficients page's own race tables, just the Top 10 of each placed side by "
+        "side here."
+    )
+    col_real, col_pred = st.columns(2)
+    with col_real:
+        st.markdown("#### 🏆 Race for an Extra Champions League Spot")
+        st.caption("Ranked purely by 2026/27 points earned so far.")
+        real_df = _extra_cl_spot_race_top10()
+        st.dataframe(
+            real_df,
+            column_config={
+                "Rank": st.column_config.NumberColumn("Rank", width="small"),
+                "Flag": st.column_config.ImageColumn("", width="small"),
+                "Country": st.column_config.TextColumn("Country", width="medium"),
+                "26/27": st.column_config.NumberColumn("2026/27 points", format="%.3f", width="small"),
+                "Clubs": st.column_config.TextColumn("Clubs", width="small"),
+            },
+            width="content", hide_index=True, height=len(real_df) * 35 + 38,
+        )
+    with col_pred:
+        st.markdown("#### 🔮 Predicted Race for an Extra Champions League Spot")
+        st.caption("Projects the rest of the season via this site's own Monte Carlo simulation.")
+        with st.spinner("Simulating the rest of the season for every association…"):
+            pred_df, pred_warnings = _predicted_extra_cl_spot_race_top10()
+        for w in pred_warnings:
+            st.caption(f"⚠️ {w}")
+        st.dataframe(
+            pred_df,
+            column_config={
+                "Rank": st.column_config.NumberColumn("Rank", width="small"),
+                "Flag": st.column_config.ImageColumn("", width="small"),
+                "Country": st.column_config.TextColumn("Country", width="medium"),
+                "Clubs": st.column_config.NumberColumn("Clubs", width="small"),
+                "Projected 2026/27 points": st.column_config.NumberColumn(
+                    "Projected pts", format="%.3f", width="small"),
+                "Top 1": st.column_config.NumberColumn("Top 1", format="%.1f%%", width="small"),
+                "Top 2": st.column_config.NumberColumn("Top 2", format="%.1f%%", width="small"),
+            },
+            width="content", hide_index=True, height=len(pred_df) * 35 + 38,
+        )
+
+
+def _render_permutation_info() -> None:
+    st.caption(
+        "Knock-on permutations the main Projected Entries/Predicted Qualifiers tabs don't "
+        "cover on their own -- who replaces a 2026/27 titleholder that doesn't requalify "
+        "through its own domestic route, and the European Performance Spot race."
+    )
+    titleholders_tab, race_tab = st.tabs(
+        ["🏆 Titleholder Replacements", "🥈 Race for an Extra Champions League Spot"]
+    )
+    with titleholders_tab:
+        st.caption(
+            "If a 2026/27 titleholder -- the UCL or UEL champion, or the UECL champion once it "
+            "also qualifies for the Europa League on its own domestic merit -- doesn't requalify "
+            "for next season's League Phase through its own route, UEFA's access-list "
+            "regulations fill its guaranteed slot from a specific pool of clubs: the one with "
+            "the highest individual UEFA club coefficient "
+            "([kassiesa.net](https://kassiesa.net/uefa/data/method5/trank2027.html), still "
+            "accumulating through 2026/27), provided that club is the country's cup winner or "
+            "its highest-ranked club not already otherwise qualified. The three tables below "
+            "rank each pool's Top 50 eligible clubs by that live coefficient, with a TQ % column "
+            "for this site's own chance of the club actually reaching the domestic outcome that "
+            "puts it in the running. Nobody's titleholder status for 2026/27 is decided yet -- "
+            "this is a first pass at the shape UEFA's own circular uses, meant to be refined."
+        )
+        _render_titleholder_pools()
+    with race_tab:
+        _render_extra_cl_spot_race()
+
+
+def _render_titleholder_pools() -> None:
     ucl_tab, uel_tab, uecl_tab = st.tabs(
         ["UCL Titleholder replacement", "UEL Titleholder replacement", "UECL Titleholder replacement"]
     )
@@ -900,11 +1033,11 @@ st.title("🔮 European Competitions 2027/28")
 with st.sidebar:
     st.divider()
     comp_name = st.selectbox(
-        "Competition", list(ACCESS_LIST_2027_28.keys()) + ["Titleholders"], key="comp_select"
+        "Competition", list(ACCESS_LIST_2027_28.keys()) + ["Permutation Info"], key="comp_select"
     )
 
-if comp_name == "Titleholders":
-    _render_titleholders()
+if comp_name == "Permutation Info":
+    _render_permutation_info()
     st.stop()
 comp_entries = ACCESS_LIST_2027_28[comp_name]
 

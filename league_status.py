@@ -15,23 +15,24 @@ Only positions that need a label require an entry; all others show blank.
 Used identically in Current Table and Predicted Table.
 
 EUROPEAN-SPOT positions (anything containing UCL/UEL/UECL) are NOT hand-kept
-here independently — they're generated from entrants_2027_28.ACCESS_LIST_2027_28,
-the real UEFA 2027/28 access list, via entrants_2027_28.european_status_zones()
-(see build_league_status.py, the regeneration script; run it after any change
-to ACCESS_LIST_2027_28 and re-paste its output here). Per explicit instruction
-(2026-10-09): current-season Status and the 2027/28 entry list must always
-agree, so a country's access-list entry is the one place that needs to change
-for both to move together. Literal translation, deliberately -- Russia's own
-entries use their nominal, undisturbed label exactly as the access list
-stores it; the suspension's real redistribution is already baked into the
-OTHER affected countries' promoted labels there, not reapplied here.
+here independently — they're generated from the PERMUTATION-APPLIED 2027/28
+UEFA access list (access_list_permutations_2027_28.apply_permutations(),
+layered on top of entrants_2027_28.ACCESS_LIST_2027_28's untouched default),
+via access_list_permutations_2027_28.european_status_zones() (see
+build_league_status.py, the regeneration script; run it after any change to
+the access list OR to which permutations are active, and re-paste its output
+here). Per explicit instruction (2026-10-09): current-season Status and the
+2027/28 entry list must always agree, so a country's access-list entry (or
+which permutations are active) is the one place that needs to change for
+both to move together.
 
 Only relegation/promotion positions and (for split leagues) the "regular"
 phase's group-assignment placeholder labels are still hand-kept directly in
 this file, since they have nothing to do with the UEFA access list.
 
-Edit this file's non-European content directly; edit ACCESS_LIST_2027_28 for
-anything European-spot-related, then regenerate.
+Edit this file's non-European content directly; edit entrants_2027_28.py (the
+default) or access_list_permutations_2027_28.py (a permutation) for anything
+European-spot-related, then regenerate.
 """
 
 LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
@@ -41,7 +42,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     # ─────────────────────────────────────────────────────────────────────────
 
     "English Premier League": {"regular": {
-        1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS", 5: "UCL - LS",
+        1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS",
         6: "UEL - LS",
         7: "UECL - PO",
         18: "Relegation", 19: "Relegation", 20: "Relegation",
@@ -61,7 +62,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "German Bundesliga": {"regular": {
-        1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS", 5: "UCL - LS",
+        1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS",
         6: "UEL - LS", 7: "UECL - PO",
         16: "Relegation - PO",
         17: "Relegation", 18: "Relegation",
@@ -240,7 +241,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "Ukrainian Premier League": {"regular": {
-        1: "UCL - QR2", 2: "UECL - QR2", 3: "UECL - QR2",
+        1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2",
         13: "Relegation - PO", 14: "Relegation - PO",
         15: "Relegation", 16: "Relegation",
     }},

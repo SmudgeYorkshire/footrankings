@@ -1,16 +1,20 @@
 """
-Regenerates league_status.py's European-spot labels from
-entrants_2027_28.ACCESS_LIST_2027_28 -- the single source of truth
-connecting this season's Status column to the real 2027/28 UEFA access
-list (see league_status.py's own docstring, and the explicit instruction
-this connection was built for, 2026-10-09).
+Regenerates league_status.py's European-spot labels from the
+PERMUTATION-APPLIED 2027/28 UEFA access list (access_list_permutations_
+2027_28.apply_permutations(), not entrants_2027_28.ACCESS_LIST_2027_28's
+untouched default) -- the single source of truth connecting this season's
+Status column to the real 2027/28 UEFA access list (see league_status.py's
+own docstring, and the explicit instruction this connection was built
+for, 2026-10-09) PLUS whichever real-world permutations are currently
+active (access_list_permutations_2027_28.ACTIVE_PERMUTATIONS).
 
-Run this after ANY change to ACCESS_LIST_2027_28 (adding/removing/
-re-routing a country's slot) to keep league_status.py in sync -- it
-won't happen on its own, since league_status.py is a plain static dict
-(kept that way deliberately: football_rankings.py reads it in dozens of
-places, and a lazily-computed version would be a much bigger, riskier
-change for no behavioral benefit over "run this script").
+Run this after ANY change to the access list OR to which permutations are
+active (adding/removing/re-routing a country's slot, or toggling
+ACTIVE_PERMUTATIONS) to keep league_status.py in sync -- it won't happen
+on its own, since league_status.py is a plain static dict (kept that way
+deliberately: football_rankings.py reads it in dozens of places, and a
+lazily-computed version would be a much bigger, riskier change for no
+behavioral benefit over "run this script").
 
 This only touches EUROPEAN-SPOT positions (anything whose label contains
 UCL/UEL/UECL). Relegation/promotion positions and split leagues' "regular"
@@ -28,7 +32,7 @@ Usage: py build_league_status.py
 
 from config import LEAGUES
 from league_status import LEAGUE_STATUS
-from entrants_2027_28 import european_status_zones
+from access_list_permutations_2027_28 import european_status_zones
 
 SPOT_KW = ("ucl", "uel", "uecl")
 
@@ -89,10 +93,10 @@ def main() -> None:
                     print(f"  {phase}: NEW={n}")
             print()
     if changed:
-        print(f"{changed} league(s) differ from ACCESS_LIST_2027_28 -- "
+        print(f"{changed} league(s) differ from the permutation-applied access list -- "
               "update league_status.py by hand, then rerun this script to confirm 0 remain.")
     else:
-        print("league_status.py already matches ACCESS_LIST_2027_28 -- nothing to do.")
+        print("league_status.py already matches the permutation-applied access list -- nothing to do.")
 
 
 if __name__ == "__main__":

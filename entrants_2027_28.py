@@ -1,14 +1,30 @@
 """
-2027/28 UEFA European Competition access list.
+2027/28 UEFA European Competition access list -- the DEFAULT list.
 
-Source: hand-verified by the user against UEFA circular 54/2026
-(enclosure 2, 9 September 2026) and current coefficient-driven
-expectations -- this supersedes an earlier draft of this file built by
-pixel-parsing the PDF directly, which got some qualifying-round detail
-right but missed real-world context a flat column scrape can't carry
-(this season's predicted European Performance Spot recipients, and
-how Russia's ongoing suspension redistributes the slots it would
-otherwise occupy). Treat this version as the authoritative one.
+This is the literal, nominal allocation: UEFA circular 54/2026 (enclosure
+2, 9 September 2026), the same data kassiesa.net mirrors as a PDF
+(https://kassiesa.net/uefa/files/2027-28-uefa-access-list.pdf). Every
+country's entry here is exactly what the circular shows it -- including
+Russia, with its own undisturbed nominal slots. Nothing conditional,
+predicted, or suspension-related is baked into this file (see
+access_list_permutations_2027_28.py for that layer).
+
+Per explicit instruction (2026-10-12): this file is the single
+"default access list" every downstream consumer (european_2027_28.py,
+league_status.py via build_league_status.py, cup_cascade.py) should be
+able to fall back to at any time. Real-world departures from it --
+Russia's ongoing suspension redistributing its slots, a predicted
+European Performance Spot recipient, a confirmed titleholder-replacement
+cascade, etc. -- are tracked as separate, independently toggleable
+PERMUTATIONS in access_list_permutations_2027_28.py, layered on top of a
+fresh copy of this file rather than hand-edited into it. That way this
+file never needs to be edited to reflect a permutation turning on, off,
+or turning out not to apply after all -- only ACTIVE_PERMUTATIONS there
+changes. Every downstream consumer should go through that module's
+resolvers (apply_permutations / european_status_zones / cup_winner_status
+there), not this file's own ACCESS_LIST_2027_28 / european_status_zones /
+cup_winner_status directly, unless it specifically wants the untouched
+default with no permutations applied.
 
 No club names here -- the 2026/27 domestic season that determines
 every one of these slots won't finish until roughly May/June 2027, so
@@ -40,33 +56,15 @@ Each access-list entry:
   note     -- present only on entries where the plain position-based
               rule doesn't give the full picture (see below)
 
-Two things layered on top of the official allocation, both flagged via
-each affected entry's `note` field rather than silently assumed:
-
-  - England and Germany are predicted (not yet confirmed by UEFA) to
-    receive 2027/28's 2 "European Performance Spot" bonus places --
-    awarded after 2026/27 ends to whichever 2 associations have the
-    best aggregate CLUB coefficient that season, not fixed in the
-    access-list circular itself. Modelled as a 5th direct League Phase
-    slot (League 5th) for each of those two countries; if a different
-    association ends up with the EPS place instead, that slot moves
-    with it.
-  - Russia remains suspended from UEFA competitions (Executive
-    Committee decision, 28 February 2022, still in force). Russia's
-    own access-list slots are kept here for completeness but flagged
-    as unoccupied, and the slot immediately above each of Russia's
-    cascade points is promoted up one round to absorb the vacancy:
-    Ukraine's champion CL-Q1 -> CL-Q2, Switzerland's cup winner
-    EL-Q1 -> EL-Q2, and the cup winners of Latvia, Faroe Islands,
-    Malta, Liechtenstein, Estonia and Albania CO-Q1 -> CO-Q2.
-
 Not modelled at all (truly unknowable this far out, no placeholder
-entry): UCL/UEL defending-titleholder byes (CL-TH/EL-TH -> League
-Phase direct) and the Conference League titleholder's promotion
+entry, and not a permutation either since there's no real-world trigger
+to key off yet): UCL/UEL defending-titleholder byes (CL-TH/EL-TH ->
+League Phase direct) and the Conference League titleholder's promotion
 (CO-TH -> EL-LS) -- all three depend on who wins the actual 2026/27
-finals.
+finals. See european_2027_28.py's Permutation Info tab for this site's
+own speculative candidate pools for these.
 
-Last updated: 2026-10-05
+Last updated: 2026-10-12 (reverted to the pure default -- see above)
 """
 
 import functools
@@ -85,12 +83,10 @@ ACCESS_LIST_2027_28 = {
         {"country": 'England', "league": 'English Premier League', "code": 'N2', "route": 'League 2nd', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)'},
         {"country": 'England', "league": 'English Premier League', "code": 'N3', "route": 'League 3rd', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)'},
         {"country": 'England', "league": 'English Premier League', "code": 'N4', "route": 'League 4th', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)'},
-        {"country": 'England', "league": 'English Premier League', "code": 'N5', "route": 'League 5th', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)', "note": 'Predicted EPS recipient, not yet confirmed by UEFA -- this slot only exists if that holds'},
         {"country": 'Germany', "league": 'German Bundesliga', "code": 'CH', "route": 'League champion', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)'},
         {"country": 'Germany', "league": 'German Bundesliga', "code": 'N2', "route": 'League 2nd', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)'},
         {"country": 'Germany', "league": 'German Bundesliga', "code": 'N3', "route": 'League 3rd', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)'},
         {"country": 'Germany', "league": 'German Bundesliga', "code": 'N4', "route": 'League 4th', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)'},
-        {"country": 'Germany', "league": 'German Bundesliga', "code": 'N5', "route": 'League 5th', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)', "note": 'Predicted EPS recipient, not yet confirmed by UEFA -- this slot only exists if that holds'},
         {"country": 'France', "league": 'French Ligue 1', "code": 'CH', "route": 'League champion', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)'},
         {"country": 'France', "league": 'French Ligue 1', "code": 'N2', "route": 'League 2nd', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)'},
         {"country": 'France', "league": 'French Ligue 1', "code": 'N3', "route": 'League 3rd', "label": 'CL-LS', "path": 'Direct', "round": 'League Phase (direct)'},
@@ -123,13 +119,13 @@ ACCESS_LIST_2027_28 = {
         {"country": 'Croatia', "league": 'Croatian First Football League', "code": 'CH', "route": 'League champion', "label": 'CL-Q2', "path": 'Champions Path', "round": 'Second qualifying round'},
         {"country": 'Israel', "league": 'Israeli Premier League', "code": 'CH', "route": 'League champion', "label": 'CL-Q2', "path": 'Champions Path', "round": 'Second qualifying round'},
         {"country": 'Hungary', "league": 'Hungarian NB I', "code": 'CH', "route": 'League champion', "label": 'CL-Q2', "path": 'Champions Path', "round": 'Second qualifying round'},
-        {"country": 'Ukraine', "league": 'Ukrainian Premier League', "code": 'CH', "route": 'League champion', "label": 'CL-Q2', "path": 'Champions Path', "round": 'Second qualifying round', "note": 'Promoted CL-Q1 -> CL-Q2: Russia ban vacates a slot above it'},
+        {"country": 'Ukraine', "league": 'Ukrainian Premier League', "code": 'CH', "route": 'League champion', "label": 'CL-Q1', "path": 'Champions Path', "round": 'First qualifying round'},
         {"country": 'Serbia', "league": 'Serbian Super Liga', "code": 'CH', "route": 'League champion', "label": 'CL-Q1', "path": 'Champions Path', "round": 'First qualifying round'},
         {"country": 'Romania', "league": 'Romanian Liga I', "code": 'CH', "route": 'League champion', "label": 'CL-Q1', "path": 'Champions Path', "round": 'First qualifying round'},
         {"country": 'Slovenia', "league": 'Slovenian 1. SNL', "code": 'CH', "route": 'League champion', "label": 'CL-Q1', "path": 'Champions Path', "round": 'First qualifying round'},
         {"country": 'Azerbaijan', "league": 'Azerbaijani Premier League', "code": 'CH', "route": 'League champion', "label": 'CL-Q1', "path": 'Champions Path', "round": 'First qualifying round'},
         {"country": 'Slovakia', "league": 'Slovak First Football League', "code": 'CH', "route": 'League champion', "label": 'CL-Q1', "path": 'Champions Path', "round": 'First qualifying round'},
-        {"country": 'Russia', "league": 'Russian Football Premier League', "code": 'CH', "route": 'League champion', "label": 'CL-Q1', "path": 'Champions Path', "round": 'First qualifying round', "note": 'Suspended from UEFA competitions until further notice (Executive Committee, 28 Feb 2022) -- slot redistributed, no Russian club will actually occupy it'},
+        {"country": 'Russia', "league": 'Russian Football Premier League', "code": 'CH', "route": 'League champion', "label": 'CL-Q1', "path": 'Champions Path', "round": 'First qualifying round'},
         {"country": 'Bulgaria', "league": 'Bulgarian First League', "code": 'CH', "route": 'League champion', "label": 'CL-Q1', "path": 'Champions Path', "round": 'First qualifying round'},
         {"country": 'Ireland', "league": 'Irish Premier Division', "code": 'CH', "route": 'League champion', "label": 'CL-Q1', "path": 'Champions Path', "round": 'First qualifying round'},
         {"country": 'Iceland', "league": 'Icelandic Besta deild karla', "code": 'CH', "route": 'League champion', "label": 'CL-Q1', "path": 'Champions Path', "round": 'First qualifying round'},
@@ -184,7 +180,7 @@ ACCESS_LIST_2027_28 = {
         {"country": 'Denmark', "league": 'Danish Superliga', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q3', "path": 'Qualifying', "round": 'Third qualifying round'},
         {"country": 'Norway', "league": 'Norwegian Eliteserien', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q3', "path": 'Qualifying', "round": 'Third qualifying round'},
         {"country": 'Cyprus', "league": 'Cypriot First Division', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q3', "path": 'Qualifying', "round": 'Third qualifying round'},
-        {"country": 'Switzerland', "league": 'Swiss Super League', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q2', "path": 'Qualifying', "round": 'Second qualifying round', "note": 'Promoted EL-Q1 -> EL-Q2: Russia ban vacates a slot above it'},
+        {"country": 'Switzerland', "league": 'Swiss Super League', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Austria', "league": 'Austrian Bundesliga', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Scotland', "league": 'Scottish Premiership', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Sweden', "league": 'Swedish Allsvenskan', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
@@ -197,7 +193,7 @@ ACCESS_LIST_2027_28 = {
         {"country": 'Slovenia', "league": 'Slovenian 1. SNL', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Azerbaijan', "league": 'Azerbaijani Premier League', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Slovakia', "league": 'Slovak First Football League', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
-        {"country": 'Russia', "league": 'Russian Football Premier League', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round', "note": 'Suspended from UEFA competitions until further notice (Executive Committee, 28 Feb 2022) -- slot redistributed, no Russian club will actually occupy it'},
+        {"country": 'Russia', "league": 'Russian Football Premier League', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Bulgaria', "league": 'Bulgarian First League', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Ireland', "league": 'Irish Premier Division', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Iceland', "league": 'Icelandic Besta deild karla', "code": 'CW', "route": 'Cup winner', "label": 'EL-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
@@ -248,8 +244,8 @@ ACCESS_LIST_2027_28 = {
         {"country": 'Azerbaijan', "league": 'Azerbaijani Premier League', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round'},
         {"country": 'Slovakia', "league": 'Slovak First Football League', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round'},
         {"country": 'Slovakia', "league": 'Slovak First Football League', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round'},
-        {"country": 'Russia', "league": 'Russian Football Premier League', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round', "note": 'Suspended from UEFA competitions until further notice (Executive Committee, 28 Feb 2022) -- slot redistributed, no Russian club will actually occupy it'},
-        {"country": 'Russia', "league": 'Russian Football Premier League', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round', "note": 'Suspended from UEFA competitions until further notice (Executive Committee, 28 Feb 2022) -- slot redistributed, no Russian club will actually occupy it'},
+        {"country": 'Russia', "league": 'Russian Football Premier League', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round'},
+        {"country": 'Russia', "league": 'Russian Football Premier League', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round'},
         {"country": 'Bulgaria', "league": 'Bulgarian First League', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round'},
         {"country": 'Bulgaria', "league": 'Bulgarian First League', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Ireland', "league": 'Irish Premier Division', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round'},
@@ -273,22 +269,22 @@ ACCESS_LIST_2027_28 = {
         {"country": 'Bosnia', "league": 'Bosnian Premier Liga', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round'},
         {"country": 'Bosnia', "league": 'Bosnian Premier Liga', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Bosnia', "league": 'Bosnian Premier Liga', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
-        {"country": 'Latvia', "league": 'Latvian Higher League', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round', "note": 'Promoted CO-Q1 -> CO-Q2: Russia ban vacates a slot above it'},
+        {"country": 'Latvia', "league": 'Latvian Higher League', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Latvia', "league": 'Latvian Higher League', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Latvia', "league": 'Latvian Higher League', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
-        {"country": 'Faroe Isl.', "league": 'Faroe Islands Premier League', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round', "note": 'Promoted CO-Q1 -> CO-Q2: Russia ban vacates a slot above it'},
+        {"country": 'Faroe Isl.', "league": 'Faroe Islands Premier League', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Faroe Isl.', "league": 'Faroe Islands Premier League', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Faroe Isl.', "league": 'Faroe Islands Premier League', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
-        {"country": 'Malta', "league": 'Maltese Premier League', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round', "note": 'Promoted CO-Q1 -> CO-Q2: Russia ban vacates a slot above it'},
+        {"country": 'Malta', "league": 'Maltese Premier League', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Malta', "league": 'Maltese Premier League', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Malta', "league": 'Maltese Premier League', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
-        {"country": 'Estonia', "league": 'Estonian Meistriliiga', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round', "note": 'Promoted CO-Q1 -> CO-Q2: Russia ban vacates a slot above it'},
+        {"country": 'Estonia', "league": 'Estonian Meistriliiga', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Estonia', "league": 'Estonian Meistriliiga', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Estonia', "league": 'Estonian Meistriliiga', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
-        {"country": 'Albania', "league": 'Albanian Superliga', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round', "note": 'Promoted CO-Q1 -> CO-Q2: Russia ban vacates a slot above it'},
+        {"country": 'Albania', "league": 'Albanian Superliga', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Albania', "league": 'Albanian Superliga', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Albania', "league": 'Albanian Superliga', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
-        {"country": 'Liechtenstein', "league": None, "code": 'CW', "route": 'Cup winner', "label": 'CO-Q2', "path": 'Qualifying', "round": 'Second qualifying round', "note": 'Promoted CO-Q1 -> CO-Q2: Russia ban vacates a slot above it (no domestic league champion -- no tracked top flight)'},
+        {"country": 'Liechtenstein', "league": None, "code": 'CW', "route": 'Cup winner', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round', "note": 'No domestic league champion -- no tracked top flight'},
         {"country": 'N. Macedonia', "league": 'Macedonian First League', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'N. Macedonia', "league": 'Macedonian First League', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'N. Macedonia', "league": 'Macedonian First League', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
