@@ -317,6 +317,13 @@ LEAGUES = {
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.07,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
+                                     # 10 teams play a quadruple round-robin (36 rounds total,
+                                     # confirmed 2026-10-12). API-Football only had rounds 1-9
+                                     # (a single leg) published -- without this, the "season"
+                                     # looked like it was ending at round 9, both in the round
+                                     # counter and in what the simulator treated as remaining.
+                                     # See _top_up_remaining_fixtures's own docstring.
+                                     "meetings_per_pair": 4,
 
 },
     "Latvian Higher League":        {"id": 365, "provider": "api_football", "tsdb_id": 4650, "af_season": 2026, "cup_id": 658, "country": "Latvia",      "flag": "🇱🇻", "season_type": "summer",

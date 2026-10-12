@@ -446,6 +446,44 @@ def _roundrobin_fixtures(teams: list) -> list:
     ]
 
 
+def _top_up_remaining_fixtures(roster: list[dict], played: list[dict], remaining: list[dict],
+                                meetings_per_pair: int) -> list[dict]:
+    """Synthesize any fixtures a league's own `meetings_per_pair` config
+    says should exist but the provider hasn't published yet, and append
+    them to `remaining`. See football_rankings.py's identical function for
+    the full rationale (found via the tier-1 Kosovan Superleague, but the
+    mechanism is opt-in per league via meetings_per_pair, so it's added
+    here too for any tier-2 league that turns out to need it)."""
+    teams = sorted({r["strTeam"] for r in roster if r.get("strTeam")})
+    if len(teams) < 2:
+        return remaining
+
+    meetings: dict[frozenset, int] = {}
+    home_counts: dict[tuple, int] = {}
+    for f in played + remaining:
+        h, a = f.get("strHomeTeam"), f.get("strAwayTeam")
+        if h not in teams or a not in teams:
+            continue
+        pair = frozenset((h, a))
+        meetings[pair] = meetings.get(pair, 0) + 1
+        home_counts[(h, a)] = home_counts.get((h, a), 0) + 1
+
+    synthetic = []
+    for i, t1 in enumerate(teams):
+        for t2 in teams[i + 1:]:
+            missing = meetings_per_pair - meetings.get(frozenset((t1, t2)), 0)
+            if missing <= 0:
+                continue
+            home, away = t1, t2
+            if home_counts.get((t1, t2), 0) > home_counts.get((t2, t1), 0):
+                home, away = t2, t1
+            for _ in range(missing):
+                synthetic.append({"strHomeTeam": home, "strAwayTeam": away})
+                home, away = away, home
+
+    return remaining + synthetic
+
+
 # _euro_style_cell/_status_style_pred/_status_for_pos/_green_col moved to
 # prob_table.py (2026-10-12, byte-identical to football_rankings.py's own
 # copies, which is why they were deduplicated there) -- imported below.
@@ -585,7 +623,11 @@ def fetch_all(lid, ssn, key, league_name_=None):
     # always pad out from the fixture list rather than only when roster is
     # already non-empty, which skipped exactly the case that needed it.
     roster = ensure_full_roster(roster, played + remaining)
-    tiebreakers = LEAGUES.get(league_name_, {}).get("tiebreakers")
+    _cfg = LEAGUES.get(league_name_, {})
+    _meetings_per_pair = _cfg.get("meetings_per_pair")
+    if _meetings_per_pair:
+        remaining = _top_up_remaining_fixtures(roster, played, remaining, _meetings_per_pair)
+    tiebreakers = _cfg.get("tiebreakers")
     standings = compute_full_standings(roster, played, tiebreakers=tiebreakers) if roster else roster
     return standings, played, remaining, info
 
@@ -1188,7 +1230,15 @@ def main_content():
         rounds_with_played = {f.get("intRound") for f in played_fixtures if f.get("intRound")}
         remaining_rounds = len(rounds_with_remaining)
         played_rounds = len(rounds_with_played - rounds_with_remaining)
-        total_rounds = played_rounds + remaining_rounds
+        _meetings_per_pair = cfg.get("meetings_per_pair")
+        if _meetings_per_pair:
+            # Synthesized fixtures (see _top_up_remaining_fixtures) carry no
+            # intRound -- compute the TRUE total directly from the league's
+            # own known format instead of the provider's truncated figure.
+            total_rounds = _meetings_per_pair * (len(standings) - 1)
+            remaining_rounds = total_rounds - played_rounds
+        else:
+            total_rounds = played_rounds + remaining_rounds
         # Last-updated from cache file mtime
         _af_season = ApiFootballClient._season_year(season)
         _cache_path = Path("cache") / f"af_fixtures_{league_id}_{_af_season}.json"

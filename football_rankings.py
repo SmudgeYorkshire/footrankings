@@ -490,6 +490,60 @@ def _roundrobin_fixtures(teams: list) -> list:
     ]
 
 
+def _top_up_remaining_fixtures(roster: list[dict], played: list[dict], remaining: list[dict],
+                                meetings_per_pair: int) -> list[dict]:
+    """Synthesize any fixtures a league's own `meetings_per_pair` config
+    says should exist but the provider hasn't published yet, and append
+    them to `remaining`.
+
+    Confirmed as a real issue 2026-10-12: Kosovan Superleague plays a
+    quadruple round-robin (10 teams, 36 rounds -- each pair meets 4 times),
+    but API-Football only had round 1-9 (a single leg) published. With
+    nothing to fill the gap, both the round counter and simulate_season's
+    own "remaining_fixtures" treated round 9 as the end of the season --
+    the standings looked nearly final when really ~3/4 of the season was
+    still to come. Most leagues never need this (the provider publishes
+    the full schedule upfront), hence it's opt-in via a per-league
+    meetings_per_pair config value, not a general assumption -- a league
+    with no value set is returned completely unchanged.
+
+    Only the SET of future matches matters for simulate_season (it has no
+    use for real fixture dates), so the synthesized fixtures don't try to
+    guess real dates or an exact round number -- just who plays whom, and
+    which side is "home", alternated per missing meeting and starting with
+    whichever side has hosted the other less often so far, to keep a
+    team's home/away balance reasonable without pretending to know the
+    real future schedule."""
+    teams = sorted({r["strTeam"] for r in roster if r.get("strTeam")})
+    if len(teams) < 2:
+        return remaining
+
+    meetings: dict[frozenset, int] = {}
+    home_counts: dict[tuple, int] = {}
+    for f in played + remaining:
+        h, a = f.get("strHomeTeam"), f.get("strAwayTeam")
+        if h not in teams or a not in teams:
+            continue
+        pair = frozenset((h, a))
+        meetings[pair] = meetings.get(pair, 0) + 1
+        home_counts[(h, a)] = home_counts.get((h, a), 0) + 1
+
+    synthetic = []
+    for i, t1 in enumerate(teams):
+        for t2 in teams[i + 1:]:
+            missing = meetings_per_pair - meetings.get(frozenset((t1, t2)), 0)
+            if missing <= 0:
+                continue
+            home, away = t1, t2
+            if home_counts.get((t1, t2), 0) > home_counts.get((t2, t1), 0):
+                home, away = t2, t1
+            for _ in range(missing):
+                synthetic.append({"strHomeTeam": home, "strAwayTeam": away})
+                home, away = away, home
+
+    return remaining + synthetic
+
+
 # render_prob_table (and its _green_col/_euro_style_cell/_status_style_pred/
 # _status_for_pos helpers) moved to prob_table.py (2026-10-12), imported
 # below -- european.py needed to reuse it for the new European-competition
@@ -567,6 +621,9 @@ def fetch_all(lid, ssn, key, league_name_=None):
     # 54 tracked top-flight leagues).
     roster = ensure_full_roster(roster, played + remaining)
     _cfg = LEAGUES.get(league_name_, {})
+    _meetings_per_pair = _cfg.get("meetings_per_pair")
+    if _meetings_per_pair:
+        remaining = _top_up_remaining_fixtures(roster, played, remaining, _meetings_per_pair)
     tiebreakers = _cfg.get("tiebreakers")
     standings = compute_full_standings(
         roster, played, tiebreakers=tiebreakers, points_adjustments=_cfg.get("points_deductions"),
@@ -1083,7 +1140,18 @@ def main_content():
         rounds_with_played = {f.get("intRound") for f in played_fixtures if f.get("intRound")}
         remaining_rounds = len(rounds_with_remaining)
         played_rounds = len(rounds_with_played - rounds_with_remaining)
-        total_rounds = played_rounds + remaining_rounds
+        _meetings_per_pair = cfg.get("meetings_per_pair")
+        if _meetings_per_pair:
+            # Synthesized fixtures (see _top_up_remaining_fixtures) carry no
+            # intRound, so rounds_with_remaining only counts whatever the
+            # provider has actually published -- compute the TRUE total
+            # directly from the league's own known format instead, so the
+            # round counter doesn't keep showing the provider's truncated
+            # figure even after the simulator itself has the full picture.
+            total_rounds = _meetings_per_pair * (len(standings) - 1)
+            remaining_rounds = total_rounds - played_rounds
+        else:
+            total_rounds = played_rounds + remaining_rounds
         # Last-updated from cache file mtime
         _af_season = ApiFootballClient._season_year(season)
         _cache_path = Path("cache") / f"af_fixtures_{league_id}_{_af_season}.json"
