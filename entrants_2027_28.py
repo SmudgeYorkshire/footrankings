@@ -284,7 +284,7 @@ ACCESS_LIST_2027_28 = {
         {"country": 'Albania', "league": 'Albanian Superliga', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Albania', "league": 'Albanian Superliga', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'Albania', "league": 'Albanian Superliga', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
-        {"country": 'Liechtenstein', "league": None, "code": 'CW', "route": 'Cup winner', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round', "note": 'No domestic league champion -- no tracked top flight'},
+        {"country": 'Liechtenstein', "league": 'Liechtenstein - Cup', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round', "note": 'No domestic league -- clubs play in the Swiss pyramid, only the cup winner enters'},
         {"country": 'N. Macedonia', "league": 'Macedonian First League', "code": 'CW', "route": 'Cup winner', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'N. Macedonia', "league": 'Macedonian First League', "code": 'N2', "route": 'League 2nd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},
         {"country": 'N. Macedonia', "league": 'Macedonian First League', "code": 'N3', "route": 'League 3rd', "label": 'CO-Q1', "path": 'Qualifying', "round": 'First qualifying round'},

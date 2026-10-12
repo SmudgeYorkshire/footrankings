@@ -325,6 +325,16 @@ LEAGUES = {
                                      "home_advantage": 1.07,
                                      "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
 },
+    # Liechtenstein has no domestic league at all -- its clubs play in the
+    # Swiss league pyramid -- but it DOES run its own domestic cup (API-
+    # Football league id 761, confirmed live: a real annual knockout,
+    # Round of 32 in August through a final around November, open to
+    # reserve sides too in early rounds). Liechtenstein's only 2027/28
+    # access-list entry is its cup winner (CW -> CO-Q1), so this entry
+    # exists purely to give that a cup_id to resolve against -- "id" is
+    # set to the same competition since nothing ever fetches standings
+    # for it (no CH/N2/N3 entries exist to resolve via a league table).
+    "Liechtenstein - Cup":          {"id": 761, "provider": "api_football", "tsdb_id": 761, "af_season": 2026, "cup_id": 761, "country": "Liechtenstein", "flag": "🇱🇮", "season_type": "summer"},
     "Lithuanian TOPLYGA":           {"id": 362, "provider": "api_football", "tsdb_id": 4651, "af_season": 2026, "cup_id": 661, "country": "Lithuania",   "flag": "🇱🇹", "season_type": "summer",
                                      "season_end": "8 November 2026",
                                      "tiebreakers": ["playoffs_champion", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_wins", "gd", "gf", "wins", "fair_play", "draw"],
