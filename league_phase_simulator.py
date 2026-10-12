@@ -42,6 +42,7 @@ from simulator import (
     DEFAULT_HOME_ADVANTAGE,
     DEFAULT_BASE_GOALS,
     OVERDISPERSION,
+    SEASON_STRENGTH_SIGMA,
     _opta_to_attack_defense,
     _build_rat_lookup,
 )
@@ -498,6 +499,7 @@ def simulate_competition_winner(
     track_points: bool = False,
     schedule: list[dict] | None = None,
     real_results: dict[tuple[str, str], tuple[int, int]] | None = None,
+    season_sigma: float = SEASON_STRENGTH_SIGMA,
 ) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, np.ndarray]]:
     """Full Monte Carlo simulation of a 36-team UEFA League Phase
     competition through to a champion.
@@ -519,6 +521,17 @@ def simulate_competition_winner(
     domestic-league played_fixtures handling. Only the genuinely
     remaining fixtures stay randomly simulated. Get this from
     qualifying_projection.real_league_phase_results().
+
+    season_sigma: same per-(team, simulated run) strength-uncertainty
+    noise as simulator.simulate_season's own season_sigma -- applied only
+    to the League Phase stage below (the 8/6-game mini-league that
+    determines who tops the table and who's in the knockout play-off
+    zone), not to the knockout bracket itself, which already draws its
+    outcomes from _load_pairwise_advance_odds's own independently-drawn
+    two-legged-tie odds rather than re-simulating goals per run. Without
+    this, the League Phase table (and therefore reached_top8/won_
+    competition etc.) has the same "match-level noise alone under-spreads
+    a full competition" issue simulate_season had -- confirmed 2026-10-12.
 
     Otherwise draws ONE representative League Phase schedule
     (see module docstring for why), simulates its 144 (or 108, for the
@@ -574,8 +587,19 @@ def simulate_competition_winner(
     rng = np.random.default_rng()
     phi = OVERDISPERSION
     p_nb = 1.0 / (1.0 + phi)
-    home_goals = rng.negative_binomial(np.maximum(home_lambdas[:, None] / phi, 1e-9), p_nb, size=(F, n_sim))
-    away_goals = rng.negative_binomial(np.maximum(away_lambdas[:, None] / phi, 1e-9), p_nb, size=(F, n_sim))
+
+    if season_sigma > 0:
+        team_noise = rng.lognormal(
+            mean=-0.5 * season_sigma ** 2, sigma=season_sigma, size=(n_teams, n_sim)
+        )
+        home_lambdas_sim = home_lambdas[:, None] * team_noise[home_idx, :]
+        away_lambdas_sim = away_lambdas[:, None] * team_noise[away_idx, :]
+    else:
+        home_lambdas_sim = np.broadcast_to(home_lambdas[:, None], (F, n_sim))
+        away_lambdas_sim = np.broadcast_to(away_lambdas[:, None], (F, n_sim))
+
+    home_goals = rng.negative_binomial(np.maximum(home_lambdas_sim / phi, 1e-9), p_nb)
+    away_goals = rng.negative_binomial(np.maximum(away_lambdas_sim / phi, 1e-9), p_nb)
 
     if real_results:
         for i, f in enumerate(schedule):
