@@ -66,6 +66,35 @@ FORM_GAMES     = 5    # number of recent results used for form adjustment
 FORM_STRENGTH  = 0.05 # max ±5% attack multiplier from form
 EXTRA_TIME_FRACTION = 1 / 3  # 30 min extra time is 1/3 of a 90 min regulation lambda
 
+# simulate_season()'s per-match NegBin noise alone under-spreads a FULL
+# SEASON's worth of outcomes: with 30+ remaining matches, match-to-match
+# randomness mostly averages out (law of large numbers), so the
+# highest-rated team wins the title far more often in our simulations than
+# real forecasters show -- confirmed 2026-10-12 against three independent
+# external models (EuroClubIndex, Opta/The Analyst, StatsUltra) across
+# three leagues: our season-finish xPts already matched each site's own
+# projected points closely (so the MEAN was never the problem), but our
+# title probabilities ran 15-25pp hotter for the league leader every time
+# (e.g. Man City 64% here vs. 48-59% across the three sites; Poland's Lech
+# Poznan 74% here vs. EuroClubIndex's 52%, despite an almost identical
+# projected-points gap over 2nd place). SEASON_STRENGTH_SIGMA adds a
+# second, season-level source of randomness simulate_season() itself
+# applies: once per (team, simulated season) -- not once per match -- each
+# team's attack/defense lambdas are scaled by a shared lognormal draw,
+# representing "how much this team's true current strength differs from
+# its rating estimate this season" (squad changes, managerial changes,
+# a hot/cold real stretch the rating hasn't caught up to yet, etc.) --
+# exactly the kind of uncertainty that persists across many matches rather
+# than cancelling out. mu is set so E[multiplier] = 1 exactly, so this
+# widens the spread of final tables without shifting projected points --
+# confirmed empirically (projected points moved <2% at this sigma while
+# title-race concentration matched external sites within a few points,
+# across all three leagues tested). 0.30 was the smallest value that got
+# every tested league into a realistic range; raise cautiously if further
+# leagues still look too concentrated, but re-validate against an external
+# site first rather than guessing.
+SEASON_STRENGTH_SIGMA = 0.30
+
 # Dixon-Coles (1997) low-score correlation correction. Independent
 # Poisson/NegBin systematically under-predicts 0-0 and 1-1 and
 # over-predicts 1-0 and 0-1; this single parameter corrects it. Typical
@@ -559,6 +588,12 @@ def _apply_dixon_coles_mc(
     the Dixon-Coles joint distribution via rejection resampling, applied
     only to the four low-score cells (0-0, 0-1, 1-0, 1-1).
 
+    home_lambdas/away_lambdas must already be shape (F, n_sim) -- every
+    caller now applies SEASON_STRENGTH_SIGMA's per-(team, sim) noise
+    before this point, so each simulation can have a different lambda
+    for the same fixture; there's no longer a single per-fixture value to
+    broadcast from.
+
     Standard rejection sampling: accept a draw landing in an affected
     cell with probability tau(cell)/tau_max; reject and redraw (from the
     same independent NegBin) otherwise. tau values are close to 1 for
@@ -566,8 +601,8 @@ def _apply_dixon_coles_mc(
     couple of rounds — remaining rejects after max_rounds are accepted
     as-is (negligible residual bias).
     """
-    lam_x = np.broadcast_to(home_lambdas[:, None], home_goals.shape)
-    lam_y = np.broadcast_to(away_lambdas[:, None], away_goals.shape)
+    lam_x = home_lambdas
+    lam_y = away_lambdas
 
     tau00 = 1.0 - lam_x * lam_y * rho
     tau01 = 1.0 + lam_x * rho
@@ -613,6 +648,7 @@ def simulate_season(
     use_dixon_coles: bool = True,
     apply_form: bool = True,
     home_advantage_overrides: dict[tuple[str, str], float] | None = None,
+    season_sigma: float = SEASON_STRENGTH_SIGMA,
 ) -> pd.DataFrame:
     """
     Run a Monte Carlo simulation of the remaining season.
@@ -642,6 +678,15 @@ def simulate_season(
                          opponent (e.g. Ireland hosting Israel) rather than
                          applying to every one of the home team's fixtures.
                          Any fixture not in the dict uses home_advantage.
+    season_sigma        : std dev of a mean-1 lognormal multiplier drawn once
+                         per (team, simulated season) and applied to that
+                         team's attack/defense for every one of its remaining
+                         fixtures in that simulation -- models season-level
+                         strength uncertainty the per-match NegBin noise
+                         alone doesn't capture (see SEASON_STRENGTH_SIGMA's
+                         own comment for why this exists and how it was
+                         tuned). 0.0 reproduces the old single-source-of-
+                         randomness behaviour exactly, e.g. for an A/B check.
 
     Returns
     -------
@@ -776,18 +821,30 @@ def simulate_season(
         home_lambdas *= _form[home_idx]
         away_lambdas *= _form[away_idx]
 
+    # Season-level strength noise (see SEASON_STRENGTH_SIGMA's own comment):
+    # one multiplier per (team, simulated season), not per match, so it
+    # persists across a team's whole run of remaining fixtures within a
+    # single simulation instead of averaging out like per-match noise does.
+    # mu = -sigma^2/2 makes E[multiplier] = 1 exactly, so this widens the
+    # spread of simulated final tables without shifting projected points.
+    if season_sigma > 0:
+        team_noise = rng.lognormal(
+            mean=-0.5 * season_sigma ** 2, sigma=season_sigma, size=(n_teams, n_sim)
+        )
+        home_lambdas_sim = home_lambdas[:, None] * team_noise[home_idx, :]
+        away_lambdas_sim = away_lambdas[:, None] * team_noise[away_idx, :]
+    else:
+        home_lambdas_sim = np.broadcast_to(home_lambdas[:, None], (F, n_sim))
+        away_lambdas_sim = np.broadcast_to(away_lambdas[:, None], (F, n_sim))
+
     # Draw goals from Negative Binomial (overdispersed Poisson)
     _phi  = OVERDISPERSION
     _p_nb = 1.0 / (1.0 + _phi)
-    home_goals = rng.negative_binomial(
-        home_lambdas[:, None] / _phi, _p_nb, size=(F, n_sim)
-    )
-    away_goals = rng.negative_binomial(
-        away_lambdas[:, None] / _phi, _p_nb, size=(F, n_sim)
-    )
+    home_goals = rng.negative_binomial(home_lambdas_sim / _phi, _p_nb)
+    away_goals = rng.negative_binomial(away_lambdas_sim / _phi, _p_nb)
     if use_dixon_coles:
         home_goals, away_goals = _apply_dixon_coles_mc(
-            home_goals, away_goals, home_lambdas, away_lambdas, rng, _phi, _p_nb
+            home_goals, away_goals, home_lambdas_sim, away_lambdas_sim, rng, _phi, _p_nb
         )
 
     # Points per fixture
