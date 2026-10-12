@@ -43,8 +43,8 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
 
     "English Premier League": {"regular": {
         1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS",
-        6: "UEL - LS",
-        7: "UECL - PO",
+        5: "UEL - LS",
+        6: "UECL - PO",
         18: "Relegation", 19: "Relegation", 20: "Relegation",
     }},
 
@@ -63,7 +63,7 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
 
     "German Bundesliga": {"regular": {
         1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS",
-        6: "UEL - LS", 7: "UECL - PO",
+        5: "UEL - LS", 6: "UECL - PO",
         16: "Relegation - PO",
         17: "Relegation", 18: "Relegation",
     }},
