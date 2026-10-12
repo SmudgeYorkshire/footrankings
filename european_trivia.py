@@ -68,6 +68,15 @@ def _sweep_all_leagues(api_key: str) -> tuple[list[dict], list[str], str]:
     failed: list[str] = []
 
     for league_name, cfg in LEAGUES.items():
+        # Liechtenstein's entry is a domestic-cup placeholder, not a real
+        # league (id == cup_id -- same competition both ways, see its own
+        # comment in config.py: "nothing ever fetches standings for it").
+        # Swept in here anyway before this check, its cup results (knockout
+        # ties against wildly mismatched opposition, not a balanced league
+        # season) were silently counted as league form for Undefeated/
+        # Winless/Perfect Season.
+        if cfg.get("id") == cfg.get("cup_id"):
+            continue
         try:
             roster = client.get_standings(cfg["id"], cfg["af_season"])
             played, remaining = client.get_fixtures(cfg["id"], cfg["af_season"])
