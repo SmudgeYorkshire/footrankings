@@ -267,19 +267,19 @@ st.caption(
     "probability of finishing at each rank band, not just a single point estimate."
 )
 with st.spinner("Simulating the rest of the season for every association…"):
-    from club_coefficients import get_coeff
-    from qualifying_projection import _project_league_phase_field, _resolve_field_ratings, _load_combined_ratings
-    from country_ranking_simulator import project_country_predicted_ranking
-
-    _pred_ratings_df = _load_combined_ratings()
-    _pred_table, _pred_warnings = project_country_predicted_ranking(
-        project_league_phase_field=_project_league_phase_field,
-        resolve_field_ratings=_resolve_field_ratings,
-        ratings_df=_pred_ratings_df,
-        get_coeff=get_coeff,
-        api_key=_API_KEY,
-        n_sim=2_000,
-    )
+    # Sources from coefficients_live.predicted_country_ranking's own shared
+    # 1h cache rather than running its own copy of the simulation --
+    # confirmed as a real cause of slow page loads 2026-10-13: this used to
+    # call project_country_predicted_ranking directly with NO caching at
+    # all, re-running the full (every remaining fixture, every
+    # association, n_sim=2_000) simulation on every single page view, as
+    # a SEPARATE computation from european_2027_28.py's and
+    # coefficients_live.eps_bonus_recipients's own copies of the same
+    # thing. The spinner above still shows on a genuine cache miss (first
+    # view after the hour rolls over); a reload within the hour returns
+    # instantly.
+    from coefficients_live import predicted_country_ranking
+    _pred_table, _pred_warnings = predicted_country_ranking()
 
 for _w in _pred_warnings:
     st.caption(f"⚠️ {_w}")

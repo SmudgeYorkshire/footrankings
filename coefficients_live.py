@@ -449,26 +449,34 @@ def _build_ranking_df(live_override: dict[str, float] | None = None) -> pd.DataF
 
 
 @st.cache_data(ttl=3_600, show_spinner=False)
-def _predicted_eps_ranking() -> pd.DataFrame:
-    """Countries ranked by PROJECTED final-season coefficient -- the same
-    Monte Carlo simulation (country_ranking_simulator.
-    project_country_predicted_ranking, projecting every association's
-    rest-of-season across all three UEFA club competitions) as
-    coefficients.py's own "Predicted Race for an extra Champions League
-    spot" table and european_2027_28.py's Permutation Info tab
-    (_predicted_extra_cl_spot_race_top10). Neither of those is importable
-    from here (both are Streamlit page scripts whose body runs on import),
-    so this is its own copy rather than a shared call -- same 1h TTL as
-    european_2027_28.py's copy already uses, since the EPS race moves over
-    weeks of accumulated results, not minutes, and the simulation itself is
-    genuinely expensive (every remaining fixture, every association,
-    n_sim=2_000)."""
+def predicted_country_ranking() -> tuple[pd.DataFrame, list[str]]:
+    """Raw (pred_table, warnings) from country_ranking_simulator.
+    project_country_predicted_ranking -- the Monte Carlo projection of
+    every association's rest-of-season across all three UEFA club
+    competitions (n_sim=2_000, genuinely expensive: every remaining
+    fixture, every association). The SINGLE shared, cached source for:
+    coefficients.py's own "Predicted Final Ranking" AND "Predicted Race
+    for an extra Champions League spot" sections, european_2027_28.py's
+    Permutation Info tab (_predicted_extra_cl_spot_race_top10), and
+    eps_bonus_recipients() below.
+
+    Confirmed as a real cause of slow page loads 2026-10-13: before this,
+    THREE independent copies of this same expensive simulation existed --
+    coefficients.py's own inline call had no caching at all (re-ran on
+    every single page view/rerun), and european_2027_28.py's own
+    @st.cache_data copy was keyed to a different function object than this
+    module's, so visiting one page could never warm the cache for the
+    other -- st.cache_data caches by the exact function called, not by
+    what it computes, so two differently-named wrappers around the
+    identical computation are two separate cache entries. One shared copy
+    here means whichever of these pages is visited first warms it for all
+    of them, and a reload within the hour costs nothing."""
     from club_coefficients import get_coeff
     from qualifying_projection import _project_league_phase_field, _resolve_field_ratings, _load_combined_ratings
     from country_ranking_simulator import project_country_predicted_ranking
 
     pred_ratings_df = _load_combined_ratings()
-    pred_table, _warnings = project_country_predicted_ranking(
+    return project_country_predicted_ranking(
         project_league_phase_field=_project_league_phase_field,
         resolve_field_ratings=_resolve_field_ratings,
         ratings_df=pred_ratings_df,
@@ -476,12 +484,6 @@ def _predicted_eps_ranking() -> pd.DataFrame:
         api_key=_API_KEY,
         n_sim=2_000,
     )
-    rows = [
-        {"Country": country, "mean_season_coeff": r["mean_season_coeff"]}
-        for country, r in pred_table.iterrows()
-        if r["clubs"] > 0 and r["season_mean_rank"] is not None
-    ]
-    return pd.DataFrame(rows).sort_values("mean_season_coeff", ascending=False).reset_index(drop=True)
 
 
 def eps_bonus_recipients(n: int = 2) -> list[str]:
@@ -500,5 +502,6 @@ def eps_bonus_recipients(n: int = 2) -> list[str]:
     still only do so for whichever countries this ACTUALLY returns right
     now, not a fixed assumption -- see football_rankings.py's
     _apply_eps_bonus for where that's applied."""
-    df = _predicted_eps_ranking()
-    return df["Country"].head(n).tolist()
+    pred_table, _warnings = predicted_country_ranking()
+    eligible = pred_table[(pred_table["clubs"] > 0) & pred_table["season_mean_rank"].notna()]
+    return eligible.sort_values("mean_season_coeff", ascending=False).index[:n].tolist()

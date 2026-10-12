@@ -885,28 +885,21 @@ def _extra_cl_spot_race_top10() -> pd.DataFrame:
     return race_df.head(10)
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
 def _predicted_extra_cl_spot_race_top10() -> tuple[pd.DataFrame, list[str]]:
     """Top 10 of the Coefficients page's own "Predicted Race for an extra
-    Champions League spot" table -- same Monte Carlo simulation
-    (country_ranking_simulator.project_country_predicted_ranking, which
-    projects every association's rest-of-season). That function isn't
-    cached anywhere else and is expensive (simulates all three
-    competitions for every association), so this page caches it
-    separately rather than re-running it on every view."""
-    from club_coefficients import get_coeff
-    from qualifying_projection import _project_league_phase_field, _resolve_field_ratings, _load_combined_ratings
-    from country_ranking_simulator import project_country_predicted_ranking
+    Champions League spot" table. Sources the Monte Carlo projection from
+    coefficients_live.predicted_country_ranking's own shared 1h cache
+    rather than running a separate copy of the same expensive simulation
+    -- confirmed as a real cause of slow page loads 2026-10-13: this
+    function used to have its own @st.cache_data-wrapped copy, a
+    DIFFERENT cache entry than coefficients.py's own (uncached) call and
+    coefficients_live.eps_bonus_recipients's, so visiting one of these
+    pages could never warm the cache for the others. No decorator needed
+    here anymore -- the real cost is already cached upstream, and
+    building these few display rows from its result is cheap."""
+    from coefficients_live import predicted_country_ranking
 
-    pred_ratings_df = _load_combined_ratings()
-    pred_table, warnings = project_country_predicted_ranking(
-        project_league_phase_field=_project_league_phase_field,
-        resolve_field_ratings=_resolve_field_ratings,
-        ratings_df=pred_ratings_df,
-        get_coeff=get_coeff,
-        api_key=_API_KEY,
-        n_sim=2_000,
-    )
+    pred_table, warnings = predicted_country_ranking()
     rows = []
     for country, r in pred_table.iterrows():
         if r["clubs"] <= 0 or r["season_mean_rank"] is None:
