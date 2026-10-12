@@ -6,11 +6,16 @@ Zakynthos,3.35
 Pendikspor,3.1
 Vanspor FK,-2.79
 Semendrija 1924,-2.76
+Eibar,-2.34
+Burgos,-2.31
 Loznica,2.16
 Inter Turku II,2.13
 Astana,-1.82
+Albacete,-1.59
+Girona,-1.49
 Portsmouth,-1.48
 Ümraniyespor,1.4
+Levante,-1.31
 Ertis,1.31
 Andranik,-1.29
 Nõmme United,1.28
@@ -21,12 +26,10 @@ Struga,1.16
 Dukla Praha,-1.14
 Liepāja,1.12
 Batman Petrolspor,1.11
-Eibar,-1.1
 FC jazz,-1.1
 Stal Rzeszów,1.09
 Elfsborg,1.08
 Universitatea Cluj,-1.04
-Burgos,-1.04
 Sheffield Utd,1.02
 GKS Katowice,-1.01
 Paide,-1.0
@@ -42,35 +45,29 @@ Vålerenga,0.85
 Mladost Lučani,-0.85
 Ludogorets II,-0.85
 Tammeka,0.84
-Pyunik,-0.83
 Bodrum FK,-0.82
 Ranheim,0.82
 Stromsgodset,0.81
 VPS,0.8
 İstanbulspor,-0.8
-Syunik,-0.78
 Gnistan,-0.76
 KFUM,-0.75
 Auda,-0.75
 Baník Ostrava II,0.74
 Mika,0.73
 West Ham,0.72
-Benfica B,-0.71
 AEK Larnaca,-0.71
-Famalicão,-0.7
 QPR,0.7
+Famalicão,-0.69
 Sarıyer,0.69
 Haugesund,0.68
-Albacete,-0.67
 Pohronie,-0.65
 Rapid București,0.65
 Derby,-0.65
 Kayserispor,-0.63
 Burnley,0.62
 Egersund,-0.62
-Oviedo,0.6
 Watford,-0.6
-Girona,-0.59
 Lynx,0.59
 Charlton,-0.59
 Norwich,0.59
@@ -79,46 +76,43 @@ Ashdod,0.56
 Hapoel Ra'anana,0.56
 CFR Cluj,-0.54
 Lincoln,-0.54
-Shirak,0.53
 Neman Grodno,-0.52
 Halmstad,-0.51
-Granada CF,0.51
 FCI Levadia II,-0.51
-Levante,-0.5
 Malmö FF,0.49
 Wolves,0.49
 Radomiak Radom,-0.48
 Maccabi Haifa,0.48
-Felgueiras 1932,0.46
 AGF,0.42
 Blackburn,-0.42
 Atalanta,-0.41
 Udinese,-0.41
 OFK Beograd,0.41
 hodd,-0.41
+Soroksar,-0.4
 Millwall,-0.4
 Arda Kardzhali,-0.39
 Southampton,-0.39
-Valladolid,0.37
 Zorya,-0.36
 PAOK II,-0.36
 ODD Ballklubb,0.36
 Stabaek,0.35
-BKMA,0.33
 Bolton,-0.33
 Venezia,0.32
 Ludogorets Razgrad,0.32
-Soroksar,-0.32
+Granada CF,0.31
+Sevilla,-0.31
+Tenerife,-0.3
 Omonia Aradippou,0.3
 Antalyaspor,0.3
 Motor Lublin,0.29
 Hapoel Kfar Shalem,-0.28
+Oviedo,0.28
 Kongsvinger,-0.28
-PAOK,-0.27
 BATE,-0.27
 Kalmar,-0.26
 Swansea,0.26
-BVSC,0.25
+Valladolid,0.25
 Hapoel Kfar Saba,-0.24
 Bristol City,0.24
 Yelimay,-0.22
@@ -129,17 +123,15 @@ Raufoss,0.18
 Hapoel Jerusalem,-0.17
 Coventry City,-0.16
 Trans,0.16
-Kalamata,0.15
+BVSC,0.15
 Oulu,0.15
 Sønderjyske,-0.14
 GIF Sundsvall,0.14
 Bohemians 1905,0.14
-Tenerife,0.13
 Kuressaare,-0.13
 Preston,-0.13
 Mons Calpe,0.12
 Sivasspor,-0.11
 Bryne,-0.11
 Livyi Bereh,0.1
-Göztepe,0.1
 Keçiörengücü,0.1
