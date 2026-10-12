@@ -2360,7 +2360,14 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
 
         def _conf_editor(conf_key, conf_fixtures, conf_standings, conf_zones,
                          tiebreaker_key="tiebreakers", relative_zones=False):
-            """Fixture editor + updated standings + simulation for one conference."""
+            """Fixture editor + updated standings + simulation for one conference.
+
+            Returns the hypothetically-updated standings (conf_standings
+            with the user's own predicted results applied) so a caller that
+            needs to react to the user's edits -- e.g. recomputing
+            projected Play-off groups from them instead of the real,
+            un-edited table -- can reuse exactly what's already been
+            computed here."""
             ver_key_c   = f"manual_pred_ver_{league_id}_{season}_{conf_key}"
             sim_store_c = f"manual_sim_{league_id}_{season}_{conf_key}"
             if ver_key_c not in st.session_state:
@@ -2370,7 +2377,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                 st.info("All fixtures in this round are completed.")
                 _render_table(_table_rows(conf_standings, zones=conf_zones,
                                           relative_zones=relative_zones))
-                return
+                return conf_standings
 
             editor_key_c = f"pred_editor_{league_id}_{season}_{conf_key}_{st.session_state[ver_key_c]}"
             base_df_c    = _build_fix_df(conf_fixtures)
@@ -2461,11 +2468,13 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             else:
                 st.info("Enter predictions above then press **▶ Run simulations**.")
 
+            return updated_st_c
+
         def _simple_editor(fix_list, st_list, sim_zones):
             """Full fixture editor + simulation for a non-split or regular-season
             view — both call sites only ever invoke this when fix_list is
             non-empty, so it's exactly _conf_editor's "main" conference case."""
-            _conf_editor("main", fix_list, st_list, sim_zones)
+            return _conf_editor("main", fix_list, st_list, sim_zones)
 
         # ── Main tab dispatch ─────────────────────────────────────────────────
         if split_info:
@@ -2700,19 +2709,23 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
 
         elif cfg.get("n_champ") and remaining_fixtures:
             # Regular season still running for a split league
-            _simple_editor(remaining_fixtures, standings, _main_zones)
+            updated_standings = _simple_editor(remaining_fixtures, standings, _main_zones)
 
-            # Show projected championship/relegation groups based on current standings
+            # Projected championship/relegation groups from the user's OWN
+            # predicted standings, not the real un-edited ones -- confirmed
+            # as a real gap 2026-10-12 (Israel): editing regular-season
+            # results above a moment ago had no effect on who these tables
+            # showed as projected to reach each group.
             n_champ_p = cfg["n_champ"]
             n_mid_p   = cfg.get("n_mid") or 0
-            sorted_st = sorted(standings, key=lambda r: int(r.get("intRank", 99)))
+            sorted_st = sorted(updated_standings, key=lambda r: int(r.get("intRank", 99)))
             proj_champ = sorted_st[:n_champ_p]
             proj_mid   = sorted_st[n_champ_p:n_champ_p + n_mid_p] if n_mid_p else []
             proj_relg  = sorted_st[n_champ_p + n_mid_p:]
 
             st.divider()
             st.markdown("### 🏆 Projected Championship Round")
-            st.caption(f"Projected top {n_champ_p} after round {cfg['split_round']} based on current standings")
+            st.caption(f"Projected top {n_champ_p} after round {cfg['split_round']} based on your predicted standings")
             _render_table(_table_rows(proj_champ, zones=_champ_zones))
             if proj_mid:
                 st.markdown(f"### 🔵 Projected {cfg.get('mid_label', 'Europa Play-off')}")
@@ -2720,6 +2733,63 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             if proj_relg:
                 st.markdown("### ⚠️ Projected Relegation Round")
                 _render_table(_table_rows(proj_relg, zones=_relg_zones, relative_zones=True))
+
+            # ── Play-off Predictions (manual) ───────────────────────────────
+            # Simulated finish probabilities WITHIN each projected group
+            # above, seeded from the user's own predicted points (the same
+            # _playoff_standings helper the live, non-manual Predictions tab
+            # uses for this exact projected-pre-split scenario -- see its
+            # own docstring). Deliberately no position_bounds/✓/X here: this
+            # group's own membership is itself still just a projection from
+            # a hypothetical, so asserting mathematical certainty about a
+            # finishing position within it would be unsound twice over.
+            _pf_manual = cfg.get("pts_factor", 1.0)
+            _st_lookup_manual = {r["strTeam"]: r for r in updated_standings}
+            _manual_po_fp = (
+                tuple(r["strTeam"] for r in proj_champ),
+                tuple(r["strTeam"] for r in proj_mid),
+                tuple(r["strTeam"] for r in proj_relg),
+                n_sim, home_advantage,
+            )
+
+            def _manual_playoff_predictions(label, icon, group_rows, group_zones,
+                                            title_emoji_flag, key_suffix):
+                if not group_rows:
+                    return
+                group_teams = [r["strTeam"] for r in group_rows]
+                sim_store_po = f"manual_po_sim_{league_id}_{season}_{key_suffix}"
+                st.markdown(f"#### {icon} {label} — Predictions")
+                if st.button(f"▶  Run {n_sim:,} simulations", type="primary",
+                             use_container_width=True,
+                             key=f"po_run_btn_{key_suffix}_{league_id}_{season}"):
+                    with st.spinner(f"Running {n_sim:,} simulations…"):
+                        po_probs = simulate_season(
+                            standings=_playoff_standings(group_teams, _st_lookup_manual, _pf_manual),
+                            remaining_fixtures=_roundrobin_fixtures(group_teams),
+                            ratings=ratings_df, n_sim=n_sim,
+                            home_advantage=home_advantage,
+                            tiebreakers=cfg.get("tiebreakers"),
+                        )
+                    st.session_state[sim_store_po] = {"probs": po_probs, "fingerprint": _manual_po_fp}
+                cached_po = st.session_state.get(sim_store_po)
+                if cached_po:
+                    if cached_po["fingerprint"] != _manual_po_fp:
+                        st.warning("⚠ Predicted standings changed since last run — press ▶ to update.")
+                    if not cached_po["probs"].empty:
+                        render_prob_table(cached_po["probs"], badge_lookup,
+                                          status_map=group_zones,
+                                          title=f"{label} finish probabilities",
+                                          title_emoji=title_emoji_flag)
+                else:
+                    st.info("Press **▶ Run simulations** to see Play-off predictions for this group.")
+
+            st.divider()
+            st.markdown("### 📊 Projected Play-off Predictions")
+            _manual_playoff_predictions("Championship Play-off", "🏆", proj_champ, _champ_zones, True, "champ")
+            if proj_mid:
+                _manual_playoff_predictions(cfg.get("mid_label", "Europa Play-off"), "🔵",
+                                            proj_mid, _mid_zones, False, "mid")
+            _manual_playoff_predictions("Relegation Play-out", "⚠️", proj_relg, _relg_zones, False, "relg")
 
         elif not remaining_fixtures:
             st.info("The season is complete — no remaining fixtures to simulate.")
