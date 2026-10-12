@@ -81,7 +81,7 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
                       expected_pts: dict = None, european_spots: dict = None,
                       title: str = "Season finish probabilities", zones: dict = None,
                       status_map: dict = None, team_overrides: dict = None,
-                      bounds: dict = None):
+                      bounds: dict = None, title_emoji: bool = False):
     """Color-coded finish-probability table, sorted by expected finishing
     position (Σ position × probability, ascending) -- the single-number
     summary of each team's whole distribution, consistent with what this
@@ -102,6 +102,12 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
         table seeded from a PROJECTED starting position (e.g. a pre-split
         group projected forward to the real split round), since that would
         assert certainty about a number that's itself still a guess.
+    title_emoji: when True (and bounds is given), a clinched 1st place shows
+        "🏆" instead of the plain "✓" every other clinched cell gets. Only
+        pass True when position 1 in THIS table really is the outright
+        champion -- not a sub-group's own 1st (Middle Group, Relegation
+        Round) and not a League Phase's 1st (the knockout stage still
+        decides the actual winner from there).
     """
     # Resolve unified status map
     _smap = status_map if status_map is not None else (european_spots or {})
@@ -133,7 +139,7 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
                 pos = int(pos_str)
                 certain = True if best == worst == pos else (False if not (best <= pos <= worst) else None)
                 if certain is not None:
-                    df.loc[t, pos_str] = cert_value(df.loc[t, pos_str], certain)
+                    df.loc[t, pos_str] = cert_value(df.loc[t, pos_str], certain, is_title=title_emoji and pos == 1)
     styled = (
         df.style
         .apply(_green_col, axis=0, subset=pos_cols)

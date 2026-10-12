@@ -495,7 +495,7 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
                       expected_pts: dict = None, european_spots: dict = None,
                       title: str = "Season finish probabilities", zones: dict = None,
                       status_map: dict = None, team_overrides: dict = None,
-                      bounds: dict = None):
+                      bounds: dict = None, title_emoji: bool = False):
     """Color-coded finish-probability table, sorted by xPts descending.
 
     status_map: unified {pos: label} dict from league_status.py (preferred).
@@ -507,6 +507,10 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
         table whose underlying "current points" are real or a self-consistent
         hypothesis -- never for a table seeded from a PROJECTED starting
         position.
+    title_emoji: when True (and bounds is given), a clinched 1st place shows
+        "🏆" instead of the plain "✓". Only pass True when position 1 in
+        THIS table really is the outright champion, not a sub-group's own
+        1st.
     """
     # Resolve unified status map
     _smap = status_map if status_map is not None else (european_spots or {})
@@ -540,7 +544,7 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
                 pos = int(pos_str)
                 certain = True if best == worst == pos else (False if not (best <= pos <= worst) else None)
                 if certain is not None:
-                    df.loc[t, pos_str] = cert_value(df.loc[t, pos_str], certain)
+                    df.loc[t, pos_str] = cert_value(df.loc[t, pos_str], certain, is_title=title_emoji and pos == 1)
     styled = (
         df.style
         .apply(_green_col, axis=0, subset=pos_cols)
@@ -1860,7 +1864,8 @@ def main_content():
                 if not probs_champ.empty:
                     render_prob_table(probs_champ, badge_lookup, champ_exp_pts,
                                       status_map=_champ_zones,
-                                      bounds=position_bounds(split_info["champ_current"], champ_fix))
+                                      bounds=position_bounds(split_info["champ_current"], champ_fix),
+                                      title_emoji=True)
                     render_zone_table(probs_champ, split_info["champ_current"], cfg.get("zones"))
                 if split_info.get("mid_teams") and probs_mid is not None and not probs_mid.empty:
                     st.markdown(f"### 🔵 {_mid_label}")
@@ -1971,10 +1976,15 @@ def main_content():
 
             if "sim_results" in st.session_state and not st.session_state["sim_results"].empty:
                 exp_pts = _compute_expected_pts(standings, remaining_fixtures, ratings_df, home_advantage)
+                # For a true split league, full-table position 1 isn't the real title
+                # race (decided within the post-split Championship group instead) --
+                # see football_rankings.py's identical check for the full rationale.
+                _is_true_split = bool(cfg.get("n_champ")) and not cfg.get("final_four")
                 # Use pre-computed _main_zones (same source as Current Table)
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
                                   status_map=_main_zones, team_overrides=_team_overrides,
-                                  bounds=position_bounds(standings, remaining_fixtures))
+                                  bounds=position_bounds(standings, remaining_fixtures),
+                                  title_emoji=not _is_true_split)
                 render_title_probability_history(ratings_id)
                 render_relegation_probability_history(
                     ratings_id, _relegation_positions(_main_zones, _relg_zones, len(standings)),
@@ -2481,7 +2491,8 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                         updated_st_c, unpredicted_fix_c, ratings_df, home_advantage)
                     render_prob_table(cached_c["probs"], badge_lookup, manual_exp_c,
                                       status_map=conf_zones,
-                                      bounds=position_bounds(updated_st_c, unpredicted_fix_c))
+                                      bounds=position_bounds(updated_st_c, unpredicted_fix_c),
+                                      title_emoji=conf_key in ("main", "champ"))
                     render_zone_table(cached_c["probs"], updated_st_c,
                                       cfg.get("zones") or _auto_zones(
                                           cfg.get("european_spots"), _main_zones))

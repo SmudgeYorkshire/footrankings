@@ -1810,7 +1810,8 @@ def main_content():
                 if not probs_champ.empty:
                     render_prob_table(probs_champ, badge_lookup, champ_exp_pts,
                                       status_map=_champ_zones,
-                                      bounds=position_bounds(split_info["champ_current"], champ_fix))
+                                      bounds=position_bounds(split_info["champ_current"], champ_fix),
+                                      title_emoji=True)
                     render_zone_table(probs_champ, split_info["champ_current"], cfg.get("zones"))
                     render_title_probability_history(ratings_id)
                 if split_info.get("mid_teams") and probs_mid is not None and not probs_mid.empty:
@@ -1927,16 +1928,18 @@ def main_content():
 
             if "sim_results" in st.session_state and not st.session_state["sim_results"].empty:
                 exp_pts = _compute_expected_pts(standings, remaining_fixtures, ratings_df, home_advantage)
-                # Use pre-computed _main_zones (same source as Current Table)
-                render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
-                                  status_map=_main_zones, team_overrides=_team_overrides,
-                                  bounds=position_bounds(standings, remaining_fixtures))
                 # For a true split league, full-table position 1 isn't the real title
                 # race (that's decided within the Championship Play-off after the
                 # split) -- shown below that section instead, where the probabilities
-                # are the realistic ones. Simple (non-split) and Final Four leagues
-                # have no such split, so it stays here.
+                # are the realistic ones, and that's the only place the 🏆 belongs.
+                # Simple (non-split) and Final Four leagues have no such split, so
+                # position 1 right here already is the real title race.
                 _is_true_split = bool(cfg.get("n_champ")) and not cfg.get("final_four")
+                # Use pre-computed _main_zones (same source as Current Table)
+                render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
+                                  status_map=_main_zones, team_overrides=_team_overrides,
+                                  bounds=position_bounds(standings, remaining_fixtures),
+                                  title_emoji=not _is_true_split)
                 if not _is_true_split:
                     render_title_probability_history(ratings_id)
                     render_relegation_probability_history(
@@ -2450,7 +2453,8 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                         updated_st_c, unpredicted_fix_c, ratings_df, home_advantage)
                     render_prob_table(cached_c["probs"], badge_lookup, manual_exp_c,
                                       status_map=conf_zones,
-                                      bounds=position_bounds(updated_st_c, unpredicted_fix_c))
+                                      bounds=position_bounds(updated_st_c, unpredicted_fix_c),
+                                      title_emoji=conf_key in ("main", "champ"))
                     render_zone_table(cached_c["probs"], updated_st_c,
                                       cfg.get("zones") or _auto_zones(
                                           cfg.get("european_spots"), _main_zones))

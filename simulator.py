@@ -983,17 +983,29 @@ def simulate_season(
 # .format() callable, never the underlying value's type.
 CLINCHED_SENTINEL = 1_000.0
 ELIMINATED_SENTINEL = -1_000.0
+# A separate, larger-magnitude sentinel for clinching 1st specifically --
+# still clears every ">= CLINCHED_SENTINEL/2" check a caller already has
+# (_green_col's heatmap styling included), so a caller that doesn't ask for
+# the trophy treatment keeps seeing exactly the plain "✓" behaviour with no
+# changes needed on its end. Only a caller that KNOWS position 1 in its own
+# table really is the outright champion (not just "top of a sub-group" or
+# "top of a League Phase that still has a knockout stage to come") should
+# ever pass is_title=True into cert_value -- see render_prob_table's own
+# title_emoji parameter for where that distinction gets made.
+CLINCHED_TITLE_SENTINEL = 2_000.0
 
 
-def cert_value(value: float, certain: bool | None) -> float:
+def cert_value(value: float, certain: bool | None, is_title: bool = False) -> float:
     if certain is True:
-        return CLINCHED_SENTINEL
+        return CLINCHED_TITLE_SENTINEL if is_title else CLINCHED_SENTINEL
     if certain is False:
         return ELIMINATED_SENTINEL
     return value
 
 
 def cert_cell_format(v: float) -> str:
+    if v == CLINCHED_TITLE_SENTINEL:
+        return "🏆"
     if v == CLINCHED_SENTINEL:
         return "✓"
     if v == ELIMINATED_SENTINEL:
