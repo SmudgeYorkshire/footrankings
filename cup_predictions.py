@@ -89,9 +89,12 @@ def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], r
                                   home_advantage: float = 1.0):
     """Highest-Opta-rated team in this league that hasn't already been
     knocked out of this season's cup AND isn't the underdog in its own
-    next scheduled tie, plus any higher-rated teams skipped over because
-    they're already eliminated. Returns
-    (predicted_row, predicted_status, [(skipped_row, skipped_status), ...]).
+    next scheduled tie, plus any team rated HIGHER than that predicted
+    winner which has already been eliminated -- a genuine upset worth
+    flagging, unlike an eliminated team that was never favoured over the
+    winner in the first place. Returns
+    (predicted_row, predicted_status, [(skipped_row, skipped_status), ...]),
+    the third element sorted highest-rated first.
 
     A team with a known upcoming fixture gets its actual prevail
     probability for that specific tie (home advantage + opponent
@@ -118,10 +121,12 @@ def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], r
 
     if not candidates:
         # Everyone we track has been eliminated -- fall back to the top-rated
-        # team anyway rather than showing nothing.
+        # team anyway rather than showing nothing. They're the highest-rated
+        # team full stop, so nothing else we track can be "higher-rated and
+        # eliminated" relative to them -- the skipped list is necessarily empty.
         row = ranked.iloc[0]
         status = _cup_campaign_status(_team_name_set(row), played, remaining)
-        return row, status, skipped[1:]
+        return row, status, []
 
     _attach_prevail_pct(candidates, ratings_df, home_advantage)
 
@@ -133,7 +138,20 @@ def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], r
 
     candidates.sort(key=_sort_key)
     predicted_row, predicted_status = candidates[0]
-    return predicted_row, predicted_status, skipped
+    # skipped was built by iterating every tracked team in rating order and
+    # collecting every eliminated one along the way -- not just the ones
+    # actually better-rated than wherever the predicted winner ended up
+    # (which, since it also weighs each team's own next-tie prevail
+    # chance, isn't always simply "the #1 team"). Confirmed as a real bug
+    # 2026-10-13: a League Cup predicted-winner line was flagging 7 clubs
+    # all rated BELOW the predicted winner as "higher-rated, already
+    # eliminated" -- not an upset at all, just noise, since none of them
+    # were ever better-rated than the team predicted to win.
+    higher_rated_skipped = [
+        (row, status) for row, status in skipped
+        if row["opta_rating"] > predicted_row["opta_rating"]
+    ]
+    return predicted_row, predicted_status, higher_rated_skipped
 
 
 def _attach_prevail_pct(candidates: list[tuple], ratings_df: pd.DataFrame, home_advantage: float) -> None:

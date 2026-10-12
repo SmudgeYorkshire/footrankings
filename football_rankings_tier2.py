@@ -291,27 +291,26 @@ def _conf_progress_html(conf_played_fix: list, conf_remaining_fix: list) -> str:
 
 
 def _auto_zones(european_spots: dict, status_zones: dict = None) -> dict | None:
-    """Derive zone groups from european_spots + league_status zones.
+    """Derive zone groups from league_status.py's own zones. See
+    football_rankings.py's identical function for the full rationale --
+    european_spots is only accepted for call-site compatibility; every
+    current call site passes None (config.py's own stale european_spots
+    field was removed 2026-10-13).
 
     Zones produced:
       - Champions League  : UCL positions only
       - European places   : all UCL + UEL + UECL positions combined
-      - Relegation        : relegation positions (from status_zones or european_spots)
+      - Relegation        : relegation positions
     """
     ucl, all_europe, relega = [], [], []
-    for pos, label in (european_spots or {}).items():
+    for pos, label in {**(status_zones or {}), **(european_spots or {})}.items():
         l = str(label).lower()
         if "relega" in l:
             relega.append(pos)
-        else:
+        elif "ucl" in l or "uel" in l or "uecl" in l:
             if "ucl" in l:
                 ucl.append(pos)
-            if "ucl" in l or "uel" in l or "uecl" in l:
-                all_europe.append(pos)
-    # Relegation from league_status if not in european_spots
-    for pos, label in (status_zones or {}).items():
-        if "relega" in str(label).lower() and pos not in relega:
-            relega.append(pos)
+            all_europe.append(pos)
     zones = {}
     if ucl:
         zones["Champions League"] = sorted(ucl)

@@ -11,36 +11,39 @@
 
 LEAGUES = {
     # ── Top 5 (pinned) ───────────────────────────────────────────────────────
-    "English Premier League":       {"id": 39, "provider": "api_football", "tsdb_id": 4328, "af_season": 2026, "cup_id": 45, "extra_cup_ids": [48], "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "season_type": "winter",
+    "English Premier League":       {"id": 39, "provider": "api_football", "tsdb_id": 4328, "af_season": 2026, "cup_id": 45, "extra_cup_ids": [48],
+                                     # League Cup (id 48) winner's own reserved slot -- not in
+                                     # access_list_permutations_2027_28's data at all (that file's
+                                     # single "CW" route is the FA Cup; the League Cup route doesn't
+                                     # carry over to 2027/28 planning), so cup_cascade.py needs it
+                                     # named explicitly per extra cup id. See cup_cascade.py's own
+                                     # docstring for how this feeds the live cascade resolver.
+                                     "extra_cup_status": {48: "UECL - PO"},
+                                     "country": "England",     "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "season_type": "winter",
                                      "season_end": "30 May 2027",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_away_gf", "playoffs"],
                                      "home_advantage": 1.18,
-                                     "european_spots": {1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS", 5: "UCL - LS", 6: "UEL - LS", 7: "UEL - LS", 8: "UECL - PO"},
                                      },
     "Italian Serie A":              {"id": 135, "provider": "api_football", "tsdb_id": 4332, "af_season": 2026, "cup_id": 137, "country": "Italy",       "flag": "🇮🇹", "season_type": "winter",
                                      "season_end": "30 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "playoffs_title_or_rel3"],
                                      "home_advantage": 1.16,
-                                     "european_spots": {1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS", 5: "UEL - LS", 6: "UEL - LS", 7: "UECL - PO"},
                                      },
     "Spanish La Liga":              {"id": 140, "provider": "api_football", "tsdb_id": 4335, "af_season": 2026, "cup_id": 143, "country": "Spain",       "flag": "🇪🇸", "season_type": "winter",
                                      "season_end": "30 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "fair_play"],
                                      "home_advantage": 1.16,
-                                     "european_spots": {1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS", 5: "UCL - LS", 6: "UEL - LS", 7: "UEL - LS", 8: "UECL - PO"},
                                      },
     "German Bundesliga":            {"id": 78, "provider": "api_football", "tsdb_id": 4331, "af_season": 2026, "cup_id": 81, "country": "Germany",     "flag": "🇩🇪", "season_type": "winter",
                                      "season_end": "22 May 2027",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_away_gf", "away_gf", "playoffs"],
                                      "home_advantage": 1.15,
-                                     "european_spots": {1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - LS", 5: "UEL - LS", 6: "UEL - LS", 7: "UECL - PO"},
                                      "zone_notes": {"relegation - po": "16th plays two-legged play-off against 3rd-placed team from 2. Bundesliga. Higher-ranked team plays second leg at home."},
                                      },
     "French Ligue 1":               {"id": 61, "provider": "api_football", "tsdb_id": 4334, "af_season": 2026, "cup_id": 66, "country": "France",      "flag": "🇫🇷", "season_type": "winter",
                                      "season_end": "29 May 2027",
                                      "tiebreakers": ["gd", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gf", "away_gf", "fair_play"],
                                      "home_advantage": 1.17,
-                                     "european_spots": {1: "UCL - LS", 2: "UCL - LS", 3: "UCL - LS", 4: "UCL - QR3 (LP)", 5: "UEL - LS", 6: "UECL - PO"},
                                      "zone_notes": {"relegation - po": "16th plays a two-legged play-off against the winner of the Ligue 2 play-offs (3rd–5th placed teams). Away goals do not apply; extra time and penalties if level after two legs."},
 
 
@@ -50,7 +53,6 @@ LEAGUES = {
                                      "season_end": "9 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "draw"],
                                      "home_advantage": 1.23,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
                                      "final_four": True,
                                      "zones": {
                                          "Final Four": [1, 2, 3, 4],
@@ -72,7 +74,6 @@ LEAGUES = {
     "Andorran 1a Divisió":          {"id": 312, "provider": "api_football", "tsdb_id": 4618, "af_season": 2026, "cup_id": 655, "country": "Andorra",     "flag": "🇦🇩", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"],
                                      "home_advantage": 1.28,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 9: "Relegation - PO", 10: "Relegation"},
                                      "zone_notes": {"relegation - po": "9th plays a promotion/relegation play-off against the Segona Divisió runner-up."},
                                      "cup_details": (
                                          "2026 Copa Constitució winner qualifies for the UECL – QR1. "
@@ -82,14 +83,12 @@ LEAGUES = {
     "Armenian Premier League":      {"id": 342, "provider": "api_football", "tsdb_id": 4619, "af_season": 2026, "cup_id": 709, "country": "Armenia",     "flag": "🇦🇲", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "wins", "gd", "less_red_cards", "less_yellow_cards", "fair_play", "draw"],
                                      "home_advantage": 1.42,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
 
 },
     "Austrian Bundesliga":          {"id": 218, "provider": "api_football", "tsdb_id": 4621, "af_season": 2026, "cup_id": 220, "country": "Austria",     "flag": "🇦🇹", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"],
                                      "home_advantage": 1.10,
                                      "champ_tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "wins", "away_wins", "away_gf"],
-                                     "european_spots": {1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UEL - QR3", 4: "UECL - QR2"},
                                      "split_round": 22, "n_champ": 6, "pts_factor": 1.0,
                                      "uecl_playoff": True,
                                      "zone_notes": {"relegation": "Last-placed team in the Relegation Round plays a two-legged play-off against 2nd-placed team from 2. Liga. Home team in first leg is the lower-ranked club."},
@@ -100,20 +99,17 @@ LEAGUES = {
                                      "season_end": "24 May 2027",
                                      "tiebreakers": ["wins", "gd", "gf", "h2h_pts", "h2h_gd", "disciplinary", "draw"],
                                      "home_advantage": 1.00,
-                                     "european_spots": {1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR1", 11: "Relegation - PO", 12: "Relegation"},
 
                                      },
     "Belarus Vyscha Liga":          {"id": 116, "provider": "api_football", "tsdb_id": 4622, "af_season": 2026, "cup_id": 486, "country": "Belarus",     "flag": "🇧🇾", "season_type": "summer",
                                      "season_end": "29 November 2026",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "wins", "gf"],
                                      "home_advantage": 1.14,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1", 14: "Relegation - PO", 15: "Relegation", 16: "Relegation"},
                                      "cup_details": "Cup winner will enter 2027/28 European competitions."},
     "Belgian Pro League":           {"id": 144, "provider": "api_football", "tsdb_id": 4338, "af_season": 2026, "cup_id": 147, "country": "Belgium",     "flag": "🇧🇪", "season_type": "winter",
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["wins", "gd", "gf", "away_wins", "away_gf", "playoffs"],
                                      "home_advantage": 1.13,
-                                     "european_spots": {1: "UCL - LS", 2: "UCL - QR3", 3: "UEL - QR2", 4: "UECL - QR2", 17: "Relegation", 18: "Relegation"},
                                      "cup_details": "2026/27 Belgian Cup winner qualifies for the UEL – PO.",
 
 
@@ -122,7 +118,6 @@ LEAGUES = {
                                      "season_end": "30 May 2027",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_away_gf", "h2h_gf", "playoffs"],
                                      "home_advantage": 1.47,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1", 9: "Relegation", 10: "Relegation"},
 
 
                                      },
@@ -130,7 +125,6 @@ LEAGUES = {
                                      "season_end": "29 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
                                      "home_advantage": 1.17,
-                                     "european_spots": {1: "UCL - QR1", 2: "UEL - QR1", 13: "Relegation - PO", 14: "Relegation"},
                                      "split_round": 26, "n_champ": 4, "n_mid": 4, "pts_factor": 1.0,
                                      "mid_label": "European Group",
                                      "zone_notes": {"europa": "European Group (5th–8th): double round-robin (6 matches). The top-placed team plays a one-off Play-off against 3rd or 4th from the Championship Group (whichever hasn't already secured a European spot through the Bulgarian Cup) for a UECL spot.", "relegation": "Relegation Group (9th–14th): single round-robin (5 matches). 13th plays a promotion/relegation play-off against a Second League side; 14th is directly relegated."},
@@ -144,7 +138,6 @@ LEAGUES = {
                                      "season_end": "22 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.25,
-                                     "european_spots": {1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2", 10: "Relegation"},
 
 
                                      },
@@ -152,7 +145,6 @@ LEAGUES = {
                                      "season_end": "29 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "fair_play", "draw"],
                                      "home_advantage": 1.15,
-                                     "european_spots": {1: "UCL - LS", 2: "UCL - QR3 (LP)", 3: "UEL - QR2", 4: "UEL - PO", 5: "UECL - QR2"},
                                      "split_round": 30, "n_champ": 6, "n_mid": 6, "pts_factor": 1.0,
                                      "mid_label": "Middle Group",
                                      "zone_notes": {"relegation": "16th is directly relegated. 14th and 15th play two-legged play-offs against 2nd and 3rd of Czech National Football League."},
@@ -162,7 +154,6 @@ LEAGUES = {
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.25,
-                                     "european_spots": {1: "UCL - QR2", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UEL - QR2", 12: "Relegation", 13: "Relegation", 14: "Relegation"},
                                      "split_round": 26, "n_champ": 6, "pts_factor": 1.0,
 
 },
@@ -170,7 +161,6 @@ LEAGUES = {
                                      "season_end": "30 May 2027",
                                      "tiebreakers": ["gd", "gf", "away_gf", "playoffs", "draw"],
                                      "home_advantage": 1.12,
-                                     "european_spots": {1: "UCL - QR2", 2: "UEL - QR2", 3: "UECL - QR3", 4: "UECL - PO", 7: "UECL - PO", 11: "Relegation", 12: "Relegation"},
                                      "split_round": 22, "n_champ": 6, "pts_factor": 1.0,
                                      "zone_notes": {"relegation": "11th and 12th are directly relegated."},
                                      "champ_mid_playoff": {
@@ -187,9 +177,6 @@ LEAGUES = {
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["less_losses", "gd", "gf", "h2h_pts", "h2h_gd", "h2h_away_gf", "playoffs"],
                                      "home_advantage": 1.24,
-                                     "european_spots": {1: "UCL - LS", 2: "UCL - LS", 3: "UCL - QR3 (LP)", 4: "UEL - QR2",
-                                                        5: "UECL - PO", 6: "UEL - LS", 7: "UECL - PO", 8: "UECL - PO", 9: "UECL - PO",
-                                                        16: "Relegation - PO", 17: "Relegation", 18: "Relegation"},
 
 
                                      "uecl_4team_playoff": {
@@ -205,7 +192,6 @@ LEAGUES = {
                                      "season_end": "8 November 2026",
                                      "tiebreakers": ["less_losses", "h2h_pts", "h2h_gd", "wins", "gd", "gf", "away_gf", "fair_play", "draw"],
                                      "home_advantage": 1.20,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1"},
                                      "cup_details": "Cup winner will enter 2027/28 European competitions.",
 
 },
@@ -213,7 +199,6 @@ LEAGUES = {
                                      "season_end": "25 October 2026",
                                      "tiebreakers": ["gd", "gf"],
                                      "home_advantage": 1.10,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1"},
                                      "cup_details": "Cup winner will enter 2027/28 European competitions.",
 },
     "Finnish Veikkausliiga":        {"id": 244, "provider": "api_football", "tsdb_id": 4636, "af_season": 2026, "cup_id": 246, "country": "Finland",     "flag": "🇫🇮", "season_type": "summer",
@@ -221,7 +206,6 @@ LEAGUES = {
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
                                      "home_advantage": 1.02,
                                      "champ_tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_away_gf", "playoffs"],
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1"},
                                      "split_round": 22, "n_champ": 6, "pts_factor": 1.0,
                                      "zone_notes": {"relegation": "11th is directly relegated. 12th plays two-legged play-off against a Ykkönen team. Higher-ranked club plays second leg at home."},
                                      "cup_details": "Cup winner will enter 2027/28 European competitions.",
@@ -231,8 +215,6 @@ LEAGUES = {
                                      "season_end": "6 December 2026",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"],
                                      "home_advantage": 1.20,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
-                                                        8: "Relegation - PO", 9: "Relegation - PO", 10: "Relegation"},
                                      "zone_notes": {"relegation - po": "9th plays a two-legged play-off against the Erovnuli Liga 2 runner-up; 8th plays a two-legged play-off against the Erovnuli Liga 2 3rd-placed team."},
 
 },
@@ -249,7 +231,6 @@ LEAGUES = {
                                      "season_end": "25 April 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
                                      "home_advantage": 1.00,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
                                      "split_round": 22, "n_champ": 6, "pts_factor": 1.0, "champ_only": True,
 
 
@@ -259,7 +240,6 @@ LEAGUES = {
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "wins", "away_gf", "away_wins", "playoffs"],
                                      "home_advantage": 1.25,
                                      "champ_tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "playoffs_champion"],
-                                     "european_spots": {1: "UCL - LS", 2: "UCL - QR2 (LP)", 3: "UEL - PO", 4: "UEL - QR2", 5: "UECL - QR2"},
                                      "split_round": 26, "n_champ": 4, "n_mid": 4, "pts_factor": 0.5,
                                      "mid_label": "European Group",
                                      "zone_notes": {"europa": "5th–8th play an additional round-robin (European Group, pts halved). Winner qualifies for UECL – QR2.", "relegation": "Bottom 2 of the 6-team Relegation Play-out Group (13th–14th) are directly relegated; no play-off against a Super League 2 side under the current format."},
@@ -275,8 +255,6 @@ LEAGUES = {
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["wins", "gd", "gf", "h2h_pts", "h2h_gd", "fair_play", "draw"],
                                      "home_advantage": 1.01,
-                                     "european_spots": {1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
-                                                        11: "Relegation - PO", 12: "Relegation"},
                                      "zone_notes": {"relegation - po": "New for 2026-27: only 12th is directly relegated. 11th plays a single-match play-off, at a neutral venue, against the NB II runner-up."},
                                      # Keyed by the live provider's own name (strTeam), not the ratings "team"
                                      # column -- team_status_overrides matches against strTeam directly.
@@ -285,19 +263,16 @@ LEAGUES = {
     "Icelandic Besta deild karla":  {"id": 164, "provider": "api_football", "tsdb_id": 4642, "af_season": 2026, "cup_id": 167, "country": "Iceland",     "flag": "🇮🇸", "season_type": "summer",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "playoffs", "draw"],
                                      "home_advantage": 1.40,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1"},
 },
     "Irish Premier Division":       {"id": 357, "provider": "api_football", "tsdb_id": 4643, "af_season": 2026, "cup_id": 359, "country": "Ireland",     "flag": "🇮🇪", "season_type": "summer",
                                      "season_end": "1 November 2026",
                                      "tiebreakers": ["gd", "gf"],
                                      "home_advantage": 1.22,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1"},
 
 },
     "Israeli Premier League":       {"id": 383, "provider": "api_football", "tsdb_id": 4644, "af_season": 2026, "cup_id": 384, "country": "Israel",      "flag": "🇮🇱", "season_type": "winter",
                                      "tiebreakers": ["gd", "wins", "gf", "h2h_pts", "h2h_gd", "h2h_gf", "playoffs"],
                                      "home_advantage": 1.05,
-                                     "european_spots": {1: "UEL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2"},
                                      # Ironi Tiberias docked 6pts this season (on top of 8pts already
                                      # deducted last season) over the dual-contracts scandal. Confirmed
                                      # via Wikipedia's 2026/27 Israeli Premier League table footnote.
@@ -309,14 +284,12 @@ LEAGUES = {
                                      "season_end": "1 November 2026",
                                      "tiebreakers": ["gd", "wins", "gf", "away_gf", "h2h_pts", "h2h_wins", "h2h_gd", "h2h_gf", "h2h_away_gf", "draw"],
                                      "home_advantage": 1.27,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1"},
                                      "cup_details": "Cup winner will enter 2027/28 European competitions.",
 
 },
     "Kosovan Superleague":          {"id": 664, "provider": "api_football", "tsdb_id": 4968, "af_season": 2026, "cup_id": 665, "country": "Kosovo",      "flag": "🇽🇰", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.07,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
                                      # 10 teams play a quadruple round-robin (36 rounds total,
                                      # confirmed 2026-10-12). API-Football only had rounds 1-9
                                      # (a single leg) published -- without this, the "season"
@@ -330,7 +303,6 @@ LEAGUES = {
                                      "season_end": "8 November 2026",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "fair_play", "playoffs"],
                                      "home_advantage": 1.07,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
 },
     # Liechtenstein has no domestic league at all -- its clubs play in the
     # Swiss league pyramid -- but it DOES run its own domestic cup (API-
@@ -346,7 +318,6 @@ LEAGUES = {
                                      "season_end": "8 November 2026",
                                      "tiebreakers": ["playoffs_champion", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_wins", "gd", "gf", "wins", "fair_play", "draw"],
                                      "home_advantage": 1.17,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1"},
                                      "cup_details": "Cup winner will enter 2027/28 European competitions.",
 
 },
@@ -354,20 +325,15 @@ LEAGUES = {
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["gd", "wins", "h2h_pts", "h2h_gd", "h2h_gf", "playoffs"],
                                      "home_advantage": 1.20,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1"},
 },
     "Macedonian First League":      {"id": 371, "provider": "api_football", "tsdb_id": 4652, "af_season": 2026, "cup_id": 756, "country": "N. Macedonia","flag": "🇲🇰", "season_type": "winter",
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_away_gf", "h2h_gf", "draw", "playoffs"],
                                      "home_advantage": 1.22,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
-                                                        8: "Relegation - PO", 9: "Relegation - PO",
-                                                        10: "Relegation"},
                                      "zone_notes": {"relegation - po": "League contracted from 12 to 10 teams for 2026-27 — exact relegation mechanics for this transitional season are still being confirmed."}},
     "Maltese Premier League":       {"id": 393, "provider": "api_football", "tsdb_id": 4653, "af_season": 2026, "cup_id": 821, "country": "Malta",       "flag": "🇲🇹", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.18,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1"},
                                      "split_round": 27, "n_champ": 6, "pts_factor": 1.0,
                                      "zone_notes": {
                                          "championship": "Opening Round (Rd 1–16) and Closing Round (Rd 17–32) each split into a top-6 Championship Group and bottom-6 Relegation Group. Points reset to zero between rounds.",
@@ -380,7 +346,6 @@ LEAGUES = {
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "wins", "gd", "gf", "less_red_cards", "less_yellow_cards"],
                                      "home_advantage": 1.03,
                                      "champ_tiebreakers": ["playoffs", "h2h_pts", "h2h_gd", "h2h_gf", "wins", "gd", "gf", "less_red_cards", "less_yellow_cards"],
-                                     "european_spots": {1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR1"},
                                      "split_round": 21, "n_champ": 6, "pts_factor": 0.5, "champ_only": True,
                                      "h2h_pts_only": True, "h2h_phase1_cutoff": "2026-01-01",
                                      "champ_base_pts": {
@@ -394,17 +359,12 @@ LEAGUES = {
     "Montenegrin First League":     {"id": 355, "provider": "api_football", "tsdb_id": 4656, "af_season": 2026, "cup_id": 723, "country": "Montenegro",  "flag": "🇲🇪", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "draw"],
                                      "home_advantage": 1.47,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
-                                                        8: "Relegation - PO", 9: "Relegation - PO", 10: "Relegation"},
                                      "zone_notes": {"relegation - po": "8th and 9th play two-legged play-offs against 3rd and 2nd of the Second League. The First League side hosts the first leg; the Second League side hosts the decisive second leg."},
 
 },
     "Northern Irish Premiership":   {"id": 408, "provider": "api_football", "tsdb_id": 4659, "af_season": 2026, "cup_id": 757, "country": "N. Ireland",  "flag": "🇬🇧", "season_type": "winter",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "draw"],
                                      "home_advantage": 1.20,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1",
-                                                        4: "UECL - PO", 5: "UECL - PO", 6: "UECL - PO", 7: "UECL - PO",
-                                                        11: "Relegation - PO", 12: "Relegation"},
                                      "uecl_4team_playoff": {
                                          "sf1_home": 4, "sf1_away": 1,
                                          "sf1_away_from_relg": True,
@@ -430,8 +390,6 @@ LEAGUES = {
                                      "season_end": "6 December 2026",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_gf"],
                                      "home_advantage": 1.19,
-                                     "european_spots": {1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UEL - QR3", 4: "UECL - QR2", 5: "UECL - QR2",
-                                                        14: "Relegation - PO", 15: "Relegation", 16: "Relegation"},
                                      "zone_notes": {"relegation - po": "14th plays two-legged play-off against 3rd of OBOS-ligaen. Away goals do not apply; the lower-tier (First Division) side hosts the decisive second leg."},
 
 },
@@ -439,16 +397,12 @@ LEAGUES = {
                                      "season_end": "22 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "gf", "wins", "away_wins", "disciplinary", "fair_play", "draw"],
                                      "home_advantage": 1.33,
-                                     "european_spots": {1: "UCL - QR2", 2: "UCL - QR2 (LP)", 3: "UECL - QR2", 4: "UECL - QR2", 5: "UEL - QR3",
-                                                        16: "Relegation", 17: "Relegation", 18: "Relegation"},
 
 },
     "Portuguese Primeira Liga":     {"id": 94, "provider": "api_football", "tsdb_id": 4344, "af_season": 2026, "cup_id": 96, "country": "Portugal",    "flag": "🇵🇹", "season_type": "winter",
                                      "season_end": "16 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "gd", "wins", "gf", "playoffs"],
                                      "home_advantage": 1.30,
-                                     "european_spots": {1: "UCL - LS", 2: "UCL - LS", 3: "UEL - LS", 4: "UEL - QR2", 5: "UECL - QR2",
-                                                        16: "Relegation - PO", 17: "Relegation", 18: "Relegation"},
                                      "zone_notes": {"relegation - po": "16th plays a two-legged play-off against 3rd of Liga Portugal 2. The Liga Portugal 2 side hosts the decisive second leg."},
 
 },
@@ -457,10 +411,6 @@ LEAGUES = {
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.24,
                                      "champ_tiebreakers": ["pts_no_round", "regular_pts", "h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "playoffs"],
-                                     "european_spots": {1: "UCL - QR1", 2: "UEL - QR1", 3: "UECL - QR2",
-                                                        4: "UECL - PO", 7: "UECL - PO", 8: "UECL - PO",
-                                                        13: "Relegation - PO", 14: "Relegation - PO",
-                                                        15: "Relegation", 16: "Relegation"},
 
                                      "uecl_3team_playoff": {
                                          "bye_home": 4, "bye_home_rank": 4,
@@ -478,8 +428,6 @@ LEAGUES = {
                                      "season_end": "29 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_wins", "h2h_gd", "h2h_gf", "wins", "gd", "gf", "away_wins", "away_gf", "disciplinary", "playoffs"],
                                      "home_advantage": 1.38,
-                                     "european_spots": {13: "Relegation - PO", 14: "Relegation - PO",
-                                                        15: "Relegation", 16: "Relegation"},
                                      "zone_notes": {"relegation - po": "13th plays the First League's 4th-placed team, 14th plays its 3rd-placed team, two-legged. Leg-hosting order is set by a pre-playoff draw, not a fixed tier convention."},
                                      # No cup fixture data available to run the usual predicted-cup-winner
                                      # engine -- per explicit instruction, predicting the highest-Opta-rated
@@ -490,10 +438,6 @@ LEAGUES = {
     "San-Marino Campionato":        {"id": 404, "provider": "api_football", "tsdb_id": 4667, "af_season": 2026, "cup_id": 729, "country": "San Marino",  "flag": "🇸🇲", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"],
                                      "home_advantage": 0.97,
-                                     "european_spots": {1: "UCL - QR1", 4: "UECL - QR1",
-                                                        2: "UECL - PO", 3: "UECL - PO", 5: "UECL - PO",
-                                                        6: "UECL - PO", 7: "UECL - PO", 8: "UECL - PO",
-                                                        9: "UECL - PO", 10: "UECL - PO", 11: "UECL - PO", 12: "UECL - PO"},
                                      # Virtus (predicted 2026/27 Coppa Titano winner) are projected
                                      # to finish 1st, which already gives UCL - QR1 -- better than
                                      # the cup winner's own UECL - QR1, so no override is needed (one
@@ -510,9 +454,6 @@ LEAGUES = {
                                      "season_end": "16 May 2027",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "playoffs"],
                                      "home_advantage": 1.35,
-                                     "european_spots": {1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UEL - QR3",
-                                                        4: "UECL - QR2", 5: "UECL - QR2",
-                                                        11: "Relegation - PO", 12: "Relegation"},
                                      "split_round": 33, "n_champ": 6, "pts_factor": 1.0,
                                      "zone_notes": {"relegation": "11th plays two-legged play-off against 2nd of the Championship. Higher-placed team plays second leg at home. 12th is directly relegated."},
 
@@ -521,9 +462,6 @@ LEAGUES = {
                                      "season_end": "16 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
                                      "home_advantage": 1.28,
-                                     "european_spots": {1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
-                                                        11: "Relegation", 12: "Relegation",
-                                                        13: "Relegation", 14: "Relegation"},
                                      "zone_notes": {"relegation": "Transitional 14-team season (down from 16, settling at 12 in 2027-28): bottom 4 are directly relegated, no play-off."},
                                      "split_round": 26, "n_champ": 6, "pts_factor": 0.5},
     "Slovak First Football League": {"id": 332, "provider": "api_football", "tsdb_id": 4672, "af_season": 2026, "cup_id": 680, "country": "Slovakia",    "flag": "🇸🇰", "season_type": "winter",
@@ -532,31 +470,23 @@ LEAGUES = {
                                      "home_advantage": 1.07,
                                      "champ_tiebreakers": ["regular_pts", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
                                      "relg_tiebreakers":  ["regular_pts", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf", "fair_play", "draw"],
-                                     "european_spots": {1: "UCL - QR2", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UECL - QR2",
-                                                        11: "Relegation - PO", 12: "Relegation"},
 
                                      "split_round": 22, "n_champ": 6, "pts_factor": 1.0,
                                      "zone_notes": {"relegation": "11th plays two-legged play-off against 2nd of Slovak 2. liga. 12th is directly relegated."}},
     "Slovenian 1. SNL":             {"id": 373, "provider": "api_football", "tsdb_id": 4692, "af_season": 2026, "cup_id": 375, "country": "Slovenia",    "flag": "🇸🇮", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf"],
                                      "home_advantage": 1.20,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2",
-                                                        9: "Relegation - PO", 10: "Relegation"},
 },
     "Swedish Allsvenskan":          {"id": 113, "provider": "api_football", "tsdb_id": 4347, "af_season": 2026, "cup_id": 115, "country": "Sweden",      "flag": "🇸🇪", "season_type": "summer",
                                      "season_end": "29 November 2026",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_away_gf", "playoffs"],
                                      "home_advantage": 1.02,
-                                     "european_spots": {1: "UCL - QR2", 2: "UEL - QR1", 3: "UECL - QR2", 4: "UECL - QR2",
-                                                        14: "Relegation - PO", 15: "Relegation", 16: "Relegation"},
                                      "zone_notes": {"relegation - po": "14th plays two-legged play-off against 3rd of Superettan. Higher-placed club plays second leg at home."},
 },
     "Swiss Super League":           {"id": 207, "provider": "api_football", "tsdb_id": 4675, "af_season": 2026, "cup_id": 209, "country": "Switzerland", "flag": "🇨🇭", "season_type": "winter",
                                      "season_end": "30 May 2027",
                                      "tiebreakers": ["gd", "gf", "h2h_gd", "h2h_gf", "away_gf", "draw"],
                                      "home_advantage": 1.19,
-                                     "european_spots": {1: "UCL - QR2", 2: "UEL - QR2", 3: "UECL - QR2", 4: "UECL - QR2",
-                                                        11: "Relegation - PO", 12: "Relegation"},
                                      "split_round": 33, "n_champ": 6, "pts_factor": 1.0,
                                      "zone_notes": {"relegation": "11th plays two-legged play-off against 2nd of Challenge League. 12th is directly relegated."},
 
@@ -565,25 +495,18 @@ LEAGUES = {
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.10,
-                                     "european_spots": {1: "UCL - LS", 2: "UCL - QR3 (LP)", 3: "UEL - PO", 4: "UEL - QR2", 5: "UECL - QR2",
-                                                        16: "Relegation", 17: "Relegation", 18: "Relegation"},
 
 },
     "Ukrainian Premier League":     {"id": 333, "provider": "api_football", "tsdb_id": 4354, "af_season": 2026, "cup_id": 335, "country": "Ukraine",     "flag": "🇺🇦", "season_type": "winter",
                                      "season_end": "4 June 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "draw"],
                                      "home_advantage": 1.20,
-                                     "european_spots": {1: "UCL - PO", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UEL - QR1",
-                                                        13: "Relegation - PO", 14: "Relegation - PO",
-                                                        15: "Relegation", 16: "Relegation"},
                                      "zone_notes": {"relegation - po": "13th and 14th play two-legged play-offs against the 3rd- and 4th-placed teams of the Ukrainian First League (the top 2 First League teams are promoted automatically instead)."},
 
 },
     "Welsh Cymru Premier":          {"id": 110, "provider": "api_football", "tsdb_id": 4472, "af_season": 2026, "cup_id": 112, "country": "Wales",       "flag": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "season_type": "winter",
                                      "tiebreakers": ["gd", "gf", "h2h_gd", "h2h_gf", "h2h_away_gf", "wins", "away_wins", "playoffs"],
                                      "home_advantage": 1.06,
-                                     "european_spots": {1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - PO",
-                                                        4: "UECL - PO", 5: "UECL - PO", 7: "UECL - PO", 8: "UECL - PO"},
                                      "uecl_5team_playoff": {
                                          "final_host": 3, "final_host_rank": 3,
                                          "qf1_home": 4, "qf1_home_rank": 4,

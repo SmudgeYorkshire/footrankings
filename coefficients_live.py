@@ -446,3 +446,59 @@ def _build_ranking_df(live_override: dict[str, float] | None = None) -> pd.DataF
     df = pd.DataFrame(rows).sort_values("_sort", ascending=False).drop(columns=["_sort"]).reset_index(drop=True)
     df.insert(0, "Rank", df.index + 1)
     return df
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def _predicted_eps_ranking() -> pd.DataFrame:
+    """Countries ranked by PROJECTED final-season coefficient -- the same
+    Monte Carlo simulation (country_ranking_simulator.
+    project_country_predicted_ranking, projecting every association's
+    rest-of-season across all three UEFA club competitions) as
+    coefficients.py's own "Predicted Race for an extra Champions League
+    spot" table and european_2027_28.py's Permutation Info tab
+    (_predicted_extra_cl_spot_race_top10). Neither of those is importable
+    from here (both are Streamlit page scripts whose body runs on import),
+    so this is its own copy rather than a shared call -- same 1h TTL as
+    european_2027_28.py's copy already uses, since the EPS race moves over
+    weeks of accumulated results, not minutes, and the simulation itself is
+    genuinely expensive (every remaining fixture, every association,
+    n_sim=2_000)."""
+    from club_coefficients import get_coeff
+    from qualifying_projection import _project_league_phase_field, _resolve_field_ratings, _load_combined_ratings
+    from country_ranking_simulator import project_country_predicted_ranking
+
+    pred_ratings_df = _load_combined_ratings()
+    pred_table, _warnings = project_country_predicted_ranking(
+        project_league_phase_field=_project_league_phase_field,
+        resolve_field_ratings=_resolve_field_ratings,
+        ratings_df=pred_ratings_df,
+        get_coeff=get_coeff,
+        api_key=_API_KEY,
+        n_sim=2_000,
+    )
+    rows = [
+        {"Country": country, "mean_season_coeff": r["mean_season_coeff"]}
+        for country, r in pred_table.iterrows()
+        if r["clubs"] > 0 and r["season_mean_rank"] is not None
+    ]
+    return pd.DataFrame(rows).sort_values("mean_season_coeff", ascending=False).reset_index(drop=True)
+
+
+def eps_bonus_recipients(n: int = 2) -> list[str]:
+    """Top `n` countries by PROJECTED final-season coefficient -- the
+    countries genuinely predicted to receive next season's European
+    Performance Spot bonus Champions League place. Changed 2026-10-13 from
+    an earlier version that used standings-so-far (today's actual points
+    banked) after being told that's the wrong metric: a current-standings
+    race can flip from week to week purely from fixture scheduling (who's
+    played more games so far), not real strength, while the predicted-
+    final-standings race is the one that actually decides the award, and
+    the one that's actually been showing England+Germany, not whichever
+    pair happens to be ahead on games-played mid-week.
+
+    A caller using this result to shade in an extra zone position should
+    still only do so for whichever countries this ACTUALLY returns right
+    now, not a fixed assumption -- see football_rankings.py's
+    _apply_eps_bonus for where that's applied."""
+    df = _predicted_eps_ranking()
+    return df["Country"].head(n).tolist()
