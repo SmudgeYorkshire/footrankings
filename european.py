@@ -19,10 +19,11 @@ from zoneinfo import ZoneInfo
 from config import EUROPEAN_COMPETITIONS, LEAGUES
 from api_football_fetcher import ApiFootballClient
 from _split_season import build_h2h, rank_tied_group
-from simulator import two_leg_advance_odds
+from simulator import two_leg_advance_odds, position_bounds
 from qualifying_bracket import PLAYOFF_BRACKET, CONFIRMED_LEAGUE_PHASE
 from club_coefficients import CLUB_COEFFICIENTS, get_coeff
 from league_phase_simulator import simulate_competition_winner, build_predicted_bracket, single_match_outcome_probs
+from prob_table import render_prob_table
 from league_phase_fixtures import (
     is_opponent_list_complete, derive_fixtures, partial_opponents_by_team, dated_schedule,
 )
@@ -660,6 +661,40 @@ if tab_lp_pred is not None:
             st.dataframe(
                 _ls_df, column_config=_ls_col_cfg, width="content",
                 hide_index=True, height=len(_ls_df) * 35 + 38,
+            )
+
+            # ── Full League Phase position-probability table ─────────────────
+            # Bounds only make sense once the real draw exists -- before that,
+            # every team is at 0 points and nothing is meaningfully "clinched"
+            # or "impossible" yet (asserting either would claim certainty about
+            # a schedule that isn't real). Replays _real_results alone (NOT
+            # _ls_result's own pts_matrix, which mixes real locked-in points
+            # with each simulation's own randomly-simulated remaining
+            # fixtures) to get real current points + remaining-fixture-count
+            # per team -- the same "current points" basis simulator.
+            # position_bounds expects everywhere else it's used.
+            if _real_schedule_ready:
+                _lp_points = {f["team"]: 0 for f in _field}
+                for (_h, _a), (_hg, _ag) in _real_results.items():
+                    if _hg > _ag:
+                        _lp_points[_h] = _lp_points.get(_h, 0) + 3
+                    elif _hg == _ag:
+                        _lp_points[_h] = _lp_points.get(_h, 0) + 1
+                        _lp_points[_a] = _lp_points.get(_a, 0) + 1
+                    else:
+                        _lp_points[_a] = _lp_points.get(_a, 0) + 3
+                _lp_standings = [{"strTeam": t, "intPoints": p} for t, p in _lp_points.items()]
+                _lp_remaining = [
+                    f for f in _real_schedule
+                    if (f["strHomeTeam"], f["strAwayTeam"]) not in _real_results
+                ]
+                _lp_bounds = position_bounds(_lp_standings, _lp_remaining)
+            else:
+                _lp_bounds = None
+            _lp_pos_cols = [str(i) for i in range(1, len(_field) + 1)]
+            render_prob_table(
+                _ls_result[_lp_pos_cols], badge_lookup=badge_lookup, bounds=_lp_bounds,
+                title=f"{comp_name} League Phase — full position probabilities",
             )
 
             # ── Predicted Knockout Bracket ───────────────────────────────────

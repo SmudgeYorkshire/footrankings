@@ -646,6 +646,14 @@ def simulate_competition_winner(
     reached_sf = {t: 0 for t in teams}
     reached_final = {t: 0 for t in teams}
     won = {t: 0 for t in teams}
+    # Full League Phase finish-position tally (1..n_teams), same convention
+    # simulator.simulate_season's own output uses -- always computed (cheap,
+    # same per-sim rank already derived below for the threshold tallies) and
+    # merged into the returned DataFrame as extra "1".."n_teams" columns, so
+    # a full position-probability table can be rendered the same way a
+    # domestic league's is, instead of just the top8/16/24/reach-stage
+    # summary stats below.
+    pos_count = np.zeros((n_teams, n_teams), dtype=np.int64)
 
     def _draw_winner(a: str, b: str, odds: dict) -> str:
         return a if random.random() < odds[(a, b)] else b
@@ -654,6 +662,8 @@ def simulate_competition_winner(
         order = sorted(range(n_teams), key=lambda i: (-pts_matrix[i, sim], -gd_matrix[i, sim], -gf_matrix[i, sim]))
         ranked_teams = [teams[i] for i in order]  # rank 1 first
         rank_of = {t: r + 1 for r, t in enumerate(ranked_teams)}
+        for rank_idx, team_i in enumerate(order):
+            pos_count[team_i, rank_idx] += 1
 
         for t in ranked_teams[:8]:
             reached_top8[t] += 1
@@ -725,7 +735,7 @@ def simulate_competition_winner(
 
     rows = []
     for t in teams:
-        rows.append({
+        row = {
             "team": t,
             "country": team_country[t],
             "reached_top8": reached_top8[t] / n_sim,
@@ -736,7 +746,10 @@ def simulate_competition_winner(
             "reached_sf": reached_sf[t] / n_sim,
             "reached_final": reached_final[t] / n_sim,
             "won_competition": won[t] / n_sim,
-        })
+        }
+        for pos in range(n_teams):
+            row[str(pos + 1)] = pos_count[team_idx[t], pos] / n_sim
+        rows.append(row)
     # Cascading tie-break: most clubs are tied at 0.0% on "won_competition"
     # (and often on several of the later knockout stages too), so sorting
     # by that column alone leaves ties in arbitrary insertion order --

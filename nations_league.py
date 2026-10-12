@@ -31,6 +31,7 @@ from nations_league_simulator import (
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
+from simulator import cert_value as _cert_value, cert_cell_format as _cert_cell_format
 
 st.title("🌍 2026/27 UEFA Nations League")
 
@@ -49,38 +50,11 @@ def _ordinal(n: int) -> str:
 # certainty have proven one or the other -- both are reserved for real
 # certainty (see those functions' own docstrings for exactly what they
 # will and won't assert), never just a simulated probability that
-# happens to round to 0.0% or 100.0%.
-#
-# These cells are encoded as a NUMBER (the real percentage, or a sentinel
-# far outside the real 0-100 range), not a pre-formatted "X"/"73.2%"
-# string -- an earlier version used plain text (via st.column_config.
-# TextColumn) so our own row order could put clinched/eliminated rows at
-# the right end, but that broke the column's own built-in click-to-sort
-# header: Streamlit compares TextColumn values lexicographically, so
-# "6.0%" sorts ahead of "46.1%" (same bug a plain numeric column would
-# have if formatted as text first). Keeping the column genuinely numeric
-# and only overriding its DISPLAY via a pandas Styler .format() callable
-# (same pattern football_rankings.py's render_prob_table already uses)
-# means both our own default order and the reader's own click-to-sort
-# compare real numbers throughout, never text.
-_CLINCHED_SENTINEL = 1_000.0
-_ELIMINATED_SENTINEL = -1_000.0
-
-
-def _cert_value(value: float, certain: bool | None) -> float:
-    if certain is True:
-        return _CLINCHED_SENTINEL
-    if certain is False:
-        return _ELIMINATED_SENTINEL
-    return value
-
-
-def _cert_cell_format(v: float) -> str:
-    if v == _CLINCHED_SENTINEL:
-        return "✓"
-    if v == _ELIMINATED_SENTINEL:
-        return "X"
-    return f"{v:.1f}%"
+# happens to round to 0.0% or 100.0%. _cert_value/_cert_cell_format/the
+# sentinels now live in simulator.py (imported above) -- this page
+# originated the pattern, but football_rankings.py's render_prob_table
+# and european.py's League Phase table now use the identical mechanism,
+# so it moved to the shared module rather than staying duplicated here.
 
 
 def _format_date(date_str: str) -> str:

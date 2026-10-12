@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
 from api_football_fetcher import ApiFootballClient
-from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff
+from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff, position_bounds
 from ratings_manager import load_ratings, check_coverage
 from _split_season import get_split_info, conference_fixtures, recompute_conference_standings, compute_full_standings, ensure_full_roster
 from league_status import LEAGUE_STATUS
@@ -24,6 +24,7 @@ from cup_predictions import (
 )
 from cup_cascade import resolve_live_overrides
 from european_trivia import render_european_trivia
+from prob_table import render_prob_table, _green_col
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
@@ -248,22 +249,6 @@ def render_zone_table(probs: pd.DataFrame, standings: list[dict] = None, zone_ov
                  height=len(zone_df) * 35 + 42)
 
 
-def _green_col(s: pd.Series) -> list[str]:
-    """Return CSS background-color styles interpolated white→dark-green per column."""
-    vmax = s.max()
-    if vmax == 0:
-        return [""] * len(s)
-    styles = []
-    for v in s:
-        t = v / vmax
-        r = int(255 * (1 - t))
-        g = int(255 - t * 155)   # 255 → 100
-        b = int(255 * (1 - t))
-        text = "white" if t > 0.65 else "black"
-        styles.append(f"background-color: rgb({r},{g},{b}); color: {text}")
-    return styles
-
-
 def _compute_expected_pts(standings, remaining_fixtures, ratings_df, home_advantage):
     """Return {team: expected_final_points} from current points + Poisson fixture odds."""
     current = {row["strTeam"]: int(row.get("intPoints", 0)) for row in standings}
@@ -361,95 +346,11 @@ def _roundrobin_fixtures(teams: list) -> list:
     ]
 
 
-def _euro_style_cell(val):
-    s = str(val).upper()
-    if "UCL"  in s: return "color: #1a73e8; font-weight: bold"
-    if "UEL"  in s: return "color: #f9ab00; font-weight: bold"
-    if "UECL" in s: return "color: #34a853; font-weight: bold"
-    return ""
-
-
-def _status_style_pred(val):
-    """Colour + bold for status labels in the predicted-standings Status column."""
-    s = str(val).lower().rstrip("*").rstrip()
-    if "relega"           in s: return "color: #ea4335; font-weight: bold"
-    if "champions league" in s: return "color: #1a73e8; font-weight: bold"
-    if "europa league"    in s: return "color: #f9ab00; font-weight: bold"
-    if "uecl play-offs"   in s: return "color: #34a853; font-weight: bold"
-    if "conference"       in s: return "color: #34a853; font-weight: bold"
-    if "final four"       in s: return "color: #2e7d32; font-weight: bold"
-    if "championship"     in s: return "color: #2e7d32; font-weight: bold"
-    if "play-off"         in s: return "color: #2e7d32; font-weight: bold"
-    if "play out"         in s: return "color: #f9ab00; font-weight: bold"
-    if "middle"           in s: return "color: #f9ab00; font-weight: bold"
-    return ""
-
-
-def _status_for_pos(pos: int, status_map: dict) -> str:
-    """Return the status label for a given position from a {pos: label} dict."""
-    return (status_map or {}).get(pos, "")
-
-
-def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
-                      expected_pts: dict = None, european_spots: dict = None,
-                      title: str = "Season finish probabilities", zones: dict = None,
-                      status_map: dict = None, team_overrides: dict = None):
-    """Color-coded finish-probability table, sorted by expected finishing
-    position (Σ position × probability, ascending) -- the single-number
-    summary of each team's whole distribution, consistent with what this
-    table actually shows. xPts (season points expectation) is a related
-    but distinct stat -- still displayed as its own column when supplied,
-    but no longer the sort key, since it can disagree with the position
-    probabilities sitting right next to it (e.g. a team with a fatter
-    title-chance tail outranking a steadier, slightly-higher-xPts rival).
-
-    status_map: unified {pos: label} dict from league_status.py (preferred).
-    european_spots / zones: legacy params, used only if status_map is not provided.
-    team_overrides: {team_name: label} — fixed status for specific teams regardless of position.
-    """
-    # Resolve unified status map
-    _smap = status_map if status_map is not None else (european_spots or {})
-
-    pos_nums = pd.Series({c: int(c) for c in probs.columns})
-    expected_rank = probs.mul(pos_nums, axis=1).sum(axis=1)
-    probs = probs.loc[expected_rank.sort_values(ascending=True).index]
-    df = (probs * 100).round(1)
-    badge_lookup = badge_lookup or {}
-    teams = list(probs.index)
-    df.insert(0, "Team", teams)
-    df.insert(0, "Badge", [badge_lookup.get(t, "") for t in teams])
-    if expected_pts:
-        df["xPts"] = [round(expected_pts.get(t, 0), 1) for t in teams]
-    df.index = range(1, len(df) + 1)
-    df.index.name = "Pos"
-    if _smap or team_overrides:
-        df["Status"] = [
-            (team_overrides or {}).get(t) or _status_for_pos(pos, _smap)
-            for pos, t in zip(df.index, df["Team"])
-        ]
-    non_pos = {"Badge", "Team", "xPts", "Status"}
-    pos_cols = [c for c in df.columns if c not in non_pos]
-    styled = (
-        df.style
-        .apply(_green_col, axis=0, subset=pos_cols)
-        .format("{:.1f}%", subset=pos_cols)
-        .set_properties(subset=["Team"], **{"font-weight": "bold"})
-    )
-    if expected_pts:
-        styled = styled.format("{:.1f}", subset=["xPts"])
-    if "Status" in df.columns:
-        styled = (styled
-                  .map(_euro_style_cell,  subset=["Status"])
-                  .map(_status_style_pred, subset=["Status"]))
-    col_cfg = {
-        "Badge":  st.column_config.ImageColumn("", width="small"),
-        "Team":   st.column_config.TextColumn("Team"),
-        "xPts":   st.column_config.NumberColumn("xPts", format="%.1f", width="small"),
-        "Status": st.column_config.TextColumn("Status", width=110),
-    }
-    st.markdown(f"#### {title}")
-    st.dataframe(styled, column_config=col_cfg, width="content",
-                 height=len(probs) * 35 + 42)
+# render_prob_table (and its _green_col/_euro_style_cell/_status_style_pred/
+# _status_for_pos helpers) moved to prob_table.py (2026-10-12), imported
+# below -- european.py needed to reuse it for the new European-competition
+# League Phase position table, and can't import this file directly (see
+# prob_table.py's own docstring for why).
 
 
 # ---------------------------------------------------------------------------
@@ -1709,7 +1610,8 @@ def main_content():
                 ), unsafe_allow_html=True)
                 if not probs_champ.empty:
                     render_prob_table(probs_champ, badge_lookup, champ_exp_pts,
-                                      status_map=_champ_zones)
+                                      status_map=_champ_zones,
+                                      bounds=position_bounds(split_info["champ_current"], champ_fix))
                     render_zone_table(probs_champ, split_info["champ_current"], cfg.get("zones"))
                     render_title_probability_history(ratings_id)
                 if split_info.get("mid_teams") and probs_mid is not None and not probs_mid.empty:
@@ -1719,7 +1621,8 @@ def main_content():
                         conference_fixtures(remaining_fixtures, split_info["mid_teams"]),
                     ), unsafe_allow_html=True)
                     render_prob_table(probs_mid, badge_lookup, mid_exp_pts,
-                                      status_map=_mid_zones)
+                                      status_map=_mid_zones,
+                                      bounds=position_bounds(split_info["mid_current"], mid_fix))
                     render_zone_table(probs_mid, split_info["mid_current"], cfg.get("zones"))
                 if split_info.get("relg_current") and probs_relg is not None and not cfg.get("champ_only"):
                     st.markdown("### ⚠️ Relegation Round")
@@ -1729,7 +1632,8 @@ def main_content():
                     ), unsafe_allow_html=True)
                     if not probs_relg.empty:
                         render_prob_table(probs_relg, badge_lookup, relg_exp_pts,
-                                          status_map=_relg_zones)
+                                          status_map=_relg_zones,
+                                          bounds=position_bounds(split_info["relg_current"], relg_fix))
                         render_zone_table(probs_relg, split_info["relg_current"], cfg.get("zones"))
 
                 # ── UECL Play-offs simulation (split leagues) ─────────────
@@ -1825,7 +1729,8 @@ def main_content():
                 exp_pts = _compute_expected_pts(standings, remaining_fixtures, ratings_df, home_advantage)
                 # Use pre-computed _main_zones (same source as Current Table)
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
-                                  status_map=_main_zones, team_overrides=_team_overrides)
+                                  status_map=_main_zones, team_overrides=_team_overrides,
+                                  bounds=position_bounds(standings, remaining_fixtures))
                 # For a true split league, full-table position 1 isn't the real title
                 # race (that's decided within the Championship Play-off after the
                 # split) -- shown below that section instead, where the probabilities
@@ -2336,7 +2241,8 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     manual_exp_c = _compute_expected_pts(
                         updated_st_c, unpredicted_fix_c, ratings_df, home_advantage)
                     render_prob_table(cached_c["probs"], badge_lookup, manual_exp_c,
-                                      status_map=conf_zones)
+                                      status_map=conf_zones,
+                                      bounds=position_bounds(updated_st_c, unpredicted_fix_c))
                     render_zone_table(cached_c["probs"], updated_st_c,
                                       cfg.get("zones") or _auto_zones(
                                           cfg.get("european_spots"), _main_zones))

@@ -934,6 +934,90 @@ def simulate_season(
     return _build_dataframe(position_counts / n_sim, teams)
 
 
+# ---------------------------------------------------------------------------
+# Mathematically clinched/eliminated finishing positions -- shared by every
+# page that shows a finish-probability table (domestic leagues via
+# football_rankings.py/football_rankings_tier2.py, European competitions'
+# League Phase via european.py, Nations League via nations_league.py, which
+# originated this pattern -- see position_bounds's own docstring for the
+# soundness argument). "X"/"✓" replace the usual "%.1f%%" text only where
+# genuinely proven, never just a simulated probability that happens to round
+# to 0.0%/100.0%.
+#
+# Encoded as a NUMBER (the real percentage, or a sentinel far outside the
+# real 0-100 range), not a pre-formatted "X"/"73.2%" string, so a table's own
+# default sort order AND the reader's click-to-sort column header both keep
+# comparing real numbers throughout -- a pre-formatted-text version would
+# sort "6.0%" ahead of "46.1%" lexicographically, the same bug a TextColumn
+# would have. Override only the DISPLAYED text, via a pandas Styler
+# .format() callable, never the underlying value's type.
+CLINCHED_SENTINEL = 1_000.0
+ELIMINATED_SENTINEL = -1_000.0
+
+
+def cert_value(value: float, certain: bool | None) -> float:
+    if certain is True:
+        return CLINCHED_SENTINEL
+    if certain is False:
+        return ELIMINATED_SENTINEL
+    return value
+
+
+def cert_cell_format(v: float) -> str:
+    if v == CLINCHED_SENTINEL:
+        return "✓"
+    if v == ELIMINATED_SENTINEL:
+        return "X"
+    return f"{v:.1f}%"
+
+
+def position_bounds(standings: list[dict], remaining_fixtures: list[dict]) -> dict[str, tuple[int, int]]:
+    """{team: (best_reachable, worst_reachable)} -- the best (smallest
+    number) and worst (largest number) final position still mathematically
+    possible for every team, from guaranteed points (current) vs. maximum
+    achievable points (current + 3 x remaining games) alone.
+
+    Always sound -- never wrongly asserts a position is pinned down --
+    because every tiebreak order this site models ranks by points first;
+    GD/GF/H2H etc. only break ties WITHIN equal points, so a team can never
+    finish above a rival with strictly more points. Deliberately ignores GD
+    entirely: goal difference has no cap the way points do (3 per match), so
+    a single remaining fixture could in principle swing it by an arbitrary
+    margin, and a wrong GD-based guess here would risk a false "clinched"/
+    "eliminated" badge -- actively misleading, worse than just not showing
+    one yet. Same algorithm as nations_league_simulator.group_position_
+    bounds (see its own docstring), adapted to this project's single-table
+    shape (standings: strTeam/intPoints rows; remaining_fixtures:
+    strHomeTeam/strAwayTeam rows) rather than Nations League's multi-group
+    shape.
+
+    best_reachable[t] = 1 + however many rivals are GUARANTEED to finish
+    strictly above t even in t's own best case (their current points alone
+    already exceed t's ceiling). worst_reachable[t] = n minus however many
+    rivals can NEVER catch t even in their own best case (their ceiling is
+    still below t's current points) -- t cannot possibly finish worse than
+    that. A team is pinned to an exact final position only when best == worst.
+    """
+    teams = [row["strTeam"] for row in standings]
+    current = {
+        row["strTeam"]: int(row.get("intPoints", 0)) + float(row.get("_half_pts_bonus", 0.0))
+        for row in standings
+    }
+    remaining_count = {t: 0 for t in teams}
+    for f in remaining_fixtures:
+        for side in ("strHomeTeam", "strAwayTeam"):
+            t = f.get(side)
+            if t in remaining_count:
+                remaining_count[t] += 1
+    ceiling = {t: current[t] + 3 * remaining_count[t] for t in teams}
+    bounds: dict[str, tuple[int, int]] = {}
+    for t in teams:
+        above = sum(1 for o in teams if o != t and current[o] > ceiling[t])
+        below = sum(1 for o in teams if o != t and ceiling[o] < current[t])
+        bounds[t] = (1 + above, len(teams) - below)
+    return bounds
+
+
 def _build_dataframe(probs: np.ndarray, teams: list[str]) -> pd.DataFrame:
     n = len(teams)
     return pd.DataFrame(probs, index=teams, columns=[str(i + 1) for i in range(n)])
