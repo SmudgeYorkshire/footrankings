@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 from config import LEAGUES_TIER2 as LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
 from api_football_fetcher import ApiFootballClient
-from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff, position_bounds, cert_value, cert_cell_format
+from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff, position_bounds, cert_value, cert_cell_format, seed_from_key
 from ratings_manager import load_ratings, check_coverage
 from _split_season import get_split_info, conference_fixtures, recompute_conference_standings, compute_full_standings, ensure_full_roster
 from league_status import LEAGUE_STATUS
@@ -224,6 +224,43 @@ def render_relegation_probability_history(tsdb_id: int, relegation_positions: li
     )
     st.markdown("#### 📉 Relegation Probability History")
     st.plotly_chart(fig, use_container_width=True)
+
+
+# ---------------------------------------------------------------------------
+# Shared (not per-browser-session) simulation cache for the Predictions tab.
+# See football_rankings.py's identical block for the full rationale -- same
+# pattern here: @st.cache_data makes the cache shared across every visitor
+# instead of per st.session_state session, and seed_from_key(cache_key)
+# makes the result deterministic, so the SAME cache_key always reruns to
+# the exact same numbers instead of fresh Monte Carlo noise on every cold
+# page load. Each call site below extends whatever key its surrounding
+# st.session_state guard already uses with its own short discriminator tag,
+# so two different simulations never collide on one cache entry.
+# ---------------------------------------------------------------------------
+
+@st.cache_data(show_spinner=False)
+def _cached_simulate_season(
+    cache_key: tuple, _standings, _remaining_fixtures, _ratings_df,
+    _n_sim: int, _home_advantage: float, _tiebreakers=None, _played_fixtures=None,
+) -> pd.DataFrame:
+    return simulate_season(
+        standings=_standings, remaining_fixtures=_remaining_fixtures, ratings=_ratings_df,
+        n_sim=_n_sim, home_advantage=_home_advantage, tiebreakers=_tiebreakers,
+        played_fixtures=_played_fixtures, seed=seed_from_key(cache_key),
+    )
+
+
+@st.cache_data(show_spinner=False)
+def _cached_simulate_final_four(cache_key: tuple, _teams_4, _ratings_df, _n_sim: int) -> pd.DataFrame:
+    return simulate_final_four(_teams_4, _ratings_df, _n_sim, seed=seed_from_key(cache_key))
+
+
+@st.cache_data(show_spinner=False)
+def _cached_simulate_uecl_playoff(
+    cache_key: tuple, _bye: str, _a: str, _b: str, _ratings_df, _n_sim: int, _home_advantage: float,
+) -> pd.DataFrame:
+    return simulate_uecl_playoff(_bye, _a, _b, _ratings_df, _n_sim,
+                                  home_advantage=_home_advantage, seed=seed_from_key(cache_key))
 
 
 def _season_progress_html(played_r: int, total_r: int, n_played_m: int, n_remaining_m: int) -> str:
@@ -1731,36 +1768,24 @@ def main_content():
             if st.session_state.get("sim_key") != sim_key:
                 with st.spinner(f"Running {n_sim:,} simulations…"):
                     _tiebreakers = cfg.get("tiebreakers")
-                    probs_champ = simulate_season(
-                        standings=split_info["champ_current"],
-                        remaining_fixtures=champ_fix,
-                        ratings=ratings_df,
-                        n_sim=n_sim,
-                        home_advantage=home_advantage,
-                        tiebreakers=_tiebreakers,
-                        played_fixtures=played_fixtures,
+                    probs_champ = _cached_simulate_season(
+                        sim_key + ("champ",),
+                        split_info["champ_current"], champ_fix, ratings_df,
+                        n_sim, home_advantage, _tiebreakers, played_fixtures,
                     )
                     probs_mid = (
-                        simulate_season(
-                            standings=split_info["mid_current"],
-                            remaining_fixtures=mid_fix,
-                            ratings=ratings_df,
-                            n_sim=n_sim,
-                            home_advantage=home_advantage,
-                            tiebreakers=_tiebreakers,
-                            played_fixtures=played_fixtures,
+                        _cached_simulate_season(
+                            sim_key + ("mid",),
+                            split_info["mid_current"], mid_fix, ratings_df,
+                            n_sim, home_advantage, _tiebreakers, played_fixtures,
                         ) if split_info.get("mid_teams") and split_info["mid_current"]
                         else None
                     )
                     probs_relg = (
-                        simulate_season(
-                            standings=split_info["relg_current"],
-                            remaining_fixtures=relg_fix,
-                            ratings=ratings_df,
-                            n_sim=n_sim,
-                            home_advantage=home_advantage,
-                            tiebreakers=_tiebreakers,
-                            played_fixtures=played_fixtures,
+                        _cached_simulate_season(
+                            sim_key + ("relg",),
+                            split_info["relg_current"], relg_fix, ratings_df,
+                            n_sim, home_advantage, _tiebreakers, played_fixtures,
                         ) if split_info.get("relg_current")
                         else None
                     )
@@ -1832,9 +1857,9 @@ def main_content():
                                          _pred_bye, _pred_sf_a, _pred_sf_b)
                         if st.session_state.get("uecl_split_key") != _uecl_sim_key:
                             with st.spinner("Simulating Conference League play-offs…"):
-                                _uecl_df = simulate_uecl_playoff(
-                                    _pred_bye, _pred_sf_a, _pred_sf_b, ratings_df, n_sim,
-                                    home_advantage=home_advantage)
+                                _uecl_df = _cached_simulate_uecl_playoff(
+                                    _uecl_sim_key, _pred_bye, _pred_sf_a, _pred_sf_b, ratings_df, n_sim,
+                                    home_advantage)
                             st.session_state["uecl_split_results"] = _uecl_df
                             st.session_state["uecl_split_key"] = _uecl_sim_key
                         if "uecl_split_results" in st.session_state:
@@ -1886,14 +1911,10 @@ def main_content():
             sim_key = (league_id, season, n_sim, home_advantage, len(played_fixtures), _ratings_fingerprint)
             if st.session_state.get("sim_key") != sim_key:
                 with st.spinner(f"Running {n_sim:,} simulations…"):
-                    probs = simulate_season(
-                        standings=standings,
-                        remaining_fixtures=remaining_fixtures,
-                        ratings=ratings_df,
-                        n_sim=n_sim,
-                        home_advantage=home_advantage,
-                        tiebreakers=cfg.get("tiebreakers"),
-                        played_fixtures=played_fixtures,
+                    probs = _cached_simulate_season(
+                        sim_key + ("main",),
+                        standings, remaining_fixtures, ratings_df,
+                        n_sim, home_advantage, cfg.get("tiebreakers"), played_fixtures,
                     )
                 st.session_state["sim_results"] = probs
                 st.session_state["sim_key"] = sim_key
@@ -1984,12 +2005,11 @@ def main_content():
                             _po_c = tuple(top_champ)
                             if _po_c not in st.session_state.get("po_sims", {}):
                                 with st.spinner("Simulating championship play-off…"):
-                                    _po_probs = simulate_season(
-                                        standings=_playoff_standings(top_champ, _st_lookup, _pf),
-                                        remaining_fixtures=_roundrobin_fixtures(top_champ),
-                                        ratings=ratings_df, n_sim=n_sim,
-                                        home_advantage=home_advantage,
-                                        tiebreakers=cfg.get("tiebreakers"),
+                                    _po_probs = _cached_simulate_season(
+                                        _po_sim_key + ("champ_po",) + _po_c,
+                                        _playoff_standings(top_champ, _st_lookup, _pf),
+                                        _roundrobin_fixtures(top_champ), ratings_df,
+                                        n_sim, home_advantage, cfg.get("tiebreakers"),
                                     )
                                 st.session_state["po_sims"][_po_c] = _po_probs
                             render_prob_table(st.session_state["po_sims"][_po_c], badge_lookup,
@@ -2008,12 +2028,11 @@ def main_content():
                                 _po_m = tuple(top_mid)
                                 if _po_m not in st.session_state.get("po_sims", {}):
                                     with st.spinner("Simulating middle group…"):
-                                        _po_probs = simulate_season(
-                                            standings=_playoff_standings(top_mid, _st_lookup, _pf),
-                                            remaining_fixtures=_roundrobin_fixtures(top_mid),
-                                            ratings=ratings_df, n_sim=n_sim,
-                                            home_advantage=home_advantage,
-                                            tiebreakers=cfg.get("tiebreakers"),
+                                        _po_probs = _cached_simulate_season(
+                                            _po_sim_key + ("mid_po",) + _po_m,
+                                            _playoff_standings(top_mid, _st_lookup, _pf),
+                                            _roundrobin_fixtures(top_mid), ratings_df,
+                                            n_sim, home_advantage, cfg.get("tiebreakers"),
                                         )
                                     st.session_state["po_sims"][_po_m] = _po_probs
                                 render_prob_table(st.session_state["po_sims"][_po_m], badge_lookup,
@@ -2031,12 +2050,11 @@ def main_content():
                             _po_r = tuple(top_relg)
                             if _po_r not in st.session_state.get("po_sims", {}):
                                 with st.spinner("Simulating relegation play-out…"):
-                                    _po_probs = simulate_season(
-                                        standings=_playoff_standings(top_relg, _st_lookup, _pf),
-                                        remaining_fixtures=_roundrobin_fixtures(top_relg),
-                                        ratings=ratings_df, n_sim=n_sim,
-                                        home_advantage=home_advantage,
-                                        tiebreakers=cfg.get("tiebreakers"),
+                                    _po_probs = _cached_simulate_season(
+                                        _po_sim_key + ("relg_po",) + _po_r,
+                                        _playoff_standings(top_relg, _st_lookup, _pf),
+                                        _roundrobin_fixtures(top_relg), ratings_df,
+                                        n_sim, home_advantage, cfg.get("tiebreakers"),
                                     )
                                 st.session_state["po_sims"][_po_r] = _po_probs
                             render_prob_table(st.session_state["po_sims"][_po_r], badge_lookup,
@@ -2181,7 +2199,12 @@ def main_content():
                     ff_key = ("ff", league_id, season, n_sim)
                     if st.session_state.get("ff_key") != ff_key:
                         with st.spinner("Simulating Final Four…"):
-                            ff_df = simulate_final_four(teams_4, ratings_df, n_sim)
+                            # tuple(teams_4) also goes into the shared cache's own key (not
+                            # ff_key/session_state's, left as-is) -- see football_rankings.py's
+                            # identical comment: the predicted top 4 can change with no other
+                            # part of ff_key changing, and a shared cache under-keyed on that
+                            # would serve a stale Final Four result for the wrong teams.
+                            ff_df = _cached_simulate_final_four(ff_key + tuple(teams_4), teams_4, ratings_df, n_sim)
                         st.session_state["ff_results"] = ff_df
                         st.session_state["ff_key"]     = ff_key
 

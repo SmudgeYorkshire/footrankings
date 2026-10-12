@@ -54,11 +54,31 @@ matches) and simulated remaining fixtures.  If played_fixtures is not
 supplied, base H2H is omitted (only simulated H2H is used).
 """
 
+import hashlib
 import math
 import numpy as np
 import pandas as pd
 
 from config import DEFAULT_HOME_ADVANTAGE, DEFAULT_BASE_GOALS
+
+
+def seed_from_key(key) -> int:
+    """Deterministic RNG seed from a cheap, already-computed cache key
+    (e.g. a page's own (league_id, season, games_played, ratings_
+    fingerprint, ...) tuple). The same key always yields the same seed, so
+    a caller that pairs this with a shared (not per-browser-session) cache
+    -- st.cache_data, keyed on that same tuple -- gets a simulation result
+    that's identical for every visitor and stays identical across repeat
+    page opens, but still recomputes (with a fresh, still-deterministic
+    seed) the moment any real input in the key actually changes. Built on
+    hashlib rather than Python's own hash() because str/tuple hashing is
+    randomized per-process (PYTHONHASHSEED) -- hash(key) would give a
+    different seed every server restart, defeating the whole point.
+    Truncated to 32 bits: plenty of entropy for a Generator seed, and
+    keeps it a plain int rather than Python's unbounded one."""
+    digest = hashlib.sha256(repr(key).encode()).hexdigest()
+    return int(digest[:8], 16)
+
 
 _MAX_GOALS    = 10    # upper bound for goal grid (captures >99.9% of probability mass)
 OVERDISPERSION = 0.15 # NegBin overdispersion φ: Var[goals] = λ(1+φ)
@@ -649,6 +669,7 @@ def simulate_season(
     apply_form: bool = True,
     home_advantage_overrides: dict[tuple[str, str], float] | None = None,
     season_sigma: float = SEASON_STRENGTH_SIGMA,
+    seed: int | None = None,
 ) -> pd.DataFrame:
     """
     Run a Monte Carlo simulation of the remaining season.
@@ -687,6 +708,15 @@ def simulate_season(
                          own comment for why this exists and how it was
                          tuned). 0.0 reproduces the old single-source-of-
                          randomness behaviour exactly, e.g. for an A/B check.
+    seed                 : None (default) draws a fresh OS-entropy seed each
+                         call, so repeated calls differ -- the original
+                         behaviour. Pass an int (see seed_from_key) for a
+                         reproducible run: the same seed with the same
+                         inputs always produces the same result, which is
+                         what a page wants when it caches this call keyed
+                         on those same inputs (stable for every visitor
+                         until something real changes, instead of fresh
+                         Monte Carlo noise on every cold page load).
 
     Returns
     -------
@@ -813,7 +843,7 @@ def simulate_season(
         away_lambdas[i] = a_att * max(h_def, 0.01) / league_avg
 
     # Simulate all goals at once: shape (F, n_sim)
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
 
     # Apply form multipliers to attacking lambdas (based on last FORM_GAMES results)
     if played_fixtures and apply_form:
@@ -1040,6 +1070,7 @@ def simulate_final_four(
     teams_4: list[str],
     ratings: pd.DataFrame,
     n_sim: int = 10_000,
+    seed: int | None = None,
 ) -> pd.DataFrame:
     """
     Simulate a Final Four tournament (Albanian Superliga format).
@@ -1078,7 +1109,7 @@ def simulate_final_four(
         b_att, b_def = rat_lookup.get(tb, default_r)
         return a_att * max(b_def, 0.01) / l_avg, b_att * max(a_def, 0.01) / l_avg
 
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
 
     def draw(lam: float, n: int) -> np.ndarray:
         return rng.negative_binomial(np.maximum(lam / _phi, 1e-6), _p_nb, n)
@@ -1161,6 +1192,7 @@ def simulate_uecl_playoff(
     ratings: pd.DataFrame,
     n_sim: int = 10_000,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+    seed: int | None = None,
 ) -> pd.DataFrame:
     """
     Simulate the Austrian 3-team UECL play-off.
@@ -1199,7 +1231,7 @@ def simulate_uecl_playoff(
     def draw(lam: float, n: int) -> np.ndarray:
         return rng.negative_binomial(max(lam / _phi, 1e-6), _p_nb, n)
 
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
 
     # ── Semi-final: team_a (7th) hosts team_b (8th), one leg ─────────────────
     lam_ah, lam_ba = get_lams(team_a, team_b)
@@ -1280,6 +1312,7 @@ def simulate_uecl_3team_playoff(
     ratings: pd.DataFrame,
     n_sim: int = 10_000,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+    seed: int | None = None,
 ) -> pd.DataFrame:
     """
     Simulate a 3-team UECL play-off with one-legged SF and one-legged final.
@@ -1332,7 +1365,7 @@ def simulate_uecl_3team_playoff(
             g_a = np.where(still, g_a + (~coin).astype(int), g_a)
         return g_h > g_a
 
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
 
     # ── Semi-final: team_a hosts team_b (one leg) ────────────────────────────
     a_wins_sf = play_one_leg(team_a, team_b, n_sim)
@@ -1369,6 +1402,7 @@ def simulate_uecl_8team_playoff(
     ratings: pd.DataFrame,
     n_sim: int = 10_000,
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
+    seed: int | None = None,
 ) -> pd.DataFrame:
     """
     San Marino UECL 8-team play-off (all ties one-legged, ET+pens on ties).
@@ -1412,7 +1446,7 @@ def simulate_uecl_8team_playoff(
                 lam_h_mat[i, j] = h_att * max(a_def, 0.01) / l_avg * home_advantage
                 lam_a_mat[i, j] = a_att * max(h_def, 0.01) / l_avg
 
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
 
     def play_v(home_i: np.ndarray, away_i: np.ndarray) -> np.ndarray:
         """Vectorized one-legged tie. True = home wins."""
@@ -1501,6 +1535,7 @@ def simulate_uecl_5team_playoff(
     qf1_home_rank: int = 4, qf1_away_rank: int = 8,
     qf2_home_rank: int = 5, qf2_away_rank: int = 7,
     final_host_rank: int = 3,
+    seed: int | None = None,
 ) -> pd.DataFrame:
     """
     Simulate a 5-team UECL play-off with one-legged QF, SF, and Final.
@@ -1554,7 +1589,7 @@ def simulate_uecl_5team_playoff(
             g_a = np.where(still, g_a + (~coin).astype(int), g_a)
         return g_h > g_a
 
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
     rank = {pos3: final_host_rank, pos4: qf1_home_rank, pos5: qf2_home_rank,
             pos7: qf2_away_rank,   pos8: qf1_away_rank}
 
@@ -1623,6 +1658,7 @@ def simulate_uecl_4team_playoff(
     sf1_away_rank: int = 9,
     sf2_home_rank: int = 7,
     sf2_away_rank: int = 8,
+    seed: int | None = None,
 ) -> pd.DataFrame:
     """
     Simulate a 4-team single-elimination UECL play-off.
@@ -1676,7 +1712,7 @@ def simulate_uecl_4team_playoff(
             ga = np.where(still, ga + (~coin).astype(int), ga)
         return gh > ga
 
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
 
     # ── Semi-finals ──────────────────────────────────────────────────────────
     sf1_home_wins = play_one_leg(sf1_home, sf1_away, n_sim)
