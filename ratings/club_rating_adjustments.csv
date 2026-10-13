@@ -22,6 +22,7 @@ Shakhter Karagandy,-6.29
 Jong Utrecht,-6.22
 Cetatea Suceava,-6.16
 Sportist Svoge,-6.15
+Vanspor FK,-5.98
 Jong PSV U21,-5.96
 FC OSS,-5.89
 Sturm Graz II,5.89
@@ -30,7 +31,6 @@ Tampere United,-5.76
 Newtown AFC,5.74
 Dren Vrhnika,-5.71
 Rilski Sportist,5.68
-Vanspor FK,-5.66
 Ska-khabarovsk,-5.61
 Schwarz-Weiß Bregenz,5.57
 Bihor Oradea,-5.51
@@ -52,7 +52,7 @@ Lokomotiv Kyiv,-4.79
 Baník Lehota p.Vtáčnikom,4.78
 OLS,4.75
 MEAP Nisou,-4.75
-Fatih Karagümrük,-4.63
+Fatih Karagümrük,-4.64
 FC Energetik-Bgu Minsk,-4.62
 FC Tallinn,4.59
 De Graafschap,4.53
@@ -60,7 +60,7 @@ Jong Ajax,-4.52
 Gyirmot SE,4.48
 VVV Venlo,4.46
 Inter Bratislava,-4.44
-United Nordic,-4.4
+United Nordic,-4.41
 Santa Lucía,-4.35
 Chernomorets 1919 Burgas,-4.32
 Hegelmann II,4.25
@@ -83,12 +83,12 @@ Tabor Sežana,-3.78
 Yarud Mariupol',-3.76
 Spartakos Kitiou,-3.76
 Arsenal Tula,-3.76
+Diosgyori VTK,-3.66
 Malženice,3.61
 Unia Skierniewice,-3.59
 Dumbrăviţa,3.55
 FC Aarau,3.49
 Maccabi Kabilio Jaffa,-3.48
-Diosgyori VTK,-3.46
 Považská Bystrica,3.45
 Lille,-3.44
 WSPG Wels,-3.41
@@ -97,7 +97,7 @@ Waalwijk,-3.4
 ASIL Lysi,-3.38
 Odra Opole,-3.34
 1. FC Nürnberg,3.32
-Sheffield Utd,3.25
+Sheffield Utd,3.26
 Dinamo Zagreb U21,-3.24
 Slovan Bratislava II,3.23
 Turan Turkistan,-3.21
@@ -107,13 +107,13 @@ Larisa,-3.18
 Admira Wacker,-3.17
 Napredak,3.17
 Bayern München,3.14
-Van,-3.11
 Arsenal,3.11
+Van,-3.08
 Borac Cacak,-3.08
 Inter Turku II,3.08
 Podbeskidzie,3.08
 Elva,3.07
-Llandudno,3.03
+Llandudno,2.99
 Volga Ulyanovsk,-2.99
 Arsenal Česká Lípa,-2.98
 Rapid Wien II,2.97
@@ -123,108 +123,108 @@ CS Afumati,2.93
 TSC Backa Topola,2.91
 APEA,2.89
 Bsk Bijelo Brdo,-2.88
-Bravo,-2.85
 Molodechno-DYuSSh 4,2.84
+Bravo,-2.83
 Dubočica,2.82
 Kerry,2.8
 FC Fredericia,2.77
-Universitatea Cluj,-2.77
 CSM Satu Mare,-2.75
-Ajax,2.72
+Folgore,-2.72
 Inhulets,2.71
 Arbroath,-2.7
-Folgore,-2.69
-Hammarby,2.68
+Ajax,2.69
 Burgos,-2.68
+Hammarby,2.66
 Krylya Sovetov,-2.66
-Gandzasar,2.65
 Semendrija 1924,-2.64
 Stade Nyonnais,-2.64
+Gandzasar,2.62
 Zurrieq,2.62
-Larne,-2.62
+Larne,-2.61
 Hanácká,-2.61
 MTK,2.58
 Heracles,2.56
 Oddevold,2.55
 Barcelona,2.54
-Ballymena United,2.53
+Ballymena United,2.54
 Spartak Kostroma,-2.53
 Pogoń Grod. Mazowiecki,-2.52
 FC Bacau,2.5
 Paks,2.47
 Ekranas,2.46
 Moss,2.46
-Kryvbas KR,-2.46
 Jaiyq,2.43
+Kryvbas KR,-2.41
 Marko,2.4
 Helmond Sport,2.39
+Universitatea Cluj,-2.37
 KuPS Akatemia,2.37
 Grenoble,-2.37
 HB Koge,2.37
 Emmen,2.37
 KAA Gent II,-2.36
-Gjilani,2.35
+Gjilani,2.36
 Babrungas,-2.35
-Bursaspor,2.33
+Bursaspor,2.34
+Rijeka,2.32
 Dobrudzha,2.31
 OFK Bor 1919,-2.3
 Jong AZ,-2.3
-Rijeka,2.29
-Levadiakos,-2.28
+Levadiakos,-2.3
 Pyrgos 1968,2.26
 Viktoria Žižkov,2.24
-Nõmme United,2.23
-Astana,-2.22
+Ümraniyespor,2.23
+Rudeš,-2.22
+Astana,-2.21
 FC BW Linz,2.21
 AS Eupen,2.2
-Pendikspor,2.19
-Mardin 1969,2.19
-Rudeš,-2.18
+Mardin 1969,2.2
+Nõmme United,2.17
 Rudar,2.17
 Albacete,-2.17
+Internazionale,2.17
 Hull City,-2.16
 Virtus,-2.16
-Internazionale,2.16
 Dordrecht,2.16
 Wacker Innsbruck,-2.14
-Ümraniyespor,2.14
 Příbram,2.1
-Charlton,-2.08
-La Fiorita,-2.07
-Lincoln,-2.04
+Charlton,-2.1
+La Fiorita,-2.06
+Lincoln,-2.03
+Vålerenga,2.02
 Athlone Town,2.01
 UCSA,1.99
-Real Madrid,1.98
+Real Madrid,1.99
 Seraing United,1.97
-Barry Town United,-1.96
 Cagliari,-1.96
-Vålerenga,1.94
+Pendikspor,1.93
 Lokomotiv Moskva,-1.93
 Twente,1.92
+Barry Town United,-1.91
 Jonava,1.91
 Mika,1.91
-Tobol Kostanay,-1.91
+Tobol Kostanay,-1.9
 Vysočina Jihlava,-1.89
 RSC Anderlecht II,-1.88
 Libertas,-1.88
-Valencia,-1.88
 RB Leipzig,1.88
+Valencia,-1.87
 Karlovac 1919,1.87
 Saint Etienne,1.86
 Puszcza Niepołomice,-1.86
-FCSB,1.84
 Kazincbarcikai,-1.84
-IFK Göteborg,1.83
+IFK Göteborg,1.84
+Mura,1.84
 Annecy,-1.83
-Mura,1.82
-Malmö FF,1.81
+Malmö FF,1.83
+FCSB,1.81
 Ellas Syros,1.81
 Ertis,1.8
-Glentoran,-1.8
 Loznica,1.8
 Ayr Utd,-1.8
+Glentoran,-1.79
 Chelsea,1.79
-Baltika,-1.78
+Baltika,-1.77
 Eibar,-1.77
 Fiorentino,-1.77
 Cailungo,1.77
@@ -237,88 +237,87 @@ Iraklis Yerolakkou,1.74
 Stromsgodset,1.73
 Lechia Gdansk,-1.72
 Hoffenheim,1.7
-Mačva Šabac,-1.69
-AIK,1.68
-HJK,1.66
-FS Jelgava,1.66
+AIK,1.7
+Coventry City,-1.69
+Mačva Šabac,-1.68
+Trans,1.68
+FS Jelgava,1.65
 NSÍ,-1.65
 Warta Poznań,1.65
-Trans,1.65
 Kayserispor,1.64
 Chrobry Głogów,1.63
 Tre Penne,-1.63
-Levante,-1.63
 Finn Harps,1.63
-Hapoel Tel Aviv,1.6
+Hapoel Tel Aviv,1.63
+CFR Cluj,-1.62
+Struga,1.62
 Ruch Chorzów,-1.6
 Koper,-1.6
+Rapid,1.6
 Mladost Ždralovi,-1.59
-Bandırmaspor,1.58
-Rapid,1.58
+Bokelj,-1.58
 Nantes,1.57
-Millwall,-1.56
-Bokelj,-1.55
+Dungannon Swifts,1.57
 SKU Amstetten,1.55
-Sivasspor,1.55
 Dinamo Moskva,-1.55
+Millwall,-1.54
 Nyíregyháza Spartacus,1.54
-Eyüpspor,-1.54
-Dungannon Swifts,1.54
-Fulham,1.53
 Paris FC,1.53
+Tre Fiori,-1.53
+Fulham,1.52
 Holywell Town,1.52
-Tre Fiori,-1.52
 Krasnodar,-1.51
-Real Sociedad,1.51
-Víkingur Reykjavík,-1.51
-Dinamo Minsk,-1.51
-Blackburn,-1.48
+Real Sociedad,1.5
+Dinamo Minsk,-1.5
+Blackburn,-1.5
+Levante,-1.48
 MVV,1.48
+Göztepe,-1.48
+Víkingur Reykjavík,-1.47
 Olympiakos Piraeus II,-1.47
 Aalesund,1.47
 Victoria Rosport,1.47
 Spartak Trnava,-1.47
 Varbergs BoIS FC,-1.47
 Derby,-1.46
-GKS Katowice,-1.45
 Wexford,1.45
+Juve Stabia,-1.45
 Urartu,-1.44
-Pennarossa,1.43
+Pennarossa,1.44
 Győri ETO,-1.43
-LNZ Cherkasy,1.43
 SC Kriens,1.42
 Molde,1.42
 Trenčín,1.41
 Carrarese,-1.41
 Floriana,-1.4
-Paide,-1.4
-Caernarfon Town,1.39
+LNZ Cherkasy,1.39
 Ynyshir Albions,1.39
 Sudtirol,-1.39
-Zagłębie Lubin,-1.38
-Falkenbergs FF,-1.38
-Pogoń Szczecin,-1.38
+Pogoń Szczecin,-1.39
+Voluntari,-1.39
+Paide,-1.38
+Górnik Zabrze,-1.38
+GKS Katowice,-1.37
+Zagłębie Lubin,-1.37
 Leixoes,1.37
-Juvenes / Dogana,1.37
-Juve Stabia,-1.37
 Go Ahead Eagles,1.37
-Voluntari,-1.36
-Teplice,-1.36
-Legia Warszawa,-1.36
-Górnik Zabrze,-1.35
+HJK,1.36
+Caernarfon Town,1.36
+Juvenes / Dogana,1.36
+Legia Warszawa,-1.35
 Cosmos,-1.35
 Ranheim,1.35
 Vasas,1.35
-Orenburg,-1.34
-Coventry City,-1.34
-Haverfordwest County,1.33
+FC Košice,1.35
+Falkenbergs FF,-1.34
+Teplice,-1.34
+Orenburg,-1.33
 MOIK,1.33
 Antalyaspor,1.33
-FC Košice,1.33
-FCI Levadia,-1.32
-CFR Cluj,-1.32
+Veres Rivne,-1.33
 Rodez,-1.32
-Baník Ostrava,1.31
+Baník Ostrava,1.32
+Syunik,-1.32
 FC St. Pauli,1.31
 Arsenal Tivat,-1.31
 Patro Eisden,1.31
@@ -326,23 +325,24 @@ Stuttgart,1.3
 Domagnano,1.3
 Rubin Kazan,-1.3
 Aalborg,1.3
+Haverfordwest County,1.29
 Rops,1.29
 FC WIL 1900,-1.29
 Beveren,1.29
 Pelister,1.29
 Las Palmas,-1.29
-Veres Rivne,-1.29
-Rayo Vallecano,-1.29
+FCI Levadia,-1.28
+Rayo Vallecano,-1.28
 FC Santa Coloma,-1.28
 Stabaek,1.28
 First Vienna,1.28
-Rosenborg,1.27
+Paris Saint-Germain,1.28
+Polissya,-1.28
 Nizhny Novgorod,-1.27
-Paris Saint-Germain,1.27
+BATE,-1.27
 Şahdağ,1.26
-Struga,1.26
+Rosenborg,1.25
 Nancy,1.25
-Bangor,1.25
 Jedinstvo Ub,1.25
 Alashkert,1.25
 Kecskeméti TE,-1.25
@@ -350,237 +350,229 @@ AZ,1.24
 Bayer Leverkusen,1.24
 Orebro SK,1.24
 Hillerød,-1.24
-Ordabasy,-1.24
-Szentlőrinc SE,-1.23
-Aktobe,-1.23
-Yelimay,-1.23
+Widzew Łódź,1.24
+Fehérvár FC,1.24
+Avellino,-1.23
+Aktobe,-1.22
+Yelimay,-1.22
 Arminia Bielefeld,1.22
 Vejle,1.22
-Avellino,-1.22
-Widzew Łódź,1.22
-BATE,-1.22
-Polissya,-1.22
-Zemun,-1.22
+Piast Gliwice,-1.22
+Ordabasy,-1.21
+Zemun,-1.21
 Prostějov,1.21
 KA,1.21
-Fehérvár FC,1.2
-Cesena,-1.2
-Cremonese,-1.2
-Coleraine,-1.2
+Cremonese,-1.21
+Panathinaikos,1.21
+Arezzo,-1.21
+Bangor,1.2
 Akademiya Ontustik,1.19
 Alavés,-1.19
 Catanzaro,-1.19
-Panathinaikos,1.19
-Bristol City,-1.19
+Milan,1.19
+Häcken,1.19
+Coleraine,-1.18
 HamKam,-1.18
-Piast Gliwice,-1.18
 Skála,1.18
-Arezzo,-1.18
-Milan,1.18
-Häcken,1.18
+Bristol City,-1.17
 Amed,1.17
 Ararat-Armenia,-1.17
 SCR Altach,1.17
+Budućnost,-1.17
+Linfield,-1.17
 Polonia Warszawa,1.16
-GIF Sundsvall,1.16
 Karcag SE,1.16
 Shinnik Yaroslavl,-1.16
 Sandefjord,-1.16
 Slatina,-1.15
 Marsaxlokk,-1.15
+Auda,-1.15
+Sivasspor,1.14
 Tallinna Kalev,1.14
 Clermont Foot,-1.14
 Energie Cottbus,-1.14
 Dukla Praha,-1.14
-Budućnost,-1.14
+Randers,1.14
 Sheriff,-1.13
 Spartak Moskva,-1.13
 Dunfermline,-1.13
-Linfield,-1.13
 Skalica,1.13
-Komárno,1.13
-Horsens,-1.12
+Tottenham Hotspur,1.13
 Zlaté Moravce,1.12
 Mornar,-1.12
 Faetano,1.12
-Hapoel Petah Tikva,-1.11
-Nice,1.11
-Randers,1.11
-Gnistan,-1.11
+Lecce,-1.12
+Szentlőrinc SE,-1.11
+GIF Sundsvall,1.11
+Bolton,-1.11
+Hartberg,-1.11
+Shirak,1.11
+Horsens,-1.1
+Hapoel Petah Tikva,-1.1
 Podbrezová,1.1
 Start,1.1
-Lecce,-1.1
-Bolton,-1.1
 Grobiņa,1.1
-Kuressaare,1.09
-Mosta,-1.09
-Dynamo Kyiv,-1.09
-Torpedo Belaz,-1.09
+Komárno,1.08
+Torpedo Belaz,-1.08
 Holstein Kiel,1.08
 Torpedo Kutaisi,-1.08
 Valmiera / BSS,1.08
 Lahti,1.08
 Puskás,-1.08
-Nõmme Kalju,-1.07
+AEK Larnaca,-1.08
+Bohemians,1.08
+Dynamo Kyiv,-1.07
 Nieciecza,1.07
 Ilves,-1.07
 Belasica,-1.07
 Portsmouth,-1.07
-Breiðablik,-1.06
+Eyüpspor,-1.06
+Nice,1.06
+Mosta,-1.06
 Borussia Dortmund,1.06
-Brentford,1.06
-Briton Ferry,1.06
 Aberystwyth Town,1.06
-OFI,-1.06
-Hartberg,-1.06
 Haugesund,1.06
-Tottenham Hotspur,1.06
+Cesena,-1.05
+Kuressaare,1.05
+Breiðablik,-1.05
 Vitesse,1.05
 FC Porto B,-1.05
-Elfsborg,1.05
 ODD Ballklubb,1.05
+Ružomberok,1.05
+Nõmme Kalju,-1.04
 Honvéd,1.04
 Reims,-1.04
+IFK Varnamo,1.04
+Brentford,1.03
 Mjällby,1.03
-Ružomberok,1.03
-Dundee,-1.03
 Livingston,1.03
 Auxerre,-1.03
-Parma,-1.03
-Utrecht,-1.02
+Real Betis,1.03
+Briton Ferry,1.02
+Dundee,-1.02
 Mallorca,1.02
-Bodrum FK,-1.02
 Səbail,1.02
-Real Betis,1.02
 Lazio,-1.02
-Udinese,-1.02
+Utrecht,-1.01
 FK Neftekhimik,-1.01
 Andranik,-1.01
-Radomlje,1.0
-NEC,1.0
-Syunik,-1.0
+Radomlje,1.01
+Inter Turku,-1.01
 ÍBV,1.0
 Sandnes ULF,1.0
-AEK Larnaca,-1.0
-Boluspor,-0.99
-Auda,-0.99
-Birzebbuga,0.99
-Beşiktaş,0.99
-Inter Turku,-0.98
-Dundalk,0.98
+Beşiktaş,1.0
+Landskrona BoIS,0.99
+Pyunik,-0.99
 Genoa,-0.98
 Zrinjski,-0.98
 Neftçi,0.98
 Elche,-0.98
-Levski Sofia,-0.98
+Parma,-0.97
+Boluspor,-0.97
+Levski Sofia,-0.97
 Beroe,-0.97
 Ruthin Town,0.97
 HNK Cibalia,0.97
 FK Kukesi,0.97
 Helsingborg,-0.97
 Panevėžys,-0.97
+Académico de Viseu,-0.97
+NEC,0.96
+Birzebbuga,0.96
 Feyenoord,0.96
 West Ham,0.96
 Spaeri,0.96
-Académico de Viseu,-0.96
 Prishtina,0.96
 Empoli,-0.96
 Polonia Bytom,-0.96
-Landskrona BoIS,0.96
 Club Brugge,-0.96
+Víkingur,-0.96
 Mingəçevir,-0.95
 Opatija,-0.95
-Pyunik,-0.94
+Hapoel Haifa,0.95
+KFUM,-0.95
 Cardiff Draconians,0.94
 Dukagjini,-0.94
 CSKA 1948 Sofia,-0.94
 Swift Hesperange,-0.94
-Hajduk Split,-0.94
 1. FC Heidenheim,-0.94
-IFK Varnamo,0.93
+Hradec Králové,0.94
 Aarhus Fremad,0.93
 Triglav,-0.93
 Hamrun Spartans,-0.93
 Valletta,-0.93
 Laktaši,-0.93
-Víkingur,-0.93
-Hradec Králové,0.93
 Banga,0.93
-Göztepe,-0.92
-Hapoel Haifa,0.92
+Torino,-0.93
+Hajduk Split,-0.92
 Lommel,-0.92
 Newry City AFC,0.92
-Liverpool,0.92
-KFUM,-0.92
 Lorient,-0.92
+LASK,0.92
+Dundalk,0.91
+Liverpool,0.91
 The New Saints,-0.91
 Baglan Dragons,0.91
 Brickfield Rangers,0.91
-LASK,0.91
 Rotor Volgograd,0.9
 KRC Genk II,-0.9
 Velez,-0.9
 Lokomotiv Plovdiv,-0.9
 Nõmme Kalju II,0.9
+Asteras Tripolis,-0.9
 Hvidovre,-0.89
 ASA Targu Mures,-0.89
 Arouca,-0.89
 Kastrioti Krujë,0.89
-Bohemians,0.88
+Zeljeznicar,-0.89
+Panaitolikos,-0.89
 Juventus,0.88
 Ostersunds FK,0.88
 Dainava,0.88
 Smiltene,0.88
 RED Star FC 93,-0.88
 FCI Levadia II,-0.88
-Sligo Rovers,-0.87
+Zbrojovka Brno,-0.88
 Skanste,0.87
 Enisey,0.87
-Asteras Tripolis,-0.87
 Kilmarnock,-0.87
-Middlesbrough,0.86
-Zeljeznicar,-0.86
-Panaitolikos,-0.86
-Kalamata,0.86
+Maccabi Netanya,0.87
 Ipswich Town,-0.86
 Villarreal,0.86
 Sochaux,-0.86
-Maccabi Netanya,0.86
-Montana,0.85
+Slovácko,0.86
+Sligo Rovers,-0.85
 Akhmat Grozny,-0.85
 Amarante,-0.85
 Vukovar,-0.85
 Krka,0.85
 Köln,0.85
-OFK Beograd,0.85
-Kozarmisleny FC,0.84
 Brøndby,0.84
 Ilirija,-0.84
 Benfica B,-0.84
 Volos NFC,0.84
 Palermo,-0.84
-Oțelul Galați,-0.84
 Zenit,-0.84
-Slovácko,0.84
-Stjarnan,0.83
+Stjarnan,0.84
+Elfsborg,0.83
+Middlesbrough,0.83
 VfL Osnabrück,-0.83
 Inverness CT,0.83
 UCD,-0.83
 Dečić,0.83
 Paderborn,-0.83
-Zbrojovka Brno,-0.83
 Floridsdorfer AC,-0.83
 Crystal Palace,-0.83
-Corvinul Hunedoara,-0.83
-Zemplín Michalovce,0.82
-Žilina,-0.81
-ÍA,0.81
+Zemplín Michalovce,0.83
+GAIS,0.83
+Oțelul Galați,-0.82
 Miedz Legnica,0.81
 San Giovanni,0.81
-Aris,-0.81
 Limavady United,0.81
-Union Saint-Gilloise,-0.81
-GAIS,0.81
+Bashkimi Kumanovo,-0.81
+Žilina,-0.8
+ÍA,0.8
+Union Saint-Gilloise,-0.8
 İstanbulspor,-0.8
 Venezia,0.8
 Partick,-0.8
@@ -590,44 +582,51 @@ SalPa,0.8
 Glenavon FC,0.8
 Rangers,0.8
 SKN ST. Polten,0.8
-Shirak,0.79
-Atromitos,-0.79
+Deportivo de A Coruña,-0.8
+Kozarmisleny FC,0.79
 Arys,0.79
-Inter Club d'Escaldes,-0.79
 Kisvárda,0.79
+Spartak Varna,-0.79
+Oulu,0.79
+Livyi Bereh,0.79
+Aris,-0.78
 Zaqatala,-0.78
 FC jazz,-0.78
 Rennes,0.78
 Ogre United,0.78
 Trabzonspor,0.78
-DAC 1904,-0.78
-Deportivo de A Coruña,-0.77
+Bandırmaspor,0.77
+Inter Club d'Escaldes,-0.77
+DAC 1904,-0.77
 Karlsruher SC,0.77
 Longford Town,-0.77
 Cambrian United,0.77
-Spartak Varna,-0.77
 Ranger's,-0.77
 NAC Breda,-0.77
 Eldense,-0.77
-Čukarički,0.77
 Karvan,-0.76
 VJS,0.76
 Balzan,0.76
 Nestos Chrisoupolis,-0.76
 Mantova,-0.76
-Rostov,-0.76
 Borac Banja Luka,-0.76
-Degerfors,-0.76
 Vojvodina,-0.76
-Connah's Quay,-0.75
+Varaždin,-0.76
+Gnistan,-0.75
+Corvinul Hunedoara,-0.75
 Csakvar,0.75
 Panserraikos,0.75
-Heerenveen,0.75
+OFK Beograd,0.74
+Degerfors,-0.74
 Bohemians 1905,-0.74
 Ararat,0.74
 Melita,0.74
 ADO Den Haag,0.74
 Viimsi,-0.74
+Iraklis 1908,-0.74
+OFI,-0.73
+Rostov,-0.73
+Heerenveen,0.73
 Stal Rzeszów,0.73
 VfL Wolfsburg,0.73
 Baník Ostrava II,0.73
@@ -635,190 +634,194 @@ Ards,0.73
 Naxxar Lions,0.73
 Torpedo Moskva,-0.73
 Flora II,0.73
-Slavia,-0.73
-Vaprus,-0.72
+APOEL,0.73
+Brommapojkarna,-0.73
+Udinese,-0.72
+Atromitos,-0.72
 CSA Steaua Bucureşti,0.72
 Táborsko,-0.72
-Varaždin,-0.71
+Flint Town United,0.72
+Atyrau,-0.72
+Slavia,-0.71
 Lusitânia Lourosa,-0.71
 Tukums,0.71
 Halkanoras,-0.71
 Tirana,-0.71
 Bournemouth,0.71
-APOEL,0.71
+Čukarički,0.7
+Connah's Quay,-0.7
+Vaprus,-0.7
 Athletic Club,0.7
-Viktoria Plzeň,0.7
 Dinamo Zagreb,0.7
-Raków Częstochowa,0.7
 Moyola Park,0.7
 Casa de Portugal,0.7
-Strasbourg,-0.7
-Cardiff MU,0.69
-Flint Town United,0.69
+Malisheva,-0.7
+Sparta Praha,0.7
+Raków Częstochowa,0.69
 Dender,-0.69
 Sporting Hasselt,0.69
-Famalicão,-0.69
 Moreirense,-0.69
 Petržalka,-0.69
 Sileks,0.69
 Hapoel Ra'anana,0.69
 Leningradets,0.69
-Iraklis 1908,-0.69
 Kairat,-0.69
-Slaven Koprivnica,-0.69
-Malisheva,-0.69
 Strommen,0.69
 Minija,0.69
+HNK Gorica,0.69
+St. Johnstone,-0.69
+Strasbourg,-0.68
+Slaven Koprivnica,-0.68
 Lyngby,0.68
 CSM Ramnicu Valcea,-0.68
 Dinamo Tbilisi,-0.68
-Brommapojkarna,-0.68
-Sparta Praha,0.68
 Le Havre,-0.68
-Apollon,-0.67
+Brann,0.68
+Viktoria Plzeň,0.67
 Crvena Zvezda,0.67
 Žilina II,0.67
 AB,0.67
 FC Slutsk,-0.67
 Bray Wanderers,0.67
-Mladost Lučani,-0.66
-Norwich,0.66
+Batman Petrolspor,0.67
 Pohronie,-0.66
 Denbigh Town,0.66
 Aresimi,-0.66
-Atyrau,-0.66
+Cardiff MU,0.65
+Norwich,0.65
 Raith Rovers,-0.65
-Batman Petrolspor,0.65
-Sassuolo,-0.65
-Fortuna Sittard,-0.65
-Derry City,-0.65
 Karviná,0.65
 Šamorín,0.65
 Zabbar St. Patrick,0.65
 Oriku,-0.65
-Dundee United,-0.65
-Wrexham,-0.65
-HNK Gorica,0.65
-Ludogorets II,-0.64
+Ironi Tiberias,-0.65
+Lynx,0.65
+Apollon,-0.64
+Derry City,-0.64
+Wrexham,-0.64
 Atlético de Madrid,0.64
 Everton,-0.64
 hodd,-0.64
 Girona,-0.64
-St. Johnstone,-0.63
+Sassuolo,-0.63
+Fortuna Sittard,-0.63
+Dundee United,-0.63
 Sturm Graz,-0.63
-Torino,-0.63
+Drita,-0.63
 Almere City FC,-0.62
 Lokomotiv Sofia 1929,0.62
 B36,-0.62
 Kauno Žalgiris II,0.62
 Union Berlin,0.62
-Brann,0.62
 Brinje Grosuplje,0.62
+B68,0.62
+Benevento,0.62
+Sarıyer,0.62
 Etar Veliko Tarnovo,0.61
 Marek,0.61
 Maccabi Bnei Raina,0.61
 Doxa,0.61
 Dacia-Buiucani,0.61
-Drita,-0.61
 Zalaegerszeg,-0.61
 FC Volendam,0.6
-B68,0.6
-Bashkimi Kumanovo,-0.6
-Ironi Tiberias,-0.6
 Hamburger SV,-0.6
-Csikszereda,-0.6
+Gaziantep FK,0.6
+Jagiellonia Białystok,0.6
+Zorya,-0.6
+Mladost Lučani,-0.59
+Csikszereda,-0.59
 Vushtrria,-0.59
-Halmstad,-0.59
-Kocaelispor,-0.59
 Fram,0.59
 Queen's Park,-0.59
 Mainz 05,0.59
 San Marino Academy,0.59
-Lynx,0.59
-Gaziantep FK,0.59
 Elversberg,0.59
-Kifisia,-0.59
-Jagiellonia Białystok,0.59
-Cracovia,-0.59
+Feronikeli,-0.59
+Cracovia,-0.58
 Slavia Praha II,0.58
 Rio Ave,-0.58
 Metalac GM,-0.58
 FK Vozdovac,-0.58
 Burreli,-0.58
 Cordoba,-0.58
-Korona Kielce,0.57
+Korona Kielce,0.58
+Tammeka,0.58
+Casa Pia,-0.58
 Telstar,-0.57
 Toulouse,-0.57
 Dunav Ot Ruse,-0.57
 HB,0.57
 Noah,-0.57
-Benevento,0.57
-Feronikeli,-0.57
 1. FC Magdeburg,0.57
 Troyes,0.57
 Anorthosis,-0.57
-Tammeka,0.56
+Flora,-0.57
+PAOK,0.57
+Kifisia,-0.56
 Bodø / Glimt,0.56
 Fratria,-0.56
 Estoril,0.56
-Casa Pia,-0.56
 Hibernians,0.56
 Murata,0.56
 St. Andrews,0.56
+Olympique Lyonnais,0.56
+Drenica Skënderaj,0.56
 Þór,-0.55
 Ashdod,0.55
 Llanuwchllyn,0.55
 Morton,-0.55
-Olympique Lyonnais,0.55
 Neptūną Klaipėda,-0.55
-Västerås,-0.55
-Oulu,0.55
-Wisła Kraków,0.54
-Flora,-0.54
+Wisła Kraków,0.55
+Kudrivka,0.55
+Västerås,-0.54
 Garliava,0.54
 Excelsior Virton,-0.54
-Drenica Skënderaj,0.54
 Telavi,-0.54
 Travnik,-0.54
 Atmosfera,-0.54
 Dynamo Dresden,0.54
 Sogndal,0.54
+Swansea,-0.54
 Valladolid,0.53
 Chindia Targoviste,0.53
 Austria Vienna (Am),-0.53
 FC Eindhoven,0.53
+Botev Vratsa,0.53
+Iğdır FK,0.53
+Kocaelispor,-0.52
 Omonia Nicosia,-0.52
 Loughgall,-0.52
 Southampton,-0.52
 Llapi,0.52
-Jenis,-0.52
+Chornomorets,-0.52
+Zhetysu,0.52
+Waterford,-0.52
+Keçiörengücü,0.52
 BFC Daugavpils,-0.51
 Metaloglobus,0.51
 Egersund,0.51
 Kustosija,0.51
 Felgueiras 1932,0.51
-PAOK,-0.51
-Chornomorets,-0.51
 BFA,-0.51
-Kudrivka,0.51
 Asane,0.51
 Debrecen,0.51
-Aris Limassol,-0.51
+Obolon Kyiv,-0.51
+Bologna,-0.51
+Jenis,-0.5
+Aris Limassol,-0.5
 Nõmme United II,0.5
-Ljungskile SK,0.5
-Shamrock Rovers,0.5
 Como,0.5
 Beerschot VA,0.5
 Club Brugge II,0.5
 Ústí nad Labem,-0.5
-Botev Vratsa,0.5
 FA Šiauliai II,0.5
-Zhetysu,0.49
+Ljungskile SK,0.49
 Krško,0.49
 Vittoriosa Stars,0.49
 Viitorul Şelimbăr,-0.49
 Eintracht Frankfurt,0.49
-Midtjylland,0.48
+Midtjylland,0.49
+Alverca,-0.49
 Ammanford,-0.48
 Neuchatel Xamax FC,0.48
 Estrela,0.48
@@ -826,55 +829,51 @@ Gresford Athletic,0.48
 SpVgg Greuther Fürth,0.48
 Esbjerg,0.48
 Egnatia Rrogozhinë,-0.48
-Swansea,-0.48
 Bryne,-0.47
-Waterford,-0.47
-Radomiak Radom,-0.47
 Angers SCO,0.47
 Újpest,0.47
-Lokomotiva Zagreb,-0.47
-Obolon Kyiv,-0.47
 Arka Gdynia,-0.47
+KuPS,0.47
+Halmstad,-0.46
 Kongsvinger,0.46
 Fiorentina,0.46
 Muğlaspor,-0.46
-Argeș,-0.46
-KuPS,0.46
 Sporting Gijon,0.46
-Iğdır FK,0.45
-Kharkiv,0.45
+Lokomotiva Zagreb,-0.45
 Rodina Moskva,-0.45
 Antwerp,0.45
 Dubrava Zagreb,-0.45
 Birkirkara,0.45
 Falkirk,-0.45
+Zulte Waregem,0.45
+Wisła Płock,-0.45
 Riga,-0.44
-Maccabi Haifa,0.44
 Kolos Kovalivka II,-0.44
-Arda Kardzhali,-0.44
 Ural,-0.44
-Vicenza Virtus,-0.44
 Hapoel Be'er Sheva,-0.44
-Bologna,-0.44
-Sabah,-0.43
-Osijek,0.43
+Marítimo,-0.44
+Çorum,0.44
+Liepāja,0.44
+Newcastle United,0.44
+Vicenza Virtus,-0.43
+Olympiakos Piraeus,-0.43
+Kharkiv,0.42
+Sabah,-0.42
 Transinvest 2,0.42
-Marítimo,-0.42
 Caerau (Ely),-0.42
 Soroksar,-0.42
 Groningen,-0.42
-Manchester City,0.42
+Maccabi Petah Tikva,0.42
+København,0.42
+Frosinone,-0.42
+Sevilla,-0.42
+Manchester City,0.41
 Kallithea,0.41
-Olympiakos Piraeus,-0.41
-Çorum,0.41
-Zulte Waregem,0.41
 Buckley Town,0.41
 Uni Minsk,0.41
 Werder Bremen,0.41
-Maccabi Petah Tikva,0.41
-IFK Norrkoping,0.41
-København,0.4
-Petrolul 52,-0.4
+Slavia Sofia,-0.41
+BKMA,0.41
 Sandviken,-0.4
 KAMAZ,0.4
 Rapperswil,0.4
@@ -887,44 +886,42 @@ Attard,-0.4
 Hapoel Kfar Shalem,-0.4
 Benfica,0.4
 VfL Bochum,-0.4
-Śląsk Wrocław,-0.4
-Wisła Płock,-0.4
+Bnei Sakhnin,0.4
+Kolos Kovalivka,-0.4
+IFK Norrkoping,0.39
 Boulogne,0.39
 Dinamo Brest,0.39
 Sporting Charleroi,-0.39
 Raal La Louvière,0.39
-Slavia Sofia,-0.39
 Mezokovesd-zsory,-0.39
-Ordino,0.39
-BKMA,0.39
-Ludogorets Razgrad,0.39
-Bnei Sakhnin,0.39
 UTA Arad,0.39
-Kolos Kovalivka,-0.38
+Nea Salamis,-0.39
+Kalmar,-0.39
+Osijek,0.38
+Ordino,0.38
 Austria Wien,0.38
-Otrant-Olympic,-0.38
 Portimonense,0.38
 Portadown,0.38
 Universitatea Craiova,-0.38
+Sutjeska,0.38
+Young Boys,0.38
 Roma,-0.37
 CSKA Sofia,0.37
 Opava,0.37
-Čelik,-0.37
 JFK Ventspils,0.37
 Nyva Ternopil,0.37
 Samtredia,0.37
 Shkendija,-0.37
 PAOK II,-0.37
-Frosinone,-0.37
 Dunkerque,-0.37
-ML Vitebsk,-0.37
 Guingamp,-0.37
+Hibernian,0.37
+Radnik Surdulica,-0.37
+Nafta,-0.37
 AD Ceuta FC,-0.36
 Valur,-0.36
 Lugano,-0.36
-Hibernian,0.36
 Monaco,0.36
-Trefelin,-0.36
 Xankəndi FK,0.36
 FC Winterthur,-0.36
 Rhyl,-0.36
@@ -932,90 +929,89 @@ Sioni,-0.36
 Carroi,0.36
 Karmiotissa,-0.36
 Kolding IF,0.36
-Jablonec,-0.36
 Keflavík,0.36
 Treaty United,-0.36
+Belshina,-0.36
+Shamrock Rovers,0.35
+Petrolul 52,-0.35
+Śląsk Wrocław,-0.35
+Otrant-Olympic,-0.35
+Čelik,-0.35
 Osters IF,0.35
-Sutjeska,0.35
 Vlašim,-0.35
 Sumqayıt,-0.35
 Cherno More Varna,0.35
-Young Boys,0.35
 Shturmi,-0.35
 Tikvesh,0.35
 Jaro,0.35
-AEK Athens,-0.35
-Drogheda United,-0.35
-Nea Salamis,-0.34
+Jablonec,-0.34
 Metz,-0.34
-Rapid București,0.34
 Stal Mielec,0.34
 Farense,-0.34
 Tekstilshchik,0.34
 Orijent 1919,0.34
 Hrvace,0.34
 Maccabi Herzliya,-0.34
-Radnik Surdulica,-0.34
 Sliema Wanderers,-0.34
 Kyzyl-Zhar,-0.34
 Lillestrøm,0.34
 Panthrakikos,-0.34
 Örgryte,0.34
 Atalanta,0.34
-Wieczysta Kraków,0.34
 Nordsjælland,0.34
-Kalmar,-0.34
+Slovan Liberec,0.34
+Arda Kardzhali,-0.33
+ML Vitebsk,-0.33
+Trefelin,-0.33
+Drogheda United,-0.33
 Cambuur,-0.33
-Racing de Santander,-0.33
-Sarıyer,0.33
-Belshina,-0.33
 Penrhyncoch,0.33
 Sesvete,-0.33
 Hapoel Acre,-0.33
 Gudja United,-0.33
-İstanbul Başakşehir,-0.33
 Fakel,0.33
 Ried,0.33
-Dinamo Makhachkala,-0.33
 QPR,0.33
 Montpellier,-0.33
 Celta de Vigo II,-0.33
+Petrovac,0.33
+Racing de Santander,-0.32
+İstanbul Başakşehir,-0.32
 Sarpsborg 08,0.32
 Omonia 29is Maiou,-0.32
 Bregalnica Štip,-0.32
 Sirens,-0.32
 Iberia 1999,-0.32
-Nafta,-0.32
-Cliftonville,-0.32
 Žalgiris II,-0.32
-Motor Lublin,0.32
+Dinamo Makhachkala,-0.31
+Cliftonville,-0.31
 CSKA Moskva,0.31
-Zorya,-0.31
 Kladno,-0.31
 Chaves,0.31
 JDFS Alberts,-0.31
 Tauras,-0.31
-Slovan Liberec,0.31
 Le Mans,-0.31
 Galatasaray,0.31
+Bukovyna,0.31
+West Brom,-0.31
+Omonia Aradippou,0.31
+Montana,0.3
 Maribor,-0.3
-Bukovyna,0.3
-West Brom,-0.3
 Kasımpaşa,-0.3
 Eintracht Braunschweig,0.3
-Petrovac,0.3
 Isloch,-0.3
-Standard Liège,0.3
 Bnei Yehuda,0.3
 Vardar Skopje,-0.3
 Differdange 03,-0.3
-SJK,-0.3
 FC Liefering,0.3
-Galway United,-0.3
 Willem II,0.3
 Pafos,-0.3
+Leeds United,0.3
+Aston Villa,-0.3
+Argeș,-0.29
+Standard Liège,0.29
+SJK,-0.29
 Kristiansund,0.29
-AEL,0.29
 Stade Lausanne-Ouchy,-0.29
 Westerlo,-0.29
 Pontypridd Town,-0.29
@@ -1024,65 +1020,63 @@ Omarska,0.29
 Stupčanica Olovo,-0.29
 Iliria Fushë-Krujë,-0.29
 Vllaznia Shkodër,-0.29
-Ferencváros,-0.29
-Leeds United,0.29
+Botev Plovdiv,0.29
+Ferencváros,-0.28
 Dijon,-0.28
-Sirius,-0.28
-Shelbourne,-0.28
 Krasava Ypsonas,-0.28
 JJK,-0.28
 Probiy Horodenka,0.28
 Besëlidhja Lezhë,0.28
 Mgarr United,-0.28
-Sevilla,-0.28
-Erzurumspor FK,0.28
-Lech Poznań,-0.28
-Aberdeen,-0.27
+Rizespor,-0.28
+Galway United,-0.27
+AEL,0.27
+Shelbourne,-0.27
 Dinamo Batumi,0.27
 Turan,0.27
 SK Poltava,-0.27
 Korabi Peshkopi,-0.27
-Alanyaspor,0.27
-Silkeborg,0.27
-VPS,0.26
+Sarajevo,-0.27
+Sepsi,-0.27
+Naftan,0.27
+Bodrum FK,-0.26
+Lech Poznań,-0.26
 Dnepr Mogilev,0.26
-Akron,0.26
 Málaga,-0.26
 Genk,0.26
 Porthmadog,0.26
-Botev Plovdiv,0.26
 Teleoptik,0.26
 Aragvi Dusheti,0.26
 Konyaspor,0.26
-AGF,0.26
 Wolves,0.26
-Aston Villa,-0.26
 WSG Tirol,0.26
 Freiburg,0.26
+Watford,-0.26
+Aberdeen,-0.25
 Železničar Pančevo,0.25
 Modena,0.25
 Sparta Rotterdam,0.25
-Omonia Aradippou,0.25
 Ironi Kiryat Shmona,0.25
-Sarajevo,-0.25
 Sion,0.25
 Annagh United,-0.25
 Sardarapat,0.25
 Partizani Tirana,0.25
 Unirea Slobozia,-0.25
 Schalke 04,0.25
-Viborg,0.25
-Neman Grodno,-0.24
+Carrick Rangers,0.25
+Wieczysta Kraków,0.24
+Sirius,-0.24
 Hannover 96,-0.24
-Sepsi,-0.24
 Lincoln Red Imps,-0.24
-Naftan,0.24
 Bala Town,0.24
 Jedinstvo,-0.24
 Laval,-0.24
 Heart of Midlothian,-0.24
-Livyi Bereh,0.24
-Carrick Rangers,0.23
+Preston,0.24
+Epitsentr,0.24
+Ludogorets II,-0.23
+AEK Athens,-0.23
+Alanyaspor,0.23
 Motherwell,0.23
 Dila,-0.23
 Étoile Carouge,0.23
@@ -1093,19 +1087,19 @@ Penafiel,-0.23
 Sporting CP B,-0.23
 Dundela,-0.23
 Jedinstvo Bihać,-0.23
-Rizespor,-0.23
-Watford,-0.23
-Keçiörengücü,0.23
 Super Nova,0.23
 Birmingham,0.23
-Stoke City,0.22
-Preston,0.22
+Stoke City,0.23
+Ludogorets Razgrad,0.22
+AGF,0.22
+Neman Grodno,-0.22
 Celtic,0.22
 Gençlerbirliği,0.22
 Hapoel Kfar Saba,-0.22
 Rustavi,-0.22
-Sampdoria,0.22
-Istra 1961,-0.21
+Sint-Truiden,-0.22
+Vaduz,0.22
+Akron,0.21
 Liège,-0.21
 Jadran LP,-0.21
 Maccabi Kiryat Gat,0.21
@@ -1115,50 +1109,47 @@ Warrenpoint Town,0.21
 Sloboda Tuzla,0.21
 Résidence Walferdange,0.21
 Pisa,-0.21
-Epitsentr,0.21
+Racing,0.21
+Silkeborg,0.2
+Viborg,0.2
 Almeria,-0.2
 PEC Zwolle,0.2
-Sint-Truiden,-0.2
 Safa,-0.2
 Luzern,0.2
-Vaduz,0.2
 Super Nova 2,-0.2
 Radnik Hadžići,-0.2
-Pardubice,0.2
 FH,0.2
+Manchester United,0.2
+Gagra,-0.2
+Burnley,-0.2
+Laagri,0.2
 Slovan Bratislava,-0.19
 Vitebsk,-0.19
 MFK Bytča,0.19
 Beltinci,0.19
 Jesenice,0.19
-Maccabi Tel Aviv,0.19
 ŁKS Łódź,-0.19
 Kaspiy,-0.19
 Monza,0.19
-Manchester United,0.19
+Mladost DG,-0.19
+Istra 1961,-0.18
 Brest,-0.18
 FC UFA,0.18
-Gagra,-0.18
 Yverdon Sport,-0.18
 Ironi Modi'in,-0.18
 Siroki Brijeg,0.18
 Primorje,0.18
-Milsami,0.18
-Racing,0.18
-Burnley,-0.18
-Laagri,0.18
-Artis Brno,-0.17
-Penybont,0.17
-Airbus UK,-0.17
-Jezero,0.17
+Erzurumspor FK,0.17
+Sampdoria,0.17
+Maccabi Tel Aviv,0.17
 Sardarapat 2,0.17
 Hapoel Afula,0.17
-Şamaxi,-0.17
 Borussia M'Gladbach,0.17
-Samsunspor,-0.16
+Radnik Bijeljina,0.17
+Hapoel Ramat Gan,-0.17
+Artis Brno,-0.16
+Jezero,0.16
 Grazer AK,0.16
-Viking,-0.16
-Mladost DG,-0.16
 Lovćen,0.16
 Javor,-0.16
 Septemvri Sofia,0.16
@@ -1166,57 +1157,65 @@ Celta de Vigo,-0.16
 Oviedo,-0.16
 Sporting Braga,0.16
 Lyn,-0.16
-Karpaty Lviv,-0.15
+Pardubice,0.15
+Milsami,0.15
+Samsunspor,-0.15
+Viking,-0.15
 Okzhetpes,-0.15
-Hapoel Jerusalem,-0.15
 Cercle Brugge,0.15
-OH Leuven,0.15
 Tondela,-0.15
 Maccabi Ahi Nazareth,0.15
-Basel,0.15
 Pogradeci,-0.15
 Ascoli,0.15
-Austria Lustenau,-0.15
-Slavia Praha,0.15
+Crusaders,0.15
+Airbus UK,-0.14
+Şamaxi,-0.14
+OH Leuven,0.14
 Botoșani,-0.14
 OB,-0.14
-Crusaders,0.14
 BVSC,0.14
 Ştefăneşti,0.14
 Nacional,0.14
 Kiryat Yam SC,-0.14
-Radnik Bijeljina,0.14
 Zürich,0.14
 07 Vestur,0.14
 Swieqi United,-0.14
-Liepāja,0.14
-Fredrikstad,0.13
+Tromsø,-0.14
+Kaisar Kyzylorda,-0.14
+Penybont,0.13
+Karpaty Lviv,-0.13
+Basel,0.13
+Austria Lustenau,-0.13
 BSK Banja Luka,0.13
 Partizan,0.13
 Lausanne-Sport,0.13
 Raufoss,-0.13
 Wolfsberger AC,0.13
-Olympiakos Nicosia,-0.13
+Excelsior,0.13
+Slavia Praha,0.12
+Olympiakos Nicosia,-0.12
 PSV,0.12
-Osasuna,0.12
-Hapoel Ramat Gan,-0.12
 Şimal,-0.12
 AVS,-0.12
 Carmarthen Town,-0.12
 Sloga Doboj,0.12
-Grasshoppers,0.12
 Zvijezda 09,-0.12
 OFK Vršac,0.12
-Mons Calpe,0.12
 Lens,-0.12
 Thun,-0.12
-Ballkani,0.11
-Olimpija,-0.11
-Sigma Olomouc,0.11
+Virtus Entella,-0.12
+VPS,-0.11
+Hapoel Jerusalem,0.11
 Guilsfield,0.11
 Newington Youth,-0.11
 Hertha BSC,0.11
-Sunderland,0.11
+Santa Clara,0.11
+Hostert,0.11
+Progrès Niederkorn,-0.11
+Grasshoppers,0.1
+Ballkani,0.1
+Olimpija,-0.1
+Sunderland,0.1
 Sporting CP,-0.1
 Francs Borains,0.1
 Gil Vicente,0.1
@@ -1224,5 +1223,3 @@ Qəbələ,0.1
 EB / Streymur,0.1
 Laçi,0.1
 Leganes,0.1
-Mladá Boleslav,-0.1
-Aluminij,-0.1
