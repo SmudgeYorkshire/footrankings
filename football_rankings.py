@@ -1520,7 +1520,16 @@ def main_content():
             st.markdown("### 🏆 Championship Round")
             st.markdown(_conf_progress_html(_champ_pf, _champ_rf), unsafe_allow_html=True)
             st.caption(_pts_note)
-            _render_table(_table_rows(split_info["champ_current"], zones=_champ_zones, show_next=True))
+            # _team_overrides_current (position-keyed, resolved against
+            # TODAY's actual standings order -- see its own computation
+            # above) merges in the same way the non-split Current Table
+            # does at zones={**_main_zones, **_team_overrides_current} --
+            # this table's own zone_key is likewise today's actual intRank,
+            # and for every split league the champ conference's raw
+            # full-table rank already starts at 1 (it's always the
+            # top-ranked conference), so the two position spaces agree.
+            _render_table(_table_rows(split_info["champ_current"],
+                                       zones={**_champ_zones, **_team_overrides_current}, show_next=True))
             st.caption(_tb_caption(_champ_tbs))
 
             # ── Cup Details ──────────────────────────────────────────────────────

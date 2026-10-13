@@ -52,6 +52,33 @@ def get_split_info(standings: list[dict], split_round: int,
     if split_rows and not current_rows:
         current_rows = list(split_rows)
 
+    # Fallback D: intPlayed is useless for detecting the split at all for
+    # some providers -- API-Football resets it to count only games played
+    # WITHIN each post-split group rather than keeping a season-cumulative
+    # total, so neither of the two intPlayed-based checks above (nor
+    # football_rankings.py's own presplit-snapshot-capture trigger, which
+    # uses the same comparison) ever fires once the real split_round has
+    # passed (confirmed 2026-10-13: Czech First League, Cypriot First
+    # Division, Danish Superliga, Greek Super League 1, Swiss Super League
+    # all report every team's intPlayed well below split_round even with
+    # group-stage games already played and the real split long since
+    # settled). strDescription itself is already reliably populated with
+    # each team's post-split group for these providers -- even the moment
+    # the groups are first assigned with zero group-stage games played yet
+    # (a "preview" of who's in which group, before a ball's kicked) -- so
+    # trust that over the played-count heuristic entirely whenever at least
+    # two distinct, non-empty descriptions are actually present. Treat the
+    # whole standings response as the current (already-split) table; reuse
+    # the presplit snapshot for split_rows if one exists, otherwise current
+    # standings are the best proxy available (same reasoning Fallback B/C
+    # already rely on elsewhere in this function).
+    if not split_rows and not current_rows:
+        _distinct_descs = {(r.get("strDescription") or "").strip() for r in standings}
+        _distinct_descs.discard("")
+        if len(_distinct_descs) >= 2:
+            current_rows = list(standings)
+            split_rows = list(presplit) if presplit else list(standings)
+
     if not split_rows or not current_rows:
         return None  # Regular season still running
 

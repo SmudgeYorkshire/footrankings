@@ -145,7 +145,7 @@ LEAGUES = {
                                      "season_end": "29 May 2027",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "fair_play", "draw"],
                                      "home_advantage": 1.15,
-                                     "split_round": 30, "n_champ": 6, "n_mid": 6, "pts_factor": 1.0,
+                                     "split_round": 30, "n_champ": 6, "n_mid": 4, "pts_factor": 1.0,
                                      "mid_label": "Middle Group",
                                      "zone_notes": {"relegation": "16th is directly relegated. 14th and 15th play two-legged play-offs against 2nd and 3rd of Czech National Football League."},
 

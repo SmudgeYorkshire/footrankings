@@ -25,6 +25,7 @@ from club_coefficients import get_coeff
 from league_phase_simulator import (
     build_predicted_bracket, single_match_outcome_probs,
     cached_league_phase_simulation, league_phase_sim_cache_key,
+    simulate_competition_winner,
 )
 from prob_table import render_prob_table
 from league_phase_fixtures import (
@@ -460,15 +461,73 @@ st.divider()
 # Tabs
 # ---------------------------------------------------------------------------
 if has_lp:
-    tab_league, tab_lp_results, tab_lp_pred, tab_qual, tab_qual_pred, tab_trivia = st.tabs(
-        ["📊 Standings", "📋 League Stage", "📈 League Stage Predictions", "🔍 Qualifying",
-         "🔮 Qualifying Predictions", "🎲 Trivia"]
+    tab_league, tab_lp_results, tab_lp_pred, tab_ko_pred, tab_manual, tab_qual, tab_qual_pred, tab_trivia = st.tabs(
+        ["📊 Current Standings", "📅 Fixtures", "📈 League Stage Predictions", "🥊 Knockout Predictions",
+         "🔮 Manual Predictions", "🔍 Qualifying", "🔮 Qualifying Predictions", "🎲 Trivia"]
     )
 else:
     tab_qual, tab_qual_pred, tab_trivia = st.tabs(["🔍 Qualifying", "🔮 Qualifying Predictions", "🎲 Trivia"])
     tab_league = None
     tab_lp_results = None
     tab_lp_pred = None
+    tab_ko_pred = None
+    tab_manual = None
+
+
+# ---------------------------------------------------------------------------
+# Shared League Phase field/schedule/simulation -- computed once here (pure
+# data, no UI calls: a `with st.spinner()`/`st.info()` placed here would
+# render outside any tab's own panel, since this runs after st.tabs() but
+# before any `with tab_x:` block) so League Stage Predictions, Knockout
+# Predictions, and Manual Predictions can all reference the exact same
+# _field/_real_schedule_ready/_real_results/_ls_result instead of each
+# re-deriving (or worse, redundantly re-simulating) it. Each of those tabs
+# still shows its own "not ready yet" message / readiness caption using
+# _field_ready/_real_schedule_ready below -- only the DATA is shared, not
+# any UI.
+# ---------------------------------------------------------------------------
+if has_lp:
+    _field = _project_league_phase_field(comp_name, ratings_df)
+    _fill_missing_badges([(f["team"], f["country"]) for f in _field], badge_lookup, _API_KEY)
+    _field_cascade_note = {
+        "Europa League": " + Champions League Play-off losers (parachuted down)",
+        "Conference League": " + Europa League Play-off losers (parachuted down)",
+    }.get(comp_name, "")
+    _field_ready = len(_field) >= 36
+    # Resolved unconditionally (not gated on _field_ready) -- Fixture
+    # Difficulty (in the Trivia tab) uses this for whichever clubs ARE
+    # already confirmed, even with a partial field.
+    _field_ratings_df = _resolve_field_ratings(_field)
+    if _field_ready:
+        _real_schedule_ready = is_opponent_list_complete(comp_name, [f["team"] for f in _field])
+        _real_schedule = derive_fixtures(comp_name) if _real_schedule_ready else None
+        _real_results = (
+            real_league_phase_results(comp_name, _API_KEY, tuple(f["team"] for f in _field))
+            if _real_schedule_ready else {}
+        )
+        _n_pots, _opp_per_pot = _LEAGUE_PHASE_POTS[comp_name]
+        _club_coeff = {f["team"]: get_coeff(f["team"], f["country"]) for f in _field}
+        _n_sim = 30_000
+        _home_advantage = EUROPEAN_COMPETITIONS[comp_name]["home_advantage"]
+        _ls_cache_key = league_phase_sim_cache_key(
+            comp_name, _n_sim, _home_advantage, _field, _field_ratings_df, _real_results,
+        )
+        _ls_result, _ls_points_by_club = cached_league_phase_simulation(
+            _ls_cache_key, _field, _club_coeff, _field_ratings_df,
+            _n_pots, _opp_per_pot, _n_sim, _home_advantage, comp_name,
+            _real_schedule, _real_results,
+        )
+        _lp_pos_cols = [str(i) for i in range(1, len(_field) + 1)]
+        # 9th-24th (Knockout Play-off band) and 25th-36th (Elimination) --
+        # summed directly from the per-position columns already computed
+        # above, same basis reached_top8/top16/top24 are built from, not a
+        # subtraction of those cumulative fields (mathematically identical,
+        # but this reuses data already in hand with one less assumption
+        # about those fields staying cumulative).
+        _ko_band_cols = [c for c in _lp_pos_cols if 9 <= int(c) <= 24]
+        _elim_band_cols = [c for c in _lp_pos_cols if int(c) >= 25]
+        _ls_result["pct_knockout_band"] = _ls_result[_ko_band_cols].sum(axis=1) if _ko_band_cols else 0.0
+        _ls_result["pct_elimination_band"] = _ls_result[_elim_band_cols].sum(axis=1) if _elim_band_cols else 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -540,65 +599,123 @@ if tab_league is not None:
 
 
 # ---------------------------------------------------------------------------
-# Tab — League Stage Results (round-by-round)
+# Tab — Fixtures (full League Phase calendar, past results + future fixtures,
+# grouped by matchday -- a completed matchday starts collapsed, any matchday
+# with at least one match still to play starts open). Replaces the old
+# results-only "League Stage" tab; the dated/undated/not-yet-known fallback
+# below is the same one "League Phase Fixtures" used inside League Stage
+# Predictions, just moved here (that's a fixture/result listing, not a
+# prediction, so this is where it belongs) and now wrapped per-matchday in
+# an expander.
 # ---------------------------------------------------------------------------
 if tab_lp_results is not None:
     with tab_lp_results:
-        if not lp_played:
-            st.info("No league stage results yet.")
+        if not _field_ready:
+            st.info(
+                f"Only {len(_field)} of 36 League Phase clubs are known for the {comp_name} so far "
+                f"(confirmed direct entrants + each Play-off tie's favoured side{_field_cascade_note}) — "
+                "the full fixture list will appear once the rest are confirmed."
+            )
         else:
-            lp_rounds_map: dict[int, list] = {}
-            for f in lp_played:
-                rnd = _intround(f)
-                lp_rounds_map.setdefault(rnd, []).append(f)
-            _lpr_cfg = {
-                "Date":  st.column_config.TextColumn("Date",  width=110),
-                "HB":    st.column_config.ImageColumn("",     width="small"),
-                "Home":  st.column_config.TextColumn("Home",  width="medium"),
-                "Score": st.column_config.TextColumn("Score", width="small"),
-                "Away":  st.column_config.TextColumn("Away",  width="medium"),
-                "AB":    st.column_config.ImageColumn("",     width="small"),
-            }
-            for rnd in sorted(lp_rounds_map.keys(), reverse=True):
-                rows = [{
-                    "Date":  _utc_to_cet(f.get("dateEvent", ""), f.get("strTime", "")),
-                    "HB":    badge_lookup.get(f.get("strHomeTeam", ""), ""),
-                    "Home":  f.get("strHomeTeam", ""),
-                    "Score": f"{f.get('intHomeScore', '')}–{f.get('intAwayScore', '')}",
-                    "Away":  f.get("strAwayTeam", ""),
-                    "AB":    badge_lookup.get(f.get("strAwayTeam", ""), ""),
-                } for f in sorted(lp_rounds_map[rnd], key=lambda x: x.get("dateEvent", ""))]
-                st.markdown(f"### Matchday {rnd}")
-                _lpr_styled = pd.DataFrame(rows).style.set_properties(
-                    subset=["Home", "Away"], **{"font-weight": "bold"})
-                st.dataframe(_lpr_styled, column_config=_lpr_cfg,
-                             width="content", hide_index=True)
+            _cl_dated = dated_schedule(comp_name)
+            if _cl_dated:
+                st.caption(
+                    "UEFA's real, dated League Phase calendar, with each match's outcome probability."
+                )
+                _probs_by_pair = {
+                    (_fx["strHomeTeam"], _fx["strAwayTeam"]): _fx
+                    for _fx in single_match_outcome_probs(
+                        _real_schedule, _field_ratings_df,
+                        home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"],
+                    )
+                }
+                _by_md: dict[int, list[dict]] = {}
+                for _fx in _cl_dated:
+                    _by_md.setdefault(_fx["matchday"], []).append(_fx)
+                for _md in sorted(_by_md):
+                    _md_fixtures = _by_md[_md]
+                    _md_done = all((_fx["home"], _fx["away"]) in _real_results for _fx in _md_fixtures)
+                    with st.expander(f"Matchday {_md}", expanded=not _md_done):
+                        _md_rows = []
+                        for _fx in sorted(_md_fixtures, key=lambda f: (f["date"], f["time"])):
+                            _p = _probs_by_pair.get((_fx["home"], _fx["away"]), {})
+                            _real = _real_results.get((_fx["home"], _fx["away"]))
+                            _dt = datetime.strptime(_fx["date"], "%Y-%m-%d")
+                            _md_rows.append({
+                                "Date": f"{_dt.strftime('%a %d %b %Y')} {_fx['time']}",
+                                "HB": badge_lookup.get(_fx["home"], ""),
+                                "Home": _fx["home"],
+                                "Score": f"{_real[0]}–{_real[1]}" if _real else "—",
+                                "Home Win": round(_p.get("pct_home", 0.0) * 100, 1),
+                                "Draw": round(_p.get("pct_draw", 0.0) * 100, 1),
+                                "Away Win": round(_p.get("pct_away", 0.0) * 100, 1),
+                                "Away": _fx["away"],
+                                "AB": badge_lookup.get(_fx["away"], ""),
+                            })
+                        st.dataframe(
+                            pd.DataFrame(_md_rows),
+                            column_config={
+                                "HB": st.column_config.ImageColumn("", width="small"),
+                                "AB": st.column_config.ImageColumn("", width="small"),
+                                "Home Win": st.column_config.NumberColumn("Home Win (pre-match)", format="%.1f%%"),
+                                "Draw": st.column_config.NumberColumn("Draw (pre-match)", format="%.1f%%"),
+                                "Away Win": st.column_config.NumberColumn("Away Win (pre-match)", format="%.1f%%"),
+                            },
+                            width="content", hide_index=True, height=len(_md_rows) * 35 + 38,
+                        )
+            elif _real_schedule_ready:
+                st.caption(
+                    "The real League Phase opponent list, with each match's outcome probability. "
+                    "UEFA doesn't publish matchday-by-matchday order/dates alongside the opponent "
+                    "list itself, so these aren't grouped or dated — home/away legs are real, though."
+                )
+                _fx_probs = single_match_outcome_probs(
+                    _real_schedule, _field_ratings_df,
+                    home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"],
+                )
+                _fx_rows = [{
+                    "HB": badge_lookup.get(_fx["strHomeTeam"], ""),
+                    "Home": _fx["strHomeTeam"],
+                    "Score": (lambda _r: f"{_r[0]}–{_r[1]}" if _r else "—")(
+                        _real_results.get((_fx["strHomeTeam"], _fx["strAwayTeam"]))),
+                    "Home Win": round(_fx["pct_home"] * 100, 1),
+                    "Draw": round(_fx["pct_draw"] * 100, 1),
+                    "Away Win": round(_fx["pct_away"] * 100, 1),
+                    "Away": _fx["strAwayTeam"],
+                    "AB": badge_lookup.get(_fx["strAwayTeam"], ""),
+                } for _fx in sorted(_fx_probs, key=lambda f: f["strHomeTeam"])]
+                st.dataframe(
+                    pd.DataFrame(_fx_rows),
+                    column_config={
+                        "HB": st.column_config.ImageColumn("", width="small"),
+                        "AB": st.column_config.ImageColumn("", width="small"),
+                        "Home Win": st.column_config.NumberColumn("Home Win (pre-match)", format="%.1f%%"),
+                        "Draw": st.column_config.NumberColumn("Draw (pre-match)", format="%.1f%%"),
+                        "Away Win": st.column_config.NumberColumn("Away Win (pre-match)", format="%.1f%%"),
+                    },
+                    width="content", hide_index=True, height=len(_fx_rows) * 35 + 38,
+                )
+            else:
+                st.caption(
+                    "UEFA's real League Phase draw hasn't been made yet. Once each club's opponent "
+                    "list is entered, the real fixture list (with outcome probabilities) goes here."
+                )
 
 
 # ---------------------------------------------------------------------------
-# Tab — League Stage Predictions (Monte Carlo, works before the phase starts)
+# Tab — League Stage Predictions (headline % for the 5 league-stage bands,
+# then the full position-by-position table). Uses the shared _field/
+# _real_schedule_ready/_ls_result computed once above this tab split.
 # ---------------------------------------------------------------------------
 if tab_lp_pred is not None:
     with tab_lp_pred:
-        _field = _project_league_phase_field(comp_name, ratings_df)
-        _fill_missing_badges([(f["team"], f["country"]) for f in _field], badge_lookup, _API_KEY)
-        _cascade_note = {
-            "Europa League": " + Champions League Play-off losers (parachuted down)",
-            "Conference League": " + Europa League Play-off losers (parachuted down)",
-        }.get(comp_name, "")
-        if len(_field) < 36:
+        if not _field_ready:
             st.info(
                 f"Only {len(_field)} of 36 League Phase clubs are known for the {comp_name} so far "
-                f"(confirmed direct entrants + each Play-off tie's favoured side{_cascade_note}) — "
-                "competition-winner predictions need the full field and will appear once the rest are confirmed."
+                f"(confirmed direct entrants + each Play-off tie's favoured side{_field_cascade_note}) — "
+                "predictions need the full field and will appear once the rest are confirmed."
             )
         else:
-            _real_schedule_ready = is_opponent_list_complete(comp_name, [f["team"] for f in _field])
-            _real_schedule = derive_fixtures(comp_name) if _real_schedule_ready else None
-            _real_results = (
-                real_league_phase_results(comp_name, _API_KEY, tuple(f["team"] for f in _field))
-                if _real_schedule_ready else {}
-            )
             if _real_schedule_ready:
                 _decided_note = (
                     f" **{len(_real_results)} of {len(_real_schedule)} matches are already decided** and "
@@ -606,47 +723,17 @@ if tab_lp_pred is not None:
                     if _real_results else " No League Phase matches have been played yet, so all of them are simulated."
                 )
                 st.caption(
-                    "Simulates the full 36-club League Phase through to a champion, using the **real, "
-                    "confirmed opponent list and home/away legs** below — then applies the real, fixed "
-                    "knockout bracket (top 8 direct to the Round of 16, 9th-24th via a knockout "
-                    f"play-off, 25th-36th eliminated).{_decided_note} Recomputes when the page cache refreshes."
+                    "Simulates the full 36-club League Phase, using the **real, confirmed opponent "
+                    f"list and home/away legs**.{_decided_note} Recomputes when the page cache refreshes."
                 )
             else:
                 st.caption(
-                    "Simulates the full 36-club League Phase through to a champion, using each Play-off "
-                    f"tie's currently favoured side{_cascade_note} — no waiting for legs to actually be "
-                    "played. UEFA's real League Phase draw hasn't been made yet, so each run draws its "
-                    "own representative schedule following the *real* pot-based draw rules "
-                    "(coefficient-ranked pots, no same-country pairings) rather than the actual fixture "
-                    "list — then applies the real, fixed knockout bracket (top 8 direct to the Round of "
-                    "16, 9th-24th via a knockout play-off, 25th-36th eliminated). Once the real opponent "
-                    "list is entered below, this switches over to it automatically. Recomputes when the "
-                    "page cache refreshes."
-                )
-            _n_pots, _opp_per_pot = _LEAGUE_PHASE_POTS[comp_name]
-            _club_coeff = {f["team"]: get_coeff(f["team"], f["country"]) for f in _field}
-            _field_ratings_df = _resolve_field_ratings(_field)
-            # Shared with the Coefficients page's own country/club
-            # predictions -- same cached simulation, not two independent
-            # ones (confirmed as a real gap 2026-10-13: before this, the
-            # two pages used different n_sim and the Coefficients side
-            # never even passed real results in, so they could legitimately
-            # disagree on close calls for the same competition state).
-            # n_sim=30,000 regardless of real-schedule-readiness: now that
-            # this is genuinely cached (locked until the field, ratings, or
-            # real results actually change, not redrawn every rerun), the
-            # old "less to gain from more sims on a freshly-redrawn
-            # synthetic schedule" reasoning no longer applies.
-            _n_sim = 30_000
-            _home_advantage = EUROPEAN_COMPETITIONS[comp_name]["home_advantage"]
-            _ls_cache_key = league_phase_sim_cache_key(
-                comp_name, _n_sim, _home_advantage, _field, _field_ratings_df, _real_results,
-            )
-            with st.spinner("Simulating the League Phase and knockout stage…"):
-                _ls_result, _ls_points_by_club = cached_league_phase_simulation(
-                    _ls_cache_key, _field, _club_coeff, _field_ratings_df,
-                    _n_pots, _opp_per_pot, _n_sim, _home_advantage, comp_name,
-                    _real_schedule, _real_results,
+                    "Simulates the full 36-club League Phase, using each Play-off tie's currently "
+                    f"favoured side{_field_cascade_note} — no waiting for legs to actually be played. "
+                    "UEFA's real League Phase draw hasn't been made yet, so each run draws its own "
+                    "representative schedule following the *real* pot-based draw rules "
+                    "(coefficient-ranked pots, no same-country pairings). Once the real opponent list "
+                    "is known, this switches over to it automatically. Recomputes when the page cache refreshes."
                 )
             _ls_rows = []
             for _team, _r in _ls_result.iterrows():
@@ -656,14 +743,11 @@ if tab_lp_pred is not None:
                     "Top 8": round(_r["reached_top8"] * 100, 1),
                     "Top 16": round(_r["reached_top16"] * 100, 1),
                     "Top 24": round(_r["reached_top24"] * 100, 1),
-                    "Reach R16": round(_r["reached_r16"] * 100, 1),
-                    "Reach QF": round(_r["reached_qf"] * 100, 1),
-                    "Reach SF": round(_r["reached_sf"] * 100, 1),
-                    "Reach Final": round(_r["reached_final"] * 100, 1),
-                    "Win it all": round(_r["won_competition"] * 100, 1),
+                    "Knockout Play-offs (9th-24th)": round(_r["pct_knockout_band"] * 100, 1),
+                    "Elimination (25th-36th)": round(_r["pct_elimination_band"] * 100, 1),
                 })
             _ls_df = pd.DataFrame(_ls_rows)
-            _pct_cols = ["Top 8", "Top 16", "Top 24", "Reach R16", "Reach QF", "Reach SF", "Reach Final", "Win it all"]
+            _pct_cols = ["Top 8", "Top 16", "Top 24", "Knockout Play-offs (9th-24th)", "Elimination (25th-36th)"]
             _ls_col_cfg = {
                 "Badge": st.column_config.ImageColumn("", width="small"),
                 "Team": st.column_config.TextColumn("Team", width="medium"),
@@ -703,10 +787,62 @@ if tab_lp_pred is not None:
                 _lp_bounds = position_bounds(_lp_standings, _lp_remaining)
             else:
                 _lp_bounds = None
-            _lp_pos_cols = [str(i) for i in range(1, len(_field) + 1)]
             render_prob_table(
                 _ls_result[_lp_pos_cols], badge_lookup=badge_lookup, bounds=_lp_bounds,
                 title=f"{comp_name} League Phase — full position probabilities",
+            )
+
+
+# ---------------------------------------------------------------------------
+# Tab — Knockout Predictions (knockout-stage reach probabilities + one
+# concrete predicted bracket path). Same shared _ls_result/_field as League
+# Stage Predictions -- Top 8/16/24 relabeled "(LS)" here since they sit
+# alongside genuinely knockout-stage columns, plus "Knockouts" (9th-24th,
+# the same band League Stage Predictions calls "Knockout Play-offs").
+# ---------------------------------------------------------------------------
+if tab_ko_pred is not None:
+    with tab_ko_pred:
+        if not _field_ready:
+            st.info(
+                f"Only {len(_field)} of 36 League Phase clubs are known for the {comp_name} so far "
+                f"(confirmed direct entrants + each Play-off tie's favoured side{_field_cascade_note}) — "
+                "knockout predictions need the full field and will appear once the rest are confirmed."
+            )
+        else:
+            _ko_rows = []
+            for _team, _r in _ls_result.iterrows():
+                _ko_rows.append({
+                    "Badge": badge_lookup.get(_team, ""),
+                    "Team": _team,
+                    "Top 8 (LS)": round(_r["reached_top8"] * 100, 1),
+                    "Top 16 (LS)": round(_r["reached_top16"] * 100, 1),
+                    "Top 24 (LS)": round(_r["reached_top24"] * 100, 1),
+                    "Knockouts": round(_r["pct_knockout_band"] * 100, 1),
+                    "Reach R16": round(_r["reached_r16"] * 100, 1),
+                    "Reach QF": round(_r["reached_qf"] * 100, 1),
+                    "Reach SF": round(_r["reached_sf"] * 100, 1),
+                    "Reach Final": round(_r["reached_final"] * 100, 1),
+                    "Win it all": round(_r["won_competition"] * 100, 1),
+                })
+            _ko_df = pd.DataFrame(_ko_rows)
+            _ko_pct_cols = ["Top 8 (LS)", "Top 16 (LS)", "Top 24 (LS)", "Knockouts",
+                            "Reach R16", "Reach QF", "Reach SF", "Reach Final", "Win it all"]
+            _ko_col_cfg = {
+                "Badge": st.column_config.ImageColumn("", width="small"),
+                "Team": st.column_config.TextColumn("Team", width="medium"),
+            }
+            for _c in _ko_pct_cols:
+                _ko_col_cfg[_c] = st.column_config.NumberColumn(_c, format="%.1f%%", width="small")
+            st.caption(
+                "\"(LS)\" columns are the same League Stage finish bands as the League Stage "
+                "Predictions tab -- shown here alongside the knockout-stage reach probabilities "
+                "they feed into. \"Knockouts\" = chance of actually PLAYING in the Knockout "
+                "Play-off round (finishing 9th-24th), as opposed to going straight to the Round "
+                "of 16 (top 8) or being eliminated (25th-36th)."
+            )
+            st.dataframe(
+                _ko_df, column_config=_ko_col_cfg, width="content",
+                hide_index=True, height=len(_ko_df) * 35 + 38,
             )
 
             # ── Predicted Knockout Bracket ───────────────────────────────────
@@ -721,7 +857,7 @@ if tab_lp_pred is not None:
                 _bracket = build_predicted_bracket(
                     field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
                     n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=_n_sim,
-                    home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"],
+                    home_advantage=_home_advantage,
                     schedule=_real_schedule, real_results=_real_results,
                 )
             _round_labels = [
@@ -744,136 +880,211 @@ if tab_lp_pred is not None:
                             unsafe_allow_html=True)
             st.markdown(f"🏆 **Predicted champion: {_bracket['champion']}**")
 
-            # ── League Phase Fixtures ─────────────────────────────────────
-            st.markdown("#### League Phase Fixtures")
-            _cl_dated = dated_schedule(comp_name)
-            if _cl_dated:
-                st.caption(
-                    "UEFA's real, dated League Phase calendar, with each match's outcome probability."
-                )
-                _probs_by_pair = {
-                    (_fx["strHomeTeam"], _fx["strAwayTeam"]): _fx
-                    for _fx in single_match_outcome_probs(
-                        _real_schedule, _field_ratings_df,
-                        home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"],
-                    )
-                }
-                _by_md: dict[int, list[dict]] = {}
-                for _fx in _cl_dated:
-                    _by_md.setdefault(_fx["matchday"], []).append(_fx)
-                for _md in sorted(_by_md):
-                    st.markdown(f"**Matchday {_md}**")
-                    _md_rows = []
-                    for _fx in sorted(_by_md[_md], key=lambda f: (f["date"], f["time"])):
-                        _p = _probs_by_pair.get((_fx["home"], _fx["away"]), {})
-                        _real = _real_results.get((_fx["home"], _fx["away"]))
-                        _dt = datetime.strptime(_fx["date"], "%Y-%m-%d")
-                        _md_rows.append({
-                            "Date": f"{_dt.strftime('%a %d %b %Y')} {_fx['time']}",
-                            "HB": badge_lookup.get(_fx["home"], ""),
-                            "Home": _fx["home"],
-                            "Score": f"{_real[0]}–{_real[1]}" if _real else "—",
-                            "Home Win": round(_p.get("pct_home", 0.0) * 100, 1),
-                            "Draw": round(_p.get("pct_draw", 0.0) * 100, 1),
-                            "Away Win": round(_p.get("pct_away", 0.0) * 100, 1),
-                            "Away": _fx["away"],
-                            "AB": badge_lookup.get(_fx["away"], ""),
-                        })
-                    st.dataframe(
-                        pd.DataFrame(_md_rows),
-                        column_config={
-                            "HB": st.column_config.ImageColumn("", width="small"),
-                            "AB": st.column_config.ImageColumn("", width="small"),
-                            "Home Win": st.column_config.NumberColumn("Home Win (pre-match)", format="%.1f%%"),
-                            "Draw": st.column_config.NumberColumn("Draw (pre-match)", format="%.1f%%"),
-                            "Away Win": st.column_config.NumberColumn("Away Win (pre-match)", format="%.1f%%"),
-                        },
-                        width="content", hide_index=True, height=len(_md_rows) * 35 + 38,
-                    )
-            elif _real_schedule_ready:
-                st.caption(
-                    "The real League Phase opponent list, with each match's outcome probability. "
-                    "UEFA doesn't publish matchday-by-matchday order/dates alongside the opponent "
-                    "list itself, so these aren't grouped or dated — home/away legs are real, though."
-                )
-                _fx_probs = single_match_outcome_probs(
-                    _real_schedule, _field_ratings_df,
-                    home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"],
-                )
-                _fx_rows = [{
-                    "HB": badge_lookup.get(_fx["strHomeTeam"], ""),
-                    "Home": _fx["strHomeTeam"],
-                    "Score": (lambda _r: f"{_r[0]}–{_r[1]}" if _r else "—")(
-                        _real_results.get((_fx["strHomeTeam"], _fx["strAwayTeam"]))),
-                    "Home Win": round(_fx["pct_home"] * 100, 1),
-                    "Draw": round(_fx["pct_draw"] * 100, 1),
-                    "Away Win": round(_fx["pct_away"] * 100, 1),
-                    "Away": _fx["strAwayTeam"],
-                    "AB": badge_lookup.get(_fx["strAwayTeam"], ""),
-                } for _fx in sorted(_fx_probs, key=lambda f: f["strHomeTeam"])]
-                st.dataframe(
-                    pd.DataFrame(_fx_rows),
-                    column_config={
-                        "HB": st.column_config.ImageColumn("", width="small"),
-                        "AB": st.column_config.ImageColumn("", width="small"),
-                        "Home Win": st.column_config.NumberColumn("Home Win (pre-match)", format="%.1f%%"),
-                        "Draw": st.column_config.NumberColumn("Draw (pre-match)", format="%.1f%%"),
-                        "Away Win": st.column_config.NumberColumn("Away Win (pre-match)", format="%.1f%%"),
-                    },
-                    width="content", hide_index=True, height=len(_fx_rows) * 35 + 38,
-                )
+
+# ---------------------------------------------------------------------------
+# Tab — Manual Predictions (enter your own League Phase scorelines, see
+# updated standings via the real UEFA tiebreak chain, then run a one-off
+# what-if simulation scoped to just the 5 league-stage finish bands --
+# deliberately NOT the full 1-36 position table, per explicit instruction to
+# cap this tab's predictions at Top 8/16/24/Knockout Play-offs/Elimination
+# only. Uses its own session_state-fingerprint cache, not the shared
+# cached_league_phase_simulation -- this is a one-off hypothetical scenario,
+# same reasoning football_rankings.py's domestic Manual Predictions tab
+# already uses its own separate cache rather than sharing the main
+# Predictions tab's cache.
+# ---------------------------------------------------------------------------
+if tab_manual is not None:
+    with tab_manual:
+        if not _field_ready:
+            st.info(
+                f"Only {len(_field)} of 36 League Phase clubs are known for the {comp_name} so far "
+                f"(confirmed direct entrants + each Play-off tie's favoured side{_field_cascade_note}) — "
+                "manual predictions need the full field and will appear once the rest are confirmed."
+            )
+        elif not _real_schedule_ready:
+            st.info(
+                "UEFA's real League Phase draw hasn't been made yet — manual predictions need the "
+                "real fixture list, not a freshly-redrawn synthetic one, so they'll appear here once "
+                "the draw is known."
+            )
+        else:
+            _md_by_pair = {(_fx["home"], _fx["away"]): _fx["matchday"] for _fx in dated_schedule(comp_name)}
+            _unplayed_schedule = [
+                f for f in _real_schedule
+                if (f["strHomeTeam"], f["strAwayTeam"]) not in _real_results
+            ]
+
+            if not _unplayed_schedule:
+                st.info("All League Phase matches are already decided.")
             else:
-                st.caption(
-                    "UEFA's real League Phase draw hasn't been made yet. Once each club's opponent "
-                    "list is entered, the real fixture list (with outcome probabilities) goes here "
-                    "and the predictions above switch to using it."
+                _ver_key = f"euro_manual_pred_ver_{comp_name}"
+                _sim_store_key = f"euro_manual_sim_{comp_name}"
+                if _ver_key not in st.session_state:
+                    st.session_state[_ver_key] = 0
+
+                def _build_manual_fix_df(fixtures):
+                    rows = []
+                    for f in sorted(
+                        fixtures,
+                        key=lambda x: (_md_by_pair.get((x["strHomeTeam"], x["strAwayTeam"]), 99),
+                                       x["strHomeTeam"]),
+                    ):
+                        rows.append({
+                            "MD":   _md_by_pair.get((f["strHomeTeam"], f["strAwayTeam"]), pd.NA),
+                            "HB":   badge_lookup.get(f["strHomeTeam"], ""),
+                            "Home": f["strHomeTeam"],
+                            "HG":   pd.NA, "AG": pd.NA,
+                            "Away": f["strAwayTeam"],
+                            "AB":   badge_lookup.get(f["strAwayTeam"], ""),
+                        })
+                    df = pd.DataFrame(rows)
+                    df["HG"] = df["HG"].astype(pd.Int64Dtype())
+                    df["AG"] = df["AG"].astype(pd.Int64Dtype())
+                    return df
+
+                _manual_col_cfg = {
+                    "MD":   st.column_config.NumberColumn("MD",   width="small"),
+                    "HB":   st.column_config.ImageColumn("",      width="small"),
+                    "Home": st.column_config.TextColumn("Home",   width="medium"),
+                    "HG":   st.column_config.NumberColumn("HG",   min_value=0, max_value=20, step=1, width="small"),
+                    "AG":   st.column_config.NumberColumn("AG",   min_value=0, max_value=20, step=1, width="small"),
+                    "Away": st.column_config.TextColumn("Away",   width="medium"),
+                    "AB":   st.column_config.ImageColumn("",      width="small"),
+                }
+
+                _editor_key    = f"euro_manual_editor_{comp_name}_{st.session_state[_ver_key]}"
+                _base_df       = _build_manual_fix_df(_unplayed_schedule)
+                _editor_height = min(len(_base_df), 15) * 35 + 38
+
+                _hdr_col, _btn_col, _ = st.columns([2, 1, 3], vertical_alignment="center")
+                _metric_ph = _hdr_col.empty()
+                _clear_ph  = _btn_col.empty()
+                _edited_df = st.data_editor(
+                    _base_df, column_config=_manual_col_cfg,
+                    disabled=["MD", "HB", "Home", "Away", "AB"],
+                    width="content", hide_index=True,
+                    height=_editor_height, key=_editor_key,
                 )
 
-            # ── Fixture Difficulty ────────────────────────────────────────
-            st.markdown("#### Fixture Difficulty")
-            _opponents_by_team = partial_opponents_by_team(comp_name)
-            _known_field = [f for f in _field if f["team"] in _opponents_by_team]
-            if _known_field:
-                if len(_known_field) < len(_field):
-                    st.caption(
-                        "Each confirmed club's League Phase opponents ranked by average Opta power "
-                        f"rating — higher average = tougher group of 8. {len(_known_field)} of "
-                        f"{len(_field)} clubs confirmed so far; the rest join as they're entered."
+                _filled_mask = _edited_df[["HG", "AG"]].notna().all(axis=1)
+                _metric_ph.markdown(f"### Predicted: {int(_filled_mask.sum())} / {len(_unplayed_schedule)}")
+                if _clear_ph.button("🗑 Clear", use_container_width=True, key=f"euro_manual_clear_{comp_name}"):
+                    st.session_state[_ver_key] += 1
+                    st.session_state.pop(_sim_store_key, None)
+                    st.rerun()
+
+                _predicted_results = dict(_real_results)
+                _user_scorelines = []
+                for _, _row in _edited_df[_filled_mask].iterrows():
+                    _hg, _ag = int(_row["HG"]), int(_row["AG"])
+                    _predicted_results[(_row["Home"], _row["Away"])] = (_hg, _ag)
+                    _user_scorelines.append((_row["Home"], _row["Away"], _hg, _ag))
+
+                _user_matches = [
+                    {"strHomeTeam": h, "strAwayTeam": a, "intHomeScore": hg, "intAwayScore": ag}
+                    for h, a, hg, ag in _user_scorelines
+                ]
+
+                st.divider()
+                st.markdown("### Updated standings")
+                _computed = _compute_league_standings(lp_played + _user_matches, badge_lookup)
+
+                def _manual_zone_bg(pos: int) -> str:
+                    if pos <= cfg.get("n_direct", 8):
+                        return "#d4edda"
+                    if pos <= cfg.get("n_direct", 8) + cfg.get("n_playoff", 16):
+                        return "#fff3cd"
+                    return "#f8d7da"
+
+                _upd_rows = [{
+                    "Pos":   r["intRank"],
+                    "Badge": r["strBadge"],
+                    "Team":  r["strTeam"],
+                    "P":     r["P"], "W": r["W"], "D": r["D"], "L": r["L"],
+                    "GF":    r["GF"], "GA": r["GA"], "GD": r["GD"], "Pts": r["Pts"],
+                    "_bg":   _manual_zone_bg(r["intRank"]),
+                } for r in _computed]
+                if not _upd_rows:
+                    # No League Phase matches played yet and no predictions
+                    # entered either -- _compute_league_standings has
+                    # nothing to rank, and an all-empty DataFrame has no
+                    # columns at all (not even "_bg") to drop.
+                    st.info("Enter a few predictions above to see updated standings.")
+                else:
+                    _upd_df     = pd.DataFrame(_upd_rows)
+                    _styled_upd = (
+                        _upd_df.drop(columns=["_bg"]).style
+                        .apply(lambda row: [f"background-color: {_upd_rows[row.name]['_bg']}"] * len(row), axis=1)
+                        .set_properties(subset=["Team", "Pts"], **{"font-weight": "bold"})
+                    )
+                    _upd_col_cfg = {
+                        "Pos":   st.column_config.NumberColumn("Pos",  width="small"),
+                        "Badge": st.column_config.ImageColumn("",      width="small"),
+                        "Team":  st.column_config.TextColumn("Team",  width="medium"),
+                        "P":     st.column_config.NumberColumn("P",    width="small"),
+                        "W":     st.column_config.NumberColumn("W",    width="small"),
+                        "D":     st.column_config.NumberColumn("D",    width="small"),
+                        "L":     st.column_config.NumberColumn("L",    width="small"),
+                        "GF":    st.column_config.NumberColumn("GF",   width="small"),
+                        "GA":    st.column_config.NumberColumn("GA",   width="small"),
+                        "GD":    st.column_config.NumberColumn("GD",   width="small"),
+                        "Pts":   st.column_config.NumberColumn("Pts",  width="small"),
+                    }
+                    st.caption("🟢 Direct to Round of 16  🟡 Knockout Play-offs  🔴 Eliminated")
+                    st.dataframe(_styled_upd, column_config=_upd_col_cfg,
+                                 width="content", hide_index=True,
+                                 height=len(_upd_rows) * 35 + 42)
+
+                st.divider()
+                st.markdown("### Projected League Stage finish (with your predictions)")
+                _pred_fp = (tuple(sorted(_user_scorelines)), _n_sim)
+                _cached  = st.session_state.get(_sim_store_key)
+                if st.button(f"▶  Run {_n_sim:,} simulations with predictions", type="primary",
+                             use_container_width=True, key=f"euro_manual_run_{comp_name}"):
+                    with st.spinner(f"Running {_n_sim:,} simulations…"):
+                        _manual_result = simulate_competition_winner(
+                            field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
+                            n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=_n_sim,
+                            home_advantage=_home_advantage, comp_name=comp_name,
+                            track_points=False, schedule=_real_schedule,
+                            real_results=_predicted_results,
+                        )
+                    st.session_state[_sim_store_key] = {"result": _manual_result, "fingerprint": _pred_fp}
+                    _cached = st.session_state[_sim_store_key]
+
+                if _cached:
+                    if _cached["fingerprint"] != _pred_fp:
+                        st.warning("⚠ Predictions changed since last run — press ▶ to update.")
+                    _mr = _cached["result"]
+                    _mr_pos_cols  = [str(i) for i in range(1, len(_field) + 1)]
+                    _mr_ko_cols   = [c for c in _mr_pos_cols if 9 <= int(c) <= 24]
+                    _mr_elim_cols = [c for c in _mr_pos_cols if int(c) >= 25]
+                    _mr_rows = []
+                    for _team, _r in _mr.iterrows():
+                        _mr_rows.append({
+                            "Badge": badge_lookup.get(_team, ""),
+                            "Team": _team,
+                            "Top 8": round(_r["reached_top8"] * 100, 1),
+                            "Top 16": round(_r["reached_top16"] * 100, 1),
+                            "Top 24": round(_r["reached_top24"] * 100, 1),
+                            "Knockout Play-offs (9th-24th)": round(_r[_mr_ko_cols].sum() * 100, 1),
+                            "Elimination (25th-36th)": round(_r[_mr_elim_cols].sum() * 100, 1),
+                        })
+                    _mr_df = pd.DataFrame(_mr_rows)
+                    _mr_pct_cols = ["Top 8", "Top 16", "Top 24",
+                                    "Knockout Play-offs (9th-24th)", "Elimination (25th-36th)"]
+                    _mr_col_cfg = {
+                        "Badge": st.column_config.ImageColumn("", width="small"),
+                        "Team": st.column_config.TextColumn("Team", width="medium"),
+                    }
+                    for _c in _mr_pct_cols:
+                        _mr_col_cfg[_c] = st.column_config.NumberColumn(_c, format="%.1f%%", width="small")
+                    st.dataframe(
+                        _mr_df, column_config=_mr_col_cfg, width="content",
+                        hide_index=True, height=len(_mr_df) * 35 + 38,
                     )
                 else:
-                    st.caption(
-                        "Each club's League Phase opponents ranked by average Opta power rating — "
-                        "higher average = tougher group of 8."
-                    )
-                _opta_by_team = dict(zip(_field_ratings_df["team"], _field_ratings_df["opta_rating"]))
-                _diff_rows = []
-                for _f in _known_field:
-                    _team = _f["team"]
-                    _opps = _opponents_by_team[_team]
-                    _avg_opp_rating = sum(_opta_by_team.get(o, 0.0) for o in _opps) / len(_opps)
-                    _diff_rows.append({
-                        "Badge": badge_lookup.get(_team, ""),
-                        "Team": _team,
-                        "Country": _f["country"],
-                        "Avg Opponent Opta Rating": round(_avg_opp_rating, 1),
-                    })
-                _diff_df = pd.DataFrame(_diff_rows).sort_values(
-                    "Avg Opponent Opta Rating", ascending=False).reset_index(drop=True)
-                _diff_df.insert(0, "Difficulty Rank", _diff_df.index + 1)
-                st.dataframe(
-                    _diff_df,
-                    column_config={
-                        "Badge": st.column_config.ImageColumn("", width="small"),
-                        "Avg Opponent Opta Rating": st.column_config.NumberColumn(
-                            "Avg Opponent Opta Rating", format="%.1f"),
-                    },
-                    width="content", hide_index=True, height=len(_diff_df) * 35 + 38,
-                )
-            else:
-                st.caption(
-                    "Will rank each club's 8 (or 6, for the Conference League) League Phase opponents "
-                    "by average Opta power rating once the real draw is known."
-                )
+                    st.info("Enter predictions above then press **▶ Run simulations**.")
 
 
 # ---------------------------------------------------------------------------
@@ -1100,4 +1311,52 @@ with tab_trivia:
         "Europa League, Europa League → Conference League) counts as having reached a League "
         "Phase, not as eliminated, unlike the per-competition figures above."
     )
+
+    # ── Fixture Difficulty ────────────────────────────────────────────────
+    if has_lp:
+        st.divider()
+        st.markdown(f"### 📊 {comp_name} — Fixture Difficulty")
+        _opponents_by_team = partial_opponents_by_team(comp_name)
+        _known_field = [f for f in _field if f["team"] in _opponents_by_team]
+        if _known_field:
+            if len(_known_field) < len(_field):
+                st.caption(
+                    "Each confirmed club's League Phase opponents ranked by average Opta power "
+                    f"rating — higher average = tougher group of 8. {len(_known_field)} of "
+                    f"{len(_field)} clubs confirmed so far; the rest join as they're entered."
+                )
+            else:
+                st.caption(
+                    "Each club's League Phase opponents ranked by average Opta power rating — "
+                    "higher average = tougher group of 8."
+                )
+            _opta_by_team = dict(zip(_field_ratings_df["team"], _field_ratings_df["opta_rating"]))
+            _diff_rows = []
+            for _f in _known_field:
+                _team = _f["team"]
+                _opps = _opponents_by_team[_team]
+                _avg_opp_rating = sum(_opta_by_team.get(o, 0.0) for o in _opps) / len(_opps)
+                _diff_rows.append({
+                    "Badge": badge_lookup.get(_team, ""),
+                    "Team": _team,
+                    "Country": _f["country"],
+                    "Avg Opponent Opta Rating": round(_avg_opp_rating, 1),
+                })
+            _diff_df = pd.DataFrame(_diff_rows).sort_values(
+                "Avg Opponent Opta Rating", ascending=False).reset_index(drop=True)
+            _diff_df.insert(0, "Difficulty Rank", _diff_df.index + 1)
+            st.dataframe(
+                _diff_df,
+                column_config={
+                    "Badge": st.column_config.ImageColumn("", width="small"),
+                    "Avg Opponent Opta Rating": st.column_config.NumberColumn(
+                        "Avg Opponent Opta Rating", format="%.1f"),
+                },
+                width="content", hide_index=True, height=len(_diff_df) * 35 + 38,
+            )
+        else:
+            st.caption(
+                "Will rank each club's 8 (or 6, for the Conference League) League Phase opponents "
+                "by average Opta power rating once the real draw is known."
+            )
 
