@@ -1739,13 +1739,23 @@ def main_content():
                 _season_progress_html(played_rounds, total_rounds, len(played_fixtures), len(remaining_fixtures)),
                 unsafe_allow_html=True,
             )
-            # _team_overrides is keyed by POSITION (cup_cascade.py), merged
-            # directly into zones rather than passed as team_overrides= --
-            # see cup_cascade.resolve_live_overrides's own docstring for why
-            # a team-keyed lookup here would misapply a stale label to
-            # whatever row that team is CURRENTLY shown at, however far
-            # they've since moved from the position the cascade concerns.
-            _render_table(_table_rows(standings, zones={**_main_zones, **_team_overrides}, show_next=True))
+            # _team_overrides deliberately NOT merged in here. It's keyed by
+            # PREDICTED-finish position (cup_cascade.py's ranked_teams, from
+            # the season simulation) -- this Current Table's own zone_key is
+            # TODAY'S actual table rank (intRank) instead, a completely
+            # different position space that only coincidentally shares the
+            # same int type. Merging them mixed up two unrelated numberings:
+            # confirmed live 2026-10-13 (England) -- Man Utd's predicted 7th
+            # place carries the cascade's "UEL - LS", but Man Utd's CURRENT
+            # actual rank is 13th, while Leeds (current rank 7th, predicted
+            # 8th) would wrongly inherit Man Utd's label at today's 7th
+            # place instead of their own. The cup-winner cascade is an
+            # inherently predictive construct (which team is predicted to
+            # win the cup, where they're predicted to finish) and belongs
+            # only in the Predictions tab, where every other column is
+            # already predicted-rank-based too -- not mixed into a table
+            # whose whole point is today's actual standings.
+            _render_table(_table_rows(standings, zones=_main_zones, show_next=True))
             _tbs_non_split = cfg.get("tiebreakers", ["gd", "gf"])[:8]
             st.caption("Tiebreakers: " + "; ".join(f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(_tbs_non_split)))
             if cfg.get("team_status_note"):
