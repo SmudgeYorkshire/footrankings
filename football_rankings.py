@@ -1338,6 +1338,48 @@ def main_content():
     _team_overrides = (st.session_state.get(f"cascade_overrides_{league_id}")
                         or cfg.get("team_status_overrides", {}))
 
+    # ranked_teams the PREDICTED cascade above actually used -- re-derived
+    # the same way resolve_live_overrides does internally (expected rank
+    # from _main_sim_probs), rather than having that function hand it back
+    # and changing every caller's signature for it. Needed below to turn
+    # _team_overrides (position-keyed, in whatever space _cascade_zones
+    # is -- the whole table here, for any league not yet past its real
+    # split) into a {team: label} lookup for sub-tables whose OWN "Pos"
+    # column is relative to a different, smaller pool of teams (Projected
+    # Middle Group / Relegation Play-out below) and so can't be matched by
+    # position at all -- see those call sites for why team-keyed is
+    # actually correct there, not the bug it was elsewhere.
+    _cascade_team_labels: dict[str, str] = {}
+    if _main_sim_probs is not None and not _main_sim_probs.empty:
+        _pos_nums_cl = pd.Series({c: int(c) for c in _main_sim_probs.columns})
+        _ranked_teams_cl = _main_sim_probs.mul(_pos_nums_cl, axis=1).sum(axis=1).sort_values().index.tolist()
+        for _pos, _label in _team_overrides.items():
+            if isinstance(_pos, int) and 1 <= _pos <= len(_ranked_teams_cl):
+                _cascade_team_labels[_ranked_teams_cl[_pos - 1]] = _label
+
+    # A SEPARATE cascade resolved against TODAY's actual standings order,
+    # not the predicted finish -- for the Current Table specifically, which
+    # otherwise has no sensible way to show a cup-winner's European-zone
+    # consequence at all: merging the PREDICTED (position-keyed) overrides
+    # above directly into it would misapply a predicted position's label to
+    # whichever team currently happens to sit at that same position number
+    # today (confirmed live 2026-10-13, England: Man Utd's predicted-7th
+    # "UEL - LS" landing on Leeds' actual-7th row instead) -- removing the
+    # merge entirely (the fix applied then) went too far the other way,
+    # losing the cup-cascade status from the Current Table across every
+    # league rather than just fixing the position-space mismatch.
+    _current_ranked_teams = [
+        r.get("strTeam") for r in sorted(standings, key=lambda r: int(r.get("intRank") or 10**6))
+    ]
+    _cascade_key_current = _cascade_key + ("current",)
+    if st.session_state.get(f"cascade_key_current_{league_id}") != _cascade_key_current:
+        st.session_state[f"cascade_overrides_current_{league_id}"] = resolve_live_overrides(
+            league_name, cfg, standings, played_fixtures, remaining_fixtures,
+            ratings_df, _cascade_zones, _API_KEY, ranked_teams_override=_current_ranked_teams,
+        )
+        st.session_state[f"cascade_key_current_{league_id}"] = _cascade_key_current
+    _team_overrides_current = st.session_state.get(f"cascade_overrides_current_{league_id}") or {}
+
     tab_table, tab_proj, tab_manual, tab_fixtures, tab_results, tab_format, tab_history = st.tabs(
         ["📊 Current Table", "🎯 Predictions", "🔮 Manual Predictions", "📅 Fixtures", "📋 Results", "🗂️ Format", "🕰️ History"]
     )
@@ -1739,23 +1781,16 @@ def main_content():
                 _season_progress_html(played_rounds, total_rounds, len(played_fixtures), len(remaining_fixtures)),
                 unsafe_allow_html=True,
             )
-            # _team_overrides deliberately NOT merged in here. It's keyed by
-            # PREDICTED-finish position (cup_cascade.py's ranked_teams, from
-            # the season simulation) -- this Current Table's own zone_key is
-            # TODAY'S actual table rank (intRank) instead, a completely
-            # different position space that only coincidentally shares the
-            # same int type. Merging them mixed up two unrelated numberings:
-            # confirmed live 2026-10-13 (England) -- Man Utd's predicted 7th
-            # place carries the cascade's "UEL - LS", but Man Utd's CURRENT
-            # actual rank is 13th, while Leeds (current rank 7th, predicted
-            # 8th) would wrongly inherit Man Utd's label at today's 7th
-            # place instead of their own. The cup-winner cascade is an
-            # inherently predictive construct (which team is predicted to
-            # win the cup, where they're predicted to finish) and belongs
-            # only in the Predictions tab, where every other column is
-            # already predicted-rank-based too -- not mixed into a table
-            # whose whole point is today's actual standings.
-            _render_table(_table_rows(standings, zones=_main_zones, show_next=True))
+            # _team_overrides (predicted-finish-keyed) is NOT merged here --
+            # this Current Table's own zone_key is TODAY'S actual table rank
+            # (intRank), a different position space that only coincidentally
+            # shares the same int type (confirmed live 2026-10-13, England:
+            # merging them put Man Utd's predicted-7th "UEL - LS" on Leeds'
+            # actual-7th row instead). _team_overrides_current is the fix:
+            # the SAME cascade, resolved against today's actual standings
+            # order instead of the predicted one, so its position keys
+            # genuinely match this table's own.
+            _render_table(_table_rows(standings, zones={**_main_zones, **_team_overrides_current}, show_next=True))
             _tbs_non_split = cfg.get("tiebreakers", ["gd", "gf"])[:8]
             st.caption("Tiebreakers: " + "; ".join(f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(_tbs_non_split)))
             if cfg.get("team_status_note"):
@@ -2225,8 +2260,24 @@ def main_content():
                                             n_sim, home_advantage, cfg.get("tiebreakers"),
                                         )
                                     st.session_state["po_sims"][_po_m] = _po_probs
+                                # team_overrides (not a position merge) here on
+                                # purpose: this sub-table's own "Pos" is relative
+                                # to just top_mid's own mini-simulation, a
+                                # different, smaller/incompatible position space
+                                # than _cascade_zones' (whole-table, since no
+                                # real split has happened yet) -- but WHICH
+                                # teams are even in top_mid came from the same
+                                # outer ranking the cascade itself used, so a
+                                # team-keyed lookup can't land on the wrong team
+                                # the way a cross-simulation position merge
+                                # could; it's the correct tool here, not the bug
+                                # class fixed elsewhere (confirmed live
+                                # 2026-10-13, Greece: cup-winner cascade's
+                                # guaranteed slot lands outside the champ
+                                # group's own 1..n_champ zones entirely, so it
+                                # never showed up here before this fix).
                                 render_prob_table(st.session_state["po_sims"][_po_m], badge_lookup,
-                                                  status_map=_mid_zones,
+                                                  status_map=_mid_zones, team_overrides=_cascade_team_labels,
                                                   title="Middle group finish probabilities")
 
                         if p_relg is not None:
@@ -2248,8 +2299,10 @@ def main_content():
                                         n_sim, home_advantage, cfg.get("tiebreakers"),
                                     )
                                 st.session_state["po_sims"][_po_r] = _po_probs
+                            # team_overrides, not a position merge -- same
+                            # reasoning as the Middle Group table just above.
                             render_prob_table(st.session_state["po_sims"][_po_r], badge_lookup,
-                                              status_map=_relg_zones,
+                                              status_map=_relg_zones, team_overrides=_cascade_team_labels,
                                               title="Relegation play-out finish probabilities")
                             render_relegation_probability_history(
                                 ratings_id, _relegation_positions(_main_zones, _relg_zones, n_total),

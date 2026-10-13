@@ -269,7 +269,8 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
                             played_fixtures: list[dict], remaining_fixtures: list[dict],
                             ratings_df: pd.DataFrame, zones: dict[int, str],
                             api_key: str, n_sim: int = 3_000,
-                            probs: pd.DataFrame | None = None) -> dict[int, str]:
+                            probs: pd.DataFrame | None = None,
+                            ranked_teams_override: list[str] | None = None) -> dict[int, str]:
     """{position: "STATUS"} for this league's cup-winner cascade(s),
     resolved live -- see module docstring. Keyed by table POSITION, not
     team name (changed 2026-10-13 -- see _cascade_insert's own docstring
@@ -307,7 +308,15 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
     that team one row below where the slot's blank cell actually was.
     Falls back to running its own simulation (the pre-existing behavior)
     when not given, e.g. for a split league where no single full-table
-    probs exists yet at this point in the page."""
+    probs exists yet at this point in the page.
+
+    ranked_teams_override: a plain, already-ordered team list to rank from
+    instead of anything simulated -- e.g. TODAY's actual table order, for a
+    cascade resolution meant to answer "if the season ended right now"
+    (the Current Table) rather than "how it's predicted to finish" (every
+    other caller, which passes `probs` instead). Takes priority over
+    `probs` when both are given (shouldn't be -- a caller wants one or the
+    other, not both)."""
     country = cfg.get("country")
     if not country or ratings_df is None or ratings_df.empty:
         return {}
@@ -326,30 +335,33 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
     if not cups:
         return {}
 
-    if probs is None or probs.empty:
-        # No pre-computed probs given (split league, or no remaining
-        # fixtures to simulate yet) -- fall back to this function's own
-        # independent simulation, deterministically seeded from the inputs
-        # that actually determine this result.
-        seed_key = (
-            league_name, len(played_fixtures),
-            tuple((r.get("strTeam"), r.get("intPoints"), r.get("intGoalDifference")) for r in standings),
-        )
-        try:
-            probs = simulate_season(
-                standings, remaining_fixtures, ratings_df, n_sim=n_sim,
-                home_advantage=cfg.get("home_advantage", 1.0),
-                tiebreakers=cfg.get("tiebreakers"), played_fixtures=played_fixtures,
-                seed=seed_from_key(seed_key),
-            )
-        except Exception:
-            return {}
+    if ranked_teams_override is not None:
+        ranked_teams = ranked_teams_override
+    else:
         if probs is None or probs.empty:
-            return {}
+            # No pre-computed probs given (split league, or no remaining
+            # fixtures to simulate yet) -- fall back to this function's own
+            # independent simulation, deterministically seeded from the inputs
+            # that actually determine this result.
+            seed_key = (
+                league_name, len(played_fixtures),
+                tuple((r.get("strTeam"), r.get("intPoints"), r.get("intGoalDifference")) for r in standings),
+            )
+            try:
+                probs = simulate_season(
+                    standings, remaining_fixtures, ratings_df, n_sim=n_sim,
+                    home_advantage=cfg.get("home_advantage", 1.0),
+                    tiebreakers=cfg.get("tiebreakers"), played_fixtures=played_fixtures,
+                    seed=seed_from_key(seed_key),
+                )
+            except Exception:
+                return {}
+            if probs is None or probs.empty:
+                return {}
 
-    pos_nums = pd.Series({c: int(c) for c in probs.columns})
-    expected_rank = probs.mul(pos_nums, axis=1).sum(axis=1)
-    ranked_teams = expected_rank.sort_values(ascending=True).index.tolist()
+        pos_nums = pd.Series({c: int(c) for c in probs.columns})
+        expected_rank = probs.mul(pos_nums, axis=1).sum(axis=1)
+        ranked_teams = expected_rank.sort_values(ascending=True).index.tolist()
 
     claimed = _playoff_claimed_positions(cfg)
     overrides: dict[int, str] = {}
