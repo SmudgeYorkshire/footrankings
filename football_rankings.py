@@ -33,9 +33,42 @@ _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 # ---------------------------------------------------------------------------
 # Sidebar dropdown labels — "Country - League" (Top 5 first, then alphabetical
 # by country), shared with opta_rankings.py via league_display.py so every
-# page's league dropdown looks and sorts the same way.
+# page's league dropdown looks and sorts the same way. league_display.py
+# itself stays top-flight-only (opta_rankings.py and club_power_rankings.py
+# still import it directly for that), so the 2nd-tier merge below builds its
+# own combined order rather than changing that shared module.
 # ---------------------------------------------------------------------------
 from league_display import DROPDOWN_LABELS as _DROPDOWN_LABELS, DROPDOWN_ORDER as _DROPDOWN_ORDER
+from config import LEAGUES_TIER2 as _LEAGUES_TIER2
+from league_display_tier2 import DROPDOWN_LABELS as _T2_DROPDOWN_LABELS
+import football_rankings_tier2 as _tier2
+
+# 2nd tiers merged into this single dropdown 2026-10-13 (the standalone
+# "European Leagues - 2nd Tiers" page is gone, see app.py) -- each tier-2
+# league is placed directly below its own country's tier-1 entry, keeping
+# the existing Top-5-then-alphabetical country ordering tier-1 already uses.
+# Matched by the COUNTRY PREFIX of each side's own display label (not the raw
+# cfg["country"] field, which uses different abbreviations/wording between
+# the two tiers -- e.g. "N. Macedonia" vs "Macedonia" -- while the display
+# labels already agree except for two cases handled explicitly below).
+_T2_COUNTRY_ALIASES = {  # tier-1 label country -> tier-2 label country
+    "Bosnia and Herzegovina": "Bosnia",
+    "North Macedonia": "Macedonia",
+}
+
+
+def _tier2_siblings(t1_league_name: str) -> list[str]:
+    t1_country = _DROPDOWN_LABELS.get(t1_league_name, t1_league_name).split(" - ", 1)[0]
+    t1_country = _T2_COUNTRY_ALIASES.get(t1_country, t1_country)
+    return [t2_name for t2_name in _T2_DROPDOWN_LABELS
+            if t2_name.split(" - ", 1)[0] == t1_country]
+
+
+_COMBINED_DROPDOWN_ORDER: list[str] = []
+for _t1_name in _DROPDOWN_ORDER:
+    _COMBINED_DROPDOWN_ORDER.append(_t1_name)
+    _COMBINED_DROPDOWN_ORDER.extend(_tier2_siblings(_t1_name))
+_COMBINED_DROPDOWN_LABELS = {**_DROPDOWN_LABELS, **_T2_DROPDOWN_LABELS}
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -602,10 +635,11 @@ with st.sidebar:
     st.divider()
     league_name = st.selectbox(
         "European Leagues",
-        options=_DROPDOWN_ORDER + [_TRIVIA_SENTINEL],
-        format_func=lambda n: "📊 European Leagues - Trivia" if n == _TRIVIA_SENTINEL else _DROPDOWN_LABELS.get(n, n),
+        options=_COMBINED_DROPDOWN_ORDER + [_TRIVIA_SENTINEL],
+        format_func=lambda n: "📊 European Leagues - Trivia" if n == _TRIVIA_SENTINEL else _COMBINED_DROPDOWN_LABELS.get(n, n),
     )
-    if league_name != _TRIVIA_SENTINEL:
+    _is_tier2 = league_name in _LEAGUES_TIER2
+    if league_name != _TRIVIA_SENTINEL and not _is_tier2:
         cfg = LEAGUES[league_name]
         league_id = cfg["id"]
         ratings_id = cfg.get("tsdb_id", cfg["id"])  # ratings CSVs stay on their original stable ID
@@ -630,6 +664,10 @@ with st.sidebar:
 
 if league_name == _TRIVIA_SENTINEL:
     render_european_trivia()
+    st.stop()
+
+if _is_tier2:
+    _tier2.render(league_name)
     st.stop()
 
 n_sim = DEFAULT_N_SIMULATIONS

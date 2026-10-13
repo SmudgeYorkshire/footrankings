@@ -24,13 +24,6 @@ from prob_table import _green_col, _euro_style_cell, _status_style_pred, _status
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
 # ---------------------------------------------------------------------------
-# Sidebar dropdown labels — "Country - League" (Top 5 first, then alphabetical
-# by country), shared with opta_rankings.py via league_display.py so every
-# page's league dropdown looks and sorts the same way.
-# ---------------------------------------------------------------------------
-from league_display_tier2 import DROPDOWN_LABELS as _DROPDOWN_LABELS, DROPDOWN_ORDER as _DROPDOWN_ORDER
-
-# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 from datetime import datetime, timezone
@@ -568,41 +561,14 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
 
 
 # ---------------------------------------------------------------------------
-# Sidebar — league selector and simulation settings
+# League selection — this module no longer owns its own sidebar/page (merged
+# into football_rankings.py's single "European Leagues" dropdown 2026-10-13,
+# see this file's own render() at the bottom and football_rankings.py's
+# sidebar block). league_name/cfg/league_id/ratings_id/season/home_advantage
+# are module globals set by render() right before it calls main_content(),
+# exactly as they used to be set by this module's own (now-removed) sidebar
+# selectbox -- main_content() and everything else below is unchanged.
 # ---------------------------------------------------------------------------
-
-with st.sidebar:
-    _auth = st.session_state.get("_authenticator")
-    if _auth:
-        st.caption(f"👤  {st.session_state.get('name', '')}")
-        _auth.logout("Logout", location="sidebar")
-    st.divider()
-    league_name = st.selectbox(
-        "European Leagues - 2nd Tiers",
-        options=_DROPDOWN_ORDER,
-        format_func=lambda n: _DROPDOWN_LABELS.get(n, n),
-    )
-    cfg = LEAGUES[league_name]
-    league_id = cfg["id"]
-    ratings_id = cfg.get("tsdb_id", cfg["id"])  # ratings CSVs stay on their original stable ID
-    season = cfg.get("af_season") or get_current_season(cfg["season_type"])
-    home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
-    st.divider()
-    st.markdown(
-        """
-        <a href="https://x.com/FootRankings" target="_blank" style="
-            display: inline-flex; align-items: center; gap: 8px;
-            background: #000; color: #fff;
-            padding: 8px 16px; border-radius: 20px;
-            text-decoration: none; font-size: 14px; font-weight: 600;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 24 24">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-            </svg>
-            Follow @FootRankings
-        </a>
-        """,
-        unsafe_allow_html=True,
-    )
 
 n_sim = DEFAULT_N_SIMULATIONS
 
@@ -3199,4 +3165,16 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                         st.dataframe(_hres_df, use_container_width=False, hide_index=True)
 
 
-main_content()
+def render(selected_league_name: str) -> None:
+    """Entry point football_rankings.py calls when a 2nd-tier league is
+    picked from the combined "European Leagues" dropdown. Publishes the same
+    module globals this file's own (now-removed) sidebar selectbox used to
+    set, then runs main_content() exactly as before."""
+    global league_name, cfg, league_id, ratings_id, season, home_advantage
+    league_name = selected_league_name
+    cfg = LEAGUES[league_name]
+    league_id = cfg["id"]
+    ratings_id = cfg.get("tsdb_id", cfg["id"])  # ratings CSVs stay on their original stable ID
+    season = cfg.get("af_season") or get_current_season(cfg["season_type"])
+    home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
+    main_content()
