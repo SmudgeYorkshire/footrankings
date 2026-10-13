@@ -240,7 +240,8 @@ def _resolve_one_cup(cup_id, cw_status: str, cfg: dict, ratings_df: pd.DataFrame
 def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
                             played_fixtures: list[dict], remaining_fixtures: list[dict],
                             ratings_df: pd.DataFrame, zones: dict[int, str],
-                            api_key: str, n_sim: int = 3_000) -> dict[str, str]:
+                            api_key: str, n_sim: int = 3_000,
+                            probs: pd.DataFrame | None = None) -> dict[str, str]:
     """{team_name: "STATUS"} for this league's cup-winner cascade(s),
     resolved live -- see module docstring. No "*" or other marker on the
     label itself (dropped 2026-10-13: it was reading as a parsing/display
@@ -253,7 +254,24 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
     the "champ" zones treated as overall rank 1..n for a split one -- the
     same pragmatic approximation this project's manual fixes used all
     session, since fully simulating post-split brackets is a much larger
-    project)."""
+    project).
+
+    probs: an already-simulated {position: probability} DataFrame (same
+    shape simulate_season returns) to rank teams from, instead of running a
+    fresh, separately-seeded simulation here. Pass the EXACT DataFrame the
+    Predictions tab itself displays (when one exists -- a non-split league
+    only) so the cascade's choice of team can never disagree with what the
+    table actually shows for a closely-matched pair. Confirmed as a real,
+    reproducible bug 2026-10-13 (England, Man Utd vs Leeds): this
+    function's own independent n_sim=3_000 run and the Predictions tab's
+    cached 30_000-run simulation used different seeds and sample sizes, so
+    for two teams separated by a fraction of an expected point they
+    disagreed on which ranked higher -- the cascade awarded the slot to the
+    team IT ranked just inside the cutoff, while the displayed table showed
+    that team one row below where the slot's blank cell actually was.
+    Falls back to running its own simulation (the pre-existing behavior)
+    when not given, e.g. for a split league where no single full-table
+    probs exists yet at this point in the page."""
     country = cfg.get("country")
     if not country or ratings_df is None or ratings_df.empty:
         return {}
@@ -272,23 +290,26 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
     if not cups:
         return {}
 
-    # Deterministic seed from the inputs that actually determine this
-    # result -- see module docstring.
-    seed_key = (
-        league_name, len(played_fixtures),
-        tuple((r.get("strTeam"), r.get("intPoints"), r.get("intGoalDifference")) for r in standings),
-    )
-    try:
-        probs = simulate_season(
-            standings, remaining_fixtures, ratings_df, n_sim=n_sim,
-            home_advantage=cfg.get("home_advantage", 1.0),
-            tiebreakers=cfg.get("tiebreakers"), played_fixtures=played_fixtures,
-            seed=seed_from_key(seed_key),
-        )
-    except Exception:
-        return {}
     if probs is None or probs.empty:
-        return {}
+        # No pre-computed probs given (split league, or no remaining
+        # fixtures to simulate yet) -- fall back to this function's own
+        # independent simulation, deterministically seeded from the inputs
+        # that actually determine this result.
+        seed_key = (
+            league_name, len(played_fixtures),
+            tuple((r.get("strTeam"), r.get("intPoints"), r.get("intGoalDifference")) for r in standings),
+        )
+        try:
+            probs = simulate_season(
+                standings, remaining_fixtures, ratings_df, n_sim=n_sim,
+                home_advantage=cfg.get("home_advantage", 1.0),
+                tiebreakers=cfg.get("tiebreakers"), played_fixtures=played_fixtures,
+                seed=seed_from_key(seed_key),
+            )
+        except Exception:
+            return {}
+        if probs is None or probs.empty:
+            return {}
 
     pos_nums = pd.Series({c: int(c) for c in probs.columns})
     expected_rank = probs.mul(pos_nums, axis=1).sum(axis=1)

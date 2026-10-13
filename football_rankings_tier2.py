@@ -605,7 +605,6 @@ with st.sidebar:
     )
 
 n_sim = DEFAULT_N_SIMULATIONS
-home_advantage = DEFAULT_HOME_ADVANTAGE
 
 
 # ---------------------------------------------------------------------------

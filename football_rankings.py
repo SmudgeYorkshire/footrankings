@@ -633,7 +633,6 @@ if league_name == _TRIVIA_SENTINEL:
     st.stop()
 
 n_sim = DEFAULT_N_SIMULATIONS
-home_advantage = DEFAULT_HOME_ADVANTAGE
 
 
 # ---------------------------------------------------------------------------
@@ -1245,12 +1244,34 @@ def main_content():
     # live resolution can't produce anything (API hiccup, no cup data yet).
     _has_euro_zone = lambda d: any(kw in lbl.lower() for lbl in d.values() for kw in _EURO_KW)
     _cascade_zones = _spot_zones if _has_euro_zone(_spot_zones) else _champ_spot_zones
+
+    # For a non-split league, the Predictions tab's own full-table simulation
+    # (below, "main" cache key) already ranks every team -- reuse that EXACT
+    # cached result here instead of letting the cascade run its own separate,
+    # differently-seeded, smaller-sample simulation. Confirmed as a real bug
+    # 2026-10-13 (England, Man Utd vs Leeds): two independent Monte Carlo
+    # runs can legitimately disagree on which of two closely-matched teams
+    # ranks higher, so the cascade could claim the UECL-PO slot for a team
+    # that ends up displayed one row below the actual gap in the table,
+    # leaving that row blank. Reusing the identical simulation makes this
+    # structurally impossible for a non-split league. Split leagues keep the
+    # cascade's own approximate full-table simulation (no single real
+    # full-table probs exists for them at this point -- see
+    # resolve_live_overrides's own docstring).
+    _main_sim_probs = None
+    if not split_info and remaining_fixtures:
+        _main_sim_key = (league_id, season, n_sim, home_advantage, len(played_fixtures), _ratings_fingerprint) + ("main",)
+        _main_sim_probs = _cached_simulate_season(
+            _main_sim_key, standings, remaining_fixtures, ratings_df,
+            n_sim, home_advantage, cfg.get("tiebreakers"), played_fixtures,
+        )
+
     _cascade_key = (league_id, season, len(played_fixtures), _ratings_fingerprint,
                      tuple(sorted(_cascade_zones.items())))
     if st.session_state.get(f"cascade_key_{league_id}") != _cascade_key:
         st.session_state[f"cascade_overrides_{league_id}"] = resolve_live_overrides(
             league_name, cfg, standings, played_fixtures, remaining_fixtures,
-            ratings_df, _cascade_zones, _API_KEY,
+            ratings_df, _cascade_zones, _API_KEY, probs=_main_sim_probs,
         )
         st.session_state[f"cascade_key_{league_id}"] = _cascade_key
     _team_overrides = (st.session_state.get(f"cascade_overrides_{league_id}")
