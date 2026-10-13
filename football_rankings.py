@@ -1303,6 +1303,29 @@ def main_content():
             _main_sim_key, standings, remaining_fixtures, ratings_df,
             n_sim, home_advantage, cfg.get("tiebreakers"), played_fixtures,
         )
+    elif split_info:
+        # Once a league is actually past its real split, the Championship
+        # Round's own champ-conference-scoped simulation (computed again,
+        # identically, inside tab_proj below) is the one that determines the
+        # ranking the cascade needs to agree with -- same reasoning as the
+        # non-split case above, just scoped to the champ conference instead
+        # of the whole table.
+        _champ_fix_early = conference_fixtures(remaining_fixtures, split_info["champ_teams"])
+        if not _champ_fix_early:
+            _champ_fix_early = _roundrobin_fixtures(sorted(split_info["champ_teams"]))
+        _mid_fix_early = conference_fixtures(remaining_fixtures, split_info.get("mid_teams") or set())
+        if not _mid_fix_early and split_info.get("mid_teams"):
+            _mid_fix_early = _roundrobin_fixtures(sorted(split_info["mid_teams"]))
+        _relg_fix_early = conference_fixtures(remaining_fixtures, split_info["relg_teams"])
+        if not _relg_fix_early and split_info.get("relg_teams"):
+            _relg_fix_early = _roundrobin_fixtures(sorted(split_info["relg_teams"]))
+        _champ_sim_key = (league_id, season, n_sim, home_advantage,
+                          len(_champ_fix_early), len(_mid_fix_early), len(_relg_fix_early),
+                          _ratings_fingerprint) + ("champ",)
+        _main_sim_probs = _cached_simulate_season(
+            _champ_sim_key, split_info["champ_current"], _champ_fix_early, ratings_df,
+            n_sim, home_advantage, cfg.get("tiebreakers"), played_fixtures,
+        )
 
     _cascade_key = (league_id, season, len(played_fixtures), _ratings_fingerprint,
                      tuple(sorted(_cascade_zones.items())))
@@ -1716,7 +1739,13 @@ def main_content():
                 _season_progress_html(played_rounds, total_rounds, len(played_fixtures), len(remaining_fixtures)),
                 unsafe_allow_html=True,
             )
-            _render_table(_table_rows(standings, zones=_main_zones, team_overrides=_team_overrides, show_next=True))
+            # _team_overrides is keyed by POSITION (cup_cascade.py), merged
+            # directly into zones rather than passed as team_overrides= --
+            # see cup_cascade.resolve_live_overrides's own docstring for why
+            # a team-keyed lookup here would misapply a stale label to
+            # whatever row that team is CURRENTLY shown at, however far
+            # they've since moved from the position the cascade concerns.
+            _render_table(_table_rows(standings, zones={**_main_zones, **_team_overrides}, show_next=True))
             _tbs_non_split = cfg.get("tiebreakers", ["gd", "gf"])[:8]
             st.caption("Tiebreakers: " + "; ".join(f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(_tbs_non_split)))
             if cfg.get("team_status_note"):
@@ -1905,14 +1934,15 @@ def main_content():
                     conference_fixtures(remaining_fixtures, split_info["champ_teams"]),
                 ), unsafe_allow_html=True)
                 if not probs_champ.empty:
-                    # team_overrides here (not in the pre-split whole-table
-                    # view above) -- _team_overrides was resolved against
+                    # _team_overrides merged here (not in the pre-split
+                    # whole-table view above) -- it was resolved against
                     # _champ_spot_zones in the first place (see
-                    # _cascade_zones above), so this Championship Round
-                    # table is exactly where the cup-winner cascade's real
+                    # _cascade_zones above, same position-key space as
+                    # _champ_zones), so this Championship Round table is
+                    # exactly where the cup-winner cascade's real
                     # European-spot status belongs.
                     render_prob_table(probs_champ, badge_lookup, champ_exp_pts,
-                                      status_map=_champ_zones, team_overrides=_team_overrides,
+                                      status_map={**_champ_zones, **_team_overrides},
                                       bounds=position_bounds(split_info["champ_current"], champ_fix),
                                       title_emoji=True)
                     render_zone_table(probs_champ, split_info["champ_current"], cfg.get("zones"))
@@ -2039,22 +2069,24 @@ def main_content():
                 # position 1 right here already is the real title race.
                 _is_true_split = bool(cfg.get("n_champ")) and not cfg.get("final_four")
                 # Use pre-computed _main_zones (same source as Current Table).
-                # team_overrides (the cup-winner cascade's resolved European-
-                # zone label) is skipped here for a true split league: it was
-                # computed against the post-split Championship Group's own
-                # ordering (_champ_spot_zones), which has no real meaning
-                # applied to THIS pre-split, whole-table view -- it showed up
-                # as a confusing mix of "Championship Group" for most of the
-                # top group and a specific "UEL - PO"/"UECL - QR2"-style
-                # label for just the cup-winner cascade's own positions
-                # within that same group (confirmed live 2026-10-13, Czech
-                # Liga). The real European-spot status belongs in the
-                # Championship Round's own table after the split, where it's
-                # rendered separately below (see split_info branch above) --
-                # not mixed into the group-destination-only view here.
+                # _team_overrides (the cup-winner cascade's resolved
+                # European-zone label, keyed by POSITION -- see
+                # cup_cascade.resolve_live_overrides's own docstring)
+                # merged directly in, skipped here for a true split league:
+                # it was computed against the post-split Championship
+                # Group's own ordering (_champ_spot_zones), which has no
+                # real meaning applied to THIS pre-split, whole-table view
+                # -- it showed up as a confusing mix of "Championship
+                # Group" for most of the top group and a specific
+                # "UEL - PO"/"UECL - QR2"-style label for just the
+                # cup-winner cascade's own positions within that same group
+                # (confirmed live 2026-10-13, Czech Liga). The real
+                # European-spot status belongs in the Championship Round's
+                # own table after the split, where it's rendered separately
+                # below (see split_info branch above) -- not mixed into the
+                # group-destination-only view here.
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
-                                  status_map=_main_zones,
-                                  team_overrides=None if _is_true_split else _team_overrides,
+                                  status_map=_main_zones if _is_true_split else {**_main_zones, **_team_overrides},
                                   bounds=position_bounds(standings, remaining_fixtures),
                                   title_emoji=not _is_true_split)
                 if not _is_true_split:
@@ -2145,8 +2177,22 @@ def main_content():
                                         n_sim, home_advantage, cfg.get("tiebreakers"),
                                     )
                                 st.session_state["po_sims"][_po_c] = _po_probs
+                            # Recompute the cascade's overrides against THIS
+                            # mini-simulation's own ranking rather than reusing
+                            # the page-level _team_overrides (resolved against
+                            # a broader, differently-scoped simulation) --
+                            # two closely-matched teams in this focused
+                            # round-robin can rank in the opposite order from
+                            # the wider one, same class of mismatch already
+                            # fixed for the non-split Predictions table (see
+                            # resolve_live_overrides's own docstring).
+                            _po_overrides = resolve_live_overrides(
+                                league_name, cfg, standings, played_fixtures, remaining_fixtures,
+                                ratings_df, _cascade_zones, _API_KEY,
+                                probs=st.session_state["po_sims"][_po_c],
+                            )
                             render_prob_table(st.session_state["po_sims"][_po_c], badge_lookup,
-                                              status_map=_champ_zones, team_overrides=_team_overrides,
+                                              status_map={**_champ_zones, **_po_overrides},
                                               title="Championship play-off finish probabilities")
                             render_title_probability_history(ratings_id)
 

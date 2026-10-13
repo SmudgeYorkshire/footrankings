@@ -93,7 +93,16 @@ def render_prob_table(probs: pd.DataFrame, badge_lookup: dict = None,
 
     status_map: unified {pos: label} dict from league_status.py (preferred).
     european_spots / zones: legacy params, used only if status_map is not provided.
-    team_overrides: {team_name: label} — fixed status for specific teams regardless of position.
+    team_overrides: {team_name: label} — fixed status for specific teams
+        regardless of position. Genuinely team-specific, static cases only
+        (config.py's own team_status_overrides fallback); the live
+        cup-winner cascade (cup_cascade.resolve_live_overrides) is keyed by
+        POSITION instead and merged straight into status_map/zones by its
+        caller, not passed here -- a team-keyed lookup would keep showing a
+        stale label wherever that team is NOW displayed even after they've
+        moved well away from the position the cascade actually concerns
+        (confirmed live 2026-10-13: a team dropping out of contention kept
+        its old European-zone tag at its new, much lower row).
     bounds: {team: (best_reachable, worst_reachable)} from simulator.position_bounds
         -- when given, any cell mathematically proven impossible/guaranteed
         (see that function's own docstring) shows "X"/"✓" instead of the raw
