@@ -1820,7 +1820,7 @@ def main_content():
                 ), unsafe_allow_html=True)
                 if not probs_champ.empty:
                     render_prob_table(probs_champ, badge_lookup, champ_exp_pts,
-                                      status_map=_champ_zones,
+                                      status_map=_champ_zones, team_overrides=_team_overrides,
                                       bounds=position_bounds(split_info["champ_current"], champ_fix),
                                       title_emoji=True)
                     render_zone_table(probs_champ, split_info["champ_current"], cfg.get("zones"))
@@ -1937,9 +1937,15 @@ def main_content():
                 # race (decided within the post-split Championship group instead) --
                 # see football_rankings.py's identical check for the full rationale.
                 _is_true_split = bool(cfg.get("n_champ")) and not cfg.get("final_four")
-                # Use pre-computed _main_zones (same source as Current Table)
+                # Use pre-computed _main_zones (same source as Current Table).
+                # team_overrides skipped for a true split league here -- any
+                # per-team override belongs in the post-split Championship
+                # Round's own table instead, not mixed into this pre-split,
+                # group-destination-only view (see football_rankings.py's
+                # identical fix for the full rationale).
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
-                                  status_map=_main_zones, team_overrides=_team_overrides,
+                                  status_map=_main_zones,
+                                  team_overrides=None if _is_true_split else _team_overrides,
                                   bounds=position_bounds(standings, remaining_fixtures),
                                   title_emoji=not _is_true_split)
                 render_title_probability_history(ratings_id)

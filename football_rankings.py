@@ -1905,8 +1905,14 @@ def main_content():
                     conference_fixtures(remaining_fixtures, split_info["champ_teams"]),
                 ), unsafe_allow_html=True)
                 if not probs_champ.empty:
+                    # team_overrides here (not in the pre-split whole-table
+                    # view above) -- _team_overrides was resolved against
+                    # _champ_spot_zones in the first place (see
+                    # _cascade_zones above), so this Championship Round
+                    # table is exactly where the cup-winner cascade's real
+                    # European-spot status belongs.
                     render_prob_table(probs_champ, badge_lookup, champ_exp_pts,
-                                      status_map=_champ_zones,
+                                      status_map=_champ_zones, team_overrides=_team_overrides,
                                       bounds=position_bounds(split_info["champ_current"], champ_fix),
                                       title_emoji=True)
                     render_zone_table(probs_champ, split_info["champ_current"], cfg.get("zones"))
@@ -2032,9 +2038,23 @@ def main_content():
                 # Simple (non-split) and Final Four leagues have no such split, so
                 # position 1 right here already is the real title race.
                 _is_true_split = bool(cfg.get("n_champ")) and not cfg.get("final_four")
-                # Use pre-computed _main_zones (same source as Current Table)
+                # Use pre-computed _main_zones (same source as Current Table).
+                # team_overrides (the cup-winner cascade's resolved European-
+                # zone label) is skipped here for a true split league: it was
+                # computed against the post-split Championship Group's own
+                # ordering (_champ_spot_zones), which has no real meaning
+                # applied to THIS pre-split, whole-table view -- it showed up
+                # as a confusing mix of "Championship Group" for most of the
+                # top group and a specific "UEL - PO"/"UECL - QR2"-style
+                # label for just the cup-winner cascade's own positions
+                # within that same group (confirmed live 2026-10-13, Czech
+                # Liga). The real European-spot status belongs in the
+                # Championship Round's own table after the split, where it's
+                # rendered separately below (see split_info branch above) --
+                # not mixed into the group-destination-only view here.
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
-                                  status_map=_main_zones, team_overrides=_team_overrides,
+                                  status_map=_main_zones,
+                                  team_overrides=None if _is_true_split else _team_overrides,
                                   bounds=position_bounds(standings, remaining_fixtures),
                                   title_emoji=not _is_true_split)
                 if not _is_true_split:
