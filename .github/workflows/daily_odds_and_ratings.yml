@@ -1,4 +1,4 @@
-name: Daily Odds Pull and Club/Nations League Ratings
+name: Daily Odds Pull and Club Ratings
 
 on:
   schedule:
@@ -38,19 +38,13 @@ jobs:
       - name: Rebuild the global 0-1000 Club Power Ranking
         run: python build_club_power_rankings.py
 
-      - name: Fit today's odds-driven Nations League rating adjustments
-        env:
-          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
-        run: python nl_odds_calibration_auto.py
-
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add odds_coverage/ ratings/club_rating_adjustments.csv club_power_rankings_1000.csv \
-                  ratings/nations_league_elo_adjustments.csv
+          git add odds_coverage/ ratings/club_rating_adjustments.csv club_power_rankings_1000.csv
           git diff --staged --quiet && exit 0
-          git commit -m "Daily odds pull and club/Nations League ratings $(date -u +%Y-%m-%d)"
+          git commit -m "Daily odds pull and club ratings $(date -u +%Y-%m-%d)"
           # main can move between this job's checkout and this push (another
           # workflow, or a manual commit) -- rebase onto the latest and retry
           # a few times rather than failing the whole run over a plain
