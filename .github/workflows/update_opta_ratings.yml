@@ -35,10 +35,22 @@ jobs:
       - name: Update our 54 tracked leagues' ratings from the scrape
         run: python update_ratings_from_opta.py
 
+      - name: Rebuild the global 0-1000 Club Power Ranking
+        # Also runs at the end of daily_odds_and_ratings.yml -- whichever of
+        # the two workflows runs LAST on a given day needs to be the one that
+        # leaves club_power_rankings_1000.csv fresh. Without this, a normal
+        # day (odds nominally 05:07 UTC, Opta 06:11 UTC) always built that
+        # file from the PREVIOUS day's Opta numbers, since nothing re-ran it
+        # after Opta's own refresh landed -- confirmed live 2026-10-13
+        # (Coventry showing 89.0 here vs 89.5 on Opta's actual site right
+        # after a manual Opta-only trigger). Pure local CSV processing, no
+        # API calls, cheap enough to run from both workflows.
+        run: python build_club_power_rankings.py
+
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add opta_power_rankings.csv opta_power_rankings_meta.json ratings/
+          git add opta_power_rankings.csv opta_power_rankings_meta.json ratings/ club_power_rankings_1000.csv
           git diff --staged --quiet || git commit -m "Update Opta ratings $(date -u +%Y-%m-%d)"
           git push
