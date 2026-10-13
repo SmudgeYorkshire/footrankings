@@ -1519,25 +1519,30 @@ def main_content():
 
             # ── Overall Table ────────────────────────────────────────────────
             # The single, unified view across every conference, Status
-            # showing which group each team is now in (_main_zones) plus the
-            # live cup-cascade European-zone override -- shown FIRST, as the
-            # active/current view, not demoted below the per-conference
-            # breakdowns. Confirmed as a real gap 2026-10-14: once a split
-            # league's groups are actually being shown (this if-branch),
-            # there was previously no unified "everyone together" table at
-            # all here -- only the separate Championship/Middle/Relegation
-            # Round tables below, plus "Regular Season Final Table" at the
-            # very bottom using split_info["pre_split"], which (per
-            # get_split_info's own Fallback D -- see _split_season.py) is
-            # only genuine frozen historical data when a real presplit
-            # snapshot was actually captured; otherwise it's just a proxy
-            # copy of today's current standings, so showing it as a
-            # "completed"-looking table at the bottom with no status
-            # (_spot_zones is empty whenever a league's own "regular" zone
-            # dict is pure group-assignment labels, like Czech First
-            # League's) was actively misleading.
+            # showing purely which group each team is now in (_main_zones
+            # alone -- NOT merged with the cup-cascade European-zone
+            # override here, confirmed 2026-10-14: that's already shown
+            # correctly in the Championship Round table below, keyed to
+            # ITS OWN position space; duplicating it here too just
+            # redisplays the same thing twice for no benefit) -- shown
+            # FIRST, as the active/current view, not demoted below the
+            # per-conference breakdowns. Confirmed as a real gap
+            # 2026-10-14: once a split league's groups are actually being
+            # shown (this if-branch), there was previously no unified
+            # "everyone together" table at all here -- only the separate
+            # Championship/Middle/Relegation Round tables below, plus
+            # "Regular Season Final Table" at the very bottom using
+            # split_info["pre_split"], which (per get_split_info's own
+            # Fallback D -- see _split_season.py) is only genuine frozen
+            # historical data when a real presplit snapshot was actually
+            # captured; otherwise it's just a proxy copy of today's
+            # current standings, so showing it as a "completed"-looking
+            # table at the bottom with no status (_spot_zones is empty
+            # whenever a league's own "regular" zone dict is pure
+            # group-assignment labels, like Czech First League's) was
+            # actively misleading.
             st.markdown("### 📊 Overall Table")
-            _render_table(_table_rows(standings, zones={**_main_zones, **_team_overrides_current}, show_next=True))
+            _render_table(_table_rows(standings, zones=_main_zones, show_next=True))
             st.caption("Tiebreakers: " + "; ".join(
                 f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(cfg.get("tiebreakers", ["gd", "gf"])[:8])))
 
