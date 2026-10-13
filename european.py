@@ -5,9 +5,8 @@ Shows:
   • League Phase standings (computed from round 1-8 results, color-coded by zone)
   • League Phase results round-by-round
   • Qualifying — every tie from the First Qualifying Round through the Play-off
-    round, with live results (from API-Football)
-  • Qualifying Predictions — advance-probability predictions for undecided
-    Third Qualifying Round ties, plus projected Play-off round pairings
+    round, with live results (from API-Football). No Qualifying Predictions tab
+    this season -- qualifying for 2026/27 is already complete.
 """
 
 import os
@@ -19,8 +18,8 @@ from zoneinfo import ZoneInfo
 from config import EUROPEAN_COMPETITIONS, LEAGUES
 from api_football_fetcher import ApiFootballClient
 from _split_season import build_h2h, rank_tied_group
-from simulator import two_leg_advance_odds, position_bounds
-from qualifying_bracket import PLAYOFF_BRACKET, CONFIRMED_LEAGUE_PHASE
+from simulator import position_bounds
+from qualifying_bracket import CONFIRMED_LEAGUE_PHASE
 from club_coefficients import get_coeff
 from league_phase_simulator import (
     build_predicted_bracket, single_match_outcome_probs,
@@ -34,10 +33,8 @@ from league_phase_fixtures import (
 from competition_trivia import competition_trivia, overall_trivia
 from qualifying_projection import (
     _load_combined_ratings, _resolve_field_ratings,
-    _leg_aggregate_winner, _resolve_bracket_side,
-    _resolve_playoff_tie_odds, _project_league_phase_field,
+    _leg_aggregate_winner, _project_league_phase_field,
     _fuzzy_key, real_league_phase_results,
-    home_advantage_for,
 )
 
 # Real pot sizing per competition (see league_phase_simulator's docstring):
@@ -310,52 +307,10 @@ def _tie_card_html(legs: list[dict], badge_lookup: dict, played_set: set) -> str
 </div>"""
 
 
-# ---------------------------------------------------------------------------
-# Play-off bracket resolution
-# ---------------------------------------------------------------------------
-
-def _playoff_tie_odds_html(resolved: dict, badge_lookup: dict) -> str:
-    """Renders a resolved Play-off tie: either the decided winner
-    (highlighted, matching _tie_card_html's style) or each side's live
-    advance probability for this specific tie."""
-    t1, t2 = resolved["team1"], resolved["team2"]
-    b1, b2 = badge_lookup.get(t1, ""), badge_lookup.get(t2, "")
-
-    if resolved["status"] == "decided":
-        winner = resolved["winner"]
-        t1s = ("font-weight:700;background:#d4edda;border-radius:3px;padding:2px 5px;"
-               if winner == t1 else "padding:2px 5px;")
-        t2s = ("font-weight:700;background:#d4edda;border-radius:3px;padding:2px 5px;"
-               if winner == t2 else "padding:2px 5px;")
-        return (
-            f"<div style='{t1s}'>{_img(b1)}{t1}</div>"
-            f"<div style='text-align:center;color:#888;font-size:11px;margin:3px 0'>vs</div>"
-            f"<div style='{t2s}'>{_img(b2)}{t2}</div>"
-            f"<div style='text-align:center;font-size:11px;color:#2e7d32;font-weight:bold;"
-            f"margin-top:3px'>Decided — {winner} advances</div>"
-        )
-
-    t1_pct, t2_pct = resolved["team1_adv"], resolved["team2_adv"]
-    leg1_note = ""
-    if resolved.get("leg1_played") and resolved.get("leg1_score"):
-        hs, aws = resolved["leg1_score"]
-        leg1_note = (f"<div style='text-align:center;font-size:10px;color:#888;"
-                     f"margin-top:3px'>Leg 1: {hs}–{aws}</div>")
-    return (
-        f"<div style='padding:2px 5px'>{_img(b1)}{t1} "
-        f"<span style='color:#856404;font-size:10px'>({t1_pct:.0%})</span></div>"
-        f"<div style='text-align:center;color:#888;font-size:11px;margin:3px 0'>vs</div>"
-        f"<div style='padding:2px 5px'>{_img(b2)}{t2} "
-        f"<span style='color:#856404;font-size:10px'>({t2_pct:.0%})</span></div>"
-        f"{leg1_note}"
-    )
-
-
 def _bracket_tie_html(tie: dict, badge_lookup: dict) -> str:
     """Renders one tie of a predicted knockout bracket (build_predicted_
     bracket's output): the favoured side highlighted, each side's own
-    advance % for this specific matchup -- same visual language as
-    _playoff_tie_odds_html's undecided-tie case."""
+    advance % for this specific matchup."""
     a, b = tie["team_a"], tie["team_b"]
     pa, pb = tie["pct_a"], tie["pct_b"]
     ba, bb = badge_lookup.get(a, ""), badge_lookup.get(b, "")
@@ -371,19 +326,6 @@ def _bracket_tie_html(tie: dict, badge_lookup: dict) -> str:
         f"<div style='{bs_}'>{_img(bb)}{b} "
         f"<span style='color:#856404;font-size:10px'>({pb:.0%})</span></div>"
     )
-
-
-def _proj_side_html(resolved: dict, badge_lookup: dict, winner: bool) -> str:
-    label = resolved["label"] or "TBD"
-    status = resolved["status"]
-    badge = badge_lookup.get(label, "") if resolved["label"] else ""
-    style = "font-weight:700;background:#d4edda;border-radius:3px;padding:2px 5px;" if winner else "padding:2px 5px;"
-    pct_html = ""
-    if status == "predicted" and resolved["pct"] is not None:
-        pct_html = f" <span style='color:#856404;font-size:10px'>({resolved['pct']:.0%})</span>"
-    elif status == "tbd":
-        style = "padding:2px 5px;color:#999;font-style:italic;"
-    return f"<div style='{style}'>{_img(badge)}{label}{pct_html}</div>"
 
 
 # ---------------------------------------------------------------------------
@@ -461,12 +403,12 @@ st.divider()
 # Tabs
 # ---------------------------------------------------------------------------
 if has_lp:
-    tab_league, tab_lp_results, tab_lp_pred, tab_ko_pred, tab_manual, tab_qual, tab_qual_pred, tab_trivia = st.tabs(
+    tab_league, tab_lp_results, tab_lp_pred, tab_ko_pred, tab_manual, tab_qual, tab_trivia = st.tabs(
         ["📊 Current Standings", "📅 Fixtures", "📈 League Stage Predictions", "🥊 Knockout Predictions",
-         "🔮 Manual Predictions", "🔍 Qualifying", "🔮 Qualifying Predictions", "🎲 Trivia"]
+         "🔮 Manual Predictions", "🔍 Qualifying", "🎲 Trivia"]
     )
 else:
-    tab_qual, tab_qual_pred, tab_trivia = st.tabs(["🔍 Qualifying", "🔮 Qualifying Predictions", "🎲 Trivia"])
+    tab_qual, tab_trivia = st.tabs(["🔍 Qualifying", "🎲 Trivia"])
     tab_league = None
     tab_lp_results = None
     tab_lp_pred = None
@@ -642,7 +584,7 @@ if tab_lp_results is not None:
                             _real = _real_results.get((_fx["home"], _fx["away"]))
                             _dt = datetime.strptime(_fx["date"], "%Y-%m-%d")
                             _md_rows.append({
-                                "Date": f"{_dt.strftime('%a %d %b %Y')} {_fx['time']}",
+                                "Date": f"{_dt.strftime('%a %d %b')} {_fx['time']}",
                                 "HB": badge_lookup.get(_fx["home"], ""),
                                 "Home": _fx["home"],
                                 "Score": f"{_real[0]}–{_real[1]}" if _real else "—",
@@ -908,7 +850,11 @@ if tab_manual is not None:
                 "the draw is known."
             )
         else:
-            _md_by_pair = {(_fx["home"], _fx["away"]): _fx["matchday"] for _fx in dated_schedule(comp_name)}
+            # Keyed by (home, away) -> the full dated-schedule fixture dict
+            # (matchday/date/time), not just the matchday number, so the
+            # editor can be sorted the same way the Fixtures tab is --
+            # chronologically, not alphabetically by home team.
+            _dated_by_pair = {(_fx["home"], _fx["away"]): _fx for _fx in dated_schedule(comp_name)}
             _unplayed_schedule = [
                 f for f in _real_schedule
                 if (f["strHomeTeam"], f["strAwayTeam"]) not in _real_results
@@ -923,14 +869,15 @@ if tab_manual is not None:
                     st.session_state[_ver_key] = 0
 
                 def _build_manual_fix_df(fixtures):
+                    def _sort_key(x):
+                        _fx = _dated_by_pair.get((x["strHomeTeam"], x["strAwayTeam"])) or {}
+                        return (_fx.get("matchday", 99), _fx.get("date", ""), _fx.get("time", ""), x["strHomeTeam"])
+
                     rows = []
-                    for f in sorted(
-                        fixtures,
-                        key=lambda x: (_md_by_pair.get((x["strHomeTeam"], x["strAwayTeam"]), 99),
-                                       x["strHomeTeam"]),
-                    ):
+                    for f in sorted(fixtures, key=_sort_key):
+                        _fx = _dated_by_pair.get((f["strHomeTeam"], f["strAwayTeam"])) or {}
                         rows.append({
-                            "MD":   _md_by_pair.get((f["strHomeTeam"], f["strAwayTeam"]), pd.NA),
+                            "MD":   _fx.get("matchday", pd.NA),
                             "HB":   badge_lookup.get(f["strHomeTeam"], ""),
                             "Home": f["strHomeTeam"],
                             "HG":   pd.NA, "AG": pd.NA,
@@ -1059,16 +1006,34 @@ if tab_manual is not None:
                     _mr_pos_cols  = [str(i) for i in range(1, len(_field) + 1)]
                     _mr_ko_cols   = [c for c in _mr_pos_cols if 9 <= int(c) <= 24]
                     _mr_elim_cols = [c for c in _mr_pos_cols if int(c) >= 25]
+
+                    def _fmt_delta_cell(new_frac: float, base_frac: float) -> str:
+                        """'XX.X%' plus an arrow + signed change vs the main,
+                        locked 30,000-sim baseline (_ls_result, computed once
+                        in the shared block above) -- so it's clear how much
+                        the user's own entered scorelines moved each band,
+                        not just what the new number is."""
+                        new_v = round(new_frac * 100, 1)
+                        delta = round(new_v - round(base_frac * 100, 1), 1)
+                        if delta > 0.05:
+                            return f"{new_v:.1f}% (▲+{delta:.1f})"
+                        if delta < -0.05:
+                            return f"{new_v:.1f}% (▼{delta:.1f})"
+                        return f"{new_v:.1f}%"
+
                     _mr_rows = []
                     for _team, _r in _mr.iterrows():
+                        _base = _ls_result.loc[_team]
                         _mr_rows.append({
                             "Badge": badge_lookup.get(_team, ""),
                             "Team": _team,
-                            "Top 8": round(_r["reached_top8"] * 100, 1),
-                            "Top 16": round(_r["reached_top16"] * 100, 1),
-                            "Top 24": round(_r["reached_top24"] * 100, 1),
-                            "Knockout Play-offs (9th-24th)": round(_r[_mr_ko_cols].sum() * 100, 1),
-                            "Elimination (25th-36th)": round(_r[_mr_elim_cols].sum() * 100, 1),
+                            "Top 8": _fmt_delta_cell(_r["reached_top8"], _base["reached_top8"]),
+                            "Top 16": _fmt_delta_cell(_r["reached_top16"], _base["reached_top16"]),
+                            "Top 24": _fmt_delta_cell(_r["reached_top24"], _base["reached_top24"]),
+                            "Knockout Play-offs (9th-24th)": _fmt_delta_cell(
+                                _r[_mr_ko_cols].sum(), _base["pct_knockout_band"]),
+                            "Elimination (25th-36th)": _fmt_delta_cell(
+                                _r[_mr_elim_cols].sum(), _base["pct_elimination_band"]),
                         })
                     _mr_df = pd.DataFrame(_mr_rows)
                     _mr_pct_cols = ["Top 8", "Top 16", "Top 24",
@@ -1078,7 +1043,12 @@ if tab_manual is not None:
                         "Team": st.column_config.TextColumn("Team", width="medium"),
                     }
                     for _c in _mr_pct_cols:
-                        _mr_col_cfg[_c] = st.column_config.NumberColumn(_c, format="%.1f%%", width="small")
+                        _mr_col_cfg[_c] = st.column_config.TextColumn(_c, width="medium")
+                    st.caption(
+                        "Each cell also shows the change versus the main, locked 30,000-simulation "
+                        "baseline (the same numbers shown in League Stage Predictions) -- ▲ = your "
+                        "entered results improved that band's chances, ▼ = they hurt it."
+                    )
                     st.dataframe(
                         _mr_df, column_config=_mr_col_cfg, width="content",
                         hide_index=True, height=len(_mr_df) * 35 + 38,
@@ -1110,146 +1080,6 @@ with tab_qual:
                     unsafe_allow_html=True,
                 )
         st.caption("🟢 Winner of a decided tie/leg")
-
-
-# ---------------------------------------------------------------------------
-# Tab — Qualifying Predictions
-# ---------------------------------------------------------------------------
-with tab_qual_pred:
-    _qual_home_adv = EUROPEAN_COMPETITIONS[comp_name]["home_advantage"]
-    st.caption(
-        "**Model:** Opta ratings → attack/defence via power transform → "
-        "Negative-Binomial goal distribution → analytical two-leg advance probability.  "
-        f"Home advantage: {_qual_home_adv}×.  Penalties modelled as 50/50.  "
-        "Clubs that play their UEFA \"home\" matches at a neutral venue (currently Ukrainian and "
-        "Israeli clubs) get no home-advantage boost on their nominal home leg."
-    )
-
-    # ── Third Qualifying Round — undecided ties ─────────────────────────────
-    st.markdown("### Third Qualifying Round")
-    qr3_all = qual_rounds_map.get("3rd Qualifying Round", [])
-    qr3_ties = _group_ties(qr3_all)
-    qr3_undecided = [
-        legs for legs in qr3_ties
-        if not (len(legs) >= 2 and all(_g.get("idEvent") in played_ids for _g in legs[:2]))
-    ]
-
-    if not qr3_ties:
-        st.info("Third Qualifying Round fixtures not yet available.")
-    elif not qr3_undecided:
-        st.success("Third Qualifying Round is complete — see projected Play-off ties below.")
-    else:
-        for legs in qr3_undecided:
-            leg1 = legs[0]
-            leg2 = legs[1] if len(legs) > 1 else None
-            team1 = leg1.get("strHomeTeam", "")
-            team2 = leg1.get("strAwayTeam", "")
-            l1_played = leg1.get("idEvent") in played_ids
-            leg1_score = None
-            if l1_played:
-                leg1_score = (int(leg1.get("intHomeScore") or 0), int(leg1.get("intAwayScore") or 0))
-
-            odds = two_leg_advance_odds(
-                team1, team2, ratings_df, leg1_score=leg1_score,
-                home_advantage_team1=home_advantage_for(team1, _qual_home_adv),
-                home_advantage_team2=home_advantage_for(team2, _qual_home_adv),
-            )
-            t1_adv, t2_adv = odds["team1_adv"], odds["team2_adv"]
-            l1o, l2o = odds["leg1"], odds["leg2"]
-            b1 = badge_lookup.get(team1, "")
-            b2 = badge_lookup.get(team2, "")
-
-            with st.container(border=True):
-                hc1, hc2, hc3 = st.columns([2, 1, 2])
-                with hc1:
-                    if b1: st.image(b1, width=36)
-                    st.markdown(f"**{team1}**")
-                with hc2:
-                    st.markdown("<div style='text-align:center;padding-top:8px'>vs</div>", unsafe_allow_html=True)
-                with hc3:
-                    if b2: st.image(b2, width=36)
-                    st.markdown(f"**{team2}**")
-
-                d1 = leg1.get("dateEvent", "")[:10]
-                d2 = leg2.get("dateEvent", "")[:10] if leg2 else "TBD"
-                lc1, lc2 = st.columns(2)
-                with lc1:
-                    st.markdown(f"**Leg 1** · {d1} · *{team1}* at home")
-                    if l1_played:
-                        st.markdown(f"Result: **{leg1.get('intHomeScore','?')}–{leg1.get('intAwayScore','?')}**")
-                    else:
-                        st.markdown(
-                            f"<span style='color:#1a73e8'>{l1o['home_win']:.0%}</span> · "
-                            f"<span style='color:#888'>{l1o['draw']:.0%}</span> · "
-                            f"<span style='color:#e53935'>{l1o['away_win']:.0%}</span>  "
-                            f"&nbsp;&nbsp;xG: **{l1o['xg_home']:.2f}** – **{l1o['xg_away']:.2f}**",
-                            unsafe_allow_html=True,
-                        )
-                with lc2:
-                    st.markdown(f"**Leg 2** · {d2} · *{team2}* at home")
-                    st.markdown(
-                        f"<span style='color:#1a73e8'>{l2o['home_win']:.0%}</span> · "
-                        f"<span style='color:#888'>{l2o['draw']:.0%}</span> · "
-                        f"<span style='color:#e53935'>{l2o['away_win']:.0%}</span>  "
-                        f"&nbsp;&nbsp;xG: **{l2o['xg_home']:.2f}** – **{l2o['xg_away']:.2f}**",
-                        unsafe_allow_html=True,
-                    )
-
-                bar_w1 = int(round(t1_adv * 100))
-                bar_w2 = 100 - bar_w1
-                c1, c2 = ("#1a73e8", "#e53935") if t1_adv >= 0.5 else ("#e53935", "#1a73e8")
-                st.markdown(
-                    f"<div style='margin:10px 0 4px'>"
-                    f"<div style='display:flex;height:22px;border-radius:4px;overflow:hidden'>"
-                    f"<div style='width:{bar_w1}%;background:{c1};display:flex;align-items:center;"
-                    f"justify-content:center;color:white;font-size:12px;font-weight:600'>"
-                    f"{team1} {t1_adv:.0%}</div>"
-                    f"<div style='width:{bar_w2}%;background:{c2};display:flex;align-items:center;"
-                    f"justify-content:center;color:white;font-size:12px;font-weight:600'>"
-                    f"{t2_adv:.0%} {team2}</div>"
-                    f"</div></div>",
-                    unsafe_allow_html=True,
-                )
-
-    # ── Projected Play-off round ─────────────────────────────────────────────
-    st.divider()
-    st.markdown("### Projected Play-off Ties")
-    st.caption(
-        "Where a Third Qualifying Round tie is undecided, the side shown is the "
-        "team currently favoured to advance (or be eliminated, for ties that feed "
-        "in as a Third Qualifying Round *loser*), with its probability. Once both "
-        "sides of a Play-off tie are confirmed, the percentages switch to that tie's "
-        "own advance odds — updated with the real leg 1 result once it's played."
-    )
-    bracket = PLAYOFF_BRACKET.get(comp_name, [])
-    if not bracket:
-        st.info("No Play-off bracket data available for this competition.")
-    else:
-        po_cards = []
-        for side_a, side_b in bracket:
-            ra = _resolve_bracket_side(side_a, ratings_df)
-            rb = _resolve_bracket_side(side_b, ratings_df)
-
-            tie_odds = None
-            if ra["status"] == "confirmed" and rb["status"] == "confirmed" and ra["label"] and rb["label"]:
-                tie_odds = _resolve_playoff_tie_odds(ra["label"], rb["label"], comp_name, ratings_df)
-
-            if tie_odds:
-                inner_html = _playoff_tie_odds_html(tie_odds, badge_lookup)
-            else:
-                html_a = _proj_side_html(ra, badge_lookup, winner=False)
-                html_b = _proj_side_html(rb, badge_lookup, winner=False)
-                inner_html = (f"{html_a}"
-                              f"<div style='text-align:center;color:#888;font-size:11px;margin:3px 0'>vs</div>"
-                              f"{html_b}")
-
-            po_cards.append(f"""
-<div style="border:1px solid #dee2e6;border-radius:8px;padding:8px 10px;
-            margin:0 8px 8px 0;background:#fff;width:230px;box-shadow:0 1px 3px rgba(0,0,0,.07)">
-  {inner_html}
-</div>""")
-        st.markdown(f"<div style='display:flex;flex-wrap:wrap'>{''.join(po_cards)}</div>",
-                    unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------
