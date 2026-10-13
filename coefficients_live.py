@@ -289,16 +289,17 @@ def _compute_round_reached_bonus(key: str) -> dict[str, float]:
 
 
 @st.cache_data(ttl=60, show_spinner=False)
-def _compute_live_raw_points(key: str) -> dict[str, float]:
-    """Total points earned by each country's clubs this season — match
-    points plus both bonus types — NOT yet divided by clubs entered."""
-    club_country = _load_club_country_map()
+def _compute_live_club_points(key: str) -> dict[str, float]:
+    """Total points earned by each CLUB this season — match points plus
+    both bonus types. The per-club breakdown feeding both the country
+    coefficient (aggregated below) and the Predicted Club Coefficients tab
+    (coefficients.py), which needs exactly this granularity and previously
+    had no way to get it short of re-deriving it from scratch."""
     points: dict[str, float] = {}
 
     def add(club, amount):
-        country = club_country.get(club)
-        if country:
-            points[country] = points.get(country, 0.0) + amount
+        if club:
+            points[club] = points.get(club, 0.0) + amount
 
     for comp_name in EUROPEAN_COMPETITIONS:
         played, _ = _fetch_comp_fixtures(comp_name, key)
@@ -324,6 +325,20 @@ def _compute_live_raw_points(key: str) -> dict[str, float]:
     for club, amount in _compute_secured_league_phase_bonus(key).items():
         add(club, amount)
 
+    return points
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _compute_live_raw_points(key: str) -> dict[str, float]:
+    """Total points earned by each country's clubs this season — match
+    points plus both bonus types — NOT yet divided by clubs entered.
+    Thin aggregation over _compute_live_club_points, by country."""
+    club_country = _load_club_country_map()
+    points: dict[str, float] = {}
+    for club, amount in _compute_live_club_points(key).items():
+        country = club_country.get(club)
+        if country:
+            points[country] = points.get(country, 0.0) + amount
     return points
 
 
@@ -449,16 +464,16 @@ def _build_ranking_df(live_override: dict[str, float] | None = None) -> pd.DataF
 
 
 @st.cache_data(ttl=3_600, show_spinner=False)
-def predicted_country_ranking() -> tuple[pd.DataFrame, list[str]]:
-    """Raw (pred_table, warnings) from country_ranking_simulator.
-    project_country_predicted_ranking -- the Monte Carlo projection of
-    every association's rest-of-season across all three UEFA club
-    competitions (n_sim=2_000, genuinely expensive: every remaining
-    fixture, every association). The SINGLE shared, cached source for:
-    coefficients.py's own "Predicted Final Ranking" AND "Predicted Race
-    for an extra Champions League spot" sections, european_2027_28.py's
-    Permutation Info tab (_predicted_extra_cl_spot_race_top10), and
-    eps_bonus_recipients() below.
+def predicted_country_ranking() -> tuple[pd.DataFrame, list[str], list[dict], dict[str, str]]:
+    """Raw (pred_table, warnings, simulated_club_points, club_country) from
+    country_ranking_simulator.project_country_predicted_ranking -- the
+    Monte Carlo projection of every association's rest-of-season across
+    all three UEFA club competitions (n_sim=2_000, genuinely expensive:
+    every remaining fixture, every association). The SINGLE shared, cached
+    source for: coefficients.py's own "Predicted Final Ranking", "Predicted
+    Race for an extra Champions League spot", and "Predicted Club
+    Coefficients" tabs, european_2027_28.py's Permutation Info tab
+    (_predicted_extra_cl_spot_race_top10), and eps_bonus_recipients() below.
 
     Confirmed as a real cause of slow page loads 2026-10-13: before this,
     THREE independent copies of this same expensive simulation existed --
@@ -502,6 +517,48 @@ def eps_bonus_recipients(n: int = 2) -> list[str]:
     still only do so for whichever countries this ACTUALLY returns right
     now, not a fixed assumption -- see football_rankings.py's
     _apply_eps_bonus for where that's applied."""
-    pred_table, _warnings = predicted_country_ranking()
+    pred_table, _warnings, _club_points, _club_country = predicted_country_ranking()
     eligible = pred_table[(pred_table["clubs"] > 0) & pred_table["season_mean_rank"].notna()]
     return eligible.sort_values("mean_season_coeff", ascending=False).index[:n].tolist()
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def predicted_club_coefficients() -> tuple[pd.DataFrame, list[str]]:
+    """(table, warnings) -- per-club current + predicted season coefficient
+    points, built from the exact same cached simulation predicted_country_
+    ranking() already runs (a cache hit here, not a second expensive
+    simulation) plus _compute_live_club_points() for the real/current side.
+
+    Columns: country, current_points (real, already earned),
+    predicted_additional (mean over n_sim of simulated remaining points --
+    0.0 for a club with no further fixtures, e.g. already eliminated, since
+    such a club simply never appears in any of the simulated per-club point
+    arrays), predicted_total (current + predicted_additional). Sorted
+    descending by predicted_total.
+
+    warnings is passed straight through from predicted_country_ranking --
+    same meaning (a competition whose League Phase field isn't fully known
+    yet, so clubs still in that competition's qualifying rounds show
+    predicted_additional=0.0 rather than a fabricated number)."""
+    _pred_table, warnings, simulated_club_points, club_country = predicted_country_ranking()
+    current = _compute_live_club_points(_API_KEY)
+
+    predicted_additional: dict[str, float] = {}
+    for comp_points in simulated_club_points:
+        for club, arr in comp_points.items():
+            predicted_additional[club] = predicted_additional.get(club, 0.0) + float(arr.mean())
+
+    clubs = set(current) | set(predicted_additional)
+    rows = []
+    for club in clubs:
+        cur = current.get(club, 0.0)
+        pred_add = predicted_additional.get(club, 0.0)
+        rows.append({
+            "club": club,
+            "country": club_country.get(club, ""),
+            "current_points": round(cur, 3),
+            "predicted_additional": round(pred_add, 3),
+            "predicted_total": round(cur + pred_add, 3),
+        })
+    table = pd.DataFrame(rows).sort_values("predicted_total", ascending=False).reset_index(drop=True)
+    return table, warnings

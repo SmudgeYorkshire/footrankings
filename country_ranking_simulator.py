@@ -377,7 +377,7 @@ def project_country_predicted_ranking(
     get_coeff,
     api_key: str,
     n_sim: int = 3_000,
-) -> tuple[pd.DataFrame, list[str]]:
+) -> tuple[pd.DataFrame, list[str], list[dict[str, np.ndarray]], dict[str, str]]:
     """Orchestrates the full predicted country ranking: real Q1-Q3 points +
     simulated Play-off/League Phase/Knockout points for all three
     competitions, combined into one rank-probability table.
@@ -389,14 +389,27 @@ def project_country_predicted_ranking(
     which IS european.py or another page script already running in a
     Streamlit context, passes its own already-loaded functions in instead).
 
-    Returns (table, warnings) -- warnings lists any competition whose
-    League Phase field wasn't fully known yet (so its future Play-off
-    winners' League Phase + Knockout points are simply omitted for now,
-    same graceful-degradation approach as League Stage Predictions).
+    Returns (table, warnings, simulated_club_points, club_country):
+    - warnings lists any competition whose League Phase field wasn't fully
+      known yet (so its future Play-off winners' League Phase + Knockout
+      points are simply omitted for now, same graceful-degradation
+      approach as League Stage Predictions).
+    - simulated_club_points is the PRE-aggregation per-club version of
+      `simulated_points` below (one dict per competition's Play-off round,
+      one per competition's League Phase + Knockout, same {club:
+      array(n_sim)} shape `aggregate_by_country` consumes) -- kept
+      alongside the country-level totals instead of being discarded, so
+      callers needing club-level predicted points (coefficients.py's
+      Predicted Club Coefficients tab) don't have to re-run this same
+      expensive simulation a second time.
+    - club_country is the same {club: country} map used internally, handed
+      back so callers don't need their own separate
+      _load_club_country_map() call.
     """
     club_country = _load_club_country_map()
     all_played_fixtures: list[dict] = []
     simulated_points: list[dict[str, np.ndarray]] = []
+    simulated_club_points: list[dict[str, np.ndarray]] = []
     warnings: list[str] = []
 
     for comp_name in EUROPEAN_COMPETITIONS:
@@ -407,6 +420,7 @@ def project_country_predicted_ranking(
         po_ties = resolve_current_playoff_ties(comp_name, api_key)
         po_points = simulate_remaining_playoff_points(po_ties, ratings_df, home_advantage, n_sim)
         simulated_points.append(aggregate_by_country(po_points, club_country, n_sim))
+        simulated_club_points.append(po_points)
 
         field = project_league_phase_field(comp_name, ratings_df)
         if len(field) < 36:
@@ -424,7 +438,8 @@ def project_country_predicted_ranking(
             home_advantage=home_advantage, comp_name=comp_name, track_points=True,
         )
         simulated_points.append(aggregate_by_country(points_by_club, club_country, n_sim))
+        simulated_club_points.append(points_by_club)
 
     real_points = real_points_from_played(all_played_fixtures, club_country)
     table = build_country_rank_table(real_points, simulated_points, n_sim)
-    return table, warnings
+    return table, warnings, simulated_club_points, club_country

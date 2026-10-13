@@ -899,7 +899,7 @@ def _predicted_extra_cl_spot_race_top10() -> tuple[pd.DataFrame, list[str]]:
     building these few display rows from its result is cheap."""
     from coefficients_live import predicted_country_ranking
 
-    pred_table, warnings = predicted_country_ranking()
+    pred_table, warnings, _club_points, _club_country = predicted_country_ranking()
     rows = []
     for country, r in pred_table.iterrows():
         if r["clubs"] <= 0 or r["season_mean_rank"] is None:
