@@ -22,7 +22,10 @@ from _split_season import build_h2h, rank_tied_group
 from simulator import two_leg_advance_odds, position_bounds
 from qualifying_bracket import PLAYOFF_BRACKET, CONFIRMED_LEAGUE_PHASE
 from club_coefficients import get_coeff
-from league_phase_simulator import simulate_competition_winner, build_predicted_bracket, single_match_outcome_probs
+from league_phase_simulator import (
+    build_predicted_bracket, single_match_outcome_probs,
+    cached_league_phase_simulation, league_phase_sim_cache_key,
+)
 from prob_table import render_prob_table
 from league_phase_fixtures import (
     is_opponent_list_complete, derive_fixtures, partial_opponents_by_team, dated_schedule,
@@ -623,17 +626,27 @@ if tab_lp_pred is not None:
             _n_pots, _opp_per_pot = _LEAGUE_PHASE_POTS[comp_name]
             _club_coeff = {f["team"]: get_coeff(f["team"], f["country"]) for f in _field}
             _field_ratings_df = _resolve_field_ratings(_field)
-            # A fixed real schedule holds still across reruns, so more simulations
-            # buys real precision -- for the synthetic pot-based schedule (which is
-            # freshly re-drawn every rerun), that variance dominates instead, so
-            # there's less to gain from raising n_sim there.
-            _n_sim = 10_000 if _real_schedule_ready else 3_000
+            # Shared with the Coefficients page's own country/club
+            # predictions -- same cached simulation, not two independent
+            # ones (confirmed as a real gap 2026-10-13: before this, the
+            # two pages used different n_sim and the Coefficients side
+            # never even passed real results in, so they could legitimately
+            # disagree on close calls for the same competition state).
+            # n_sim=30,000 regardless of real-schedule-readiness: now that
+            # this is genuinely cached (locked until the field, ratings, or
+            # real results actually change, not redrawn every rerun), the
+            # old "less to gain from more sims on a freshly-redrawn
+            # synthetic schedule" reasoning no longer applies.
+            _n_sim = 30_000
+            _home_advantage = EUROPEAN_COMPETITIONS[comp_name]["home_advantage"]
+            _ls_cache_key = league_phase_sim_cache_key(
+                comp_name, _n_sim, _home_advantage, _field, _field_ratings_df, _real_results,
+            )
             with st.spinner("Simulating the League Phase and knockout stage…"):
-                _ls_result = simulate_competition_winner(
-                    field=_field, club_coeff=_club_coeff, ratings_df=_field_ratings_df,
-                    n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=_n_sim,
-                    home_advantage=EUROPEAN_COMPETITIONS[comp_name]["home_advantage"],
-                    schedule=_real_schedule, real_results=_real_results,
+                _ls_result, _ls_points_by_club = cached_league_phase_simulation(
+                    _ls_cache_key, _field, _club_coeff, _field_ratings_df,
+                    _n_pots, _opp_per_pot, _n_sim, _home_advantage, comp_name,
+                    _real_schedule, _real_results,
                 )
             _ls_rows = []
             for _team, _r in _ls_result.iterrows():

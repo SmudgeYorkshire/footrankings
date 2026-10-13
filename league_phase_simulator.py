@@ -37,6 +37,7 @@ import random
 
 import numpy as np
 import pandas as pd
+import streamlit as st
 
 from simulator import (
     DEFAULT_HOME_ADVANTAGE,
@@ -765,6 +766,58 @@ def simulate_competition_winner(
         points_by_team = {t: coeff_matrix[team_idx[t]] for t in teams}
         return result, points_by_team
     return result
+
+
+def league_phase_sim_cache_key(
+    comp_name: str, n_sim: int, home_advantage: float,
+    field: list[dict], ratings_df: pd.DataFrame,
+    real_results: dict[tuple[str, str], tuple[int, int]] | None,
+) -> tuple:
+    """Builds cached_league_phase_simulation's cache key the same way for
+    every caller -- european.py's League Stage Predictions and the
+    Coefficients page's country/club predictions both need to land on the
+    literal SAME Streamlit cache entry when the real-world competition
+    state (field membership, ratings, already-decided results) genuinely
+    agrees, not just produce "the same shape of call" -- confirmed as a
+    real gap 2026-10-13: before this, the two pages ran two entirely
+    independent simulations (different n_sim, and the Coefficients side
+    never even passed real results in at all), so they could legitimately
+    disagree on close calls for the exact same competition state."""
+    ratings_fp = hash(tuple(sorted(zip(ratings_df["team"], ratings_df["opta_rating"]))))
+    return (
+        comp_name, n_sim, home_advantage,
+        tuple(sorted(f["team"] for f in field)),
+        ratings_fp,
+        tuple(sorted(real_results.items())) if real_results else (),
+    )
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def cached_league_phase_simulation(
+    cache_key: tuple, _field: list[dict], _club_coeff: dict[str, float],
+    _ratings_df: pd.DataFrame, n_pots: int, opponents_per_pot: int, n_sim: int,
+    home_advantage: float, comp_name: str,
+    _schedule: list[dict] | None, _real_results: dict[tuple[str, str], tuple[int, int]] | None,
+) -> tuple[pd.DataFrame, dict[str, np.ndarray]]:
+    """Single shared, cached League Phase + Knockout simulation per
+    competition (always with track_points=True -- cheap to always compute,
+    and the Coefficients page needs it) -- the ONE place both european.py
+    and the Coefficients page actually run this expensive (n_sim=30,000)
+    simulation, so they can never show different numbers for the same
+    competition state, and so it only re-runs when something real
+    actually changes (a result, a rating, an odds-driven club_coeff
+    update, a field change) rather than on every page view or
+    independently per page. Build cache_key via league_phase_sim_cache_key
+    so every caller's key construction actually matches. Leading
+    underscores on the non-key args are the standard Streamlit
+    convention for "don't hash this, trust the explicit cache_key
+    instead" -- these are DataFrames/dicts/lists, not cleanly hashable."""
+    return simulate_competition_winner(
+        field=_field, club_coeff=_club_coeff, ratings_df=_ratings_df,
+        n_pots=n_pots, opponents_per_pot=opponents_per_pot, n_sim=n_sim,
+        home_advantage=home_advantage, comp_name=comp_name, track_points=True,
+        schedule=_schedule, real_results=_real_results,
+    )
 
 
 def build_predicted_bracket(

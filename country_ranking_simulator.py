@@ -44,10 +44,12 @@ from config import EUROPEAN_COMPETITIONS
 from coefficients_baseline import COUNTRY_BASELINE
 from coefficients_live import (
     _load_club_country_map, _fetch_comp_fixtures, _group_ties, _tie_result,
-    _PLAYOFF_ROUND_NAMES,
+    _PLAYOFF_ROUND_NAMES, _QUALIFYING_ROUNDS,
 )
 from qualifying_bracket import PLAYOFF_BRACKET
-from league_phase_simulator import simulate_competition_winner
+from league_phase_simulator import cached_league_phase_simulation, league_phase_sim_cache_key
+from league_phase_fixtures import is_opponent_list_complete, derive_fixtures
+from qualifying_projection import real_league_phase_results
 from simulator import (
     DEFAULT_HOME_ADVANTAGE, DEFAULT_BASE_GOALS, OVERDISPERSION,
     _opta_to_attack_defense, _build_rat_lookup,
@@ -64,9 +66,23 @@ def real_points_from_played(played_fixtures: list[dict], club_country: dict[str,
     so far this season from played qualifying-round fixtures, halved rate
     (1 win / 0.5 draw). No bonus points -- see module docstring for why.
     Clubs not found in club_country are silently skipped (a small
-    conservative undercount rather than a guess)."""
+    conservative undercount rather than a guess).
+
+    Restricted to _QUALIFYING_ROUNDS (Q1-Q3 + the Play-off round) --
+    League Phase fixtures are deliberately excluded here even once they
+    start getting played for real, since the SIMULATED component
+    (cached_league_phase_simulation, fed real_results= for exactly this
+    reason) already accounts for real League Phase results at the
+    correct FULL rate. Before this exclusion, a real League Phase match
+    would've been double-counted: once here at the wrong HALVED
+    (qualifying) rate, and again inside the simulation at the right
+    rate -- latent until the League Phase actually starts (nothing else
+    is played yet this season), confirmed and fixed 2026-10-13 while
+    wiring real_results= through."""
     points: dict[str, float] = {}
     for f in played_fixtures:
+        if f.get("strRound") not in _QUALIFYING_ROUNDS:
+            continue
         h, a = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
         try:
             hg, ag = int(f.get("intHomeScore") or 0), int(f.get("intAwayScore") or 0)
@@ -432,10 +448,28 @@ def project_country_predicted_ranking(
         club_coeff = {f["team"]: get_coeff(f["team"], f["country"]) for f in field}
         field_ratings_df = resolve_field_ratings(field)
         n_pots, opp_per_pot = _LEAGUE_PHASE_POTS[comp_name]
-        _, points_by_club = simulate_competition_winner(
-            field=field, club_coeff=club_coeff, ratings_df=field_ratings_df,
-            n_pots=n_pots, opponents_per_pot=opp_per_pot, n_sim=n_sim,
-            home_advantage=home_advantage, comp_name=comp_name, track_points=True,
+
+        # Real schedule + already-decided results once known -- same
+        # source european.py's own League Stage Predictions uses, and the
+        # SAME shared, cached simulation call (cached_league_phase_
+        # simulation), so the two pages can never disagree on the same
+        # competition state. Confirmed as a real gap 2026-10-13: this used
+        # to always draw a fresh synthetic schedule and ignore real
+        # results entirely, even once the real League Phase draw existed
+        # and real matches had been played.
+        real_schedule_ready = is_opponent_list_complete(comp_name, [f["team"] for f in field])
+        real_schedule = derive_fixtures(comp_name) if real_schedule_ready else None
+        real_results = (
+            real_league_phase_results(comp_name, api_key, tuple(f["team"] for f in field))
+            if real_schedule_ready else {}
+        )
+        cache_key = league_phase_sim_cache_key(
+            comp_name, n_sim, home_advantage, field, field_ratings_df, real_results,
+        )
+        _, points_by_club = cached_league_phase_simulation(
+            cache_key, field, club_coeff, field_ratings_df,
+            n_pots, opp_per_pot, n_sim, home_advantage, comp_name,
+            real_schedule, real_results,
         )
         simulated_points.append(aggregate_by_country(points_by_club, club_country, n_sim))
         simulated_club_points.append(points_by_club)

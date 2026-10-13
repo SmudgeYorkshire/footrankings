@@ -468,8 +468,12 @@ def predicted_country_ranking() -> tuple[pd.DataFrame, list[str], list[dict], di
     """Raw (pred_table, warnings, simulated_club_points, club_country) from
     country_ranking_simulator.project_country_predicted_ranking -- the
     Monte Carlo projection of every association's rest-of-season across
-    all three UEFA club competitions (n_sim=2_000, genuinely expensive:
-    every remaining fixture, every association). The SINGLE shared, cached
+    all three UEFA club competitions (n_sim=30_000, matching european.py's
+    own League Stage Predictions and the sitewide domestic-league standard
+    -- genuinely expensive: every remaining fixture, every association,
+    but now via cached_league_phase_simulation's shared cache, so it's a
+    one-time cost per real change, not per page view). The SINGLE shared,
+    cached
     source for: coefficients.py's own "Predicted Final Ranking", "Predicted
     Race for an extra Champions League spot", and "Predicted Club
     Coefficients" tabs, european_2027_28.py's Permutation Info tab
@@ -497,7 +501,7 @@ def predicted_country_ranking() -> tuple[pd.DataFrame, list[str], list[dict], di
         ratings_df=pred_ratings_df,
         get_coeff=get_coeff,
         api_key=_API_KEY,
-        n_sim=2_000,
+        n_sim=30_000,
     )
 
 
