@@ -39,6 +39,7 @@ import pandas as pd
 from config import EUROPEAN_COMPETITIONS
 from coefficients_baseline import COUNTRY_BASELINE
 from flags import flag_url as _flag_url
+from prob_table import render_prob_table
 from coefficients_live import (
     _load_club_country_map, _fetch_comp_fixtures, _round_points,
     _group_ties, _tie_result,
@@ -240,6 +241,13 @@ def _delta_symbol(country: str) -> str:
 
 _df.insert(1, "Δ", _df["Country"].map(_delta_symbol))
 
+# This season's already-earned coefficient points alone (the "26/27" column
+# above -- real, live, truncated to 3 decimals, same division-by-clubs-
+# entered rule as everything else on this page) -- shared by both
+# prediction tabs below so each can show "Current points" ahead of its own
+# projected/predicted total, the real baseline the projection builds on.
+_current_pts_by_country = dict(zip(_df["Country"], _df["26/27"]))
+
 # ---------------------------------------------------------------------------
 # Tab: Country Ranking
 # ---------------------------------------------------------------------------
@@ -366,6 +374,7 @@ with tab_country_pred:
             "Country": _country,
             "Clubs": _r["clubs"],
             "Predicted rank": _r["mean_rank"],
+            "Current points": _current_pts_by_country.get(_country, 0.0),
             "Projected total": _r["mean_total"],
             "Top 4": _r["pct_top4"] * 100,
             "Top 6": _r["pct_top6"] * 100,
@@ -381,6 +390,7 @@ with tab_country_pred:
             "Country": st.column_config.TextColumn("Country", width="medium"),
             "Clubs": st.column_config.NumberColumn("Clubs", width="small"),
             "Predicted rank": st.column_config.NumberColumn("Predicted rank", format="%.2f", width="small"),
+            "Current points": st.column_config.NumberColumn("Current points", format="%.3f", width="small"),
             "Projected total": st.column_config.NumberColumn("Projected total", format="%.3f", width="small"),
             "Top 4": st.column_config.NumberColumn("Top 4", format="%.1f%%", width="small"),
             "Top 6": st.column_config.NumberColumn("Top 6", format="%.1f%%", width="small"),
@@ -397,6 +407,16 @@ with tab_country_pred:
         "Spot race, which looks at this season's coefficient alone rather than the 5-season total."
     )
 
+    # ── Full position-by-position table (same wide format as a league's own
+    # season finish probabilities) -- every exact rank 1..N in the 5-season
+    # ranking, not just the cumulative Top N bands above.
+    _country_pos_cols = sorted((c for c in _pred_table.columns if c.isdigit()), key=int)
+    _country_badge_lookup = {c: _flag_url(c) for c in _pred_table.index}
+    render_prob_table(
+        _pred_table[_country_pos_cols], badge_lookup=_country_badge_lookup,
+        title="Full position probabilities — 5-season ranking",
+    )
+
 # ---------------------------------------------------------------------------
 # Tab: Race for an extra Champions League spot Predictions
 # ---------------------------------------------------------------------------
@@ -404,22 +424,25 @@ with tab_eps_pred:
     st.caption(
         "The same simulation as the Country Ranking Predictions tab, but ranked purely by this "
         "SEASON's coefficient alone (not the 5-season total) — the actual metric the European "
-        "Performance Spot race uses. \"Top 1\" and \"Top 2\" are each association's probability "
-        "of finishing 1st or in the top 2 respectively once the season plays out, across every "
-        "simulation run. Suspended associations with no clubs entered (e.g. Russia) can't earn "
-        "anything new this season, so aren't part of the race."
+        "Performance Spot race uses. \"1st\" and \"2nd\" are each association's exact probability "
+        "of finishing in that one specific spot; \"Top 2\" is the combined chance of either, since "
+        "both spots win an extra Champions League place. Suspended associations with no clubs "
+        "entered (e.g. Russia) can't earn anything new this season, so aren't part of the race."
     )
     _eps_pred_rows = []
     for _country, _r in _pred_table.iterrows():
         if _r["clubs"] <= 0 or _r["season_mean_rank"] is None:
             continue
+        _top1, _top2 = _r["season_pct_top1"], _r["season_pct_top2"]
         _eps_pred_rows.append({
             "Flag": _flag_url(_country),
             "Country": _country,
             "Clubs": _r["clubs"],
+            "Current points": _current_pts_by_country.get(_country, 0.0),
             "Projected 2026/27 points": _r["mean_season_coeff"],
-            "Top 1": _r["season_pct_top1"] * 100,
-            "Top 2": _r["season_pct_top2"] * 100,
+            "1st": _top1 * 100,
+            "2nd": (_top2 - _top1) * 100,
+            "Top 2": _top2 * 100,
         })
     _eps_pred_df = pd.DataFrame(_eps_pred_rows).sort_values(
         "Projected 2026/27 points", ascending=False
@@ -432,9 +455,11 @@ with tab_eps_pred:
             "Flag": st.column_config.ImageColumn("", width="small"),
             "Country": st.column_config.TextColumn("Country", width="medium"),
             "Clubs": st.column_config.NumberColumn("Clubs", width="small"),
+            "Current points": st.column_config.NumberColumn("Current points", format="%.3f", width="small"),
             "Projected 2026/27 points": st.column_config.NumberColumn(
                 "Projected 2026/27 points", format="%.3f", width="small"),
-            "Top 1": st.column_config.NumberColumn("Top 1", format="%.1f%%", width="small"),
+            "1st": st.column_config.NumberColumn("1st", format="%.1f%%", width="small"),
+            "2nd": st.column_config.NumberColumn("2nd", format="%.1f%%", width="small"),
             "Top 2": st.column_config.NumberColumn("Top 2", format="%.1f%%", width="small"),
         },
         width="content", hide_index=True, height=len(_eps_pred_df) * 35 + 38,
@@ -442,7 +467,7 @@ with tab_eps_pred:
     if len(_eps_pred_df) >= 2:
         _pred_gold, _pred_silver = _eps_pred_df.iloc[0], _eps_pred_df.iloc[1]
         st.caption(
-            f"Most likely outcome: 🥇 **{_pred_gold['Country']}** ({_pred_gold['Top 1']:.1f}% to finish 1st) "
+            f"Most likely outcome: 🥇 **{_pred_gold['Country']}** ({_pred_gold['1st']:.1f}% to finish 1st) "
             f"and 🥈 **{_pred_silver['Country']}** would gain the two extra Champions League places — "
             f"but check the Top 2 column for how contested it actually is further down the table."
         )

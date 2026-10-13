@@ -379,6 +379,13 @@ def build_country_rank_table(
         }
         for b in bands:
             row[f"pct_top{b}"] = float((ranks[i] <= b).mean())
+        # Exact per-position probabilities (5-season total ranking) -- same
+        # "1".."N" column shape render_prob_table expects everywhere else on
+        # the site (league standings, European League Phase), for a full
+        # wide finish-probability table here too, not just the cumulative
+        # Top N bands above.
+        for pos in range(1, n_countries + 1):
+            row[str(pos)] = float((ranks[i] == pos).mean())
         rows.append(row)
     return pd.DataFrame(rows).set_index("country").sort_values("mean_rank")
 
