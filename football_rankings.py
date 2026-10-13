@@ -2146,7 +2146,7 @@ def main_content():
                                     )
                                 st.session_state["po_sims"][_po_c] = _po_probs
                             render_prob_table(st.session_state["po_sims"][_po_c], badge_lookup,
-                                              status_map=_champ_zones,
+                                              status_map=_champ_zones, team_overrides=_team_overrides,
                                               title="Championship play-off finish probabilities")
                             render_title_probability_history(ratings_id)
 
