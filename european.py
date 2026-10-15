@@ -716,27 +716,54 @@ if tab_lp_pred is not None:
                     "(coefficient-ranked pots, no same-country pairings). Once the real opponent list "
                     "is known, this switches over to it automatically. Recomputes when the page cache refreshes."
                 )
+            # Avg Pos -- the same "expected finishing position" metric
+            # render_prob_table itself sorts by (Σ position × probability
+            # across the "1".."36" columns) -- recomputed here rather than
+            # imported, since this headline table needs it as a plain
+            # displayed/sorted column, not just an internal sort key.
+            _pos_nums = pd.Series({c: int(c) for c in _lp_pos_cols})
+            _avg_pos_series = _ls_result[_lp_pos_cols].mul(_pos_nums, axis=1).sum(axis=1)
+
             _ls_rows = []
             for _team, _r in _ls_result.iterrows():
                 _ls_rows.append({
                     "Badge": badge_lookup.get(_team, ""),
                     "Team": _team,
+                    "Pts": round(_r["expected_pts"], 2),
+                    "GD": round(_r["expected_gd"], 2),
                     "Top 8": round(_r["reached_top8"] * 100, 1),
                     "Top 16": round(_r["reached_top16"] * 100, 1),
                     "Top 24": round(_r["reached_top24"] * 100, 1),
                     "Knockout Play-offs (9th-24th)": round(_r["pct_knockout_band"] * 100, 1),
                     "Elimination (25th-36th)": round(_r["pct_elimination_band"] * 100, 1),
+                    "Avg Pos": round(_avg_pos_series[_team], 2),
                 })
-            _ls_df = pd.DataFrame(_ls_rows)
+            _ls_df = pd.DataFrame(_ls_rows).sort_values("Avg Pos").reset_index(drop=True)
+            _ls_df.insert(0, "Rank", _ls_df.index + 1)
+
+            def _ls_zone_bg(rank: int) -> str:
+                if rank <= 8:
+                    return "background-color: #d4edda"
+                if rank <= 24:
+                    return "background-color: #fff3cd"
+                return "background-color: #f8d7da"
+
+            _ls_styled = _ls_df.style.apply(
+                lambda row: [_ls_zone_bg(row["Rank"])] * len(row), axis=1)
             _pct_cols = ["Top 8", "Top 16", "Top 24", "Knockout Play-offs (9th-24th)", "Elimination (25th-36th)"]
             _ls_col_cfg = {
+                "Rank": st.column_config.NumberColumn("Rank", width="small"),
                 "Badge": st.column_config.ImageColumn("", width="small"),
                 "Team": st.column_config.TextColumn("Team", width="medium"),
+                "Pts": st.column_config.NumberColumn("Pts", format="%.2f", width="small"),
+                "GD": st.column_config.NumberColumn("GD", format="%.2f", width="small"),
+                "Avg Pos": st.column_config.NumberColumn("Avg Pos", format="%.2f", width="small"),
             }
             for _c in _pct_cols:
                 _ls_col_cfg[_c] = st.column_config.NumberColumn(_c, format="%.1f%%", width="small")
+            st.caption("🟢 Top 8 (direct to Round of 16)  🟡 Knockout Play-offs (9th-24th)  🔴 Eliminated (25th-36th)")
             st.dataframe(
-                _ls_df, column_config=_ls_col_cfg, width="content",
+                _ls_styled, column_config=_ls_col_cfg, width="content",
                 hide_index=True, height=len(_ls_df) * 35 + 38,
             )
 

@@ -736,9 +736,12 @@ def simulate_competition_winner(
 
     rows = []
     for t in teams:
+        _ti = team_idx[t]
         row = {
             "team": t,
             "country": team_country[t],
+            "expected_pts": float(pts_matrix[_ti].mean()),
+            "expected_gd": float(gd_matrix[_ti].mean()),
             "reached_top8": reached_top8[t] / n_sim,
             "reached_top16": reached_top16[t] / n_sim,
             "reached_top24": reached_top24[t] / n_sim,
