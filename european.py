@@ -605,6 +605,21 @@ if tab_lp_results is not None:
                             },
                             width="content", hide_index=True, height=len(_md_rows) * 35 + 38,
                         )
+                        # Goals scored so far this matchday -- recomputed
+                        # from _real_results on every page load, so it
+                        # updates live as more of the matchday's games get
+                        # decided, not just once the whole matchday is done.
+                        _md_played_results = [
+                            _real_results[(_fx["home"], _fx["away"])]
+                            for _fx in _md_fixtures if (_fx["home"], _fx["away"]) in _real_results
+                        ]
+                        if _md_played_results:
+                            _md_goals = sum(_hg + _ag for _hg, _ag in _md_played_results)
+                            _md_avg = _md_goals / len(_md_played_results)
+                            st.caption(
+                                f"⚽ {_md_goals} goals scored so far in Matchday {_md} "
+                                f"({_md_avg:.2f} per match, {len(_md_played_results)} of {len(_md_fixtures)} played)"
+                            )
             elif _real_schedule_ready:
                 st.caption(
                     "The real League Phase opponent list, with each match's outcome probability. "

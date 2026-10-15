@@ -2,7 +2,12 @@ name: Daily Probability Snapshot
 
 on:
   schedule:
-    - cron: '0 5 * * *'   # 05:00 UTC ≈ 06:00-07:00 CET/CEST, every morning
+    - cron: '0 8 * * *'   # 08:00 UTC = 09:00 CET / 10:00 CEST -- deliberately
+                           # after the Daily Odds/Opta workflows' own
+                           # 05:07/06:11 UTC schedule (and well after their
+                           # manual runs on a given morning) so the snapshot
+                           # captures the day's already-updated numbers,
+                           # not yesterday's.
   workflow_dispatch:        # allow manual "Run workflow" trigger too
 
 permissions:
