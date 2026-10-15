@@ -559,6 +559,26 @@ if tab_lp_results is not None:
                 "the full fixture list will appear once the rest are confirmed."
             )
         else:
+            def _gray_decided_pct(row):
+                """Gray out just the ONE pre-match outcome % cell that
+                matches what actually happened (e.g. the Draw column for a
+                1-1) once a match is decided -- not all three, since the
+                other two didn't happen and graying them too would lose
+                the "this is what occurred" signal. style.apply(axis=1)
+                hands the WHOLE row (not just a subset) -- a subset= on
+                the apply call would only pass those columns, losing the
+                "Score" lookup below."""
+                score = row["Score"]
+                if score == "—":
+                    return ["" for _ in row.index]
+                try:
+                    hg, ag = (int(x) for x in score.split("–"))
+                except (ValueError, AttributeError):
+                    return ["" for _ in row.index]
+                outcome_col = "Home Win" if hg > ag else ("Away Win" if ag > hg else "Draw")
+                style = "background-color: #e0e0e0; color: #888"
+                return [style if col == outcome_col else "" for col in row.index]
+
             _cl_dated = dated_schedule(comp_name)
             if _cl_dated:
                 st.caption(
@@ -594,8 +614,9 @@ if tab_lp_results is not None:
                                 "Away": _fx["away"],
                                 "AB": badge_lookup.get(_fx["away"], ""),
                             })
+                        _md_styled = pd.DataFrame(_md_rows).style.apply(_gray_decided_pct, axis=1)
                         st.dataframe(
-                            pd.DataFrame(_md_rows),
+                            _md_styled,
                             column_config={
                                 "HB": st.column_config.ImageColumn("", width="small"),
                                 "AB": st.column_config.ImageColumn("", width="small"),
@@ -616,8 +637,10 @@ if tab_lp_results is not None:
                         if _md_played_results:
                             _md_goals = sum(_hg + _ag for _hg, _ag in _md_played_results)
                             _md_avg = _md_goals / len(_md_played_results)
+                            _md_complete = len(_md_played_results) == len(_md_fixtures)
+                            _md_so_far = "" if _md_complete else " so far"
                             st.caption(
-                                f"⚽ {_md_goals} goals scored so far in Matchday {_md} "
+                                f"⚽ {_md_goals} goals scored{_md_so_far} in Matchday {_md} "
                                 f"({_md_avg:.2f} per match, {len(_md_played_results)} of {len(_md_fixtures)} played)"
                             )
             elif _real_schedule_ready:
@@ -641,8 +664,9 @@ if tab_lp_results is not None:
                     "Away": _fx["strAwayTeam"],
                     "AB": badge_lookup.get(_fx["strAwayTeam"], ""),
                 } for _fx in sorted(_fx_probs, key=lambda f: f["strHomeTeam"])]
+                _fx_styled = pd.DataFrame(_fx_rows).style.apply(_gray_decided_pct, axis=1)
                 st.dataframe(
-                    pd.DataFrame(_fx_rows),
+                    _fx_styled,
                     column_config={
                         "HB": st.column_config.ImageColumn("", width="small"),
                         "AB": st.column_config.ImageColumn("", width="small"),
