@@ -365,6 +365,28 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
 
     claimed = _playoff_claimed_positions(cfg)
     overrides: dict[int, str] = {}
+
+    # A playoff position with a direct "most likely outcome" label shown in
+    # `zones` rather than left blank -- champ_mid_playoff's champ_pos
+    # (Bulgaria: 4th plays the European Group's winner for a UECL spot) or
+    # uecl_3team_playoff's bye_home_rank (Romania: 4th gets a bye straight
+    # to the final, the least uncertain of the three participants) -- is
+    # seeded here as a real override, not left as a plain static zone, so a
+    # cup cascade's chain-insert correctly STOPS the moment it reaches this
+    # position instead of treating the static label as "just another
+    # same-tier slot" and carrying straight past it to double up further
+    # down the table (confirmed live 2026-10-19, Bulgaria: a cup winner's
+    # vacated UECL - QR1 cascaded past 4th's own simplified UECL - QR1 and
+    # landed a second copy on 5th instead of stopping at 4th).
+    _cmp = cfg.get("champ_mid_playoff")
+    _bye_cfg = cfg.get("uecl_3team_playoff")
+    for _pos_key, _src in (("champ_pos", _cmp), ("bye_home_rank", _bye_cfg)):
+        _pos = _src.get(_pos_key) if _src else None
+        if isinstance(_pos, int):
+            _label = zones.get(_pos)
+            if _label:
+                overrides[_pos] = _label
+
     for cup_id, cw_status in cups:
         _resolve_one_cup(cup_id, cw_status, cfg, ratings_df, ranked_teams, zones, overrides, claimed, api_key)
 

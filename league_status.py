@@ -287,9 +287,13 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             12: "Relegation Group", 13: "Relegation Group", 14: "Relegation Group",
         },
         "champ": {  # 4 teams · 4th (or 3rd) plays European Group winner for UECL spot
-            # Simplified for now (no Play-offs modeling yet) -- 4th shown with a direct
-            # UECL - QR1, not the real Play-off uncertainty vs the European Group winner.
-            1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1",
+            # 4th's own spot is technically contested (play-off vs the European
+            # Group's winner -- see champ_mid_playoff below and its own "European
+            # Play-off — Projected Entries" section once the real split happens),
+            # but shown here as the most-likely outcome rather than left blank,
+            # per explicit instruction 2026-10-19 pending deeper play-off
+            # modeling on another occasion.
+            1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1",
         },
         "mid": {  # 4 teams · winner plays Championship Group's 3rd/4th for UECL – QR2 spot
             1: "UECL Play-offs",
@@ -478,7 +482,14 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             15: "Relegation Group", 16: "Relegation Group",
         },
         "champ": {  # 6 teams · pts ×0.5
-            1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2",
+            # 4th's own spot is technically contested (play-off vs the
+            # Play-out group's 7th/8th-overall survivor -- see
+            # champ_mid_playoff below and its own "European Play-off —
+            # Projected Entries" section once the real split happens), but
+            # shown here as the most-likely outcome rather than left blank,
+            # per explicit instruction 2026-10-19 pending deeper play-off
+            # modeling on another occasion.
+            1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2", 4: "UECL - QR2",
         },
         "relg": {  # 10 teams (play-out) · 7th/8th = Relegation PO · 9th/10th relegated
             7: "Relegation - PO",
