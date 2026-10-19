@@ -651,7 +651,16 @@ def fetch_cup_status(cup_id, season, key):
 
     # No remaining fixtures — cup is over (or its schedule isn't fully loaded yet).
     last = max(played, key=lambda f: f.get("dateEvent", ""))
-    if (last.get("strRound") or "").strip().lower() == "final":
+    # A round literally named "Final" isn't always the real one-off decider:
+    # confirmed 2026-10-19, Swedish Cup -- its qualifying stage runs as many
+    # parallel regional brackets, each reaching its own "Final" round (32
+    # simultaneous "Final"-labelled matches, not a national decider), before
+    # the actual League stage (then real knockout rounds) even begins. A
+    # genuine final is one match (or two, for a two-legged final) across the
+    # whole competition, so anything with more than that many "Final"-round
+    # matches is treated as just the last played round instead.
+    _n_final_matches = sum(1 for f in played if (f.get("strRound") or "").strip().lower() == "final")
+    if (last.get("strRound") or "").strip().lower() == "final" and _n_final_matches <= 2:
         home, away = last.get("strHomeTeam", ""), last.get("strAwayTeam", "")
         hs, as_ = last.get("intHomeScore"), last.get("intAwayScore")
         if (hs or 0) > (as_ or 0):
