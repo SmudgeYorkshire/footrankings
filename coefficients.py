@@ -409,12 +409,23 @@ with tab_country_pred:
 
     # ── Full position-by-position table (same wide format as a league's own
     # season finish probabilities) -- every exact rank 1..N in the 5-season
-    # ranking, not just the cumulative Top N bands above.
+    # ranking, not just the cumulative Top N bands above. bounds (best/
+    # worst mathematically-reachable rank, from project_country_predicted_
+    # ranking's own best_rank/worst_rank columns) marks a position "X" once
+    # it's genuinely impossible and "✓" once it's already secured, same
+    # convention position_bounds gives league standings elsewhere on the
+    # site -- not a simulation-sampled proxy, a real floor (points already
+    # banked) vs ceiling (max_remaining_points' own sound upper bound).
     _country_pos_cols = sorted((c for c in _pred_table.columns if c.isdigit()), key=int)
     _country_badge_lookup = {c: _flag_url(c) for c in _pred_table.index}
+    _country_bounds = {
+        c: (int(_pred_table.loc[c, "best_rank"]), int(_pred_table.loc[c, "worst_rank"]))
+        for c in _pred_table.index
+    }
     render_prob_table(
         _pred_table[_country_pos_cols], badge_lookup=_country_badge_lookup,
         title="Full position probabilities — 5-season ranking",
+        bounds=_country_bounds,
     )
 
 # ---------------------------------------------------------------------------

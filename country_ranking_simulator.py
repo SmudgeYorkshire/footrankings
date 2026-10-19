@@ -44,7 +44,8 @@ from config import EUROPEAN_COMPETITIONS
 from coefficients_baseline import COUNTRY_BASELINE
 from coefficients_live import (
     _load_club_country_map, _fetch_comp_fixtures, _group_ties, _tie_result,
-    _PLAYOFF_ROUND_NAMES, _QUALIFYING_ROUNDS,
+    _PLAYOFF_ROUND_NAMES, _QUALIFYING_ROUNDS, _is_league_stage,
+    _BONUS_PER_STAGE, _league_phase_bonus,
 )
 from qualifying_bracket import PLAYOFF_BRACKET
 from league_phase_simulator import cached_league_phase_simulation, league_phase_sim_cache_key
@@ -101,6 +102,151 @@ def real_points_from_played(played_fixtures: list[dict], club_country: dict[str,
             if ac:
                 points[ac] = points.get(ac, 0.0) + QUAL_DRAW
     return points
+
+
+# Knockout Play-off + Round of 16 + Quarter-finals + Semi-finals (2 legs
+# each) + Final (1 leg, neutral venue) = 9 matches, every one assumed WON
+# (2.0 pts each, full rate) -- the single biggest chunk of
+# max_remaining_points' deliberately generous knockout-stage ceiling (see
+# its own docstring for why future knockout pairings can't be bounded any
+# tighter than this).
+_KO_CEILING_MATCHES = 9
+
+
+def max_remaining_points(club_country: dict[str, str], api_key: str) -> dict[str, float]:
+    """{club: maximum additional UEFA coefficient points still
+    mathematically reachable this season}, raw (not yet divided by
+    clubs_entered or aggregated by country) -- the sound (never
+    underestimates) upper-bound counterpart to real_points_from_played's
+    exact floor, for country_rank_bounds below.
+
+    Exact wherever the real calendar already settles it: remaining
+    qualifying/Play-off legs for a club still mid-tie (1.0 per leg, the
+    halved rate), and remaining League Phase fixtures for a club already
+    confirmed into it (2.0 per game, full rate) -- both are published by
+    the provider ahead of time, so "how many games has this specific club
+    got left here" is a real, exact count, not a guess. Only the
+    knockout stage (Knockout Play-off through Final) falls back to a
+    flat, deliberately generous ceiling for any club not yet eliminated
+    from the whole competition (_KO_CEILING_MATCHES worth of guaranteed
+    wins + the maximum possible D.5(a) reach-bonus and D.5(b) final-rank
+    bonus) -- future knockout pairings genuinely aren't published until
+    the previous round concludes, so there's no real fixture list to
+    count there the way there is for qualifying/League Phase. This makes
+    the bound LOOSER (not wrong) for a club already deep into the
+    knockout bracket than for one only just entering the League Phase --
+    acceptable, since soundness (never claiming a reachable rank is
+    impossible) matters more than tightness here.
+
+    A club eliminated from a competition's qualifying bracket before ever
+    reaching its League Phase contributes 0 for that competition --
+    there's nothing left to add. A club already alive in the League Phase
+    is credited the same generous knockout ceiling as a qualifying-stage
+    club, since the League Phase hasn't concluded this season yet (no
+    club's knockout chances are decided one way or the other at this
+    point) -- this stays correct even once the phase does conclude, since
+    any club that finishes 25th-36th stops showing up in `remaining`
+    fixtures entirely (nothing left to simulate), so this function
+    naturally credits only genuinely live clubs regardless of season
+    stage."""
+    out: dict[str, float] = {}
+    for comp_name in EUROPEAN_COMPETITIONS:
+        played, remaining = _fetch_comp_fixtures(comp_name, api_key)
+        played_ids = {f.get("idEvent") for f in played}
+        all_fx = played + remaining
+        clubs = {
+            f.get(side) for f in all_fx for side in ("strHomeTeam", "strAwayTeam") if f.get(side)
+        }
+        lp_clubs = {
+            f.get(side) for f in all_fx if _is_league_stage(f.get("strRound", ""))
+            for side in ("strHomeTeam", "strAwayTeam") if f.get(side)
+        }
+        max_bonus = 4 * _BONUS_PER_STAGE[comp_name] + _league_phase_bonus(1, comp_name)
+        ko_ceiling = _KO_CEILING_MATCHES * 2.0 + max_bonus
+
+        for club in clubs:
+            if club not in club_country:
+                continue
+            if club in lp_clubs:
+                lp_remaining = sum(
+                    1 for f in remaining
+                    if _is_league_stage(f.get("strRound", ""))
+                    and club in (f.get("strHomeTeam"), f.get("strAwayTeam"))
+                )
+                out[club] = out.get(club, 0.0) + 2.0 * lp_remaining + ko_ceiling
+                continue
+            # Not yet in the League Phase -- still alive in qualifying, or
+            # already knocked out of this competition's bracket entirely.
+            club_fixtures = [
+                f for f in all_fx if club in (f.get("strHomeTeam"), f.get("strAwayTeam"))
+            ]
+            if not club_fixtures:
+                continue
+            eliminated = False
+            qual_remaining_legs = 0
+            for legs in _group_ties(club_fixtures):
+                _winner, loser = _tie_result(legs, played_ids)
+                if loser == club:
+                    eliminated = True
+                qual_remaining_legs += sum(1 for leg in legs if leg.get("idEvent") not in played_ids)
+            if eliminated:
+                continue
+            out[club] = out.get(club, 0.0) + 1.0 * qual_remaining_legs + 2.0 * 8 + ko_ceiling
+    return out
+
+
+def aggregate_scalar_by_country(club_points: dict[str, float], club_country: dict[str, str]) -> dict[str, float]:
+    """Same idea as aggregate_by_country, for a single scalar per club
+    (max_remaining_points' own output) rather than an n_sim-shaped array."""
+    totals: dict[str, float] = {}
+    for club, pts in club_points.items():
+        country = club_country.get(club)
+        if not country:
+            continue
+        totals[country] = totals.get(country, 0.0) + pts
+    return totals
+
+
+def country_rank_bounds(
+    real_points: dict[str, float], max_remaining: dict[str, float],
+) -> dict[str, tuple[int, int]]:
+    """{country: (best_reachable, worst_reachable)} for the 5-season
+    ranking -- same sound algorithm as simulator.position_bounds (see its
+    own docstring), adapted to country coefficients: floor = baseline_4yr
+    + real match points already banked this season (guaranteed, no
+    assumptions, already exact since real_points_from_played only counts
+    played fixtures); ceiling = floor + the maximum additional points
+    still mathematically reachable (max_remaining_points, already a sound
+    upper bound by construction). A suspended association (clubs_entered
+    == 0, e.g. Russia) has nothing to add or lose -- its floor and
+    ceiling are both just the frozen 25/26 figure carried forward, same
+    as build_country_rank_table's own handling.
+
+    real_points/max_remaining are raw per-COUNTRY totals (already
+    aggregated via aggregate_scalar_by_country), not yet divided by
+    clubs_entered -- this function does that division itself, same as
+    build_country_rank_table, so every caller passes the same raw shape."""
+    countries = sorted(set(COUNTRY_BASELINE))
+    floor: dict[str, float] = {}
+    ceiling: dict[str, float] = {}
+    for c in countries:
+        base = COUNTRY_BASELINE.get(c, {})
+        entered = base.get("clubs_entered", 0)
+        baseline_4yr = base.get("22/23", 0.0) + base.get("23/24", 0.0) + base.get("24/25", 0.0) + base.get("25/26", 0.0)
+        if entered <= 0:
+            floor[c] = ceiling[c] = baseline_4yr
+            continue
+        real = real_points.get(c, 0.0) / entered
+        extra = max_remaining.get(c, 0.0) / entered
+        floor[c] = baseline_4yr + real
+        ceiling[c] = baseline_4yr + real + extra
+
+    bounds: dict[str, tuple[int, int]] = {}
+    for c in countries:
+        above = sum(1 for o in countries if o != c and floor[o] > ceiling[c])
+        below = sum(1 for o in countries if o != c and ceiling[o] < floor[c])
+        bounds[c] = (1 + above, len(countries) - below)
+    return bounds
 
 
 def resolve_current_playoff_ties(comp_name: str, key: str) -> list[dict]:
@@ -483,4 +629,16 @@ def project_country_predicted_ranking(
 
     real_points = real_points_from_played(all_played_fixtures, club_country)
     table = build_country_rank_table(real_points, simulated_points, n_sim)
+
+    # Mathematical best/worst-reachable 5-season rank per country --
+    # real_points (exact, already computed above) is each country's
+    # guaranteed floor; max_remaining_points' own sound upper bound gives
+    # the ceiling. Attached as extra columns (not a separate return value)
+    # so every existing caller/unpacking site keeps working unchanged.
+    club_ceiling = max_remaining_points(club_country, api_key)
+    country_ceiling_raw = aggregate_scalar_by_country(club_ceiling, club_country)
+    bounds = country_rank_bounds(real_points, country_ceiling_raw)
+    table["best_rank"] = [bounds.get(c, (1, len(table)))[0] for c in table.index]
+    table["worst_rank"] = [bounds.get(c, (1, len(table)))[1] for c in table.index]
+
     return table, warnings, simulated_club_points, club_country
