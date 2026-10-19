@@ -517,10 +517,13 @@ def eps_bonus_recipients(n: int = 2) -> list[str]:
     the one that's actually been showing England+Germany, not whichever
     pair happens to be ahead on games-played mid-week.
 
-    A caller using this result to shade in an extra zone position should
-    still only do so for whichever countries this ACTUALLY returns right
-    now, not a fixed assumption -- see football_rankings.py's
-    _apply_eps_bonus for where that's applied."""
+    Still used by coefficients.py's own "Race for an extra Champions
+    League spot" tabs and european_2027_28.py's Permutation Info tab, to
+    show who's CURRENTLY leading the race -- but no longer auto-applied to
+    football_rankings.py's Status column (removed 2026-10-19): the
+    2027/28 access list's default doesn't assume an EPS bonus for anyone,
+    so that belongs in access_list_permutations_2027_28.py as an explicit
+    permutation instead, same as any other access-list change."""
     pred_table, _warnings, _club_points, _club_country = predicted_country_ranking()
     eligible = pred_table[(pred_table["clubs"] > 0) & pred_table["season_mean_rank"].notna()]
     return eligible.sort_values("mean_season_coeff", ascending=False).index[:n].tolist()

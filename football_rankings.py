@@ -18,8 +18,6 @@ from simulator import simulate_season, fixture_odds, simulate_final_four, simula
 from ratings_manager import load_ratings, check_coverage
 from _split_season import get_split_info, conference_fixtures, recompute_conference_standings, compute_full_standings, ensure_full_roster
 from league_status import LEAGUE_STATUS
-from coefficients_live import eps_bonus_recipients
-from cup_cascade import _parse_tier as _euro_tier
 from historical import fetch_historical_season
 from cup_predictions import (
     _cup_campaign_status, _team_name_set, resolve_predicted_cup_winner, fetch_cup_fixtures,
@@ -532,33 +530,6 @@ def _roundrobin_fixtures(teams: list) -> list:
         {"strHomeTeam": h, "strAwayTeam": a}
         for h in teams for a in teams if h != a
     ]
-
-
-def _apply_eps_bonus(zones: dict, extra_slots: int) -> dict:
-    """Shift every genuine UCL/UEL/UECL-labelled position in `zones` down by
-    extra_slots and insert that many extra "UCL - LS" entries at the top --
-    for a country currently topping the live "Race for an extra Champions
-    League spot" (coefficients_live.eps_bonus_recipients), not yet
-    confirmed by UEFA. Only touches real European-zone labels (via
-    cup_cascade._parse_tier) -- relegation positions and split-league
-    group-placeholder labels ("Championship Group" etc.) are left exactly
-    where they are, since those are sized by the real league table, not by
-    how many Champions League spots this country currently has.
-
-    Confirmed as a real gap 2026-10-13: England's extra Champions League
-    spot was hand-coded as a static certainty in config.py's own
-    european_spots field (itself stale and now removed -- league_status.py
-    is the single source of truth), with no way for it to follow the live
-    race if a different pair of countries overtook England/Germany partway
-    through the season."""
-    if extra_slots <= 0:
-        return zones
-    shifted = {}
-    for pos, label in zones.items():
-        shifted[pos + extra_slots if _euro_tier(label) is not None else pos] = label
-    for i in range(1, extra_slots + 1):
-        shifted[i] = "UCL - LS"
-    return shifted
 
 
 def _top_up_remaining_fixtures(roster: list[dict], played: list[dict], remaining: list[dict],
@@ -1256,13 +1227,16 @@ def main_content():
     _relg_zones   = _ls.get("relg",    {})   # pos → label within relegation conf
     _mid_label    = cfg.get("mid_label", "Europe Play-off")
 
-    # Live "extra Champions League spot" (European Performance Spot) bonus
-    # -- not yet confirmed by UEFA, only applied while THIS country is
-    # actually topping the live race right now (coefficients.py's own
-    # "Race for an extra Champions League spot"), not a fixed assumption.
-    # See _apply_eps_bonus's own docstring.
-    if cfg.get("country") in eps_bonus_recipients():
-        _main_zones = _apply_eps_bonus(_main_zones, 1)
+    # The live "extra Champions League spot" (European Performance Spot)
+    # bonus used to be auto-applied here for whichever country was
+    # currently topping coefficients.py's own "Race for an extra Champions
+    # League spot" -- removed 2026-10-19 per explicit instruction: the
+    # 2027/28 access list's DEFAULT doesn't assume an EPS bonus for anyone,
+    # so Status should default to the plain Top 4 UCL-LS / 5th UEL-LS / 6th
+    # UECL-PO system too, not shift live with the race. An EPS bonus for a
+    # specific country belongs in access_list_permutations_2027_28.py as an
+    # explicit, opt-in permutation instead, same as every other access-list
+    # change on this site.
 
     # Spot-only zones: filter _main_zones to actual European/relegation spots
     # (removes group-assignment labels like "Championship Group", "Relegation Group", etc.)
