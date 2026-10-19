@@ -360,6 +360,12 @@ LEAGUES = {
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "draw"],
                                      "home_advantage": 1.47,
                                      "zone_notes": {"relegation - po": "8th and 9th play two-legged play-offs against 3rd and 2nd of the Second League. The First League side hosts the first leg; the Second League side hosts the decisive second leg."},
+                                     # 10 teams play a quadruple round-robin (36 rounds total,
+                                     # confirmed 2026-10-19). API-Football only had rounds 1-19
+                                     # published -- without this, predictions treated round 19
+                                     # as the end of the season. See Kosovan Superleague's
+                                     # identical case and _top_up_remaining_fixtures's docstring.
+                                     "meetings_per_pair": 4,
 
 },
     "Northern Irish Premiership":   {"id": 408, "provider": "api_football", "tsdb_id": 4659, "af_season": 2026, "cup_id": 757, "country": "N. Ireland",  "flag": "🇬🇧", "season_type": "winter",
