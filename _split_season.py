@@ -397,15 +397,41 @@ def ensure_full_roster(roster_rows: list[dict], fixtures: list[dict]) -> list[di
     silently truncated to whichever handful of teams happened to have played
     first. fixtures should be played + remaining so every scheduled team is
     covered regardless of provider quirks.
+
+    A team is only padded in if the number of distinct opponents it faces in
+    the fixture list is at least the size of the already-known roster. A
+    genuinely-missing roster member of this same competition has a full
+    season's schedule against most/all of the other teams, so it clears this
+    easily (even a 1-team-known roster only needs 1 opponent to match, which
+    is exactly the early-season case this function exists for). An external
+    cross-tier play-off opponent (e.g. a 2nd tier team meeting this league's
+    relegation side in a two-legged promotion/relegation tie — confirmed for
+    Finland's Veikkausliiga/Ykkönen play-off) only ever appears against that
+    one rival, so once the roster is mostly known it falls well short of this
+    bar and is correctly left out rather than added as a fake zero-stat row.
     """
     known = {r["strTeam"] for r in roster_rows if r.get("strTeam")}
-    extra = []
+    min_opponents = max(1, len(known))
+    opponents: dict[str, set] = {}
+    badges: dict[str, str] = {}
     for f in fixtures:
-        for team_key, badge_key in (("strHomeTeam", "strHomeTeamBadge"), ("strAwayTeam", "strAwayTeamBadge")):
-            name = f.get(team_key)
-            if name and name not in known:
-                extra.append({"strTeam": name, "strBadge": f.get(badge_key, "")})
-                known.add(name)
+        home, away = f.get("strHomeTeam"), f.get("strAwayTeam")
+        if home and home not in known:
+            opponents.setdefault(home, set())
+            badges.setdefault(home, f.get("strHomeTeamBadge", ""))
+            if away:
+                opponents[home].add(away)
+        if away and away not in known:
+            opponents.setdefault(away, set())
+            badges.setdefault(away, f.get("strAwayTeamBadge", ""))
+            if home:
+                opponents[away].add(home)
+
+    extra = [
+        {"strTeam": name, "strBadge": badges.get(name, "")}
+        for name, opps in opponents.items()
+        if len(opps) >= min_opponents
+    ]
     return roster_rows + extra
 
 

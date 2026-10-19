@@ -141,3 +141,19 @@ def test_ensure_full_roster_does_not_duplicate_known_teams():
     fixtures = [{"strHomeTeam": "A", "strAwayTeam": "B"}]
     padded = ensure_full_roster(roster, fixtures)
     assert sum(1 for r in padded if r["strTeam"] == "A") == 1
+
+
+def test_ensure_full_roster_excludes_cross_tier_playoff_opponent():
+    # A full top-tier roster (A-L) plus a single two-legged relegation
+    # play-off tie between the 12th-placed team (L) and an outside 2nd-tier
+    # club (PK-35) -- PK-35 must not be padded in as a fake 13th roster row
+    # (the Finland Veikkausliiga/Ykkönen case).
+    roster = [{"strTeam": t} for t in "ABCDEFGHIJKL"]
+    fixtures = [
+        {"strHomeTeam": "L", "strAwayTeam": "PK-35", "strAwayTeamBadge": "pk35.png"},
+        {"strHomeTeam": "PK-35", "strAwayTeam": "L", "strAwayTeamBadge": "l.png"},
+    ]
+    padded = ensure_full_roster(roster, fixtures)
+    names = {r["strTeam"] for r in padded}
+    assert "PK-35" not in names
+    assert names == set("ABCDEFGHIJKL")
