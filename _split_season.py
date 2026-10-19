@@ -52,32 +52,29 @@ def get_split_info(standings: list[dict], split_round: int,
     if split_rows and not current_rows:
         current_rows = list(split_rows)
 
-    # Fallback D: intPlayed is useless for detecting the split at all for
-    # some providers -- API-Football resets it to count only games played
-    # WITHIN each post-split group rather than keeping a season-cumulative
-    # total, so neither of the two intPlayed-based checks above (nor
-    # football_rankings.py's own presplit-snapshot-capture trigger, which
-    # uses the same comparison) ever fires once the real split_round has
-    # passed (confirmed 2026-10-13: Czech First League, Cypriot First
-    # Division, Danish Superliga, Greek Super League 1, Swiss Super League
-    # all report every team's intPlayed well below split_round even with
-    # group-stage games already played and the real split long since
-    # settled). strDescription itself is already reliably populated with
-    # each team's post-split group for these providers -- even the moment
-    # the groups are first assigned with zero group-stage games played yet
-    # (a "preview" of who's in which group, before a ball's kicked) -- so
-    # trust that over the played-count heuristic entirely whenever at least
-    # two distinct, non-empty descriptions are actually present. Treat the
-    # whole standings response as the current (already-split) table; reuse
-    # the presplit snapshot for split_rows if one exists, otherwise current
-    # standings are the best proxy available (same reasoning Fallback B/C
-    # already rely on elsewhere in this function).
-    if not split_rows and not current_rows:
-        _distinct_descs = {(r.get("strDescription") or "").strip() for r in standings}
-        _distinct_descs.discard("")
-        if len(_distinct_descs) >= 2:
-            current_rows = list(standings)
-            split_rows = list(presplit) if presplit else list(standings)
+    # NOTE 2026-10-19: a "Fallback D" briefly lived here (2026-10-13 to
+    # 2026-10-19) that trusted strDescription group labels alone as proof
+    # the split had already happened, on the theory that some providers
+    # reset intPlayed after a real split. That theory was wrong: for every
+    # league it was confirmed against (Czech First League, Cypriot First
+    # Division, Danish Superliga, Greek Super League 1, Austrian
+    # Bundesliga, Swiss Super League), intPlayed was simply reporting a
+    # genuinely early-season regular round-robin accurately -- the
+    # strDescription groups were a provider-side PREVIEW of projected
+    # group destinations based on current standing, shown well before the
+    # real split_round, while plenty of remaining fixtures still actually
+    # crossed group lines (confirmed live: Bohemians 1905 "Relegation
+    # Play-offs" still scheduled to play Mlada Boleslav "Play-offs" for
+    # Czech First League, among many other cross-group examples). Treating
+    # that preview as a real split skipped the correct "regular season
+    # still running" code path entirely -- including the whole-table
+    # Predictions tab and its own "Projected Play-offs / Play-outs"
+    # sub-simulation (entrants = predicted finishers, not real ones),
+    # which is the actual intended behaviour before a split genuinely
+    # happens. Removed rather than fixed in place, since the premise
+    # (identify a real split without real fixtures to confirm it) doesn't
+    # hold -- intPlayed vs split_round (Fallbacks A-C above) remains the
+    # only signal actually tied to the real calendar.
 
     if not split_rows or not current_rows:
         return None  # Regular season still running
