@@ -69,6 +69,7 @@ def _status_style_pred(val):
     if "play-off"         in s: return "color: #2e7d32; font-weight: bold"
     if "play out"         in s: return "color: #f9ab00; font-weight: bold"
     if "middle"           in s: return "color: #f9ab00; font-weight: bold"
+    if "european group"   in s: return "color: #f9ab00; font-weight: bold"
     return ""
 
 
