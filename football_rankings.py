@@ -804,10 +804,8 @@ def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame,
     it reads as the headline fact it is rather than a footnote.
 
     excluded_teams: {team/alias name: reason}, e.g. a club suspended from
-    this season's cup -- shown as its own caption above the prediction and
+    this season's cup -- shown as its own caption below the prediction and
     left out of resolve_predicted_cup_winner's own consideration entirely."""
-    for _excl_name, _excl_reason in (excluded_teams or {}).items():
-        st.caption(f"⚠️ {_excl_name}: {_excl_reason}.")
     pred_row, pred_status, skipped = resolve_predicted_cup_winner(
         ratings_df, played_all, remaining_all, home_advantage=home_advantage, neutral_final=neutral_final,
         excluded_teams=set(excluded_teams) if excluded_teams else None,
@@ -855,6 +853,9 @@ def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame,
             f"lost to {pred_status['opponent']} {pred_status['score']} in the {pred_status['round']} "
             f"({_fmt_long_date(pred_status['date'])})."
         )
+
+    for _excl_name, _excl_reason in (excluded_teams or {}).items():
+        st.caption(f"⚠️ {_excl_name}: {_excl_reason}.")
 
     for skip_row, skip_status in skipped:
         skip_name = _display_team_name(skip_row)

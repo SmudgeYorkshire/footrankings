@@ -2042,6 +2042,7 @@ def main_content():
                             st.session_state["po_sims"] = {}
                             st.session_state["po_sim_key"] = _po_sim_key
 
+                        top_champ: list[str] = []
                         if p_champ is not None:
                             st.markdown("#### 🏆 Championship Play-off")
                             _champ_fmt = _zone_notes.get("championship",
@@ -2062,6 +2063,7 @@ def main_content():
                                               status_map=_main_zones, team_overrides=_team_overrides,
                                               title="Championship play-off finish probabilities")
 
+                        top_mid: list[str] = []
                         if _nm:
                             mid_pos = [str(i) for i in range(_nc + 1, _nc + _nm + 1) if str(i) in probs_df.columns]
                             p_mid   = probs_df[mid_pos].sum(axis=1) if mid_pos else None
@@ -2070,7 +2072,12 @@ def main_content():
                                 _mid_fmt = _zone_notes.get("middle", _zone_notes.get("europa",
                                     f"{_nm} teams advance to a round-robin group; {_pts_note} at the split."))
                                 st.caption(_mid_fmt)
-                                top_mid = list(p_mid.sort_values(ascending=False).index[:_nm])
+                                # Exclude whoever Championship Play-off already claimed --
+                                # see football_rankings.py's identical fix for the full
+                                # rationale (a boundary team could otherwise rank in the
+                                # top _nc of p_champ AND the top _nm of p_mid at once).
+                                p_mid_avail = p_mid.drop(index=[t for t in top_champ if t in p_mid.index])
+                                top_mid = list(p_mid_avail.sort_values(ascending=False).index[:_nm])
                                 _po_m = tuple(top_mid)
                                 if _po_m not in st.session_state.get("po_sims", {}):
                                     with st.spinner("Simulating middle group…"):
@@ -2092,7 +2099,12 @@ def main_content():
                             _relg_fmt = "  ".join(_relg_parts) if _relg_parts else \
                                 f"Bottom {n_relg} teams advance to a round-robin play-out; {_pts_note} at the split."
                             st.caption(_relg_fmt)
-                            top_relg = list(p_relg.sort_values(ascending=False).index[:n_relg])
+                            # Exclude whoever Championship Play-off/Middle Group already
+                            # claimed -- same reasoning as the Middle Group's own exclusion
+                            # just above.
+                            _claimed_above = set(top_champ) | set(top_mid)
+                            p_relg_avail = p_relg.drop(index=[t for t in _claimed_above if t in p_relg.index])
+                            top_relg = list(p_relg_avail.sort_values(ascending=False).index[:n_relg])
                             _po_r = tuple(top_relg)
                             if _po_r not in st.session_state.get("po_sims", {}):
                                 with st.spinner("Simulating relegation play-out…"):
