@@ -224,9 +224,12 @@ def _resolve_one_cup(cup_id, cw_status: str, cfg: dict, ratings_df: pd.DataFrame
     except Exception:
         return
 
+    neutral_final = bool(cfg.get("cup_final_neutral")) and cup_id == cfg.get("cup_id")
+    excluded = cfg.get("cup_excluded_teams", {}) if cup_id == cfg.get("cup_id") else {}
     try:
         predicted_row, _predicted_status, _skipped = resolve_predicted_cup_winner(
-            ratings_df, cup_played, cup_remaining, home_advantage=cfg.get("home_advantage", 1.0)
+            ratings_df, cup_played, cup_remaining, home_advantage=cfg.get("home_advantage", 1.0),
+            neutral_final=neutral_final, excluded_teams=set(excluded) if excluded else None,
         )
     except Exception:
         return
@@ -368,19 +371,30 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
 
     # A playoff position with a direct "most likely outcome" label shown in
     # `zones` rather than left blank -- champ_mid_playoff's champ_pos
-    # (Bulgaria: 4th plays the European Group's winner for a UECL spot) or
+    # (Bulgaria: 4th plays the European Group's winner for a UECL spot),
     # uecl_3team_playoff's bye_home_rank (Romania: 4th gets a bye straight
-    # to the final, the least uncertain of the three participants) -- is
-    # seeded here as a real override, not left as a plain static zone, so a
-    # cup cascade's chain-insert correctly STOPS the moment it reaches this
-    # position instead of treating the static label as "just another
-    # same-tier slot" and carrying straight past it to double up further
-    # down the table (confirmed live 2026-10-19, Bulgaria: a cup winner's
-    # vacated UECL - QR1 cascaded past 4th's own simplified UECL - QR1 and
-    # landed a second copy on 5th instead of stopping at 4th).
-    _cmp = cfg.get("champ_mid_playoff")
-    _bye_cfg = cfg.get("uecl_3team_playoff")
-    for _pos_key, _src in (("champ_pos", _cmp), ("bye_home_rank", _bye_cfg)):
+    # to the final), uecl_4team_playoff's sf1_home_rank (N. Ireland: 4th
+    # hosts SF1, the highest-ranked of the four participants),
+    # uecl_5team_playoff's final_host_rank (Wales: 3rd hosts the final), or
+    # uecl_8team_playoff's simplified_pos (San Marino: no single clean
+    # bye/host slot in this bracket, 3rd picked as the simplified outcome
+    # instead) -- is seeded here as a real override, not left as a plain
+    # static zone, so a cup cascade's chain-insert correctly STOPS the
+    # moment it reaches this position instead of treating the static label
+    # as "just another same-tier slot" and carrying straight past it to
+    # double up further down the table (confirmed live 2026-10-19,
+    # Bulgaria: a cup winner's vacated UECL - QR1 cascaded past 4th's own
+    # simplified UECL - QR1 and landed a second copy on 5th instead of
+    # stopping at 4th; confirmed again 2026-10-20, Wales: the same thing
+    # landed on 6th instead of 3rd).
+    _playoff_seed_sources = (
+        ("champ_pos", cfg.get("champ_mid_playoff")),
+        ("bye_home_rank", cfg.get("uecl_3team_playoff")),
+        ("sf1_home_rank", cfg.get("uecl_4team_playoff")),
+        ("final_host_rank", cfg.get("uecl_5team_playoff")),
+        ("simplified_pos", cfg.get("uecl_8team_playoff")),
+    )
+    for _pos_key, _src in _playoff_seed_sources:
         _pos = _src.get(_pos_key) if _src else None
         if isinstance(_pos, int):
             _label = zones.get(_pos)

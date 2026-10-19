@@ -48,11 +48,13 @@ import football_rankings_tier2 as _tier2
 # the existing Top-5-then-alphabetical country ordering tier-1 already uses.
 # Matched by the COUNTRY PREFIX of each side's own display label (not the raw
 # cfg["country"] field, which uses different abbreviations/wording between
-# the two tiers -- e.g. "N. Macedonia" vs "Macedonia" -- while the display
-# labels already agree except for two cases handled explicitly below).
+# the two tiers -- while the display labels already agree except for one
+# case handled explicitly below). North Macedonia's own tier-2 label was
+# renamed from "Macedonia - Second League" to match tier-1's "North
+# Macedonia - First League" prefix 2026-10-20, removing the need for an
+# alias entry here too.
 _T2_COUNTRY_ALIASES = {  # tier-1 label country -> tier-2 label country
     "Bosnia and Herzegovina": "Bosnia",
-    "North Macedonia": "Macedonia",
 }
 
 
@@ -788,17 +790,27 @@ def render_cup_details(cfg: dict, key: str):
         # always match the league's (see Norway's config entry) -- prefer
         # a per-cup override when one's configured.
         season = cup_season_overrides.get(cup_id, league_season)
-        _render_one_cup(cup_id, season, ratings_df, key, home_advantage)
+        neutral_final = bool(cfg.get("cup_final_neutral")) and cup_id == cfg.get("cup_id")
+        excluded = cfg.get("cup_excluded_teams", {}) if cup_id == cfg.get("cup_id") else {}
+        _render_one_cup(cup_id, season, ratings_df, key, home_advantage, neutral_final, excluded)
 
 
 def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str,
                               played_all: list[dict], remaining_all: list[dict],
-                              home_advantage: float = 1.0):
+                              home_advantage: float = 1.0, neutral_final: bool = False,
+                              excluded_teams: dict[str, str] | None = None):
     """The 🔮 Predicted winner line (+ any already-eliminated higher-rated
     teams flagged below it), in plain (non-caption, i.e. non-gray) text so
-    it reads as the headline fact it is rather than a footnote."""
+    it reads as the headline fact it is rather than a footnote.
+
+    excluded_teams: {team/alias name: reason}, e.g. a club suspended from
+    this season's cup -- shown as its own caption above the prediction and
+    left out of resolve_predicted_cup_winner's own consideration entirely."""
+    for _excl_name, _excl_reason in (excluded_teams or {}).items():
+        st.caption(f"⚠️ {_excl_name}: {_excl_reason}.")
     pred_row, pred_status, skipped = resolve_predicted_cup_winner(
-        ratings_df, played_all, remaining_all, home_advantage=home_advantage
+        ratings_df, played_all, remaining_all, home_advantage=home_advantage, neutral_final=neutral_final,
+        excluded_teams=set(excluded_teams) if excluded_teams else None,
     )
     pred_name = _display_team_name(pred_row)
     state = pred_status["state"]
@@ -853,7 +865,8 @@ def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame,
         )
 
 
-def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str, home_advantage: float = 1.0):
+def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str, home_advantage: float = 1.0,
+                     neutral_final: bool = False, excluded_teams: dict[str, str] | None = None):
     try:
         cup = fetch_cup_status(cup_id, season, key)
     except RuntimeError as e:
@@ -870,7 +883,7 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
         # season's entry round, since this season has nothing to look at).
         st.markdown(f"##### {fetch_cup_name(cup_id, key) or 'Cup'}")
         if not ratings_df.empty:
-            _render_predicted_winner(cup_id, season, ratings_df, key, [], [], home_advantage)
+            _render_predicted_winner(cup_id, season, ratings_df, key, [], [], home_advantage, neutral_final, excluded_teams)
         st.markdown("📅 Fixtures will be released soon.")
         return
 
@@ -885,8 +898,12 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
             if not ratings_df.empty:
                 from update_ratings_from_opta import _normalize
                 _strength_map = _load_strength_ranking()
-                top_row = ratings_df.loc[
-                    ratings_df.apply(lambda r: _strength_score(r, _strength_map), axis=1).idxmax()
+                _eligible = ratings_df
+                if excluded_teams:
+                    _eligible = _eligible[~_eligible.apply(
+                        lambda r: bool(_team_name_set(r) & set(excluded_teams)), axis=1)]
+                top_row = _eligible.loc[
+                    _eligible.apply(lambda r: _strength_score(r, _strength_map), axis=1).idxmax()
                 ]
                 top_name = _display_team_name(top_row)
                 if _normalize(top_name) != _normalize(cup["winner"]):
@@ -915,7 +932,8 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
             played_all, remaining_all = fetch_cup_fixtures(cup_id, season, key)
         except RuntimeError:
             played_all, remaining_all = [], []
-        _render_predicted_winner(cup_id, season, ratings_df, key, played_all, remaining_all, home_advantage)
+        _render_predicted_winner(cup_id, season, ratings_df, key, played_all, remaining_all, home_advantage,
+                                  neutral_final, excluded_teams)
 
     render_cup_fixture_browser(cup_id, season, key, current_round=cup.get("round"))
 
@@ -1001,6 +1019,19 @@ def fetch_historical_data(league_name_, season_year, key):
 # ---------------------------------------------------------------------------
 @st.fragment(run_every=60)
 def main_content():
+    if cfg.get("cup_only"):
+        # This "league" entry exists purely to give a cup_id to resolve
+        # against (Liechtenstein: no domestic league at all, its clubs play
+        # in the Swiss pyramid -- see config.py's own comment on this
+        # entry). Its "id" is the cup competition itself, so the normal
+        # fetch_all()/standings pipeline below would pad in every cup
+        # participant as a fake, all-zero roster row (ensure_full_roster
+        # has no way to tell "a real missing league member" from "every
+        # team that ever played a cup tie") and render a meaningless
+        # Current Table/Predictions/etc. Skip straight to the one thing
+        # that's actually real here.
+        render_cup_details(cfg, _API_KEY)
+        return
     with st.spinner("Loading…"):
         try:
             standings, played_fixtures, remaining_fixtures, league_info = fetch_all(
@@ -1851,8 +1882,20 @@ def main_content():
             # ranking as _po_overrides) -- same reasoning tab_proj's own
             # non-split branch already applies via _is_true_split, just not
             # yet applied to this Current Table render until now.
-            _is_true_split = bool(cfg.get("n_champ")) and not cfg.get("final_four")
-            _current_zones = _main_zones if _is_true_split else {**_main_zones, **_team_overrides_current}
+            #
+            # A Final Four league has the exact same problem (confirmed live
+            # 2026-10-20, Albania: the predicted cup winner's "UECL - QR1"
+            # cascade slipped into the regular-season Current Table's Status
+            # column, overwriting that team's "Final Four" group-assignment
+            # placeholder) -- its own Euro-zone labels only apply within the
+            # Final Four's own dedicated table (below), not raw league
+            # position, same as a true split league's Championship Round.
+            # _is_true_split itself stays scoped to the title-emoji/history
+            # decision just below (a Final Four's regular-season leader IS
+            # still a real title race, unlike a true split), so this merge
+            # decision uses its own separate flag instead of widening that one.
+            _zones_are_placeholder_only = bool(cfg.get("n_champ")) or bool(cfg.get("final_four"))
+            _current_zones = _main_zones if _zones_are_placeholder_only else {**_main_zones, **_team_overrides_current}
             _render_table(_table_rows(standings, zones=_current_zones, show_next=True))
             _tbs_non_split = cfg.get("tiebreakers", ["gd", "gf"])[:8]
             st.caption("Tiebreakers: " + "; ".join(f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(_tbs_non_split)))
@@ -2203,9 +2246,16 @@ def main_content():
                 # European-spot status belongs in the Championship Round's
                 # own table after the split, where it's rendered separately
                 # below (see split_info branch above) -- not mixed into the
-                # group-destination-only view here.
+                # group-destination-only view here. A Final Four league has
+                # the same problem for the same reason (see the identical
+                # fix in the Current Table above) despite _is_true_split
+                # itself staying False for it (that flag is specifically
+                # about the title race, not about whether Euro-zone labels
+                # apply to raw position -- a Final Four's OWN table below
+                # merges _team_overrides correctly already).
+                _zones_are_placeholder_only = bool(cfg.get("n_champ")) or bool(cfg.get("final_four"))
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
-                                  status_map=_main_zones if _is_true_split else {**_main_zones, **_team_overrides},
+                                  status_map=_main_zones if _zones_are_placeholder_only else {**_main_zones, **_team_overrides},
                                   bounds=position_bounds(standings, remaining_fixtures),
                                   title_emoji=not _is_true_split)
                 if not _is_true_split:
@@ -2280,6 +2330,7 @@ def main_content():
                             st.session_state["po_sims"] = {}
                             st.session_state["po_sim_key"] = _po_sim_key
 
+                        top_champ: list[str] = []
                         if p_champ is not None:
                             st.markdown("#### 🏆 Championship Play-off")
                             _champ_fmt = _zone_notes.get("championship",
@@ -2315,6 +2366,7 @@ def main_content():
                                               title="Championship play-off finish probabilities")
                             render_title_probability_history(ratings_id)
 
+                        top_mid: list[str] = []
                         if _nm:
                             mid_pos = [str(i) for i in range(_nc + 1, _nc + _nm + 1) if str(i) in probs_df.columns]
                             p_mid   = probs_df[mid_pos].sum(axis=1) if mid_pos else None
@@ -2323,7 +2375,18 @@ def main_content():
                                 _mid_fmt = _zone_notes.get("middle", _zone_notes.get("europa",
                                     f"{_nm} teams advance to a round-robin group; {_pts_note} at the split."))
                                 st.caption(_mid_fmt)
-                                top_mid = list(p_mid.sort_values(ascending=False).index[:_nm])
+                                # Exclude whoever Championship Play-off already claimed --
+                                # each group's own top-N-by-probability pick was computed
+                                # fully independently, so a team genuinely on the
+                                # champ/mid boundary could rank in the top _nc of p_champ
+                                # AND the top _nm of p_mid at once, showing up (with a
+                                # confusingly high go-anywhere probability) in both
+                                # groups' tables simultaneously (confirmed live
+                                # 2026-10-20, Bulgaria: CSKA 1948 in both the
+                                # Championship Play-off at 97.8% and Middle Group at
+                                # 73.9%). The higher group's own claim always wins.
+                                p_mid_avail = p_mid.drop(index=[t for t in top_champ if t in p_mid.index])
+                                top_mid = list(p_mid_avail.sort_values(ascending=False).index[:_nm])
                                 _po_m = tuple(top_mid)
                                 if _po_m not in st.session_state.get("po_sims", {}):
                                     with st.spinner("Simulating middle group…"):
@@ -2362,7 +2425,12 @@ def main_content():
                             _relg_fmt = "  ".join(_relg_parts) if _relg_parts else \
                                 f"Bottom {n_relg} teams advance to a round-robin play-out; {_pts_note} at the split."
                             st.caption(_relg_fmt)
-                            top_relg = list(p_relg.sort_values(ascending=False).index[:n_relg])
+                            # Exclude whoever Championship Play-off/Middle Group already
+                            # claimed -- same reasoning as the Middle Group's own exclusion
+                            # just above.
+                            _claimed_above = set(top_champ) | set(top_mid)
+                            p_relg_avail = p_relg.drop(index=[t for t in _claimed_above if t in p_relg.index])
+                            top_relg = list(p_relg_avail.sort_values(ascending=False).index[:n_relg])
                             _po_r = tuple(top_relg)
                             if _po_r not in st.session_state.get("po_sims", {}):
                                 with st.spinner("Simulating relegation play-out…"):

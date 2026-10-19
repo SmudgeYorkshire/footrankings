@@ -1957,14 +1957,18 @@ def main_content():
                 # see football_rankings.py's identical check for the full rationale.
                 _is_true_split = bool(cfg.get("n_champ")) and not cfg.get("final_four")
                 # Use pre-computed _main_zones (same source as Current Table).
-                # team_overrides skipped for a true split league here -- any
-                # per-team override belongs in the post-split Championship
-                # Round's own table instead, not mixed into this pre-split,
+                # team_overrides skipped for a true split league OR a Final Four
+                # league here -- any per-team override belongs in the post-split
+                # Championship Round's own table (or the Final Four's own table)
+                # instead, not mixed into this pre-split/pre-final-four,
                 # group-destination-only view (see football_rankings.py's
-                # identical fix for the full rationale).
+                # identical fix for the full rationale -- _is_true_split itself
+                # stays scoped to the title_emoji decision just below, since a
+                # Final Four's regular-season leader is still a real title race).
+                _zones_are_placeholder_only = bool(cfg.get("n_champ")) or bool(cfg.get("final_four"))
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
                                   status_map=_main_zones,
-                                  team_overrides=None if _is_true_split else _team_overrides,
+                                  team_overrides=None if _zones_are_placeholder_only else _team_overrides,
                                   bounds=position_bounds(standings, remaining_fixtures),
                                   title_emoji=not _is_true_split)
                 render_title_probability_history(ratings_id)

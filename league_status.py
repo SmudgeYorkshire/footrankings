@@ -221,7 +221,12 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "San-Marino Campionato": {"regular": {
-        1: "UCL - QR1", 2: "UECL - QR1",
+        # 3rd's own spot is technically contested (8-team UECL play-off,
+        # see uecl_8team_playoff in config.py), but shown here as the
+        # most-likely outcome rather than left blank, per explicit
+        # instruction 2026-10-20 pending deeper play-off modeling on
+        # another occasion.
+        1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
     }},
 
     "Slovenian 1. SNL": {"regular": {
@@ -296,7 +301,14 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR1", 4: "UECL - QR1",
         },
         "mid": {  # 4 teams · winner plays Championship Group's 3rd/4th for UECL – QR2 spot
-            1: "UECL Play-offs",
+            # Left blank: with BOTH 3rd and 4th now shown as having already
+            # secured their own spot (see "champ" above), the real play-off
+            # rule ("whichever of 3rd/4th hasn't already secured a spot")
+            # has no eligible Championship Group opponent left to field
+            # under this simplification, so the European Group's own
+            # winner has no realistic path shown here either -- per
+            # explicit instruction 2026-10-20 (Bulgaria sends exactly 4
+            # clubs to Europe total).
         },
         "relg": {  # 6 teams (pos 9-14 overall) · 13th (5th) plays PO · 14th (6th) relegated
             5: "Relegation - PO",
@@ -463,7 +475,12 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
         },
         "champ": {  # 6 teams
-            1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
+            # 4th's own spot is technically contested (4-team UECL play-off vs
+            # 7th overall -- see uecl_4team_playoff in config.py), but shown
+            # here as the most-likely outcome rather than left blank, per
+            # explicit instruction 2026-10-20 pending deeper play-off
+            # modeling on another occasion.
+            1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1", 4: "UECL - QR1",
         },
         "relg": {  # 6 teams · 5th/6th relegated
             5: "Relegation - PO",
@@ -580,7 +597,12 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
             10: "Play-Off Conference", 11: "Play-Off Conference", 12: "Play-Off Conference",
         },
         "champ": {  # 6 teams
-            1: "UCL - QR1", 2: "UECL - QR1",
+            # 3rd's own spot is technically contested (5-team UECL play-off,
+            # hosting the final -- see uecl_5team_playoff in config.py), but
+            # shown here as the most-likely outcome rather than left blank,
+            # per explicit instruction 2026-10-20 pending deeper play-off
+            # modeling on another occasion.
+            1: "UCL - QR1", 2: "UECL - QR1", 3: "UECL - QR1",
         },
         "relg": {  # 6 teams (pos 7-12 overall) -- no European spot reaches this far per the real access list
         },

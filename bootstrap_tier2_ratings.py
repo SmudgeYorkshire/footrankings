@@ -398,7 +398,7 @@ MANUAL_RATINGS: dict[str, dict[str, float]] = {
     },
     # Akademija Pandev/Makedonija GjP/Detonit Plachkovica/Kozuv Gevgelija all
     # skipped -- no scrape coverage found under any name variant.
-    "Macedonia - Second League": {
+    "North Macedonia - Second League": {
         "Shkupi 1927": 52.0,  # Opta stores it as plain "Shkupi"
     },
 }

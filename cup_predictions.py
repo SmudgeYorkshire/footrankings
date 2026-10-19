@@ -198,7 +198,8 @@ def _team_name_set(row) -> set[str]:
 
 
 def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], remaining: list[dict],
-                                  home_advantage: float = 1.0):
+                                  home_advantage: float = 1.0, neutral_final: bool = False,
+                                  excluded_teams: set[str] | None = None):
     """Highest-ranked (by this site's own Club Power Ranking, not the raw
     per-league Opta rating -- see _load_strength_ranking/_strength_score)
     team in this league that hasn't already been knocked out of this
@@ -223,9 +224,21 @@ def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], r
     -- a reasonable simplification rather than modelling penalty
     shoot-outs). A team with no scheduled fixture yet (next round not
     drawn) gets prevail_pct=None and is treated as not ruled out -- "keep
-    it general" until there's something concrete to weight against."""
+    it general" until there's something concrete to weight against.
+
+    neutral_final: this cup's Final is played at a neutral venue (e.g. the
+    FAI Cup, confirmed 2026-10-20), so whichever side the provider happens
+    to list as "home" for that specific tie gets no home-advantage boost.
+
+    excluded_teams: team/alias names to leave out of consideration entirely
+    (not even as a "higher-rated, already eliminated" upset note) -- e.g. a
+    club suspended from this season's cup for disciplinary/administrative
+    reasons (North Macedonia: Shkendija, confirmed 2026-10-20) rather than
+    having actually lost a tie."""
     strength_map = _load_strength_ranking()
     ranked = ratings_df.copy()
+    if excluded_teams:
+        ranked = ranked[~ranked.apply(lambda r: bool(_team_name_set(r) & excluded_teams), axis=1)]
     ranked["_strength"] = ranked.apply(lambda r: _strength_score(r, strength_map), axis=1)
     ranked = ranked.sort_values("_strength", ascending=False)
     skipped = []
@@ -246,7 +259,7 @@ def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], r
         status = _cup_campaign_status(_team_name_set(row), played, remaining)
         return row, status, []
 
-    _attach_prevail_pct(candidates, ratings_df, home_advantage)
+    _attach_prevail_pct(candidates, ratings_df, home_advantage, neutral_final=neutral_final)
 
     def _sort_key(item):
         _row, status = item
@@ -273,11 +286,18 @@ def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], r
     return predicted_row, predicted_status, higher_rated_skipped
 
 
-def _attach_prevail_pct(candidates: list[tuple], ratings_df: pd.DataFrame, home_advantage: float) -> None:
+def _attach_prevail_pct(candidates: list[tuple], ratings_df: pd.DataFrame, home_advantage: float,
+                         neutral_final: bool = False) -> None:
     """Mutates each status dict in `candidates` ([(row, status), ...]) with
     a "prevail_pct" key -- this team's probability of advancing past its
-    *next known* tie, or None when no fixture is scheduled yet."""
+    *next known* tie, or None when no fixture is scheduled yet.
+
+    neutral_final: zero out the home-advantage boost for a tie whose own
+    "next_round" is literally "Final" -- the provider's home/away
+    designation for a neutral-venue final doesn't reflect a real home
+    ground, so neither side should get the usual boost."""
     fixtures, slots = [], []
+    home_advantage_overrides: dict[tuple[str, str], float] = {}
     for i, (row, status) in enumerate(candidates):
         if status["state"] != "active":
             status["prevail_pct"] = None
@@ -287,10 +307,13 @@ def _attach_prevail_pct(candidates: list[tuple], ratings_df: pd.DataFrame, home_
         away_team = status["opponent"] if is_home else row["team"]
         fixtures.append({"strHomeTeam": home_team, "strAwayTeam": away_team})
         slots.append((i, is_home))
+        if neutral_final and (status.get("next_round") or "").strip().lower() == "final":
+            home_advantage_overrides[(home_team, away_team)] = 1.0
 
     if not fixtures:
         return
-    odds = fixture_odds(fixtures, ratings_df, home_advantage=home_advantage)
+    odds = fixture_odds(fixtures, ratings_df, home_advantage=home_advantage,
+                         home_advantage_overrides=home_advantage_overrides or None)
     for (i, is_home), o in zip(slots, odds):
         p = o["home_win"] + 0.5 * o["draw"] if is_home else o["away_win"] + 0.5 * o["draw"]
         candidates[i][1]["prevail_pct"] = p

@@ -268,6 +268,10 @@ LEAGUES = {
                                      "season_end": "1 November 2026",
                                      "tiebreakers": ["gd", "gf"],
                                      "home_advantage": 1.22,
+                                     # FAI Cup final is played at a neutral venue (confirmed
+                                     # 2026-10-20: 2026 final, see Wikipedia), so neither side
+                                     # should get the normal home-advantage boost for that tie.
+                                     "cup_final_neutral": True,
 
 },
     "Israeli Premier League":       {"id": 383, "provider": "api_football", "tsdb_id": 4644, "af_season": 2026, "cup_id": 384, "country": "Israel",      "flag": "🇮🇱", "season_type": "winter",
@@ -313,7 +317,12 @@ LEAGUES = {
     # exists purely to give that a cup_id to resolve against -- "id" is
     # set to the same competition since nothing ever fetches standings
     # for it (no CH/N2/N3 entries exist to resolve via a league table).
-    "Liechtenstein - Cup":          {"id": 761, "provider": "api_football", "tsdb_id": 761, "af_season": 2026, "cup_id": 761, "country": "Liechtenstein", "flag": "🇱🇮", "season_type": "summer"},
+    "Liechtenstein - Cup":          {"id": 761, "provider": "api_football", "tsdb_id": 761, "af_season": 2026, "cup_id": 761, "country": "Liechtenstein", "flag": "🇱🇮", "season_type": "summer",
+                                     # No real league table exists behind this entry (see comment
+                                     # above) -- skip straight to Cup Details, per explicit
+                                     # instruction 2026-10-20, rather than show a meaningless
+                                     # all-zero "standings" table padded in from cup participants.
+                                     "cup_only": True},
     "Lithuanian TOPLYGA":           {"id": 362, "provider": "api_football", "tsdb_id": 4651, "af_season": 2026, "cup_id": 661, "country": "Lithuania",   "flag": "🇱🇹", "season_type": "summer",
                                      "season_end": "8 November 2026",
                                      "tiebreakers": ["playoffs_champion", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_wins", "gd", "gf", "wins", "fair_play", "draw"],
@@ -330,7 +339,12 @@ LEAGUES = {
                                      "season_end": "23 May 2027",
                                      "tiebreakers": ["gd", "gf", "h2h_pts", "h2h_gd", "h2h_away_gf", "h2h_gf", "draw", "playoffs"],
                                      "home_advantage": 1.22,
-                                     "zone_notes": {"relegation - po": "League contracted from 12 to 10 teams for 2026-27 — exact relegation mechanics for this transitional season are still being confirmed."}},
+                                     "zone_notes": {"relegation - po": "League contracted from 12 to 10 teams for 2026-27 — exact relegation mechanics for this transitional season are still being confirmed."},
+                                     # Confirmed 2026-10-20: suspended from this season's Cup for
+                                     # disciplinary/administrative reasons, not eliminated on the pitch --
+                                     # left out of the predicted-winner calculation entirely rather than
+                                     # shown as an "eliminated" upset.
+                                     "cup_excluded_teams": {"Shkendija": "Suspended from the 2026/27 Macedonian Cup"}},
     "Maltese Premier League":       {"id": 393, "provider": "api_football", "tsdb_id": 4653, "af_season": 2026, "cup_id": 821, "country": "Malta",       "flag": "🇲🇹", "season_type": "winter",
                                      "tiebreakers": ["h2h_pts", "h2h_gd", "h2h_gf", "gd", "gf", "playoffs"],
                                      "home_advantage": 1.18,
@@ -451,6 +465,11 @@ LEAGUES = {
                                      # if the table projection changes and they fall out of 1st.
                                      "uecl_8team_playoff": {
                                          "winner_spot": "UECL - QR1",
+                                         # No single clean bye/host slot in this bracket (unlike the
+                                         # 3/4/5-team playoffs elsewhere) -- 3rd picked as the
+                                         # simplified "most likely" outcome per explicit instruction
+                                         # 2026-10-20, pending deeper play-off modeling later.
+                                         "simplified_pos": 3,
                                          "caption": ("R1 (one-legged): 9th vs 12th, 10th vs 11th. "
                                                      "QF (one-legged): 2nd vs R1 winner, 6th vs 7th, 3rd vs R1 winner, 5th vs 8th. "
                                                      "SF and Final one-legged; higher-ranked team hosts each tie. "
@@ -586,7 +605,7 @@ LEAGUES_TIER2 = {
     "Kosovo - Liga E Pare": {"id": 1195, "provider": "api_football", "tsdb_id": 20025, "af_season": 2026, "country": "Kosovo", "flag": "🇽🇰", "season_type": "winter", "home_advantage": 1.07, "tiebreakers": ["gd", "gf"]},
     "Latvia - 1. Liga": {"id": 364, "provider": "api_football", "tsdb_id": 20026, "af_season": 2026, "country": "Latvia", "flag": "🇱🇻", "season_type": "summer", "home_advantage": 1.07, "tiebreakers": ["gd", "gf"]},
     "Lithuania - 1 Lyga": {"id": 361, "provider": "api_football", "tsdb_id": 20027, "af_season": 2026, "country": "Lithuania", "flag": "🇱🇹", "season_type": "summer", "home_advantage": 1.17, "tiebreakers": ["gd", "gf"]},
-    "Macedonia - Second League": {"id": 372, "provider": "api_football", "tsdb_id": 20028, "af_season": 2026, "country": "Macedonia", "flag": "🇲🇰", "season_type": "winter", "home_advantage": 1.22, "tiebreakers": ["gd", "gf"]},
+    "North Macedonia - Second League": {"id": 372, "provider": "api_football", "tsdb_id": 20028, "af_season": 2026, "country": "N. Macedonia", "flag": "🇲🇰", "season_type": "winter", "home_advantage": 1.22, "tiebreakers": ["gd", "gf"]},
     "Malta - Challenge League": {"id": 392, "provider": "api_football", "tsdb_id": 20029, "af_season": 2026, "country": "Malta", "flag": "🇲🇹", "season_type": "winter", "home_advantage": 1.18, "tiebreakers": ["gd", "gf"]},
     "Moldova - Liga 1": {"id": 395, "provider": "api_football", "tsdb_id": 20030, "af_season": 2026, "country": "Moldova", "flag": "🇲🇩", "season_type": "winter", "home_advantage": 1.03, "tiebreakers": ["gd", "gf"]},
     "Montenegro - Second League": {"id": 356, "provider": "api_football", "tsdb_id": 20031, "af_season": 2026, "country": "Montenegro", "flag": "🇲🇪", "season_type": "winter", "home_advantage": 1.47, "tiebreakers": ["gd", "gf"]},
