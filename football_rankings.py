@@ -1814,7 +1814,25 @@ def main_content():
             # the SAME cascade, resolved against today's actual standings
             # order instead of the predicted one, so its position keys
             # genuinely match this table's own.
-            _render_table(_table_rows(standings, zones={**_main_zones, **_team_overrides_current}, show_next=True))
+            #
+            # For a TRUE split league still in its regular-season/preview
+            # phase (split_info is None, but n_champ is set -- Greece,
+            # Czechia, ... before their real split_round), _main_zones only
+            # holds group-ASSIGNMENT placeholders ("Championship Group" etc,
+            # not real UCL/UEL/UECL labels), so merging the cascade's always-
+            # European-zone-flavored override in here mixes genuine zone
+            # labels into a handful of rows while every other row stays a
+            # placeholder -- confirmed live 2026-10-19, Greece: "UEL - PO"/
+            # "UEL - QR2"/"UECL - QR2" slipped into rows 3-5 of an otherwise
+            # "Championship Group"-labelled table. That real status belongs
+            # in the Projected Play-offs' own Championship Play-off table
+            # instead (tab_proj, merged against ITS OWN mini-simulation's
+            # ranking as _po_overrides) -- same reasoning tab_proj's own
+            # non-split branch already applies via _is_true_split, just not
+            # yet applied to this Current Table render until now.
+            _is_true_split = bool(cfg.get("n_champ")) and not cfg.get("final_four")
+            _current_zones = _main_zones if _is_true_split else {**_main_zones, **_team_overrides_current}
+            _render_table(_table_rows(standings, zones=_current_zones, show_next=True))
             _tbs_non_split = cfg.get("tiebreakers", ["gd", "gf"])[:8]
             st.caption("Tiebreakers: " + "; ".join(f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(_tbs_non_split)))
             if cfg.get("team_status_note"):
