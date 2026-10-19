@@ -72,6 +72,8 @@ def _load_raw_ratings(league_id: int, standings: list[dict]) -> pd.DataFrame:
         if "team" in df.columns and "opta_rating" in df.columns:
             if "alias" not in df.columns:
                 df["alias"] = ""
+            if "opta_scrape_alias" not in df.columns:
+                df["opta_scrape_alias"] = ""
             df["opta_rating"] = pd.to_numeric(df["opta_rating"], errors="coerce")
             # A malformed cell (typo, stray text) would otherwise reach the
             # simulator as NaN and crash the whole league's page outright
@@ -80,7 +82,8 @@ def _load_raw_ratings(league_id: int, standings: list[dict]) -> pd.DataFrame:
             if df["opta_rating"].isna().any():
                 df["opta_rating"] = df["opta_rating"].fillna(DEFAULT_OPTA)
             df["alias"] = df["alias"].fillna("")
-            return df[["team", "alias", "opta_rating"]]
+            df["opta_scrape_alias"] = df["opta_scrape_alias"].fillna("")
+            return df[["team", "alias", "opta_rating", "opta_scrape_alias"]]
         # File exists but doesn't look like a ratings CSV (bad header, a
         # mid-edit save, ...) — return usable estimates for this page load
         # without persisting over whatever's actually on disk; a human
@@ -91,13 +94,19 @@ def _load_raw_ratings(league_id: int, standings: list[dict]) -> pd.DataFrame:
 
 
 def save_ratings(league_id: int, ratings: pd.DataFrame) -> None:
-    """Persist ratings DataFrame to CSV."""
+    """Persist ratings DataFrame to CSV. Preserves opta_scrape_alias if the
+    incoming DataFrame has it (e.g. admin.py's ratings editor round-tripping
+    load_ratings' own output) -- dropping it here would silently erase every
+    club's Club Power Ranking scrape-name match on the next save, even
+    though the editor never exposes that column for hand-editing."""
     RATINGS_DIR.mkdir(exist_ok=True)
     csv_path = RATINGS_DIR / f"{league_id}.csv"
     out = ratings.copy()
     if "alias" not in out.columns:
         out["alias"] = ""
-    out[["team", "alias", "opta_rating"]].to_csv(csv_path, index=False)
+    if "opta_scrape_alias" not in out.columns:
+        out["opta_scrape_alias"] = ""
+    out[["team", "alias", "opta_rating", "opta_scrape_alias"]].to_csv(csv_path, index=False)
 
 
 def build_lookup(ratings: pd.DataFrame) -> dict[str, float]:
@@ -169,4 +178,5 @@ def _defaults_from_standings(standings: list[dict], csv_path: Path, persist: boo
     df["opta_rating"] = df["opta_rating"].round(1)
     if persist:
         df[["team", "alias", "opta_rating"]].to_csv(csv_path, index=False)
-    return df[["team", "alias", "opta_rating"]]
+    df["opta_scrape_alias"] = ""
+    return df[["team", "alias", "opta_rating", "opta_scrape_alias"]]

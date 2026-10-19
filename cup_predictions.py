@@ -16,6 +16,7 @@ import streamlit as st
 
 from api_football_fetcher import ApiFootballClient
 from simulator import fixture_odds
+from qualifying_projection import _fuzzy_key
 
 _STRENGTH_RANKING_PATH = "club_power_rankings_1000.csv"
 
@@ -58,19 +59,69 @@ def _load_strength_ranking() -> dict[str, list[tuple[float, float]]]:
     return out
 
 
+@st.cache_data(ttl=3_600, show_spinner=False)
+def _load_strength_ranking_fuzzy() -> dict[str, list[tuple[float, float]]]:
+    """Same shape and source as _load_strength_ranking, but keyed by
+    _fuzzy_key (accent-folded, filler-token-dropped, e.g. "FC"/"AS"/"FK")
+    instead of the exact team name -- a fallback tier for the several
+    tracked clubs confirmed missing BOTH an exact name/alias match and an
+    opta_scrape_alias (2026-10-19: Viktoria Plzeň vs the scrape's "Plzeň",
+    Omonia Nicosia vs "Omonia", Bodø / Glimt vs "Bodø/Glimt", Crvena
+    Zvezda vs "Crvena zvezda", FC Košice vs "Košice") -- the same class of
+    name variance _fuzzy_key already exists to absorb elsewhere on the
+    site (european.py's badge lookups, qualifying_projection's own
+    fixture-team resolution), reused here rather than reinvented."""
+    if not Path(_STRENGTH_RANKING_PATH).exists():
+        return {}
+    df = pd.read_csv(_STRENGTH_RANKING_PATH)
+    df = df[df["tracked_league"].notna() & (df["tracked_league"] != "")]
+    out: dict[str, list[tuple[float, float]]] = {}
+    for _, r in df.iterrows():
+        out.setdefault(_fuzzy_key(r["team"]), []).append((r["opta_rating_raw"], r["rating_1000"]))
+    return out
+
+
 def _strength_score(row, strength_map: dict[str, list[tuple[float, float]]]) -> float:
-    """This club's Club Power Ranking score (checking both its main name
-    and alias, same lookup set _team_name_set builds elsewhere) -- among
-    same-named candidates, picks the one whose own opta_rating_raw is
-    closest to this row's own opta_rating (see _load_strength_ranking's
-    docstring for why a flat name match alone isn't safe). -1.0 for a
-    club genuinely missing from the tracked subset, so it sorts last
-    rather than winning a tie-break it has no real claim to."""
+    """This club's Club Power Ranking score -- among same-named candidates,
+    picks the one whose own opta_rating_raw is closest to this row's own
+    opta_rating (see _load_strength_ranking's docstring for why a flat
+    name match alone isn't safe). -1.0 for a club genuinely missing from
+    the tracked subset, so it sorts last rather than winning a tie-break
+    it has no real claim to.
+
+    Checks row["opta_scrape_alias"] (when present) ALONGSIDE
+    _team_name_set's team/alias -- confirmed as a real gap 2026-10-19:
+    several clubs' global Opta Power Rankings scrape name doesn't match
+    either their "team" or their API-Football "alias" at all (Bayern
+    München/alias "Bayern Munich" vs the scrape's "FC Bayern"; Bayer
+    Leverkusen vs "Bayer 04"; RB Leipzig vs "Leipzig"; ...), so without
+    this they silently fell back to -1.0 (unranked) and lost every
+    predicted-cup-winner tie-break to a weaker club whose name happened
+    to match exactly -- confirmed live, Germany's DFB Pokal predicting
+    Stuttgart over Bayern Munich."""
     own_opta = row.get("opta_rating")
+    names = _team_name_set(row)
+    _scrape_alias = str(row.get("opta_scrape_alias", "") or "").strip()
+    if _scrape_alias:
+        names = names | {_scrape_alias}
     best = None
     best_gap = None
-    for name in _team_name_set(row):
+    for name in names:
         for opta_raw, rating_1000 in strength_map.get(name, []):
+            gap = abs(opta_raw - own_opta) if pd.notna(own_opta) else 0.0
+            if best_gap is None or gap < best_gap:
+                best_gap, best = gap, rating_1000
+    if best is not None:
+        return best
+    # No exact team/alias/scrape_alias match -- last-resort fuzzy fallback
+    # (accent-fold + filler-token-drop) before giving up. Confirmed as a
+    # real remaining gap 2026-10-19 even after the scrape_alias fix above:
+    # a handful of clubs have no opta_scrape_alias set at all AND their
+    # team/alias spelling doesn't exactly match the scrape's either
+    # (Viktoria Plzeň vs "Plzeň", Crvena Zvezda vs "Crvena zvezda", ...).
+    fuzzy_map = _load_strength_ranking_fuzzy()
+    for name in names:
+        for opta_raw, rating_1000 in fuzzy_map.get(_fuzzy_key(name), []):
             gap = abs(opta_raw - own_opta) if pd.notna(own_opta) else 0.0
             if best_gap is None or gap < best_gap:
                 best_gap, best = gap, rating_1000
