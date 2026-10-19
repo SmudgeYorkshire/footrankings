@@ -3044,8 +3044,28 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     if cached_po["fingerprint"] != _manual_po_fp:
                         st.warning("⚠ Predicted standings changed since last run — press ▶ to update.")
                     if not cached_po["probs"].empty:
+                        # The live cup-winner cascade belongs only in the
+                        # Championship group's own zones (cup_cascade's
+                        # "champ zones treated as overall rank 1..n" scope
+                        # -- see resolve_live_overrides' own docstring);
+                        # Mid/Relegation groups never get one. Confirmed as
+                        # a real gap 2026-10-19: this table never merged it
+                        # in at all, so a team here could show the plain
+                        # static champ-zone label (or none) where the live
+                        # Predictions tab's own Championship Play-off table
+                        # correctly shows the cascaded status -- same class
+                        # of mismatch already fixed there, just not yet
+                        # ported to this Manual Predictions version of it.
+                        _manual_po_status = group_zones
+                        if key_suffix == "champ":
+                            _manual_po_overrides = resolve_live_overrides(
+                                league_name, cfg, standings, played_fixtures, remaining_fixtures,
+                                ratings_df, _cascade_zones, _API_KEY,
+                                probs=cached_po["probs"],
+                            )
+                            _manual_po_status = {**group_zones, **_manual_po_overrides}
                         render_prob_table(cached_po["probs"], badge_lookup,
-                                          status_map=group_zones,
+                                          status_map=_manual_po_status,
                                           title=f"{label} finish probabilities",
                                           title_emoji=title_emoji_flag)
                 else:
