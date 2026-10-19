@@ -1358,6 +1358,17 @@ def main_content():
         st.session_state[f"cascade_key_current_{league_id}"] = _cascade_key_current
     _team_overrides_current = st.session_state.get(f"cascade_overrides_current_{league_id}") or {}
 
+    # Team-keyed version of the above (same technique as _cascade_team_labels
+    # above, just resolved against today's actual standings instead of the
+    # predicted finish) -- needed for any sub-table whose own "Pos" column is
+    # RELATIVE to a smaller pool (Middle Group / Relegation Group below), so
+    # merging by position would land on the wrong row entirely.
+    _team_overrides_current_by_team: dict[str, str] = {
+        _current_ranked_teams[_pos - 1]: _label
+        for _pos, _label in _team_overrides_current.items()
+        if isinstance(_pos, int) and 1 <= _pos <= len(_current_ranked_teams)
+    }
+
     tab_table, tab_proj, tab_manual, tab_fixtures, tab_results, tab_format, tab_history = st.tabs(
         ["📊 Current Table", "🎯 Predictions", "🔮 Manual Predictions", "📅 Fixtures", "📋 Results", "🗂️ Format", "🕰️ History"]
     )
@@ -1932,7 +1943,8 @@ def main_content():
                     st.markdown("### 📊 Projected Final Four")
                     st.caption("Top 4 by current table position — subject to change")
                     _ff_zones = _ls.get("final_four", {})
-                    _render_table(_table_rows(_sorted_st[:4], zones=_ff_zones))
+                    _render_table(_table_rows(_sorted_st[:4], zones=_ff_zones,
+                                               team_overrides=_team_overrides_current_by_team))
                 else:
                     st.markdown("### 📊 Projected Groups")
                     st.caption("Based on current standings — regular season still running, groups not yet confirmed")
@@ -1947,15 +1959,25 @@ def main_content():
                     # empty here. The real per-position European-spot labels live in the
                     # "champ"/"mid"/"relg" phases instead, same source the post-split table
                     # above (split_info branch) and Predictions tab already use correctly.
-                    _render_table(_table_rows(_sorted_st[:_nc], zones=_champ_zones))
+                    # team_overrides=_team_overrides_current_by_team -- same cup-cascade
+                    # merge the post-split Championship Round table and the Predictions
+                    # tab's own group tables already apply, team-keyed so it's immune to
+                    # this group's own position space (absolute rank here, relative below
+                    # for Middle/Relegation Group) -- confirmed missing 2026-10-19 (Czech
+                    # and Greece: cup-winner cascade correctly bumped the whole European
+                    # access chain up a tier in the Predictions tab but not here).
+                    _render_table(_table_rows(_sorted_st[:_nc], zones=_champ_zones,
+                                               team_overrides=_team_overrides_current_by_team))
 
                     if _nm:
                         st.markdown(f"#### 🔵 {_mid_label}")
-                        _render_table(_table_rows(_sorted_st[_nc:_nc + _nm], zones=_mid_zones, relative_zones=True))
+                        _render_table(_table_rows(_sorted_st[_nc:_nc + _nm], zones=_mid_zones, relative_zones=True,
+                                                   team_overrides=_team_overrides_current_by_team))
 
                     if not cfg.get("champ_only"):
                         st.markdown("#### ⚠️ Relegation Group")
-                        _render_table(_table_rows(_sorted_st[_nc + _nm:], zones=_relg_zones, relative_zones=True))
+                        _render_table(_table_rows(_sorted_st[_nc + _nm:], zones=_relg_zones, relative_zones=True,
+                                                   team_overrides=_team_overrides_current_by_team))
 
         if split_info:
             tbs = cfg.get("tiebreakers", ["gd", "gf"])[:8]
