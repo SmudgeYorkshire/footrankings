@@ -20,6 +20,7 @@ from _split_season import get_split_info, conference_fixtures, recompute_confere
 from league_status import LEAGUE_STATUS
 from historical import fetch_historical_season
 from prob_table import _green_col, _euro_style_cell, _status_style_pred, _status_for_pos
+from cup_predictions import _load_strength_ranking, _strength_score
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
@@ -746,11 +747,16 @@ def _team_name_set(row) -> set[str]:
 
 
 def _resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], remaining: list[dict]):
-    """Highest-Opta-rated team in this league that hasn't already been
-    knocked out of this season's cup, plus any higher-rated teams skipped
-    over because they're already eliminated. Returns
+    """Highest-ranked (by this site's own Club Power Ranking, not the raw
+    per-league Opta rating -- see cup_predictions._load_strength_ranking)
+    team in this league that hasn't already been knocked out of this
+    season's cup, plus any higher-ranked teams skipped over because
+    they're already eliminated. Returns
     (predicted_row, predicted_status, [(skipped_row, skipped_status), ...])."""
-    ranked = ratings_df.sort_values("opta_rating", ascending=False)
+    strength_map = _load_strength_ranking()
+    ranked = ratings_df.copy()
+    ranked["_strength"] = ranked.apply(lambda r: _strength_score(r, strength_map), axis=1)
+    ranked = ranked.sort_values("_strength", ascending=False)
     skipped = []
     for _, row in ranked.iterrows():
         status = _cup_campaign_status(_team_name_set(row), played, remaining)
@@ -805,14 +811,14 @@ def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame,
     if state == "active":
         side = "home" if pred_status["is_home"] else "away"
         st.markdown(
-            f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+            f"🔮 Predicted winner: **{pred_name}** — "
             f"next plays {pred_status['opponent']} ({side}) in the {pred_status['next_round']} "
             f"on {_fmt_long_date(pred_status['next_date'])}. Entered this season at: {pred_status['entry_round']} "
             f"({_fmt_long_date(pred_status['entry_date'])})."
         )
     elif state == "awaiting_draw":
         st.markdown(
-            f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+            f"🔮 Predicted winner: **{pred_name}** — "
             f"through to the next round after the {pred_status['last_round']} "
             f"({_fmt_long_date(pred_status['last_date'])}); "
             f"next tie not yet drawn. Entered this season at: {pred_status['entry_round']} "
@@ -829,14 +835,14 @@ def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame,
             pass
         if expected:
             st.markdown(
-                f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+                f"🔮 Predicted winner: **{pred_name}** — "
                 f"not yet entered this season; last season they entered at the {expected} stage."
             )
         else:
-            st.markdown(f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}).")
+            st.markdown(f"🔮 Predicted winner: **{pred_name}**.")
     else:  # eliminated (everyone we track is out)
         st.markdown(
-            f"🔮 Predicted winner: **{pred_name}** (Opta {pred_row['opta_rating']:.1f}) — "
+            f"🔮 Predicted winner: **{pred_name}** — "
             f"lost to {pred_status['opponent']} {pred_status['score']} in the {pred_status['round']} "
             f"({_fmt_long_date(pred_status['date'])})."
         )
@@ -844,7 +850,7 @@ def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame,
     for skip_row, skip_status in skipped:
         skip_name = _display_team_name(skip_row)
         st.markdown(
-            f"⚠️ {skip_name} (Opta {skip_row['opta_rating']:.1f}, higher-rated) already eliminated — "
+            f"⚠️ {skip_name} (higher-rated) already eliminated — "
             f"lost to {skip_status['opponent']} {skip_status['score']} in the {skip_status['round']} "
             f"({_fmt_long_date(skip_status['date'])})."
         )
@@ -881,11 +887,14 @@ def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str
             )
             if not ratings_df.empty:
                 from update_ratings_from_opta import _normalize
-                top_row = ratings_df.sort_values("opta_rating", ascending=False).iloc[0]
+                _strength_map = _load_strength_ranking()
+                top_row = ratings_df.loc[
+                    ratings_df.apply(lambda r: _strength_score(r, _strength_map), axis=1).idxmax()
+                ]
                 top_name = _display_team_name(top_row)
                 if _normalize(top_name) != _normalize(cup["winner"]):
                     st.caption(
-                        f"📊 Our predicted winner ({top_name}, highest Opta rating) didn't lift the trophy this time."
+                        f"📊 Our predicted winner ({top_name}) didn't lift the trophy this time."
                     )
         else:
             st.markdown(

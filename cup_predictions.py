@@ -9,11 +9,72 @@ body runs on import -- see european_2027_28.py's own _current_standings
 docstring for why that's avoided elsewhere on this page already).
 """
 
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 
 from api_football_fetcher import ApiFootballClient
 from simulator import fixture_odds
+
+_STRENGTH_RANKING_PATH = "club_power_rankings_1000.csv"
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def _load_strength_ranking() -> dict[str, list[tuple[float, float]]]:
+    """{team name: [(opta_rating_raw, rating_1000), ...]} from this site's
+    own Club Power Ranking (build_club_power_rankings.py's output) -- the
+    ranking cup-winner predictions are made from (2026-10-19), replacing
+    the raw per-league opta_rating. That column is calibrated for the
+    Poisson goals model (match simulation still uses it via fixture_odds
+    below, unaffected by this), not as a general "how strong is this
+    club" ranking, and could run above its nominal 0-100 ceiling for a
+    club with a large odds-driven adjustment applied on top -- confirmed
+    live 2026-10-19 (Arsenal showing "Opta 103.8").
+
+    Restricted to tracked_league rows only (the ones
+    build_club_power_rankings.resolve_tracked_leagues already matched to
+    one of our actual tracked clubs) -- every caller here passes a
+    ratings_df scoped to one tracked league, so untracked global-scrape
+    noise can only ever cause wrong matches, never right ones. Even
+    within that tracked subset, the SAME team name still legitimately
+    recurs across different countries (confirmed live 2026-10-19: 3
+    different tracked clubs are all literally named "Arsenal" -- England,
+    Belarus, Montenegro), which is why this returns every candidate
+    instead of collapsing them -- _strength_score picks the one whose own
+    opta_rating_raw is closest to the specific row's opta_rating, the
+    same anchor-to-known-rating disambiguation
+    resolve_tracked_leagues itself already uses, rather than risking a
+    flat dict silently keeping an arbitrary (likely unrelated) one.
+    Falls back to an empty dict (every lookup then treated as unranked/
+    lowest priority, rather than crashing) if the file hasn't been built yet."""
+    if not Path(_STRENGTH_RANKING_PATH).exists():
+        return {}
+    df = pd.read_csv(_STRENGTH_RANKING_PATH)
+    df = df[df["tracked_league"].notna() & (df["tracked_league"] != "")]
+    out: dict[str, list[tuple[float, float]]] = {}
+    for _, r in df.iterrows():
+        out.setdefault(r["team"], []).append((r["opta_rating_raw"], r["rating_1000"]))
+    return out
+
+
+def _strength_score(row, strength_map: dict[str, list[tuple[float, float]]]) -> float:
+    """This club's Club Power Ranking score (checking both its main name
+    and alias, same lookup set _team_name_set builds elsewhere) -- among
+    same-named candidates, picks the one whose own opta_rating_raw is
+    closest to this row's own opta_rating (see _load_strength_ranking's
+    docstring for why a flat name match alone isn't safe). -1.0 for a
+    club genuinely missing from the tracked subset, so it sorts last
+    rather than winning a tie-break it has no real claim to."""
+    own_opta = row.get("opta_rating")
+    best = None
+    best_gap = None
+    for name in _team_name_set(row):
+        for opta_raw, rating_1000 in strength_map.get(name, []):
+            gap = abs(opta_raw - own_opta) if pd.notna(own_opta) else 0.0
+            if best_gap is None or gap < best_gap:
+                best_gap, best = gap, rating_1000
+    return best if best is not None else -1.0
 
 
 def _cup_campaign_status(team_names: set[str], played: list[dict], remaining: list[dict]) -> dict:
@@ -87,29 +148,35 @@ def _team_name_set(row) -> set[str]:
 
 def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], remaining: list[dict],
                                   home_advantage: float = 1.0):
-    """Highest-Opta-rated team in this league that hasn't already been
-    knocked out of this season's cup AND isn't the underdog in its own
-    next scheduled tie, plus any team rated HIGHER than that predicted
-    winner which has already been eliminated -- a genuine upset worth
-    flagging, unlike an eliminated team that was never favoured over the
-    winner in the first place. Returns
+    """Highest-ranked (by this site's own Club Power Ranking, not the raw
+    per-league Opta rating -- see _load_strength_ranking/_strength_score)
+    team in this league that hasn't already been knocked out of this
+    season's cup AND isn't the underdog in its own next scheduled tie,
+    plus any team ranked HIGHER than that predicted winner which has
+    already been eliminated -- a genuine upset worth flagging, unlike an
+    eliminated team that was never favoured over the winner in the first
+    place. Returns
     (predicted_row, predicted_status, [(skipped_row, skipped_status), ...]),
-    the third element sorted highest-rated first.
+    the third element sorted highest-ranked first.
 
     A team with a known upcoming fixture gets its actual prevail
     probability for that specific tie (home advantage + opponent
     strength, via the project's own Poisson model -- same one the
-    Predictions tabs use) attached to its status dict as "prevail_pct";
-    among non-eliminated teams, anyone currently an underdog in their own
-    tie (prevail_pct < 0.5) is ranked below every team that isn't, with
-    Opta rating breaking ties within each group. A draw is split 50/50
-    toward either side advancing (most of these rounds are one-legged,
-    decided by extra time/penalties if level -- a reasonable simplification
-    rather than modelling penalty shoot-outs). A team with no scheduled
-    fixture yet (next round not drawn) gets prevail_pct=None and is treated
-    as not ruled out -- "keep it general" until there's something concrete
-    to weight against."""
-    ranked = ratings_df.sort_values("opta_rating", ascending=False)
+    Predictions tabs use, still based on opta_rating since that's the
+    model it's calibrated for) attached to its status dict as
+    "prevail_pct"; among non-eliminated teams, anyone currently an
+    underdog in their own tie (prevail_pct < 0.5) is ranked below every
+    team that isn't, with Club Power Ranking breaking ties within each
+    group. A draw is split 50/50 toward either side advancing (most of
+    these rounds are one-legged, decided by extra time/penalties if level
+    -- a reasonable simplification rather than modelling penalty
+    shoot-outs). A team with no scheduled fixture yet (next round not
+    drawn) gets prevail_pct=None and is treated as not ruled out -- "keep
+    it general" until there's something concrete to weight against."""
+    strength_map = _load_strength_ranking()
+    ranked = ratings_df.copy()
+    ranked["_strength"] = ranked.apply(lambda r: _strength_score(r, strength_map), axis=1)
+    ranked = ranked.sort_values("_strength", ascending=False)
     skipped = []
     candidates = []
     for _, row in ranked.iterrows():
@@ -134,7 +201,7 @@ def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], r
         _row, status = item
         p = status.get("prevail_pct")
         favoured = p is None or p >= 0.5
-        return (0 if favoured else 1, -_row["opta_rating"])
+        return (0 if favoured else 1, -_strength_score(_row, strength_map))
 
     candidates.sort(key=_sort_key)
     predicted_row, predicted_status = candidates[0]
@@ -147,9 +214,10 @@ def resolve_predicted_cup_winner(ratings_df: pd.DataFrame, played: list[dict], r
     # all rated BELOW the predicted winner as "higher-rated, already
     # eliminated" -- not an upset at all, just noise, since none of them
     # were ever better-rated than the team predicted to win.
+    predicted_strength = _strength_score(predicted_row, strength_map)
     higher_rated_skipped = [
         (row, status) for row, status in skipped
-        if row["opta_rating"] > predicted_row["opta_rating"]
+        if _strength_score(row, strength_map) > predicted_strength
     ]
     return predicted_row, predicted_status, higher_rated_skipped
 
