@@ -249,6 +249,46 @@ def country_rank_bounds(
     return bounds
 
 
+def season_rank_bounds(
+    real_points: dict[str, float], max_remaining: dict[str, float],
+) -> dict[str, tuple[int, int]]:
+    """{country: (best_reachable, worst_reachable)} for THIS SEASON's
+    coefficient alone (not the 5-season total) -- the actual metric the
+    European Performance Spot race uses. Same sound floor-vs-ceiling
+    algorithm as country_rank_bounds, but with no 4-season baseline to
+    add (the EPS race is decided purely on this season's own points) and
+    scoped to active associations only (clubs_entered > 0), matching
+    season_pct_top1/season_pct_top2's own scope in build_country_rank_table
+    -- a suspended association can't enter this race at all.
+
+    This is what makes "X" for a country that can't reach 1st/2nd/Top 2
+    correct in every case, not just the typical one: a country is
+    guaranteed to beat another whose own floor already exceeds this
+    country's ceiling, so counting how many OTHER active countries are
+    guaranteed above you gives the true best-reachable rank -- equivalent
+    to (and more robust than) checking only against today's actual 1st-
+    and 2nd-placed countries' current points, since floor == current
+    points here and countries are already ranked by current points, but
+    this also stays correct for a country that's itself currently 1st or
+    2nd, or when two countries are tied on current points."""
+    countries = [c for c in COUNTRY_BASELINE if COUNTRY_BASELINE[c].get("clubs_entered", 0) > 0]
+    floor: dict[str, float] = {}
+    ceiling: dict[str, float] = {}
+    for c in countries:
+        entered = COUNTRY_BASELINE[c]["clubs_entered"]
+        real = real_points.get(c, 0.0) / entered
+        extra = max_remaining.get(c, 0.0) / entered
+        floor[c] = real
+        ceiling[c] = real + extra
+
+    bounds: dict[str, tuple[int, int]] = {}
+    for c in countries:
+        above = sum(1 for o in countries if o != c and floor[o] > ceiling[c])
+        below = sum(1 for o in countries if o != c and ceiling[o] < floor[c])
+        bounds[c] = (1 + above, len(countries) - below)
+    return bounds
+
+
 def resolve_current_playoff_ties(comp_name: str, key: str) -> list[dict]:
     """Every Play-off round tie in `comp_name`, resolved from
     PLAYOFF_BRACKET plus already-played Qualifying Round results, with each
@@ -640,5 +680,13 @@ def project_country_predicted_ranking(
     bounds = country_rank_bounds(real_points, country_ceiling_raw)
     table["best_rank"] = [bounds.get(c, (1, len(table)))[0] for c in table.index]
     table["worst_rank"] = [bounds.get(c, (1, len(table)))[1] for c in table.index]
+
+    # Same, for the European Performance Spot race's own season-only
+    # metric (see season_rank_bounds' own docstring for why this stays
+    # sound even though it's conceptually "today's Top 2 nations' current
+    # points as the bar to clear").
+    _season_bounds = season_rank_bounds(real_points, country_ceiling_raw)
+    table["best_season_rank"] = [_season_bounds.get(c, (1, len(table)))[0] for c in table.index]
+    table["worst_season_rank"] = [_season_bounds.get(c, (1, len(table)))[1] for c in table.index]
 
     return table, warnings, simulated_club_points, club_country

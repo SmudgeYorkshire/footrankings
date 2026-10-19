@@ -438,29 +438,43 @@ with tab_eps_pred:
         "Performance Spot race uses. \"1st\" and \"2nd\" are each association's exact probability "
         "of finishing in that one specific spot; \"Top 2\" is the combined chance of either, since "
         "both spots win an extra Champions League place. Suspended associations with no clubs "
-        "entered (e.g. Russia) can't earn anything new this season, so aren't part of the race."
+        "entered (e.g. Russia) can't earn anything new this season, so aren't part of the race. "
+        "✓ marks a spot already mathematically secured, X one already mathematically unreachable — "
+        "a real guaranteed-points-so-far vs. maximum-still-reachable comparison, not a simulation "
+        "estimate (see the Country Ranking Predictions tab's own position table for the same thing "
+        "applied to the 5-season ranking)."
     )
+
+    def _fmt_eps_cell(pct: float, best_rank: int, worst_rank: int, threshold: int) -> str:
+        if worst_rank <= threshold:
+            return "✓"
+        if best_rank > threshold:
+            return "X"
+        return f"{pct:.1f}%"
+
     _eps_pred_rows = []
     for _country, _r in _pred_table.iterrows():
         if _r["clubs"] <= 0 or _r["season_mean_rank"] is None:
             continue
         _top1, _top2 = _r["season_pct_top1"], _r["season_pct_top2"]
+        _best_sr, _worst_sr = int(_r["best_season_rank"]), int(_r["worst_season_rank"])
         _eps_pred_rows.append({
             "Flag": _flag_url(_country),
             "Country": _country,
             "Clubs": _r["clubs"],
             "Current points": _current_pts_by_country.get(_country, 0.0),
             "Projected 2026/27 points": _r["mean_season_coeff"],
-            "1st": _top1 * 100,
-            "2nd": (_top2 - _top1) * 100,
-            "Top 2": _top2 * 100,
+            "1st": _fmt_eps_cell(_top1 * 100, _best_sr, _worst_sr, 1),
+            "2nd": _fmt_eps_cell((_top2 - _top1) * 100, _best_sr, _worst_sr, 2),
+            "Top 2": _fmt_eps_cell(_top2 * 100, _best_sr, _worst_sr, 2),
+            "_1st_raw": _top1 * 100,
         })
     _eps_pred_df = pd.DataFrame(_eps_pred_rows).sort_values(
         "Projected 2026/27 points", ascending=False
     ).reset_index(drop=True)
     _eps_pred_df.insert(0, "Rank", _eps_pred_df.index + 1)
     st.dataframe(
-        _eps_pred_df,
+        _eps_pred_df.drop(columns=["_1st_raw"]),
         column_config={
             "Rank": st.column_config.NumberColumn("Rank", width="small"),
             "Flag": st.column_config.ImageColumn("", width="small"),
@@ -469,16 +483,16 @@ with tab_eps_pred:
             "Current points": st.column_config.NumberColumn("Current points", format="%.3f", width="small"),
             "Projected 2026/27 points": st.column_config.NumberColumn(
                 "Projected 2026/27 points", format="%.3f", width="small"),
-            "1st": st.column_config.NumberColumn("1st", format="%.1f%%", width="small"),
-            "2nd": st.column_config.NumberColumn("2nd", format="%.1f%%", width="small"),
-            "Top 2": st.column_config.NumberColumn("Top 2", format="%.1f%%", width="small"),
+            "1st": st.column_config.TextColumn("1st", width="small"),
+            "2nd": st.column_config.TextColumn("2nd", width="small"),
+            "Top 2": st.column_config.TextColumn("Top 2", width="small"),
         },
         width="content", hide_index=True, height=len(_eps_pred_df) * 35 + 38,
     )
     if len(_eps_pred_df) >= 2:
         _pred_gold, _pred_silver = _eps_pred_df.iloc[0], _eps_pred_df.iloc[1]
         st.caption(
-            f"Most likely outcome: 🥇 **{_pred_gold['Country']}** ({_pred_gold['1st']:.1f}% to finish 1st) "
+            f"Most likely outcome: 🥇 **{_pred_gold['Country']}** ({_pred_gold['_1st_raw']:.1f}% to finish 1st) "
             f"and 🥈 **{_pred_silver['Country']}** would gain the two extra Champions League places — "
             f"but check the Top 2 column for how contested it actually is further down the table."
         )
