@@ -26,7 +26,7 @@ from league_phase_simulator import (
     cached_league_phase_simulation, league_phase_sim_cache_key,
     simulate_competition_winner,
 )
-from prob_table import render_prob_table
+from prob_table import render_prob_table, _green_col
 from league_phase_fixtures import (
     is_opponent_list_complete, derive_fixtures, partial_opponents_by_team, dated_schedule,
 )
@@ -403,9 +403,9 @@ st.divider()
 # Tabs
 # ---------------------------------------------------------------------------
 if has_lp:
-    tab_league, tab_lp_results, tab_lp_pred, tab_ko_pred, tab_manual, tab_qual, tab_trivia = st.tabs(
+    tab_league, tab_lp_results, tab_lp_pred, tab_ko_pred, tab_manual, tab_points_needed, tab_qual, tab_trivia = st.tabs(
         ["📊 Current Standings", "📅 Fixtures", "📈 League Stage Predictions", "🥊 Knockout Predictions",
-         "🔮 Manual Predictions", "🔍 Qualifying", "🎲 Trivia"]
+         "🔮 Manual Predictions", "📐 Points Needed", "🔍 Qualifying", "🎲 Trivia"]
     )
 else:
     tab_qual, tab_trivia = st.tabs(["🔍 Qualifying", "🎲 Trivia"])
@@ -414,6 +414,7 @@ else:
     tab_lp_pred = None
     tab_ko_pred = None
     tab_manual = None
+    tab_points_needed = None
 
 
 # ---------------------------------------------------------------------------
@@ -454,7 +455,7 @@ if has_lp:
         _ls_cache_key = league_phase_sim_cache_key(
             comp_name, _n_sim, _home_advantage, _field, _field_ratings_df, _real_results,
         )
-        _ls_result, _ls_points_by_club = cached_league_phase_simulation(
+        _ls_result, _ls_points_by_club, _ls_rank_points = cached_league_phase_simulation(
             _ls_cache_key, _field, _club_coeff, _field_ratings_df,
             _n_pots, _opp_per_pot, _n_sim, _home_advantage, comp_name,
             _real_schedule, _real_results,
@@ -1121,6 +1122,93 @@ if tab_manual is not None:
                     )
                 else:
                     st.info("Enter predictions above then press **▶ Run simulations**.")
+
+
+# ---------------------------------------------------------------------------
+# Tab — Points Needed. For each candidate League Phase points total, the %
+# of the shared 30,000-simulation run (_ls_rank_points, same baseline
+# League Stage Predictions uses) in which that many points would have been
+# enough to finish Top 8 (direct Round of 16) or Top 24 (knockout
+# play-off) -- same methodology as theanalyst.com's and arXiv 2508.20075's
+# own UCL League Phase points-needed studies: rank every simulated run by
+# points (ties broken by GD/GF, this project's existing convention), take
+# the 8th/24th-placed club's own points in that run, then see what
+# fraction of runs each candidate total would have cleared.
+# ---------------------------------------------------------------------------
+if tab_points_needed is not None:
+    with tab_points_needed:
+        if not _field_ready:
+            st.info(
+                f"Only {len(_field)} of 36 League Phase clubs are known for the {comp_name} so far "
+                f"(confirmed direct entrants + each Play-off tie's favoured side{_field_cascade_note}) — "
+                "points-needed estimates need the full field and will appear once the rest are confirmed."
+            )
+        else:
+            st.caption(
+                "Based on the same 30,000-simulation League Phase run behind League Stage "
+                "Predictions. Methodology: "
+                "[theanalyst.com](https://theanalyst.com/articles/champions-league-group-stage-how-many-points-qualify-knockouts), "
+                "[arXiv:2508.20075](https://arxiv.org/abs/2508.20075)."
+            )
+
+            _pn_rank8 = _ls_rank_points["rank8"]
+            _pn_rank24 = _ls_rank_points["rank24"]
+            _pn_games = _n_pots * _opp_per_pot
+            _pn_max_pts = _pn_games * 3
+
+            def _pn_min_points_for(arr: "pd.Series | object", threshold: float) -> int | None:
+                """Lowest points total at which >= threshold fraction of simulated
+                runs would have been enough to clear that cut-off."""
+                for p in range(_pn_max_pts + 1):
+                    if (arr <= p).mean() >= threshold:
+                        return p
+                return None
+
+            _pn_c1, _pn_c2 = st.columns(2)
+            for _pn_col, _pn_title, _pn_arr in (
+                (_pn_c1, "🏆 Top 8 — direct Round of 16", _pn_rank8),
+                (_pn_c2, "🥊 Top 24 — knockout play-off", _pn_rank24),
+            ):
+                with _pn_col:
+                    st.markdown(f"#### {_pn_title}")
+                    _pn_50 = _pn_min_points_for(_pn_arr, 0.5)
+                    _pn_90 = _pn_min_points_for(_pn_arr, 0.9)
+                    _pn_99 = _pn_min_points_for(_pn_arr, 0.99)
+                    st.metric("Toss-up (~50%) at", f"{_pn_50} pts" if _pn_50 is not None else "—")
+                    st.metric("Safe (~90%) at", f"{_pn_90} pts" if _pn_90 is not None else "—")
+                    st.metric("Virtually certain (~99%) at", f"{_pn_99} pts" if _pn_99 is not None else "—")
+
+            st.divider()
+            _pn_rows = [
+                {
+                    "Points": p,
+                    "Top 8 chance": float((_pn_rank8 <= p).mean()) * 100,
+                    "Top 24 chance": float((_pn_rank24 <= p).mean()) * 100,
+                }
+                for p in range(_pn_max_pts + 1)
+            ]
+            _pn_df = pd.DataFrame(_pn_rows)
+            _pn_styled = (
+                _pn_df.style
+                .hide(axis="index")
+                .apply(_green_col, axis=0, subset=["Top 8 chance", "Top 24 chance"])
+                .format("{:.1f}%", subset=["Top 8 chance", "Top 24 chance"])
+                .set_properties(subset=["Points"], **{"font-weight": "bold", "text-align": "center"})
+            )
+            st.dataframe(
+                _pn_styled,
+                column_config={
+                    "Points": st.column_config.NumberColumn("Points", width=70),
+                    "Top 8 chance": st.column_config.TextColumn("Enough for Top 8", width=150),
+                    "Top 24 chance": st.column_config.TextColumn("Enough for Top 24", width=150),
+                },
+                width="content", hide_index=True, height=min(len(_pn_df) * 35 + 38, 600),
+            )
+            st.caption(
+                "\"Enough\" = the share of the 30,000 simulated League Phase seasons in which that "
+                "many points would have matched or beaten the 8th/24th-placed club's own total "
+                "(ties broken by goal difference, then goals scored)."
+            )
 
 
 # ---------------------------------------------------------------------------

@@ -659,7 +659,7 @@ def project_country_predicted_ranking(
         cache_key = league_phase_sim_cache_key(
             comp_name, n_sim, home_advantage, field, field_ratings_df, real_results,
         )
-        _, points_by_club = cached_league_phase_simulation(
+        _, points_by_club, _rank_points = cached_league_phase_simulation(
             cache_key, field, club_coeff, field_ratings_df,
             n_pots, opp_per_pot, n_sim, home_advantage, comp_name,
             real_schedule, real_results,

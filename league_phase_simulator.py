@@ -501,7 +501,8 @@ def simulate_competition_winner(
     schedule: list[dict] | None = None,
     real_results: dict[tuple[str, str], tuple[int, int]] | None = None,
     season_sigma: float = SEASON_STRENGTH_SIGMA,
-) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, np.ndarray]]:
+    track_rank_points: bool = False,
+) -> pd.DataFrame | tuple:
     """Full Monte Carlo simulation of a 36-team UEFA League Phase
     competition through to a champion.
 
@@ -557,6 +558,18 @@ def simulate_competition_winner(
     _load_pairwise_expected_points) plus League Phase and knockout-round
     bonus points. Used by country_ranking_simulator to project each
     association's season coefficient.
+
+    If track_rank_points is True, ALSO returns (as the next positional
+    value after track_points's, if both are set) a dict with keys "rank8"
+    and "rank24": np.ndarray of shape (n_sim,), the League Phase POINTS
+    TOTAL actually held by whichever club finished 8th/24th in that one
+    simulated run (same points/GD/GF ranking already computed per-run
+    below for reached_top8/reached_top24 -- no extra simulation cost).
+    Used by european.py's "Points Needed" tab to show, for a range of
+    candidate point totals, what fraction of simulated seasons that many
+    points would actually have been enough to finish Top 8 / Top 24 --
+    same methodology as theanalyst.com's and arxiv 2508.20075's own
+    League Phase points-needed analyses.
     """
     teams = [f["team"] for f in field]
     team_country = {f["team"]: f["country"] for f in field}
@@ -655,6 +668,9 @@ def simulate_competition_winner(
     # domestic league's is, instead of just the top8/16/24/reach-stage
     # summary stats below.
     pos_count = np.zeros((n_teams, n_teams), dtype=np.int64)
+    if track_rank_points:
+        rank8_pts = np.empty(n_sim, dtype=np.int64)
+        rank24_pts = np.empty(n_sim, dtype=np.int64)
 
     def _draw_winner(a: str, b: str, odds: dict) -> str:
         return a if random.random() < odds[(a, b)] else b
@@ -665,6 +681,10 @@ def simulate_competition_winner(
         rank_of = {t: r + 1 for r, t in enumerate(ranked_teams)}
         for rank_idx, team_i in enumerate(order):
             pos_count[team_i, rank_idx] += 1
+
+        if track_rank_points:
+            rank8_pts[sim] = pts_matrix[order[min(7, n_teams - 1)], sim]
+            rank24_pts[sim] = pts_matrix[order[min(23, n_teams - 1)], sim]
 
         for t in ranked_teams[:8]:
             reached_top8[t] += 1
@@ -765,9 +785,13 @@ def simulate_competition_winner(
         "reached_r16", "reached_top24", "reached_top16", "reached_top8",
     ]
     result = pd.DataFrame(rows).set_index("team").sort_values(_tie_break_cols, ascending=False)
+    extras = []
     if track_points:
-        points_by_team = {t: coeff_matrix[team_idx[t]] for t in teams}
-        return result, points_by_team
+        extras.append({t: coeff_matrix[team_idx[t]] for t in teams})
+    if track_rank_points:
+        extras.append({"rank8": rank8_pts, "rank24": rank24_pts})
+    if extras:
+        return (result, *extras)
     return result
 
 
@@ -801,11 +825,12 @@ def cached_league_phase_simulation(
     _ratings_df: pd.DataFrame, n_pots: int, opponents_per_pot: int, n_sim: int,
     home_advantage: float, comp_name: str,
     _schedule: list[dict] | None, _real_results: dict[tuple[str, str], tuple[int, int]] | None,
-) -> tuple[pd.DataFrame, dict[str, np.ndarray]]:
+) -> tuple[pd.DataFrame, dict[str, np.ndarray], dict[str, np.ndarray]]:
     """Single shared, cached League Phase + Knockout simulation per
-    competition (always with track_points=True -- cheap to always compute,
-    and the Coefficients page needs it) -- the ONE place both european.py
-    and the Coefficients page actually run this expensive (n_sim=30,000)
+    competition (always with track_points=True and track_rank_points=True
+    -- cheap to always compute, and the Coefficients page/"Points Needed"
+    tab need them respectively) -- the ONE place both european.py and the
+    Coefficients page actually run this expensive (n_sim=30,000)
     simulation, so they can never show different numbers for the same
     competition state, and so it only re-runs when something real
     actually changes (a result, a rating, an odds-driven club_coeff
@@ -819,7 +844,7 @@ def cached_league_phase_simulation(
         field=_field, club_coeff=_club_coeff, ratings_df=_ratings_df,
         n_pots=n_pots, opponents_per_pot=opponents_per_pot, n_sim=n_sim,
         home_advantage=home_advantage, comp_name=comp_name, track_points=True,
-        schedule=_schedule, real_results=_real_results,
+        schedule=_schedule, real_results=_real_results, track_rank_points=True,
     )
 
 
