@@ -1210,6 +1210,48 @@ if tab_points_needed is not None:
                 "(ties broken by goal difference, then goals scored)."
             )
 
+            st.divider()
+            st.markdown("#### 🔒 Mathematically secured right now")
+            st.caption(
+                "Not a simulated estimate -- the points total that guarantees a Top 8/Top 24 finish "
+                "no matter how every other remaining match in the League Phase goes, based only on "
+                "today's real standings and each club's own games still to play."
+            )
+            _pn_cur_standings = _compute_league_standings(lp_played, badge_lookup)
+            _pn_cur_pts = {r["strTeam"]: r["Pts"] for r in _pn_cur_standings}
+            _pn_games_played = {r["strTeam"]: r["P"] for r in _pn_cur_standings}
+            _pn_max_possible = sorted(
+                (_pn_cur_pts.get(f["team"], 0) + 3 * (_pn_games - _pn_games_played.get(f["team"], 0))
+                 for f in _field),
+                reverse=True,
+            )
+
+            def _pn_secure_points(cutoff: int) -> int | None:
+                """1 + the (cutoff+1)-th highest max-possible-points across the
+                field -- at most `cutoff` clubs total can ever reach that many
+                points, so holding it already guarantees a top-`cutoff` finish.
+                None if even a maximum season (every remaining game won) by
+                EVERY club wouldn't separate out a safe cutoff yet (too early
+                in the League Phase for anything to be truly nailed on)."""
+                if len(_pn_max_possible) <= cutoff:
+                    return None
+                secure = _pn_max_possible[cutoff] + 1
+                return secure if secure <= _pn_max_pts else None
+
+            _pn_secure8 = _pn_secure_points(8)
+            _pn_secure24 = _pn_secure_points(24)
+            _pn_sec_c1, _pn_sec_c2 = st.columns(2)
+            with _pn_sec_c1:
+                st.metric(
+                    "Top 8 secured at",
+                    f"{_pn_secure8} pts" if _pn_secure8 is not None else "Not yet possible",
+                )
+            with _pn_sec_c2:
+                st.metric(
+                    "Top 24 secured at",
+                    f"{_pn_secure24} pts" if _pn_secure24 is not None else "Not yet possible",
+                )
+
 
 # ---------------------------------------------------------------------------
 # Tab — Qualifying (live results, QR1 through Play-offs)
