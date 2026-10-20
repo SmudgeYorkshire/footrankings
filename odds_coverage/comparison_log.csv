@@ -3394,15 +3394,15 @@ date,source,league,tracked,n_fixtures,avg_bookmakers
 2026-10-19,api_football,FA WSL,False,5,4.0
 2026-10-20,api_football,Liga Profesional Argentina,False,14,8.1
 2026-10-20,api_football,Sweden - Superettan,True,6,8.8
-2026-10-20,api_football,Serie B,False,7,9.6
+2026-10-20,api_football,Serie B,False,8,9.4
 2026-10-20,api_football,Primera B,False,3,9.0
-2026-10-20,api_football,Primera A,False,12,8.0
-2026-10-20,api_football,Primera División,False,29,7.0
+2026-10-20,api_football,Primera A,False,13,7.8
+2026-10-20,api_football,Primera División,False,26,7.0
 2026-10-20,api_football,Scotland - Championship,True,6,8.5
 2026-10-20,api_football,Liga Nacional,False,2,8.5
 2026-10-20,api_football,Northern Irish Premiership,True,7,8.3
-2026-10-20,api_football,England - Championship,True,13,9.7
-2026-10-20,api_football,League Two,False,20,9.2
+2026-10-20,api_football,England - Championship,True,10,9.6
+2026-10-20,api_football,League Two,False,23,9.0
 2026-10-20,api_football,League One,False,24,8.0
 2026-10-20,api_football,Liga Panameña de Fútbol,False,1,8.0
 2026-10-20,api_football,National League - South,False,1,9.0
@@ -3410,42 +3410,50 @@ date,source,league,tracked,n_fixtures,avg_bookmakers
 2026-10-20,api_football,Non League Premier - Northern,False,2,7.0
 2026-10-20,api_football,Non League Premier - Southern Central,False,9,8.7
 2026-10-20,api_football,Non League Premier - Southern South,False,9,8.3
-2026-10-20,api_football,Liga Revelação U23,False,5,9.0
+2026-10-20,api_football,Liga Revelação U23,False,5,10.0
 2026-10-20,api_football,Liga de Ascenso,False,1,9.0
 2026-10-20,api_football,Romania - Liga II,True,11,4.1
 2026-10-20,api_football,Pro League,False,7,8.3
 2026-10-20,api_football,Liga MX Femenil,False,2,9.0
 2026-10-20,api_football,Division 1,False,6,8.2
 2026-10-20,api_football,Reserve League,False,4,8.8
-2026-10-20,api_football,Premier League,False,7,9.6
+2026-10-20,api_football,Premier League,False,11,9.2
 2026-10-20,api_football,Professional Development League,False,3,8.0
 2026-10-20,api_football,National League Cup,False,2,9.0
 2026-10-20,api_football,Liga 1,False,7,9.3
 2026-10-20,api_football,Premier League Cup,False,1,8.0
 2026-10-20,api_football,FKF Premier League,False,1,7.0
-2026-10-20,api_football,AFC Challenge League,False,6,4.8
-2026-10-20,api_football,Champions League,True,20,10.0
-2026-10-20,api_football,Primera Premier,False,2,9.0
-2026-10-20,api_football,UEFA Youth League,False,7,8.6
+2026-10-20,api_football,AFC Challenge League,False,8,5.1
+2026-10-20,api_football,Champions League,True,18,10.0
+2026-10-20,api_football,Primera Premier,False,1,9.0
+2026-10-20,api_football,UEFA Youth League,False,8,8.6
+2026-10-20,api_football,League Cup,False,7,7.0
+2026-10-20,api_football,Cup,False,3,9.0
+2026-10-20,api_football,Azadegan League,False,1,1.0
+2026-10-20,api_football,CAF Champions League,False,11,1.0
+2026-10-20,api_football,FA Cup,False,15,8.1
+2026-10-20,api_football,Copa Chile,False,1,10.0
+2026-10-20,api_football,Copa do Brasil U20,False,1,5.0
+2026-10-20,api_football,Division Intermedia,False,2,7.0
 2026-10-20,api_football,Major League Soccer,False,14,6.6
 2026-10-20,api_football,USL Championship,False,14,7.4
 2026-10-20,api_football,Norway - 1. Division,True,8,9.2
-2026-10-20,api_football,Liga MX,False,18,8.8
-2026-10-20,api_football,J1 League,False,10,9.9
+2026-10-20,api_football,Liga MX,False,18,8.9
+2026-10-20,api_football,J1 League,False,19,9.9
 2026-10-20,api_football,Spanish La Liga,True,11,10.0
+2026-10-20,api_football,First Amateur Division,False,2,6.5
 2026-10-20,api_football,Maltese Premier League,True,6,6.0
 2026-10-20,api_football,Armenia - First League,True,1,1.0
 2026-10-20,api_football,J2 League,False,10,9.9
+2026-10-20,api_football,Regionalliga - South,False,1,5.0
+2026-10-20,api_football,Bosnia - 1st League - RS,True,1,2.0
 2026-10-20,api_football,U19 League,False,1,1.0
-2026-10-20,api_football,CAF Champions League,False,11,1.0
+2026-10-20,api_football,Azerbaijan - Birinci Dasta,True,2,3.0
 2026-10-20,api_football,CONMEBOL Sudamericana,False,2,8.5
-2026-10-20,api_football,CONCACAF Central American Cup,False,1,9.0
-2026-10-20,api_football,Copa Chile,False,1,5.0
-2026-10-20,api_football,Finnish Veikkausliiga,True,4,6.2
 2026-10-20,api_football,Kazakhstan - 1. Division,True,4,1.0
 2026-10-20,api_football,Stars League,False,3,5.3
-2026-10-20,api_football,Europa League,True,18,10.0
-2026-10-20,api_football,Conference League,True,18,9.9
+2026-10-20,api_football,Europa League,True,17,10.0
+2026-10-20,api_football,Conference League,True,19,9.9
 2026-10-20,api_football,Persian Gulf Pro League,False,4,1.2
 2026-10-20,api_football,CONMEBOL Libertadores,False,2,10.0
 2026-10-20,api_football,US Open Cup,False,1,9.0
@@ -3481,14 +3489,14 @@ date,source,league,tracked,n_fixtures,avg_bookmakers
 2026-10-20,api_football,Germany - 2. Bundesliga,True,9,6.7
 2026-10-20,api_football,Portugal - Segunda Liga,True,9,7.0
 2026-10-20,api_football,3. Liga,False,7,6.3
-2026-10-20,api_football,Turkish Super Lig,True,11,9.0
+2026-10-20,api_football,Turkish Super Lig,True,9,9.2
 2026-10-20,api_football,National League,False,12,5.9
 2026-10-20,api_football,Turkey - 1. Lig,True,9,7.0
 2026-10-20,api_football,Regionalliga - Nordost,False,5,1.0
 2026-10-20,api_football,A-League,False,6,7.5
 2026-10-20,api_football,Italy - Serie B,True,10,5.3
-2026-10-20,api_football,CAF Confederation Cup,False,10,1.0
-2026-10-20,api_football,Indian Super League,False,3,6.3
+2026-10-20,api_football,CAF Confederation Cup,False,7,1.0
+2026-10-20,api_football,Indian Super League,False,2,6.5
 2026-10-20,api_football,Norwegian Eliteserien,True,8,10.0
 2026-10-20,api_football,Primera Nacional,False,14,7.9
 2026-10-20,api_football,K League 1,False,6,5.2
@@ -3500,13 +3508,13 @@ date,source,league,tracked,n_fixtures,avg_bookmakers
 2026-10-20,api_football,Kazakhstan Premier League,True,6,2.2
 2026-10-20,api_football,Lithuanian TOPLYGA,True,1,1.0
 2026-10-20,api_football,Croatian First Football League,True,4,7.2
-2026-10-20,api_football,Bulgarian First League,True,7,7.3
+2026-10-20,api_football,Bulgarian First League,True,6,7.2
 2026-10-20,api_football,Slovak First Football League,True,6,8.8
-2026-10-20,api_football,Serbian Super Liga,True,4,1.0
+2026-10-20,api_football,Serbian Super Liga,True,2,1.0
 2026-10-20,api_football,Serbia - Prva Liga,True,3,1.0
 2026-10-20,api_football,Swiss Super League,True,6,9.7
 2026-10-20,api_football,Israeli Premier League,True,4,7.0
-2026-10-20,api_football,Scottish Premiership,True,6,7.0
+2026-10-20,api_football,Scottish Premiership,True,9,6.7
 2026-10-20,api_football,Czech First League,True,8,5.2
 2026-10-20,api_football,Hungarian NB I,True,1,4.0
 2026-10-20,api_football,Romanian Liga I,True,7,6.4
@@ -3515,8 +3523,8 @@ date,source,league,tracked,n_fixtures,avg_bookmakers
 2026-10-20,api_football,Liga de Expansión MX,False,6,5.7
 2026-10-20,api_football,Greek Super League 1,True,7,6.1
 2026-10-20,api_football,Cypriot First Division,True,7,4.4
+2026-10-20,api_football,Finnish Veikkausliiga,True,3,5.7
 2026-10-20,api_football,Icelandic Besta deild karla,True,6,7.7
-2026-10-20,api_football,Serie C,False,1,4.0
 2026-10-20,api_football,Ireland - First Division,True,2,4.0
 2026-10-20,api_football,Regionalliga - Nord,False,3,1.0
 2026-10-20,api_football,FA WSL,False,5,7.8
