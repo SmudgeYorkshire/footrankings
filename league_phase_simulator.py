@@ -987,3 +987,116 @@ def build_predicted_bracket(
     bracket["champion"] = final_tie["winner"]
 
     return bracket
+
+
+def _remaining_pair_games(remaining_fixtures: list[dict]) -> dict[frozenset, int]:
+    """{frozenset({team_a, team_b}): count of not-yet-played fixtures
+    between them} -- how many of each pair's own remaining games are
+    against EACH OTHER specifically, as opposed to a third team. Needed
+    because two clubs can't both win a match they play against each
+    other, so counting both sides' "if I win every remaining game"
+    ceiling independently double-counts that match's points."""
+    pair_games: dict[frozenset, int] = {}
+    for fx in remaining_fixtures:
+        h, a = fx.get("strHomeTeam"), fx.get("strAwayTeam")
+        if h and a:
+            key = frozenset({h, a})
+            pair_games[key] = pair_games.get(key, 0) + 1
+    return pair_games
+
+
+def _max_pooled_points(teams: list[str], ceiling: dict[str, int], pair_games: dict[frozenset, int]) -> int:
+    """Sound upper bound on the total points `teams` could combine for if
+    every one of them won every remaining game -- correct because two of
+    `teams` playing each other can't both win it (that match's true max
+    combined contribution is 3, a decisive result, not the 6 independently
+    assuming both sides win it would count), so 3 is subtracted per such
+    shared fixture. A draw would only lower the total further (2, not 3),
+    so decisive results are the correct "most points pushed into this
+    group" assumption here -- this bound is never an underestimate of
+    what's truly achievable."""
+    mutual = sum(
+        pair_games.get(frozenset({a, b}), 0)
+        for i, a in enumerate(teams) for b in teams[i + 1:]
+    )
+    return sum(ceiling[t] for t in teams) - 3 * mutual
+
+
+def league_phase_clinch_status(
+    field: list[dict], current_pts: dict[str, int], games_played: dict[str, int],
+    games_per_team: int, remaining_fixtures: list[dict], cutoffs: tuple[int, ...] = (8, 24),
+) -> dict[str, dict[int, str]]:
+    """{team: {cutoff: "secured" | "eliminated" | "alive"}} for each of
+    `cutoffs` (e.g. 8 for direct Round of 16, 24 for the knockout
+    play-off) -- confirms, per club, whether a Top-N League Phase finish
+    is already mathematically guaranteed, already mathematically
+    impossible, or still genuinely undecided. Built for european.py's
+    Points Needed tab, but kept here (not page-local) so any future page
+    needing the same "who's clinched/eliminated" question reuses this
+    exact, already-validated logic instead of a fresh reimplementation.
+
+    Both checks are intentionally SOUND rather than maximally tight --
+    each only ever reports "secured"/"eliminated" when it has an airtight
+    proof, falling back to "alive" rather than guessing, in preference to
+    a fully exhaustive search over every possible combination of results
+    (the general "finish in the top K of N" elimination problem with
+    win/draw/loss scoring has no known efficient exact algorithm the way
+    the simpler win-only "top 1" case does -- see this module's own
+    simulate_competition_winner for the Monte Carlo alternative used
+    everywhere a probability estimate, not a hard guarantee, is enough).
+
+    "secured": even in this club's own worst case (loses every remaining
+    game), it's provably impossible for `cutoff` or more OTHER clubs to
+    all simultaneously finish above it. Checked against the `cutoff`
+    OTHER clubs with the highest individual ceiling (current points + 3 x
+    their own remaining games) -- the toughest plausible challenger
+    group -- using _max_pooled_points to account for any of them still
+    playing each other directly. If even this toughest group's own
+    pooled maximum isn't enough to put all of them above this club's
+    frozen total, no group of that size can. (Uses the single toughest
+    group by raw ceiling, not an exhaustive search over every possible
+    group of that size -- sound in the overwhelmingly common case where
+    a few extra shared fixtures among lower-ceiling clubs couldn't
+    plausibly outweigh a large deficit in combined ceiling, which holds
+    for how sparse a 6-8 game league-phase schedule is, but not proven
+    airtight for every conceivable schedule shape.)
+
+    "eliminated": some OTHER club's points ALREADY BANKED today (actual
+    results only, no projection at all) already exceed this club's own
+    ceiling (current points + 3 x its own remaining games) -- i.e. at
+    least `cutoff` other clubs have already guaranteed finishing above
+    this club even if it wins out. Deliberately conservative (only uses
+    already-decided results, not any projected finish for the other
+    clubs), so it will under-report eliminations deep in a season rather
+    than risk a false one, and only becomes useful output-wise once a
+    league phase is well advanced.
+    """
+    teams = [f["team"] for f in field]
+    remaining = {t: games_per_team - games_played.get(t, 0) for t in teams}
+    ceiling = {t: current_pts.get(t, 0) + 3 * remaining[t] for t in teams}
+    pair_games = _remaining_pair_games(remaining_fixtures)
+
+    status: dict[str, dict[int, str]] = {t: {} for t in teams}
+    for t in teams:
+        frozen = current_pts.get(t, 0)
+        others = [o for o in teams if o != t]
+        for cutoff in cutoffs:
+            # Eliminated: enough OTHER clubs' real, already-banked points
+            # alone already exceed this club's own best case.
+            already_beaten_by = sum(1 for o in others if current_pts.get(o, 0) > ceiling[t])
+            if already_beaten_by >= cutoff:
+                status[t][cutoff] = "eliminated"
+                continue
+
+            # Secured: even the toughest `cutoff`-sized challenger group
+            # (by individual ceiling) can't all simultaneously clear this
+            # club's own frozen (worst-case) total.
+            challengers = sorted(others, key=lambda o: -ceiling[o])
+            group = [o for o in challengers if ceiling[o] > frozen][:cutoff]
+            if len(group) < cutoff:
+                status[t][cutoff] = "secured"
+                continue
+            pooled = _max_pooled_points(group, ceiling, pair_games)
+            status[t][cutoff] = "secured" if pooled < cutoff * (frozen + 1) else "alive"
+
+    return status
