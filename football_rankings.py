@@ -656,6 +656,28 @@ def fetch_all(lid, ssn, key, league_name_=None):
     roster = c.get_standings(lid, ssn)
     played, remaining = c.get_fixtures(lid, ssn)
     info = c.get_league_info(lid)
+    _cfg = LEAGUES.get(league_name_, {})
+
+    # A club suspended/expelled from the league mid-season (e.g. Lithuania's
+    # FK Trakai, confirmed 2026-11-02: the provider's own standings endpoint
+    # already shows them at 0 played/0 points despite having real FT
+    # results on file, and every OTHER team's own played-games count only
+    # adds up correctly once games against Trakai are excluded too -- i.e.
+    # the league has voided the club's entire record, not just cancelled
+    # its remaining fixtures) needs its matches stripped from BOTH `played`
+    # and `remaining` before anything downstream (self-computed standings,
+    # tiebreakers, simulations) ever sees them, not merely skipped as
+    # "not yet played" the way a normal postponement would be -- otherwise
+    # opponents would still get credited/debited for a match that
+    # officially never counted.
+    _league_excluded = _cfg.get("league_excluded_teams", {})
+    if _league_excluded:
+        played = [f for f in played
+                  if f.get("strHomeTeam") not in _league_excluded and f.get("strAwayTeam") not in _league_excluded]
+        remaining = [f for f in remaining
+                     if f.get("strHomeTeam") not in _league_excluded and f.get("strAwayTeam") not in _league_excluded]
+        roster = [r for r in roster if r.get("strTeam") not in _league_excluded]
+
     # Self-computed from scratch every time — the provider's own aggregated
     # standings table has been observed (on both providers) to lag actual
     # match results by anywhere from minutes to hours; the roster (team
@@ -668,7 +690,6 @@ def fetch_all(lid, ssn, key, league_name_=None):
     # fixtures; same bug existed here, just never triggered by any of the
     # 54 tracked top-flight leagues).
     roster = ensure_full_roster(roster, played + remaining)
-    _cfg = LEAGUES.get(league_name_, {})
     _meetings_per_pair = _cfg.get("meetings_per_pair")
     if _meetings_per_pair:
         remaining = _top_up_remaining_fixtures(roster, played, remaining, _meetings_per_pair)

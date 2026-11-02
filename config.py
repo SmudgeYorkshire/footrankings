@@ -328,6 +328,14 @@ LEAGUES = {
                                      "tiebreakers": ["playoffs_champion", "h2h_pts", "h2h_gd", "h2h_gf", "h2h_wins", "gd", "gf", "wins", "fair_play", "draw"],
                                      "home_advantage": 1.17,
                                      "cup_details": "Cup winner will enter 2027/28 European competitions.",
+                                     # Confirmed 2026-11-02: FK Trakai suspended/expelled from the
+                                     # 2026 A Lyga -- the provider's own standings already show them
+                                     # at 0 played/0 points with every remaining fixture marked
+                                     # CANC, and every other team's played-games count only adds up
+                                     # once their own games against Trakai are excluded too, i.e.
+                                     # the whole club's record (not just its remaining fixtures) has
+                                     # been voided by the league.
+                                     "league_excluded_teams": {"FK Trakai": "Suspended/expelled from the 2026 A Lyga, all results voided"},
 
 },
     "Luxembourg National Division": {"id": 261, "provider": "api_football", "tsdb_id": 4694, "af_season": 2026, "cup_id": 721, "country": "Luxembourg",  "flag": "🇱🇺", "season_type": "winter",
