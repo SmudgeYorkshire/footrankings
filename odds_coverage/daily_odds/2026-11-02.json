@@ -42,10 +42,10 @@
   "home_team": "RB Bragantino",
   "away_team": "Santos",
   "commence_time": "2026-11-02T23:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.46638258639196295,
-  "draw_prob": 0.24958820052854516,
-  "away_prob": 0.284029213079492
+  "bookmaker_count": 9,
+  "home_prob": 0.4686109789938513,
+  "draw_prob": 0.2457089712415354,
+  "away_prob": 0.2856800497646132
  },
  {
   "source": "api_football",
@@ -54,10 +54,10 @@
   "home_team": "Defensa Y Justicia",
   "away_team": "Independiente",
   "commence_time": "2026-11-02T22:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.4287635188141835,
-  "draw_prob": 0.29395738763108736,
-  "away_prob": 0.2772790935547292
+  "bookmaker_count": 9,
+  "home_prob": 0.43054103483524714,
+  "draw_prob": 0.29325648156379275,
+  "away_prob": 0.27620248360096017
  },
  {
   "source": "api_football",
@@ -66,10 +66,10 @@
   "home_team": "Platense",
   "away_team": "Central Cordoba de Santiago",
   "commence_time": "2026-11-02T22:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.6072890414754859,
-  "draw_prob": 0.24645066872528787,
-  "away_prob": 0.1462602897992263
+  "bookmaker_count": 9,
+  "home_prob": 0.6241201849111817,
+  "draw_prob": 0.24050415362041538,
+  "away_prob": 0.1353756614684028
  },
  {
   "source": "api_football",
@@ -78,10 +78,10 @@
   "home_team": "Gais",
   "away_team": "AIK Stockholm",
   "commence_time": "2026-11-02T18:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.5091254788546314,
-  "draw_prob": 0.24950047803420933,
-  "away_prob": 0.24137404311115934
+  "bookmaker_count": 9,
+  "home_prob": 0.5123704752353262,
+  "draw_prob": 0.24929930548614873,
+  "away_prob": 0.2383302192785251
  },
  {
   "source": "api_football",
@@ -90,10 +90,10 @@
   "home_team": "Mjallby AIF",
   "away_team": "Kalmar FF",
   "commence_time": "2026-11-02T18:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.3758649133142257,
-  "draw_prob": 0.2826349976530849,
-  "away_prob": 0.3415000890326894
+  "bookmaker_count": 9,
+  "home_prob": 0.3602648954806397,
+  "draw_prob": 0.28482504201881553,
+  "away_prob": 0.35491006250054474
  },
  {
   "source": "api_football",
@@ -103,9 +103,9 @@
   "away_team": "Lyn W",
   "commence_time": "2026-11-02T17:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.664858094087804,
-  "draw_prob": 0.1793843709245298,
-  "away_prob": 0.1557575349876662
+  "home_prob": 0.6629303266600222,
+  "draw_prob": 0.17960122129181413,
+  "away_prob": 0.1574684520481636
  },
  {
   "source": "api_football",
@@ -115,9 +115,9 @@
   "away_team": "Kristianstad W",
   "commence_time": "2026-11-02T17:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.7560362053789003,
-  "draw_prob": 0.1543144427834108,
-  "away_prob": 0.08964935183768899
+  "home_prob": 0.7993414866609894,
+  "draw_prob": 0.13157505619006624,
+  "away_prob": 0.06908345714894434
  },
  {
   "source": "api_football",
@@ -363,13 +363,25 @@
   "source": "api_football",
   "league": "Primera Divisi\u00f3n",
   "tracked": false,
+  "home_team": "UTC Cajamarca",
+  "away_team": "Deportivo Garcilaso",
+  "commence_time": "2026-11-02T18:15:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.31666664566620456,
+  "draw_prob": 0.2663862933411997,
+  "away_prob": 0.4169470609925957
+ },
+ {
+  "source": "api_football",
+  "league": "Primera Divisi\u00f3n",
+  "tracked": false,
   "home_team": "Sport Huancayo",
   "away_team": "FBC Melgar",
   "commence_time": "2026-11-02T16:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.4373906240018095,
-  "draw_prob": 0.2594302468110634,
-  "away_prob": 0.3031791291871271
+  "bookmaker_count": 9,
+  "home_prob": 0.43806384844887936,
+  "draw_prob": 0.2583231093979924,
+  "away_prob": 0.3036130421531281
  },
  {
   "source": "api_football",
@@ -378,10 +390,22 @@
   "home_team": "Sporting Cristal",
   "away_team": "FC Cajamarca",
   "commence_time": "2026-11-02T20:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.7473452567468164,
-  "draw_prob": 0.1563993533745244,
-  "away_prob": 0.09625538987865918
+  "bookmaker_count": 9,
+  "home_prob": 0.7526030029039589,
+  "draw_prob": 0.15444254004214011,
+  "away_prob": 0.09295445705390093
+ },
+ {
+  "source": "api_football",
+  "league": "Primera A",
+  "tracked": false,
+  "home_team": "\u00c1guilas Doradas",
+  "away_team": "Fortaleza FC",
+  "commence_time": "2026-11-02T21:05:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.4912454925482747,
+  "draw_prob": 0.2788991417934875,
+  "away_prob": 0.2298553656582377
  },
  {
   "source": "api_football",
@@ -390,10 +414,10 @@
   "home_team": "Atalanta",
   "away_team": "Parma",
   "commence_time": "2026-11-02T19:45:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.6269261602877771,
-  "draw_prob": 0.2125242424655023,
-  "away_prob": 0.16054959724672063
+  "bookmaker_count": 9,
+  "home_prob": 0.6285177743918947,
+  "draw_prob": 0.2104776328857869,
+  "away_prob": 0.16100459272231837
  },
  {
   "source": "api_football",
@@ -402,10 +426,10 @@
   "home_team": "Sassuolo",
   "away_team": "Fiorentina",
   "commence_time": "2026-11-02T17:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.33565170583939086,
-  "draw_prob": 0.2625919020545759,
-  "away_prob": 0.40175639210603326
+  "bookmaker_count": 8,
+  "home_prob": 0.3340018508060852,
+  "draw_prob": 0.2598752936122288,
+  "away_prob": 0.40612285558168615
  },
  {
   "source": "api_football",
@@ -426,10 +450,10 @@
   "home_team": "Arda Kardzhali",
   "away_team": "Septemvri Sofia",
   "commence_time": "2026-11-02T17:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.5569450353427067,
-  "draw_prob": 0.2562857305976335,
-  "away_prob": 0.1867692340596599
+  "bookmaker_count": 9,
+  "home_prob": 0.5595630656992333,
+  "draw_prob": 0.255571642102565,
+  "away_prob": 0.18486529219820166
  },
  {
   "source": "api_football",
@@ -438,10 +462,10 @@
   "home_team": "Cherno More Varna",
   "away_team": "Botev Vratsa",
   "commence_time": "2026-11-02T15:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.4718082897599333,
-  "draw_prob": 0.2904427980608629,
-  "away_prob": 0.23774891217920385
+  "bookmaker_count": 9,
+  "home_prob": 0.482510835360746,
+  "draw_prob": 0.2868484316275344,
+  "away_prob": 0.23064073301171956
  },
  {
   "source": "api_football",
@@ -451,9 +475,9 @@
   "away_team": "Aresimi",
   "commence_time": "2026-11-02T13:00:00+00:00",
   "bookmaker_count": 5,
-  "home_prob": 0.3115602256082323,
-  "draw_prob": 0.25269518887068276,
-  "away_prob": 0.43574458552108486
+  "home_prob": 0.31236803377093103,
+  "draw_prob": 0.251038349117402,
+  "away_prob": 0.43659361711166694
  },
  {
   "source": "api_football",
@@ -463,9 +487,9 @@
   "away_team": "Sileks",
   "commence_time": "2026-11-02T11:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.1267143273653348,
-  "draw_prob": 0.21884442902530035,
-  "away_prob": 0.6544412436093648
+  "home_prob": 0.12937829698856312,
+  "draw_prob": 0.21869055701891862,
+  "away_prob": 0.6519311459925182
  },
  {
   "source": "api_football",
@@ -474,10 +498,10 @@
   "home_team": "Vardar Skopje",
   "away_team": "Struga",
   "commence_time": "2026-11-02T13:00:00+00:00",
-  "bookmaker_count": 8,
-  "home_prob": 0.4585643356945663,
-  "draw_prob": 0.29121495411111625,
-  "away_prob": 0.2502207101943174
+  "bookmaker_count": 9,
+  "home_prob": 0.49105482785379756,
+  "draw_prob": 0.27565170607828576,
+  "away_prob": 0.23329346606791673
  },
  {
   "source": "api_football",
@@ -486,10 +510,10 @@
   "home_team": "Heracles",
   "away_team": "FC OSS",
   "commence_time": "2026-11-02T19:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.7918196421080661,
-  "draw_prob": 0.12899668384262733,
-  "away_prob": 0.07918367404930658
+  "bookmaker_count": 8,
+  "home_prob": 0.7952647243610114,
+  "draw_prob": 0.12614581233823682,
+  "away_prob": 0.07858946330075182
  },
  {
   "source": "api_football",
@@ -498,10 +522,10 @@
   "home_team": "Jong Ajax",
   "away_team": "Vitesse",
   "commence_time": "2026-11-02T19:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.332910732154501,
-  "draw_prob": 0.24099942954571407,
-  "away_prob": 0.4260898382997849
+  "bookmaker_count": 9,
+  "home_prob": 0.33453339178852476,
+  "draw_prob": 0.24030533408223817,
+  "away_prob": 0.42516127412923704
  },
  {
   "source": "api_football",
@@ -510,10 +534,10 @@
   "home_team": "Jong PSV U21",
   "away_team": "NAC Breda",
   "commence_time": "2026-11-02T19:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.19479431579603795,
-  "draw_prob": 0.2073535286306062,
-  "away_prob": 0.5978521555733558
+  "bookmaker_count": 9,
+  "home_prob": 0.19353943180888106,
+  "draw_prob": 0.20656190935869917,
+  "away_prob": 0.5998986588324199
  },
  {
   "source": "api_football",
@@ -522,10 +546,10 @@
   "home_team": "Jong Utrecht",
   "away_team": "Dordrecht",
   "commence_time": "2026-11-02T19:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.41655706707116086,
-  "draw_prob": 0.25344465562586077,
-  "away_prob": 0.32999827730297837
+  "bookmaker_count": 9,
+  "home_prob": 0.418476109612155,
+  "draw_prob": 0.252622929358004,
+  "away_prob": 0.328900961029841
  },
  {
   "source": "api_football",
@@ -534,10 +558,10 @@
   "home_team": "RED Star FC 93",
   "away_team": "Nancy",
   "commence_time": "2026-11-02T19:45:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.404271708961147,
-  "draw_prob": 0.2822981905796662,
-  "away_prob": 0.31343010045918684
+  "bookmaker_count": 9,
+  "home_prob": 0.3999615443544771,
+  "draw_prob": 0.2833289271096041,
+  "away_prob": 0.31670952853591877
  },
  {
   "source": "api_football",
@@ -546,10 +570,10 @@
   "home_team": "Reims",
   "away_team": "Sochaux",
   "commence_time": "2026-11-02T19:45:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.5564088408620418,
-  "draw_prob": 0.24922398326397302,
-  "away_prob": 0.19436717587398533
+  "bookmaker_count": 8,
+  "home_prob": 0.5626150114903997,
+  "draw_prob": 0.24638061471489162,
+  "away_prob": 0.19100437379470878
  },
  {
   "source": "api_football",
@@ -558,10 +582,10 @@
   "home_team": "Lorient",
   "away_team": "Stade Brestois 29",
   "commence_time": "2026-11-02T19:45:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.3825663856998845,
-  "draw_prob": 0.29537193129985306,
-  "away_prob": 0.3220616830002625
+  "bookmaker_count": 9,
+  "home_prob": 0.3933291151281787,
+  "draw_prob": 0.2976523151892266,
+  "away_prob": 0.3090185696825946
  },
  {
   "source": "api_football",
@@ -570,10 +594,10 @@
   "home_team": "Radomiak Radom",
   "away_team": "Slask Wroclaw",
   "commence_time": "2026-11-02T17:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.44931725904168496,
-  "draw_prob": 0.25877703174222594,
-  "away_prob": 0.2919057092160891
+  "bookmaker_count": 9,
+  "home_prob": 0.4712775185065467,
+  "draw_prob": 0.25759400611320094,
+  "away_prob": 0.27112847538025237
  },
  {
   "source": "api_football",
@@ -582,10 +606,10 @@
   "home_team": "Rak\u00f3w Cz\u0119stochowa",
   "away_team": "Pogon Szczecin",
   "commence_time": "2026-11-02T19:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.43903260183415393,
-  "draw_prob": 0.2569276754446107,
-  "away_prob": 0.30403972272123536
+  "bookmaker_count": 9,
+  "home_prob": 0.4430098814261613,
+  "draw_prob": 0.25629225368070296,
+  "away_prob": 0.30069786489313577
  },
  {
   "source": "api_football",
@@ -594,10 +618,10 @@
   "home_team": "Zaglebie Lubin",
   "away_team": "Korona Kielce",
   "commence_time": "2026-11-02T17:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.3723430890459266,
-  "draw_prob": 0.28230094814183376,
-  "away_prob": 0.34535596281223957
+  "bookmaker_count": 9,
+  "home_prob": 0.37203407938634264,
+  "draw_prob": 0.2817949275795771,
+  "away_prob": 0.3461709930340802
  },
  {
   "source": "api_football",
@@ -606,10 +630,10 @@
   "home_team": "Mladost Lucani",
   "away_team": "Radnik Surdulica",
   "commence_time": "2026-11-02T17:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.3492670281264361,
-  "draw_prob": 0.29673201515712205,
-  "away_prob": 0.35400095671644194
+  "bookmaker_count": 8,
+  "home_prob": 0.3483477968971737,
+  "draw_prob": 0.29689922644355343,
+  "away_prob": 0.35475297665927297
  },
  {
   "source": "api_football",
@@ -618,10 +642,10 @@
   "home_team": "Radnicki NIS",
   "away_team": "\u017delezni\u010dar Pan\u010devo",
   "commence_time": "2026-11-02T17:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.2636576281712167,
-  "draw_prob": 0.2825866414406461,
-  "away_prob": 0.4537557303881372
+  "bookmaker_count": 9,
+  "home_prob": 0.2559585466778084,
+  "draw_prob": 0.28049158902917093,
+  "away_prob": 0.4635498642930207
  },
  {
   "source": "api_football",
@@ -630,10 +654,10 @@
   "home_team": "Dubo\u010dica",
   "away_team": "FK Vozdovac",
   "commence_time": "2026-11-02T15:00:00+00:00",
-  "bookmaker_count": 4,
-  "home_prob": 0.3382294574438664,
-  "draw_prob": 0.2792058782616409,
-  "away_prob": 0.3825646642944927
+  "bookmaker_count": 8,
+  "home_prob": 0.34150026325563926,
+  "draw_prob": 0.30061186274328033,
+  "away_prob": 0.3578878740010803
  },
  {
   "source": "api_football",
@@ -642,10 +666,10 @@
   "home_team": "Grafi\u010dar",
   "away_team": "Napredak",
   "commence_time": "2026-11-02T12:00:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.33678729352963077,
-  "draw_prob": 0.2829669164527189,
-  "away_prob": 0.3802457900176504
+  "bookmaker_count": 10,
+  "home_prob": 0.3670336754498004,
+  "draw_prob": 0.2902730542477471,
+  "away_prob": 0.3426932703024525
  },
  {
   "source": "api_football",
@@ -654,10 +678,10 @@
   "home_team": "Metalac GM",
   "away_team": "Jedinstvo Ub",
   "commence_time": "2026-11-02T17:00:00+00:00",
-  "bookmaker_count": 4,
-  "home_prob": 0.48537168225982924,
-  "draw_prob": 0.25679089822955375,
-  "away_prob": 0.25783741951061706
+  "bookmaker_count": 8,
+  "home_prob": 0.5031215142181129,
+  "draw_prob": 0.2656924332809307,
+  "away_prob": 0.2311860525009563
  },
  {
   "source": "api_football",
@@ -666,10 +690,10 @@
   "home_team": "Teleoptik",
   "away_team": "Javor",
   "commence_time": "2026-11-02T12:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.1742471833683648,
-  "draw_prob": 0.2156094922802847,
-  "away_prob": 0.6101433243513504
+  "bookmaker_count": 9,
+  "home_prob": 0.16718819310383765,
+  "draw_prob": 0.22048767277941134,
+  "away_prob": 0.6123241341167511
  },
  {
   "source": "api_football",
@@ -678,10 +702,10 @@
   "home_team": "OFK Bor 1919",
   "away_team": "FK Spartak Zdrepceva KRV",
   "commence_time": "2026-11-02T12:00:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.2600910752074007,
-  "draw_prob": 0.2673175498185021,
-  "away_prob": 0.4725913749740973
+  "bookmaker_count": 10,
+  "home_prob": 0.25125581705447114,
+  "draw_prob": 0.2720171613199894,
+  "away_prob": 0.4767270216255395
  },
  {
   "source": "api_football",
@@ -691,9 +715,9 @@
   "away_team": "Ironi Modi'in",
   "commence_time": "2026-11-02T17:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.60032578918232,
-  "draw_prob": 0.2191455649783099,
-  "away_prob": 0.1805286458393701
+  "home_prob": 0.5983626552491533,
+  "draw_prob": 0.22066942956892377,
+  "away_prob": 0.18096791518192284
  },
  {
   "source": "api_football",
@@ -715,9 +739,9 @@
   "away_team": "Hapoel Kfar Saba",
   "commence_time": "2026-11-02T17:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.3415727809000643,
-  "draw_prob": 0.2668211429877178,
-  "away_prob": 0.39160607611221787
+  "home_prob": 0.3440805923877554,
+  "draw_prob": 0.2655592450450177,
+  "away_prob": 0.3903601625672269
  },
  {
   "source": "api_football",
@@ -727,9 +751,9 @@
   "away_team": "Bnei Yehuda",
   "commence_time": "2026-11-02T17:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.3967172535573269,
-  "draw_prob": 0.27873540003207015,
-  "away_prob": 0.3245473464106029
+  "home_prob": 0.40442755481685505,
+  "draw_prob": 0.27640093133534765,
+  "away_prob": 0.31917151384779735
  },
  {
   "source": "api_football",
@@ -739,9 +763,9 @@
   "away_team": "Maccabi Haifa",
   "commence_time": "2026-11-02T18:30:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.4527909167462517,
-  "draw_prob": 0.25051499306034947,
-  "away_prob": 0.2966940901933988
+  "home_prob": 0.45261525902944744,
+  "draw_prob": 0.25118811953089976,
+  "away_prob": 0.29619662143965286
  },
  {
   "source": "api_football",
@@ -751,9 +775,9 @@
   "away_team": "Maccabi Tel Aviv",
   "commence_time": "2026-11-02T18:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.10694939724464525,
-  "draw_prob": 0.15511992208243378,
-  "away_prob": 0.737930680672921
+  "home_prob": 0.1024494996873219,
+  "draw_prob": 0.15224814176564275,
+  "away_prob": 0.7453023585470353
  },
  {
   "source": "api_football",
@@ -762,10 +786,10 @@
   "home_team": "Newcastle",
   "away_team": "Everton",
   "commence_time": "2026-11-02T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.4137003093946859,
-  "draw_prob": 0.26968223472706293,
-  "away_prob": 0.3166174558782512
+  "bookmaker_count": 8,
+  "home_prob": 0.44526063179371267,
+  "draw_prob": 0.26742206488331,
+  "away_prob": 0.2873173033229774
  },
  {
   "source": "api_football",
@@ -774,10 +798,10 @@
   "home_team": "Bravo",
   "away_team": "Koper",
   "commence_time": "2026-11-02T16:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.27820578046658057,
-  "draw_prob": 0.259993965442887,
-  "away_prob": 0.46180025409053255
+  "bookmaker_count": 9,
+  "home_prob": 0.2818123319142966,
+  "draw_prob": 0.25946353344721973,
+  "away_prob": 0.4587241346384837
  },
  {
   "source": "api_football",
@@ -786,10 +810,10 @@
   "home_team": "\u0141KS \u0141\u00f3d\u017a",
   "away_team": "Polonia Warszawa",
   "commence_time": "2026-11-02T19:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.3930730302776835,
-  "draw_prob": 0.27225966100812804,
-  "away_prob": 0.3346673087141884
+  "bookmaker_count": 9,
+  "home_prob": 0.3968481055046412,
+  "draw_prob": 0.27146581858778523,
+  "away_prob": 0.33168607590757354
  },
  {
   "source": "api_football",
@@ -798,10 +822,10 @@
   "home_team": "Polonia Bytom",
   "away_team": "Odra Opole",
   "commence_time": "2026-11-02T17:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.44750692690939275,
-  "draw_prob": 0.266735507983742,
-  "away_prob": 0.2857575651068651
+  "bookmaker_count": 9,
+  "home_prob": 0.4345927126836031,
+  "draw_prob": 0.266092871148753,
+  "away_prob": 0.29931441616764387
  },
  {
   "source": "api_football",
@@ -810,10 +834,10 @@
   "home_team": "Stal Rzesz\u00f3w",
   "away_team": "Puszcza Niepo\u0142omice",
   "commence_time": "2026-11-02T19:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.38835128776096134,
-  "draw_prob": 0.2769661186964058,
-  "away_prob": 0.33468259354263274
+  "bookmaker_count": 9,
+  "home_prob": 0.38500478694062373,
+  "draw_prob": 0.2761993071629802,
+  "away_prob": 0.338795905896396
  },
  {
   "source": "api_football",
@@ -822,10 +846,10 @@
   "home_team": "Bokelj",
   "away_team": "Buducnost Podgorica",
   "commence_time": "2026-11-02T13:00:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.32595187205747234,
-  "draw_prob": 0.31192249954581985,
-  "away_prob": 0.36212562839670775
+  "bookmaker_count": 10,
+  "home_prob": 0.3078729319069925,
+  "draw_prob": 0.3080087662183312,
+  "away_prob": 0.38411830187467627
  },
  {
   "source": "api_football",
@@ -834,10 +858,10 @@
   "home_team": "Mladost DG",
   "away_team": "Sutjeska",
   "commence_time": "2026-11-02T12:00:00+00:00",
-  "bookmaker_count": 8,
-  "home_prob": 0.22892969752065437,
-  "draw_prob": 0.2794077259748658,
-  "away_prob": 0.4916625765044799
+  "bookmaker_count": 9,
+  "home_prob": 0.23181104694980656,
+  "draw_prob": 0.2767513830694706,
+  "away_prob": 0.4914375699807228
  },
  {
   "source": "api_football",
@@ -847,9 +871,9 @@
   "away_team": "Beltinci",
   "commence_time": "2026-11-02T16:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.16629402950353236,
-  "draw_prob": 0.21912595446974129,
-  "away_prob": 0.6145800160267263
+  "home_prob": 0.18273074198920503,
+  "draw_prob": 0.2249701074444669,
+  "away_prob": 0.5922991505663282
  },
  {
   "source": "api_football",
@@ -859,9 +883,9 @@
   "away_team": "Krka",
   "commence_time": "2026-11-02T16:30:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.6367188193655854,
-  "draw_prob": 0.2053156181845275,
-  "away_prob": 0.1579655624498872
+  "home_prob": 0.68054489381714,
+  "draw_prob": 0.18876551287503748,
+  "away_prob": 0.13068959330782254
  },
  {
   "source": "api_football",
@@ -882,10 +906,10 @@
   "home_team": "Ban\u00edk Ostrava II",
   "away_team": "Vyso\u010dina Jihlava",
   "commence_time": "2026-11-02T16:00:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.3958150262585333,
-  "draw_prob": 0.26410651686395076,
-  "away_prob": 0.34007845687751603
+  "bookmaker_count": 10,
+  "home_prob": 0.3860651720075974,
+  "draw_prob": 0.26358728897869266,
+  "away_prob": 0.3503475390137099
  },
  {
   "source": "api_football",
@@ -894,10 +918,10 @@
   "home_team": "Krylia Sovetov",
   "away_team": "Zenit",
   "commence_time": "2026-11-02T15:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.17007441032657958,
-  "draw_prob": 0.21679683956944118,
-  "away_prob": 0.6131287501039793
+  "bookmaker_count": 4,
+  "home_prob": 0.1694634714744811,
+  "draw_prob": 0.2165934530590933,
+  "away_prob": 0.6139430754664257
  },
  {
   "source": "api_football",
@@ -906,10 +930,10 @@
   "home_team": "Chojniczanka Chojnice",
   "away_team": "Avia \u015awidnik",
   "commence_time": "2026-11-02T17:00:00+00:00",
-  "bookmaker_count": 1,
-  "home_prob": 0.4283604135893649,
-  "draw_prob": 0.26464795667159036,
-  "away_prob": 0.3069916297390448
+  "bookmaker_count": 9,
+  "home_prob": 0.4282418940051978,
+  "draw_prob": 0.26435672510902825,
+  "away_prob": 0.3074013808857739
  },
  {
   "source": "api_football",
@@ -918,34 +942,10 @@
   "home_team": "FC Voluntari",
   "away_team": "Farul Constanta",
   "commence_time": "2026-11-02T15:30:00+00:00",
-  "bookmaker_count": 3,
-  "home_prob": 0.30258700111285375,
-  "draw_prob": 0.27025672058943956,
-  "away_prob": 0.4271562782977067
- },
- {
-  "source": "api_football",
-  "league": "Romanian Liga I",
-  "tracked": true,
-  "home_team": "Universitatea Cluj",
-  "away_team": "FCSB",
-  "commence_time": "2026-11-02T18:30:00+00:00",
-  "bookmaker_count": 3,
-  "home_prob": 0.3734388704733318,
-  "draw_prob": 0.26141192539598046,
-  "away_prob": 0.36514920413068774
- },
- {
-  "source": "api_football",
-  "league": "Ukrainian Premier League",
-  "tracked": true,
-  "home_team": "Zorya Luhansk",
-  "away_team": "Epitsentr Dunayivtsi",
-  "commence_time": "2026-11-02T11:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.4626061559400853,
-  "draw_prob": 0.26572793075276496,
-  "away_prob": 0.27166591330714973
+  "home_prob": 0.3059942928544917,
+  "draw_prob": 0.26995585805454225,
+  "away_prob": 0.42404984909096605
  },
  {
   "source": "api_football",
@@ -990,10 +990,10 @@
   "home_team": "Mallorca",
   "away_team": "Cadiz",
   "commence_time": "2026-11-02T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.6263469257362381,
-  "draw_prob": 0.22740042354081255,
-  "away_prob": 0.14625265072294938
+  "bookmaker_count": 3,
+  "home_prob": 0.6450188742502531,
+  "draw_prob": 0.21651570285659807,
+  "away_prob": 0.13846542289314895
  },
  {
   "source": "api_football",
@@ -1002,10 +1002,10 @@
   "home_team": "Oviedo",
   "away_team": "Las Palmas",
   "commence_time": "2026-11-02T15:15:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.5471781142825672,
-  "draw_prob": 0.251798179481259,
-  "away_prob": 0.2010237062361738
+  "bookmaker_count": 3,
+  "home_prob": 0.5598531487676194,
+  "draw_prob": 0.24456033551012932,
+  "away_prob": 0.19558651572225128
  },
  {
   "source": "api_football",
@@ -1014,10 +1014,10 @@
   "home_team": "Valladolid",
   "away_team": "Leganes",
   "commence_time": "2026-11-02T17:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.47023382590454366,
-  "draw_prob": 0.2742287317906716,
-  "away_prob": 0.2555374423047847
+  "bookmaker_count": 3,
+  "home_prob": 0.4737612274665277,
+  "draw_prob": 0.2720594908941156,
+  "away_prob": 0.25417928163935666
  },
  {
   "source": "api_football",
@@ -1026,10 +1026,10 @@
   "home_team": "Deportivo La Coruna",
   "away_team": "Osasuna",
   "commence_time": "2026-11-02T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.4345859783276907,
-  "draw_prob": 0.2925320488830744,
-  "away_prob": 0.27288197278923476
+  "bookmaker_count": 6,
+  "home_prob": 0.43843300597216506,
+  "draw_prob": 0.28974988885027775,
+  "away_prob": 0.27181710517755725
  },
  {
   "source": "api_football",
@@ -1038,10 +1038,10 @@
   "home_team": "Huesca",
   "away_team": "Gimnastic",
   "commence_time": "2026-11-02T19:30:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.5488927955471653,
-  "draw_prob": 0.2622540199055838,
-  "away_prob": 0.1888531845472509
+  "bookmaker_count": 6,
+  "home_prob": 0.5499313999895828,
+  "draw_prob": 0.26558454696029105,
+  "away_prob": 0.184484053050126
  },
  {
   "source": "api_football",
@@ -1050,10 +1050,10 @@
   "home_team": "Real Ja\u00e9n",
   "away_team": "Algeciras",
   "commence_time": "2026-11-02T17:15:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.39528475582355727,
-  "draw_prob": 0.294615381709006,
-  "away_prob": 0.31009986246743676
+  "bookmaker_count": 6,
+  "home_prob": 0.40945580841829704,
+  "draw_prob": 0.2944852670626584,
+  "away_prob": 0.2960589245190445
  },
  {
   "source": "api_football",
@@ -1062,10 +1062,10 @@
   "home_team": "Dobrudzha",
   "away_team": "Fratria",
   "commence_time": "2026-11-02T15:30:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.2048943445161362,
-  "draw_prob": 0.25190441085039855,
-  "away_prob": 0.5432012446334652
+  "bookmaker_count": 6,
+  "home_prob": 0.16734220955416038,
+  "draw_prob": 0.24307828320871896,
+  "away_prob": 0.5895795072371206
  },
  {
   "source": "api_football",
@@ -1074,10 +1074,10 @@
   "home_team": "Montana",
   "away_team": "Spartak Pleven",
   "commence_time": "2026-11-02T15:30:00+00:00",
-  "bookmaker_count": 8,
-  "home_prob": 0.505962744082707,
-  "draw_prob": 0.26165496649315023,
-  "away_prob": 0.23238228942414274
+  "bookmaker_count": 5,
+  "home_prob": 0.5444507044799075,
+  "draw_prob": 0.2584143788551097,
+  "away_prob": 0.1971349166649829
  },
  {
   "source": "api_football",
@@ -1086,10 +1086,10 @@
   "home_team": "Sportist Svoge",
   "away_team": "Ludogorets II",
   "commence_time": "2026-11-02T12:30:00+00:00",
-  "bookmaker_count": 8,
-  "home_prob": 0.4103641645801639,
-  "draw_prob": 0.29702908437192765,
-  "away_prob": 0.2926067510479084
+  "bookmaker_count": 5,
+  "home_prob": 0.4482859164722559,
+  "draw_prob": 0.29038815507643023,
+  "away_prob": 0.2613259284513138
  },
  {
   "source": "api_football",
@@ -1098,10 +1098,10 @@
   "home_team": "Diosgyori VTK",
   "away_team": "Kecskem\u00e9ti TE",
   "commence_time": "2026-11-02T18:30:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.3474289215226063,
-  "draw_prob": 0.25981386863808376,
-  "away_prob": 0.39275720983931006
+  "bookmaker_count": 3,
+  "home_prob": 0.3508741305034302,
+  "draw_prob": 0.25745570114492133,
+  "away_prob": 0.39167016835164853
  },
  {
   "source": "api_football",
@@ -1110,10 +1110,10 @@
   "home_team": "Granad. Tenerife W",
   "away_team": "Athletic Club W",
   "commence_time": "2026-11-02T19:00:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.3494990188449569,
-  "draw_prob": 0.29083420447539554,
-  "away_prob": 0.3596667766796476
+  "bookmaker_count": 6,
+  "home_prob": 0.34804120330470684,
+  "draw_prob": 0.29211560450713553,
+  "away_prob": 0.35984319218815763
  },
  {
   "source": "api_football",
@@ -1122,10 +1122,10 @@
   "home_team": "Benfica",
   "away_team": "Alverca",
   "commence_time": "2026-11-02T20:15:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.8213280104358758,
-  "draw_prob": 0.11837751249259036,
-  "away_prob": 0.060294477071533875
+  "bookmaker_count": 6,
+  "home_prob": 0.8299049222223533,
+  "draw_prob": 0.11275237306526882,
+  "away_prob": 0.057342704712377734
  },
  {
   "source": "api_football",
@@ -1134,10 +1134,10 @@
   "home_team": "GIL Vicente",
   "away_team": "Vit\u00f3ria SC",
   "commence_time": "2026-11-02T20:15:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.3287965609743721,
-  "draw_prob": 0.2987906788587617,
-  "away_prob": 0.3724127601668663
+  "bookmaker_count": 6,
+  "home_prob": 0.3289145053323103,
+  "draw_prob": 0.2995406464177388,
+  "away_prob": 0.3715448482499509
  },
  {
   "source": "api_football",
@@ -1146,10 +1146,10 @@
   "home_team": "Penafiel",
   "away_team": "Feirense",
   "commence_time": "2026-11-02T18:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.48912700455190217,
-  "draw_prob": 0.27517093543229304,
-  "away_prob": 0.23570206001580477
+  "bookmaker_count": 6,
+  "home_prob": 0.49151079768536654,
+  "draw_prob": 0.27406071892654166,
+  "away_prob": 0.2344284833880918
  },
  {
   "source": "api_football",
@@ -1158,10 +1158,10 @@
   "home_team": "Kolos Kovalivka II",
   "away_team": "Metal Kharkiv",
   "commence_time": "2026-11-02T10:00:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.29944465123447733,
-  "draw_prob": 0.3002590892209425,
-  "away_prob": 0.40029625954458026
+  "bookmaker_count": 5,
+  "home_prob": 0.29108990985651734,
+  "draw_prob": 0.3016124328739259,
+  "away_prob": 0.4072976572695568
  },
  {
   "source": "api_football",
@@ -1170,10 +1170,10 @@
   "home_team": "Gen\u00e7lerbirli\u011fi S.K.",
   "away_team": "Alanyaspor",
   "commence_time": "2026-11-02T17:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.3538428478840418,
-  "draw_prob": 0.28700597203478845,
-  "away_prob": 0.35915118008116975
+  "bookmaker_count": 6,
+  "home_prob": 0.3605643821795975,
+  "draw_prob": 0.28301807253687156,
+  "away_prob": 0.35641754528353087
  },
  {
   "source": "api_football",
@@ -1182,10 +1182,10 @@
   "home_team": "Kayserispor",
   "away_team": "Mu\u011flaspor",
   "commence_time": "2026-11-02T17:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.6388775238736911,
-  "draw_prob": 0.21465498694636978,
-  "away_prob": 0.1464674891799392
+  "bookmaker_count": 6,
+  "home_prob": 0.6390767335503397,
+  "draw_prob": 0.2166526947515481,
+  "away_prob": 0.14427057169811228
  },
  {
   "source": "api_football",
@@ -1206,10 +1206,10 @@
   "home_team": "Teuta Durr\u00ebs",
   "away_team": "Partizani",
   "commence_time": "2026-11-02T17:30:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.709217134072938,
-  "draw_prob": 0.19319661111681558,
-  "away_prob": 0.09758625481024637
+  "bookmaker_count": 1,
+  "home_prob": 0.7009345794392524,
+  "draw_prob": 0.19937694704049844,
+  "away_prob": 0.09968847352024922
  },
  {
   "source": "api_football",
@@ -1218,10 +1218,10 @@
   "home_team": "Vora",
   "away_team": "Dinamo Tirana",
   "commence_time": "2026-11-02T12:30:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.29925603150611146,
-  "draw_prob": 0.27898466422423207,
-  "away_prob": 0.4217593042696564
+  "bookmaker_count": 5,
+  "home_prob": 0.3048474433050836,
+  "draw_prob": 0.2872879172630493,
+  "away_prob": 0.40786463943186707
  },
  {
   "source": "api_football",
@@ -1230,10 +1230,10 @@
   "home_team": "Atromitos",
   "away_team": "Volos NFC",
   "commence_time": "2026-11-02T16:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.49747049361025086,
-  "draw_prob": 0.26964620145635965,
-  "away_prob": 0.23288330493338952
+  "bookmaker_count": 9,
+  "home_prob": 0.5015182135124792,
+  "draw_prob": 0.2673380471885672,
+  "away_prob": 0.23114373929895365
  },
  {
   "source": "api_football",
@@ -1242,10 +1242,10 @@
   "home_team": "Kalamata",
   "away_team": "Iraklis 1908",
   "commence_time": "2026-11-02T17:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.41549279077319773,
-  "draw_prob": 0.2996577857156025,
-  "away_prob": 0.2848494235111998
+  "bookmaker_count": 9,
+  "home_prob": 0.4314312943376623,
+  "draw_prob": 0.29861260592701455,
+  "away_prob": 0.26995609973532314
  },
  {
   "source": "api_football",
@@ -1266,10 +1266,34 @@
   "home_team": "Chonburi FC",
   "away_team": "BG Pathum United",
   "commence_time": "2026-11-02T12:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.3469903516061312,
-  "draw_prob": 0.2735814740582949,
-  "away_prob": 0.3794281743355738
+  "bookmaker_count": 8,
+  "home_prob": 0.33046497917822937,
+  "draw_prob": 0.27182570956656,
+  "away_prob": 0.39770931125521064
+ },
+ {
+  "source": "api_football",
+  "league": "Non League Premier - Isthmian",
+  "tracked": false,
+  "home_team": "Aveley",
+  "away_team": "St Albans City",
+  "commence_time": "2026-11-02T19:45:00+00:00",
+  "bookmaker_count": 8,
+  "home_prob": 0.34792104009644004,
+  "draw_prob": 0.2503044827238968,
+  "away_prob": 0.40177447717966314
+ },
+ {
+  "source": "api_football",
+  "league": "Thai League 1",
+  "tracked": false,
+  "home_team": "Chonburi FC",
+  "away_team": "BG Pathum United",
+  "commence_time": "2026-11-02T12:00:00+00:00",
+  "bookmaker_count": 8,
+  "home_prob": 0.3918361044271465,
+  "draw_prob": 0.2721149897941298,
+  "away_prob": 0.3360489057787237
  },
  {
   "source": "api_football",
@@ -1279,9 +1303,21 @@
   "away_team": "Rio Ave U23",
   "commence_time": "2026-11-02T16:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.35368682504518567,
-  "draw_prob": 0.24839524666111829,
-  "away_prob": 0.39791792829369604
+  "home_prob": 0.3049897764146071,
+  "draw_prob": 0.2434449656156194,
+  "away_prob": 0.4515652579697734
+ },
+ {
+  "source": "api_football",
+  "league": "Ligi kuu Bara",
+  "tracked": false,
+  "home_team": "Mashujaa",
+  "away_team": "Pamba Jiji",
+  "commence_time": "2026-11-02T13:15:00+00:00",
+  "bookmaker_count": 8,
+  "home_prob": 0.5128934090226851,
+  "draw_prob": 0.28681189330358414,
+  "away_prob": 0.2002946976737307
  },
  {
   "source": "api_football",
@@ -1290,10 +1326,10 @@
   "home_team": "Simba",
   "away_team": "Namungo",
   "commence_time": "2026-11-02T16:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.8055502791174728,
-  "draw_prob": 0.14282005118096702,
-  "away_prob": 0.05162966970156015
+  "bookmaker_count": 8,
+  "home_prob": 0.8227035533462204,
+  "draw_prob": 0.12597419523102285,
+  "away_prob": 0.051322251422756766
  },
  {
   "source": "api_football",
@@ -1303,9 +1339,9 @@
   "away_team": "Juventus W",
   "commence_time": "2026-11-02T19:30:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.29528138980712004,
-  "draw_prob": 0.26205001092971975,
-  "away_prob": 0.44266859926316027
+  "home_prob": 0.296998492508814,
+  "draw_prob": 0.2617707129457917,
+  "away_prob": 0.4412307945453943
  },
  {
   "source": "api_football",
@@ -1314,10 +1350,10 @@
   "home_team": "Sumqay\u0131t",
   "away_team": "Safa Baku",
   "commence_time": "2026-11-02T15:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.5201208900466465,
-  "draw_prob": 0.2656615403779954,
-  "away_prob": 0.21421756957535806
+  "bookmaker_count": 9,
+  "home_prob": 0.4990194541326407,
+  "draw_prob": 0.26702508401328945,
+  "away_prob": 0.23395546185406974
  },
  {
   "source": "api_football",
@@ -1327,9 +1363,9 @@
   "away_team": "Al Anwar",
   "commence_time": "2026-11-02T12:30:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.35728965695960613,
-  "draw_prob": 0.29056495367405627,
-  "away_prob": 0.3521453893663377
+  "home_prob": 0.3576679213683034,
+  "draw_prob": 0.2897622966734257,
+  "away_prob": 0.35256978195827093
  },
  {
   "source": "api_football",
@@ -1339,9 +1375,9 @@
   "away_team": "Al Bukayriyah",
   "commence_time": "2026-11-02T12:30:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.5834147821225301,
-  "draw_prob": 0.24971314685540572,
-  "away_prob": 0.1668720710220642
+  "home_prob": 0.5960136764339498,
+  "draw_prob": 0.23952474346110325,
+  "away_prob": 0.16446158010494702
  },
  {
   "source": "api_football",
@@ -1351,33 +1387,9 @@
   "away_team": "Al Najma",
   "commence_time": "2026-11-02T14:40:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.16995692923002886,
-  "draw_prob": 0.2438287467201171,
-  "away_prob": 0.5862143240498541
- },
- {
-  "source": "api_football",
-  "league": "Division 1",
-  "tracked": false,
-  "home_team": "Al Zulfi",
-  "away_team": "Al Jandal",
-  "commence_time": "2026-11-02T14:55:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.49073819108108746,
-  "draw_prob": 0.28041876011202094,
-  "away_prob": 0.22884304880689163
- },
- {
-  "source": "api_football",
-  "league": "Armenia - First League",
-  "tracked": true,
-  "home_team": "Andranik",
-  "away_team": "Bentonit Ijevan",
-  "commence_time": "2026-11-02T11:00:00+00:00",
-  "bookmaker_count": 1,
-  "home_prob": 0.45754968667115853,
-  "draw_prob": 0.20485747335049598,
-  "away_prob": 0.3375928399783455
+  "home_prob": 0.16860128935008584,
+  "draw_prob": 0.24381872858725617,
+  "away_prob": 0.587579982062658
  },
  {
   "source": "api_football",
@@ -1387,9 +1399,9 @@
   "away_team": "PRO Vercelli",
   "commence_time": "2026-11-02T19:30:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.529361920465176,
-  "draw_prob": 0.2541869092354813,
-  "away_prob": 0.2164511702993426
+  "home_prob": 0.5177819210116387,
+  "draw_prob": 0.2559563716085349,
+  "away_prob": 0.22626170737982637
  },
  {
   "source": "api_football",
@@ -1399,9 +1411,9 @@
   "away_team": "Desenzano Calvina",
   "commence_time": "2026-11-02T19:30:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.43432894458874516,
-  "draw_prob": 0.2982139744950969,
-  "away_prob": 0.26745708091615794
+  "home_prob": 0.4336881045093091,
+  "draw_prob": 0.2964429469741819,
+  "away_prob": 0.2698689485165089
  },
  {
   "source": "api_football",
@@ -1423,9 +1435,9 @@
   "away_team": "JS Saoura",
   "commence_time": "2026-11-02T19:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.6723324394977979,
-  "draw_prob": 0.22383549141688916,
-  "away_prob": 0.10383206908531294
+  "home_prob": 0.6774194179856183,
+  "draw_prob": 0.22083202382512682,
+  "away_prob": 0.1017485581892548
  },
  {
   "source": "api_football",
@@ -1435,9 +1447,9 @@
   "away_team": "US Biskra",
   "commence_time": "2026-11-02T16:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.4943774950180627,
-  "draw_prob": 0.30242546303800494,
-  "away_prob": 0.2031970419439324
+  "home_prob": 0.49238045043168344,
+  "draw_prob": 0.3044295307734891,
+  "away_prob": 0.20319001879482745
  },
  {
   "source": "api_football",
@@ -1446,10 +1458,10 @@
   "home_team": "Hapoel Umm al-Fahm",
   "away_team": "Maccabi Nujeidat Ahmed",
   "commence_time": "2026-11-02T17:30:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.5241190250329145,
-  "draw_prob": 0.2488889318294595,
-  "away_prob": 0.2269920431376259
+  "bookmaker_count": 9,
+  "home_prob": 0.5309215558671486,
+  "draw_prob": 0.2519570522763934,
+  "away_prob": 0.21712139185645787
  },
  {
   "source": "api_football",
@@ -1458,10 +1470,10 @@
   "home_team": "Hapoel Nazareth Illit",
   "away_team": "Beitar Nahariya",
   "commence_time": "2026-11-02T16:00:00+00:00",
-  "bookmaker_count": 8,
-  "home_prob": 0.45562833402460506,
-  "draw_prob": 0.2567516026886386,
-  "away_prob": 0.2876200632867562
+  "bookmaker_count": 7,
+  "home_prob": 0.4516039239912631,
+  "draw_prob": 0.25811414949285005,
+  "away_prob": 0.2902819265158869
  },
  {
   "source": "api_football",
@@ -1483,9 +1495,9 @@
   "away_team": "FC Jerusalem",
   "commence_time": "2026-11-02T15:30:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.39632936783032097,
-  "draw_prob": 0.2645455723980867,
-  "away_prob": 0.3391250597715923
+  "home_prob": 0.39536566654851324,
+  "draw_prob": 0.26454044367326135,
+  "away_prob": 0.3400938897782254
  },
  {
   "source": "api_football",
@@ -1494,10 +1506,34 @@
   "home_team": "Maccabi Ashdod",
   "away_team": "Hapoel Ramat HaSharon",
   "commence_time": "2026-11-02T18:50:00+00:00",
-  "bookmaker_count": 4,
-  "home_prob": 0.22392987085481916,
-  "draw_prob": 0.25640975485370093,
-  "away_prob": 0.5196603742914798
+  "bookmaker_count": 7,
+  "home_prob": 0.25964623301656375,
+  "draw_prob": 0.2614950165787591,
+  "away_prob": 0.4788587504046771
+ },
+ {
+  "source": "api_football",
+  "league": "Liga Alef",
+  "tracked": false,
+  "home_team": "Hapoel Azor",
+  "away_team": "FC Jerusalem",
+  "commence_time": "2026-11-02T15:30:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.3954673398557793,
+  "draw_prob": 0.26504294804072115,
+  "away_prob": 0.3394897121034996
+ },
+ {
+  "source": "api_football",
+  "league": "Liga Alef",
+  "tracked": false,
+  "home_team": "Maccabi Ashdod",
+  "away_team": "Hapoel Ramat HaSharon",
+  "commence_time": "2026-11-02T18:50:00+00:00",
+  "bookmaker_count": 8,
+  "home_prob": 0.2607444211436814,
+  "draw_prob": 0.2604222842302902,
+  "away_prob": 0.47883329462602836
  },
  {
   "source": "api_football",
@@ -1507,9 +1543,9 @@
   "away_team": "Holon Yermiyahu",
   "commence_time": "2026-11-02T17:15:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.3546217886985026,
-  "draw_prob": 0.2957832240050754,
-  "away_prob": 0.3495949872964219
+  "home_prob": 0.3457977201468289,
+  "draw_prob": 0.2963978725954664,
+  "away_prob": 0.3578044072577047
  },
  {
   "source": "api_football",
@@ -1531,9 +1567,9 @@
   "away_team": "Kfar Saba 1928",
   "commence_time": "2026-11-02T16:30:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.17316042406712726,
-  "draw_prob": 0.2335385871383823,
-  "away_prob": 0.5933009887944904
+  "home_prob": 0.18194023845323554,
+  "draw_prob": 0.23707799483379538,
+  "away_prob": 0.5809817667129691
  },
  {
   "source": "api_football",
@@ -1542,10 +1578,10 @@
   "home_team": "Al Nasar",
   "away_team": "Al Shabab",
   "commence_time": "2026-11-02T15:45:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.5333851498676031,
-  "draw_prob": 0.25006949636317205,
-  "away_prob": 0.21654535376922485
+  "bookmaker_count": 10,
+  "home_prob": 0.5394702888588936,
+  "draw_prob": 0.2477897315476123,
+  "away_prob": 0.212739979593494
  },
  {
   "source": "api_football",
@@ -1554,10 +1590,10 @@
   "home_team": "Clodiense",
   "away_team": "Bassano Virtus",
   "commence_time": "2026-11-02T19:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.4315416054842787,
-  "draw_prob": 0.2964178733863609,
-  "away_prob": 0.2720405211293604
+  "bookmaker_count": 4,
+  "home_prob": 0.4322525263033556,
+  "draw_prob": 0.29274141122865194,
+  "away_prob": 0.2750060624679925
  },
  {
   "source": "api_football",
@@ -1567,9 +1603,9 @@
   "away_team": "Queens Park Rangers U21",
   "commence_time": "2026-11-02T19:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.43063116266310275,
-  "draw_prob": 0.2544429765716379,
-  "away_prob": 0.31492586076525936
+  "home_prob": 0.43054240009481964,
+  "draw_prob": 0.2548813213940837,
+  "away_prob": 0.3145762785110967
  },
  {
   "source": "api_football",
@@ -1579,9 +1615,9 @@
   "away_team": "Cardiff City U21",
   "commence_time": "2026-11-02T19:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.474885143678324,
-  "draw_prob": 0.24457596656166788,
-  "away_prob": 0.280538889760008
+  "home_prob": 0.47685047556360577,
+  "draw_prob": 0.2446137923558302,
+  "away_prob": 0.278535732080564
  },
  {
   "source": "api_football",
@@ -1591,9 +1627,9 @@
   "away_team": "Derby County U21",
   "commence_time": "2026-11-02T19:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.3320445436238169,
-  "draw_prob": 0.2485850693542924,
-  "away_prob": 0.41937038702189067
+  "home_prob": 0.5758076743894394,
+  "draw_prob": 0.210257767223478,
+  "away_prob": 0.2139345583870826
  },
  {
   "source": "api_football",
@@ -1603,9 +1639,9 @@
   "away_team": "Fleetwood Town U21",
   "commence_time": "2026-11-02T19:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.5845740646959224,
-  "draw_prob": 0.20672037252898387,
-  "away_prob": 0.20870556277509367
+  "home_prob": 0.5844353784411079,
+  "draw_prob": 0.20582672679166678,
+  "away_prob": 0.20973789476722526
  },
  {
   "source": "api_football",
@@ -1615,9 +1651,9 @@
   "away_team": "Magesi",
   "commence_time": "2026-11-02T17:30:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.4296690735020946,
-  "draw_prob": 0.3064075389631235,
-  "away_prob": 0.2639233875347819
+  "home_prob": 0.43142948384430396,
+  "draw_prob": 0.30532745520347,
+  "away_prob": 0.2632430609522261
  },
  {
   "source": "api_football",
@@ -1626,10 +1662,10 @@
   "home_team": "Flamurtari",
   "away_team": "FK Kukesi",
   "commence_time": "2026-11-02T15:00:00+00:00",
-  "bookmaker_count": 5,
-  "home_prob": 0.5598681154792013,
-  "draw_prob": 0.24790761695238078,
-  "away_prob": 0.19222426756841782
+  "bookmaker_count": 7,
+  "home_prob": 0.5879940429450602,
+  "draw_prob": 0.23728554191244958,
+  "away_prob": 0.17472041514249023
  },
  {
   "source": "api_football",
@@ -1638,10 +1674,10 @@
   "home_team": "Sopoti Librazhd",
   "away_team": "Iliria Fush\u00eb-Kruj\u00eb",
   "commence_time": "2026-11-02T12:30:00+00:00",
-  "bookmaker_count": 5,
-  "home_prob": 0.25535273042659284,
-  "draw_prob": 0.26141040950297423,
-  "away_prob": 0.483236860070433
+  "bookmaker_count": 7,
+  "home_prob": 0.28457713904831927,
+  "draw_prob": 0.2815458962830236,
+  "away_prob": 0.4338769646686571
  },
  {
   "source": "api_football",
@@ -1650,10 +1686,10 @@
   "home_team": "Posta Rangers FC",
   "away_team": "3K",
   "commence_time": "2026-11-02T11:00:00+00:00",
-  "bookmaker_count": 8,
-  "home_prob": 0.391666518827463,
-  "draw_prob": 0.3125665291823012,
-  "away_prob": 0.2957669519902358
+  "bookmaker_count": 9,
+  "home_prob": 0.46601723168272136,
+  "draw_prob": 0.2997404516240136,
+  "away_prob": 0.23424231669326506
  },
  {
   "source": "api_football",
@@ -1662,10 +1698,10 @@
   "home_team": "Shabana",
   "away_team": "Kenya Police",
   "commence_time": "2026-11-02T13:15:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.3455355101644882,
-  "draw_prob": 0.329885391879024,
-  "away_prob": 0.3245790979564878
+  "bookmaker_count": 9,
+  "home_prob": 0.3206444540267843,
+  "draw_prob": 0.33953794026265993,
+  "away_prob": 0.33981760571055575
  },
  {
   "source": "api_football",
@@ -1674,10 +1710,10 @@
   "home_team": "Tusker",
   "away_team": "Mara Sugar",
   "commence_time": "2026-11-02T12:00:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.3798125405383027,
-  "draw_prob": 0.32420923267925633,
-  "away_prob": 0.2959782267824411
+  "bookmaker_count": 10,
+  "home_prob": 0.4386596066340102,
+  "draw_prob": 0.3133921651512579,
+  "away_prob": 0.2479482282147319
  },
  {
   "source": "api_football",
@@ -1687,9 +1723,21 @@
   "away_team": "Mathare United",
   "commence_time": "2026-11-02T10:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.36369735094175437,
-  "draw_prob": 0.33420616400597797,
-  "away_prob": 0.30209648505226766
+  "home_prob": 0.327143349391066,
+  "draw_prob": 0.3305845212343136,
+  "away_prob": 0.34227212937462037
+ },
+ {
+  "source": "api_football",
+  "league": "U19 league",
+  "tracked": false,
+  "home_team": "Genclerbirligi U19",
+  "away_team": "Alanyaspor U19",
+  "commence_time": "2026-11-02T12:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.5875106883558388,
+  "draw_prob": 0.2220507737767394,
+  "away_prob": 0.1904385378674219
  },
  {
   "source": "api_football",
@@ -1698,10 +1746,10 @@
   "home_team": "Pakhtakor",
   "away_team": "Al-Nassr",
   "commence_time": "2026-11-02T13:45:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.14968612471639212,
-  "draw_prob": 0.21939533265749817,
-  "away_prob": 0.6309185426261097
+  "bookmaker_count": 9,
+  "home_prob": 0.15080575718700204,
+  "draw_prob": 0.21401762947052522,
+  "away_prob": 0.6351766133424727
  },
  {
   "source": "api_football",
@@ -1710,10 +1758,10 @@
   "home_team": "Al Sadd",
   "away_team": "Al-Ahli Jeddah",
   "commence_time": "2026-11-02T16:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.3371670057900745,
-  "draw_prob": 0.26004163512263334,
-  "away_prob": 0.4027913590872922
+  "bookmaker_count": 9,
+  "home_prob": 0.342582706532636,
+  "draw_prob": 0.25648876544346066,
+  "away_prob": 0.4009285280239034
  },
  {
   "source": "api_football",
@@ -1722,10 +1770,10 @@
   "home_team": "Al-Wasl FC",
   "away_team": "Al Quwa Al Jawiya",
   "commence_time": "2026-11-02T16:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.7349097944456159,
-  "draw_prob": 0.16316588442601432,
-  "away_prob": 0.10192432112836974
+  "bookmaker_count": 9,
+  "home_prob": 0.7519786359328392,
+  "draw_prob": 0.15489534268021882,
+  "away_prob": 0.09312602138694205
  },
  {
   "source": "api_football",
@@ -1735,9 +1783,9 @@
   "away_team": "Neftchi",
   "commence_time": "2026-11-02T16:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.4061977448562553,
-  "draw_prob": 0.29562528539570737,
-  "away_prob": 0.2981769697480372
+  "home_prob": 0.40031144103967137,
+  "draw_prob": 0.29616635405268044,
+  "away_prob": 0.30352220490764825
  },
  {
   "source": "api_football",
@@ -1746,10 +1794,22 @@
   "home_team": "Al-Gharafa",
   "away_team": "Al-Qadisiyah FC",
   "commence_time": "2026-11-02T18:15:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.15718742325597768,
-  "draw_prob": 0.19337255371673048,
-  "away_prob": 0.6494400230272919
+  "bookmaker_count": 9,
+  "home_prob": 0.15719553040289747,
+  "draw_prob": 0.19159170925474506,
+  "away_prob": 0.6512127603423574
+ },
+ {
+  "source": "api_football",
+  "league": "AFC Champions League Elite",
+  "tracked": false,
+  "home_team": "Al-Ittihad FC",
+  "away_team": "Al Ain",
+  "commence_time": "2026-11-02T18:15:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.41360881731894744,
+  "draw_prob": 0.2597022160309248,
+  "away_prob": 0.32668896665012764
  },
  {
   "source": "api_football",
@@ -1770,10 +1830,22 @@
   "home_team": "Al Taraji",
   "away_team": "Al Baten",
   "commence_time": "2026-11-02T11:55:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.3629548722097685,
-  "draw_prob": 0.27202717757261896,
-  "away_prob": 0.3650179502176124
+  "bookmaker_count": 8,
+  "home_prob": 0.3624435308757621,
+  "draw_prob": 0.2727554113704755,
+  "away_prob": 0.3648010577537625
+ },
+ {
+  "source": "api_football",
+  "league": "Division 2",
+  "tracked": false,
+  "home_team": "Hetten FC",
+  "away_team": "Al Gottah",
+  "commence_time": "2026-11-02T12:35:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.3721434257941715,
+  "draw_prob": 0.28772235818218067,
+  "away_prob": 0.34013421602364796
  },
  {
   "source": "api_football",
@@ -1783,9 +1855,9 @@
   "away_team": "Apollon Pontou",
   "commence_time": "2026-11-02T13:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.8087908291675444,
-  "draw_prob": 0.1405544340742135,
-  "away_prob": 0.05065473675824207
+  "home_prob": 0.8159974214648601,
+  "draw_prob": 0.13925221182960607,
+  "away_prob": 0.04475036670553371
  },
  {
   "source": "api_football",
@@ -1794,58 +1866,10 @@
   "home_team": "Inter Turku",
   "away_team": "Gnistan",
   "commence_time": "2026-11-02T16:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.666431536647747,
-  "draw_prob": 0.1986857630115263,
-  "away_prob": 0.1348827003407267
- },
- {
-  "source": "api_football",
-  "league": "Finnish Veikkausliiga",
-  "tracked": true,
-  "home_team": "VPS",
-  "away_team": "HJK Helsinki",
-  "commence_time": "2026-11-02T16:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.1315902345332545,
-  "draw_prob": 0.18665912532430437,
-  "away_prob": 0.6817506401424412
- },
- {
-  "source": "api_football",
-  "league": "Liga Pro",
-  "tracked": false,
-  "home_team": "Orense SC",
-  "away_team": "Tecnico Universitario",
-  "commence_time": "2026-11-02T20:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.5071496475052073,
-  "draw_prob": 0.2768038282731764,
-  "away_prob": 0.21604652422161638
- },
- {
-  "source": "api_football",
-  "league": "League Cup",
-  "tracked": false,
-  "home_team": "Al Ahly",
-  "away_team": "El Mokawloon",
-  "commence_time": "2026-11-02T18:00:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.6651601115735599,
-  "draw_prob": 0.2151877538941073,
-  "away_prob": 0.1196521345323327
- },
- {
-  "source": "api_football",
-  "league": "Azadegan League",
-  "tracked": false,
-  "home_team": "Be'sat Kermanshah",
-  "away_team": "Saipa",
-  "commence_time": "2026-11-02T11:30:00+00:00",
-  "bookmaker_count": 3,
-  "home_prob": 0.2785919164851751,
-  "draw_prob": 0.3041893903229886,
-  "away_prob": 0.4172186931918363
+  "home_prob": 0.6740242222917026,
+  "draw_prob": 0.1944736582992943,
+  "away_prob": 0.13150211940900303
  },
  {
   "source": "api_football",
@@ -1891,9 +1915,9 @@
   "away_team": "Ethiopian Medhin",
   "commence_time": "2026-11-02T12:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.33825793482083727,
-  "draw_prob": 0.33381505157643176,
-  "away_prob": 0.3279270136027309
+  "home_prob": 0.3177779641149171,
+  "draw_prob": 0.364101368337693,
+  "away_prob": 0.31812066754739
  },
  {
   "source": "api_football",
@@ -1914,10 +1938,10 @@
   "home_team": "VfL Wolfsburg W",
   "away_team": "1899 Hoffenheim W",
   "commence_time": "2026-11-02T17:00:00+00:00",
-  "bookmaker_count": 8,
-  "home_prob": 0.755828837803295,
-  "draw_prob": 0.1515106774748522,
-  "away_prob": 0.09266048472185269
+  "bookmaker_count": 3,
+  "home_prob": 0.7483837788188028,
+  "draw_prob": 0.15397328015990092,
+  "away_prob": 0.0976429410212963
  },
  {
   "source": "api_football",
@@ -1927,9 +1951,9 @@
   "away_team": "Al Sharjah U23",
   "commence_time": "2026-11-02T12:55:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.2609150351925916,
-  "draw_prob": 0.23921374263657932,
-  "away_prob": 0.49987122217082913
+  "home_prob": 0.2750043901444583,
+  "draw_prob": 0.24620969095320414,
+  "away_prob": 0.47878591890233746
  },
  {
   "source": "api_football",
@@ -1939,9 +1963,9 @@
   "away_team": "Al Jazira U23",
   "commence_time": "2026-11-02T12:55:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.325882855427967,
-  "draw_prob": 0.2548370493675162,
-  "away_prob": 0.41928009520451676
+  "home_prob": 0.3178284778274897,
+  "draw_prob": 0.2537578953283839,
+  "away_prob": 0.4284136268441264
  },
  {
   "source": "api_football",
@@ -1951,9 +1975,21 @@
   "away_team": "Blooming",
   "commence_time": "2026-11-02T21:15:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.44239647785632535,
-  "draw_prob": 0.2633046214371107,
-  "away_prob": 0.29429890070656395
+  "home_prob": 0.42042742684466,
+  "draw_prob": 0.26747337348586053,
+  "away_prob": 0.31209919966947947
+ },
+ {
+  "source": "api_football",
+  "league": "Premier League",
+  "tracked": false,
+  "home_team": "Al Ittihad",
+  "away_team": "Qamishli",
+  "commence_time": "2026-11-02T12:00:00+00:00",
+  "bookmaker_count": 1,
+  "home_prob": 0.7508892109076538,
+  "draw_prob": 0.1526808062178896,
+  "away_prob": 0.09642998287445659
  },
  {
   "source": "api_football",
@@ -2046,10 +2082,10 @@
   "home_team": "Umm Al Hassam",
   "away_team": "Bahrain SC",
   "commence_time": "2026-11-02T15:00:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.21112124314658182,
-  "draw_prob": 0.2326270275684452,
-  "away_prob": 0.5562517292849729
+  "bookmaker_count": 8,
+  "home_prob": 0.22762009716330142,
+  "draw_prob": 0.23943389780822197,
+  "away_prob": 0.5329460050284767
  },
  {
   "source": "api_football",
@@ -2071,9 +2107,93 @@
   "away_team": "Derby Academie",
   "commence_time": "2026-11-02T16:00:00+00:00",
   "bookmaker_count": 5,
-  "home_prob": 0.4193678583930724,
-  "draw_prob": 0.3180751734062249,
-  "away_prob": 0.26255696820070273
+  "home_prob": 0.4129681182612657,
+  "draw_prob": 0.3189833964234709,
+  "away_prob": 0.2680484853152633
+ },
+ {
+  "source": "api_football",
+  "league": "USL Championship",
+  "tracked": false,
+  "home_team": "Sacramento Republic",
+  "away_team": "FC Tulsa",
+  "commence_time": "2026-11-02T02:00:00+00:00",
+  "bookmaker_count": 8,
+  "home_prob": 0.5629277072738166,
+  "draw_prob": 0.2590644853481112,
+  "away_prob": 0.17800780737807212
+ },
+ {
+  "source": "api_football",
+  "league": "USL League One",
+  "tracked": false,
+  "home_team": "Charlotte Independence",
+  "away_team": "Naples",
+  "commence_time": "2026-11-02T00:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.5880359686449145,
+  "draw_prob": 0.21673953354299327,
+  "away_prob": 0.19522449781209236
+ },
+ {
+  "source": "api_football",
+  "league": "USL League One",
+  "tracked": false,
+  "home_team": "Boise",
+  "away_team": "One Knoxville",
+  "commence_time": "2026-11-02T01:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.49370425166636916,
+  "draw_prob": 0.25492134757028484,
+  "away_prob": 0.25137440076334594
+ },
+ {
+  "source": "api_football",
+  "league": "King's Cup",
+  "tracked": false,
+  "home_team": "Al Shabab",
+  "away_team": "Al Tadamun Buri",
+  "commence_time": "2026-11-02T15:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.48618566127984253,
+  "draw_prob": 0.2732034566296874,
+  "away_prob": 0.2406108820904701
+ },
+ {
+  "source": "api_football",
+  "league": "King's Cup",
+  "tracked": false,
+  "home_team": "Umm Al Hassam",
+  "away_team": "Bahrain SC",
+  "commence_time": "2026-11-02T15:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.20391633339849216,
+  "draw_prob": 0.2392580211639669,
+  "away_prob": 0.5568256454375409
+ },
+ {
+  "source": "api_football",
+  "league": "Premi\u00e8re Division",
+  "tracked": false,
+  "home_team": "Diarra",
+  "away_team": "Djoliba",
+  "commence_time": "2026-11-02T16:00:00+00:00",
+  "bookmaker_count": 5,
+  "home_prob": 0.20564148681250377,
+  "draw_prob": 0.29797984147358947,
+  "away_prob": 0.4963786717139068
+ },
+ {
+  "source": "api_football",
+  "league": "Premi\u00e8re Division",
+  "tracked": false,
+  "home_team": "ASKO",
+  "away_team": "Derby Academie",
+  "commence_time": "2026-11-02T16:00:00+00:00",
+  "bookmaker_count": 7,
+  "home_prob": 0.39814978947341834,
+  "draw_prob": 0.3334320271205181,
+  "away_prob": 0.2684181834060636
  },
  {
   "source": "api_football",
@@ -2082,10 +2202,10 @@
   "home_team": "Sportivo Barracas",
   "away_team": "Leones de Rosario",
   "commence_time": "2026-11-02T18:00:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.3325937780096835,
-  "draw_prob": 0.32305489219834044,
-  "away_prob": 0.344351329791976
+  "bookmaker_count": 9,
+  "home_prob": 0.31062407334937486,
+  "draw_prob": 0.37304757919136267,
+  "away_prob": 0.3163283474592626
  },
  {
   "source": "api_football",
@@ -2095,9 +2215,9 @@
   "away_team": "Popayan",
   "commence_time": "2026-11-02T19:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.574077494581011,
-  "draw_prob": 0.2519826889122538,
-  "away_prob": 0.1739398165067353
+  "home_prob": 0.5723188853583158,
+  "draw_prob": 0.25477478263336967,
+  "away_prob": 0.1729063320083145
  },
  {
   "source": "api_football",
@@ -2106,70 +2226,10 @@
   "home_team": "Union Magdalena",
   "away_team": "Envigado",
   "commence_time": "2026-11-02T23:10:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.4952916075116955,
-  "draw_prob": 0.28227368588499463,
-  "away_prob": 0.22243470660331002
- },
- {
-  "source": "api_football",
-  "league": "Ligue 1",
-  "tracked": false,
-  "home_team": "Gor\u00e9e",
-  "away_team": "Ouakam",
-  "commence_time": "2026-11-02T16:30:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.39071394815453925,
-  "draw_prob": 0.3784603745116997,
-  "away_prob": 0.23082567733376108
- },
- {
-  "source": "api_football",
-  "league": "Premier League",
-  "tracked": false,
-  "home_team": "Pompiers",
-  "away_team": "Nouakchott King's",
-  "commence_time": "2026-11-02T17:00:00+00:00",
-  "bookmaker_count": 5,
-  "home_prob": 0.5574275875678183,
-  "draw_prob": 0.25973736977139095,
-  "away_prob": 0.1828350426607908
- },
- {
-  "source": "api_football",
-  "league": "Premier League",
-  "tracked": false,
-  "home_team": "AC Douane",
-  "away_team": "Nouadhibou",
-  "commence_time": "2026-11-02T19:50:00+00:00",
-  "bookmaker_count": 4,
-  "home_prob": 0.31426019030700997,
-  "draw_prob": 0.2977332092867876,
-  "away_prob": 0.38800660040620244
- },
- {
-  "source": "api_football",
-  "league": "Primera Division",
-  "tracked": false,
-  "home_team": "Managua",
-  "away_team": "UNAN Managua",
-  "commence_time": "2026-11-02T01:00:00+00:00",
-  "bookmaker_count": 8,
-  "home_prob": 0.7544413997044579,
-  "draw_prob": 0.1562167257509623,
-  "away_prob": 0.08934187454457984
- },
- {
-  "source": "api_football",
-  "league": "Premier League",
-  "tracked": false,
-  "home_team": "Molynes United",
-  "away_team": "Mount Pleasant Academy",
-  "commence_time": "2026-11-02T22:05:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.12992757062200996,
-  "draw_prob": 0.21248286938559882,
-  "away_prob": 0.6575895599923913
+  "bookmaker_count": 10,
+  "home_prob": 0.48935254467127137,
+  "draw_prob": 0.2824060815602422,
+  "away_prob": 0.2282413737684865
  },
  {
   "source": "api_football",
@@ -2178,10 +2238,10 @@
   "home_team": "Chapecoense-sc",
   "away_team": "Mirassol",
   "commence_time": "2026-11-03T22:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.27479540275253767,
-  "draw_prob": 0.25652602143996334,
-  "away_prob": 0.468678575807499
+  "bookmaker_count": 9,
+  "home_prob": 0.27600586642019737,
+  "draw_prob": 0.25742182334422475,
+  "away_prob": 0.4665723102355779
  },
  {
   "source": "api_football",
@@ -2214,10 +2274,10 @@
   "home_team": "Sirius",
   "away_team": "Halmstad",
   "commence_time": "2026-11-03T18:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.7134819380001638,
-  "draw_prob": 0.1704837389441588,
-  "away_prob": 0.1160343230556773
+  "bookmaker_count": 9,
+  "home_prob": 0.720355784303831,
+  "draw_prob": 0.1671274770301245,
+  "away_prob": 0.11251673866604454
  },
  {
   "source": "api_football",
@@ -2299,9 +2359,9 @@
   "away_team": "Matsumoto Yamaga",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.24613762694222943,
-  "draw_prob": 0.2607762314889754,
-  "away_prob": 0.4930861415687952
+  "home_prob": 0.24538157591542462,
+  "draw_prob": 0.25873386596639236,
+  "away_prob": 0.49588455811818294
  },
  {
   "source": "api_football",
@@ -2311,9 +2371,9 @@
   "away_team": "Parceiro Nagano",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.5382267522744734,
-  "draw_prob": 0.25042192709333944,
-  "away_prob": 0.2113513206321873
+  "home_prob": 0.5381323478783746,
+  "draw_prob": 0.24911481834220459,
+  "away_prob": 0.2127528337794209
  },
  {
   "source": "api_football",
@@ -2323,9 +2383,9 @@
   "away_team": "Ehime FC",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.23773509234749524,
-  "draw_prob": 0.25171886738254917,
-  "away_prob": 0.5105460402699556
+  "home_prob": 0.23809233575697092,
+  "draw_prob": 0.2518115737473291,
+  "away_prob": 0.5100960904956999
  },
  {
   "source": "api_football",
@@ -2335,9 +2395,9 @@
   "away_team": "Thespakusatsu Gunma",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.5212285838119184,
-  "draw_prob": 0.24078808253655,
-  "away_prob": 0.2379833336515316
+  "home_prob": 0.5217783736653869,
+  "draw_prob": 0.2379867199657138,
+  "away_prob": 0.2402349063688993
  },
  {
   "source": "api_football",
@@ -2359,9 +2419,9 @@
   "away_team": "Fukushima United",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.47713521202782316,
-  "draw_prob": 0.2539551716040704,
-  "away_prob": 0.2689096163681064
+  "home_prob": 0.4747294559561518,
+  "draw_prob": 0.2528715603050077,
+  "away_prob": 0.2723989837388406
  },
  {
   "source": "api_football",
@@ -2413,6 +2473,114 @@
  },
  {
   "source": "api_football",
+  "league": "England - Championship",
+  "tracked": true,
+  "home_team": "Birmingham",
+  "away_team": "Millwall",
+  "commence_time": "2026-11-03T20:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.477998065707471,
+  "draw_prob": 0.26201580996014423,
+  "away_prob": 0.25998612433238477
+ },
+ {
+  "source": "api_football",
+  "league": "England - Championship",
+  "tracked": true,
+  "home_team": "Blackburn",
+  "away_team": "Stoke City",
+  "commence_time": "2026-11-03T19:45:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.3599963617030751,
+  "draw_prob": 0.286418579973327,
+  "away_prob": 0.3535850583235979
+ },
+ {
+  "source": "api_football",
+  "league": "England - Championship",
+  "tracked": true,
+  "home_team": "Derby",
+  "away_team": "Norwich",
+  "commence_time": "2026-11-03T19:45:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.28515827050517717,
+  "draw_prob": 0.25921942555603567,
+  "away_prob": 0.4556223039387871
+ },
+ {
+  "source": "api_football",
+  "league": "England - Championship",
+  "tracked": true,
+  "home_team": "Portsmouth",
+  "away_team": "Swansea",
+  "commence_time": "2026-11-03T19:45:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.357678593239278,
+  "draw_prob": 0.2845551572788488,
+  "away_prob": 0.3577662494818733
+ },
+ {
+  "source": "api_football",
+  "league": "England - Championship",
+  "tracked": true,
+  "home_team": "Preston",
+  "away_team": "Sheffield Utd",
+  "commence_time": "2026-11-03T19:45:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.2928107851450631,
+  "draw_prob": 0.2629974739598474,
+  "away_prob": 0.4441917408950895
+ },
+ {
+  "source": "api_football",
+  "league": "England - Championship",
+  "tracked": true,
+  "home_team": "QPR",
+  "away_team": "Burnley",
+  "commence_time": "2026-11-03T19:45:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.4701928200507299,
+  "draw_prob": 0.2586830246261237,
+  "away_prob": 0.27112415532314654
+ },
+ {
+  "source": "api_football",
+  "league": "England - Championship",
+  "tracked": true,
+  "home_team": "Watford",
+  "away_team": "Lincoln",
+  "commence_time": "2026-11-03T19:45:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.38799619095025034,
+  "draw_prob": 0.27856313609577,
+  "away_prob": 0.3334406729539797
+ },
+ {
+  "source": "api_football",
+  "league": "England - Championship",
+  "tracked": true,
+  "home_team": "West Brom",
+  "away_team": "Southampton",
+  "commence_time": "2026-11-03T20:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.3825655637393456,
+  "draw_prob": 0.2670248548845956,
+  "away_prob": 0.35040958137605893
+ },
+ {
+  "source": "api_football",
+  "league": "England - Championship",
+  "tracked": true,
+  "home_team": "Charlton",
+  "away_team": "Bolton",
+  "commence_time": "2026-11-03T19:45:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.4219870658342983,
+  "draw_prob": 0.268748239791159,
+  "away_prob": 0.30926469437454274
+ },
+ {
+  "source": "api_football",
   "league": "League Two",
   "tracked": false,
   "home_team": "Northampton",
@@ -2425,27 +2593,15 @@
  },
  {
   "source": "api_football",
-  "league": "League One",
-  "tracked": false,
-  "home_team": "Huddersfield",
-  "away_team": "Luton",
-  "commence_time": "2026-11-03T19:45:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.46514614816704725,
-  "draw_prob": 0.2523278268247289,
-  "away_prob": 0.28252602500822394
- },
- {
-  "source": "api_football",
   "league": "National League - South",
   "tracked": false,
   "home_team": "Farnborough",
   "away_team": "Ebbsfleet United",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.20093612893730056,
-  "draw_prob": 0.22189203781998212,
-  "away_prob": 0.5771718332427174
+  "home_prob": 0.20081399745247025,
+  "draw_prob": 0.22143126587849357,
+  "away_prob": 0.5777547366690361
  },
  {
   "source": "api_football",
@@ -2479,9 +2635,9 @@
   "away_team": "Dartford",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 5,
-  "home_prob": 0.31775124467779287,
-  "draw_prob": 0.25477294150591656,
-  "away_prob": 0.42747581381629046
+  "home_prob": 0.31727423616932754,
+  "draw_prob": 0.25565553139190605,
+  "away_prob": 0.4270702324387663
  },
  {
   "source": "api_football",
@@ -2491,9 +2647,9 @@
   "away_team": "Burgess Hill Town",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 5,
-  "home_prob": 0.3796196355850201,
-  "draw_prob": 0.25727672340539726,
-  "away_prob": 0.3631036410095827
+  "home_prob": 0.3791825025172906,
+  "draw_prob": 0.2576154167196364,
+  "away_prob": 0.36320208076307303
  },
  {
   "source": "api_football",
@@ -2503,9 +2659,9 @@
   "away_team": "Leatherhead",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 5,
-  "home_prob": 0.4635417201404138,
-  "draw_prob": 0.23910600444563132,
-  "away_prob": 0.2973522754139549
+  "home_prob": 0.46193785386303965,
+  "draw_prob": 0.24069610924156226,
+  "away_prob": 0.2973660368953981
  },
  {
   "source": "api_football",
@@ -2598,10 +2754,10 @@
   "home_team": "Bracknell Town",
   "away_team": "Chertsey Town",
   "commence_time": "2026-11-03T19:45:00+00:00",
-  "bookmaker_count": 5,
-  "home_prob": 0.2873648997186315,
-  "draw_prob": 0.23943963832032072,
-  "away_prob": 0.47319546196104784
+  "bookmaker_count": 4,
+  "home_prob": 0.2865054044141257,
+  "draw_prob": 0.2399932459641042,
+  "away_prob": 0.47350134962177015
  },
  {
   "source": "api_football",
@@ -2622,10 +2778,10 @@
   "home_team": "Poole Town",
   "away_team": "Hanwell Town",
   "commence_time": "2026-11-03T19:45:00+00:00",
-  "bookmaker_count": 5,
-  "home_prob": 0.5092126950060948,
-  "draw_prob": 0.24650557603069057,
-  "away_prob": 0.24428172896321462
+  "bookmaker_count": 4,
+  "home_prob": 0.5080859423899702,
+  "draw_prob": 0.24569999151545877,
+  "away_prob": 0.24621406609457097
  },
  {
   "source": "api_football",
@@ -2641,15 +2797,111 @@
  },
  {
   "source": "api_football",
+  "league": "Liga Revela\u00e7\u00e3o U23",
+  "tracked": false,
+  "home_team": "Academico Viseu U23",
+  "away_team": "Torreense U23",
+  "commence_time": "2026-11-03T15:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.42654587385026266,
+  "draw_prob": 0.25625130297970605,
+  "away_prob": 0.31720282317003134
+ },
+ {
+  "source": "api_football",
+  "league": "Liga Revela\u00e7\u00e3o U23",
+  "tracked": false,
+  "home_team": "Estrela U23",
+  "away_team": "Santa Clara U23",
+  "commence_time": "2026-11-03T11:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.3522531240632449,
+  "draw_prob": 0.27297333918745154,
+  "away_prob": 0.3747735367493035
+ },
+ {
+  "source": "api_football",
+  "league": "Liga Revela\u00e7\u00e3o U23",
+  "tracked": false,
+  "home_team": "Gil Vicente U23",
+  "away_team": "Felgueiras U23",
+  "commence_time": "2026-11-03T15:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.358216852176498,
+  "draw_prob": 0.2587123551008314,
+  "away_prob": 0.38307079272267064
+ },
+ {
+  "source": "api_football",
+  "league": "Liga Revela\u00e7\u00e3o U23",
+  "tracked": false,
+  "home_team": "Gil Vicente U23",
+  "away_team": "Felgueiras U23",
+  "commence_time": "2026-11-03T15:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.32301044711418303,
+  "draw_prob": 0.25620842422022916,
+  "away_prob": 0.4207811286655877
+ },
+ {
+  "source": "api_football",
+  "league": "Liga Revela\u00e7\u00e3o U23",
+  "tracked": false,
+  "home_team": "Mar\u00edtimo U23",
+  "away_team": "Moreirense U23",
+  "commence_time": "2026-11-03T15:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.18826548789093742,
+  "draw_prob": 0.23075750341199672,
+  "away_prob": 0.5809770086970658
+ },
+ {
+  "source": "api_football",
+  "league": "Liga Revela\u00e7\u00e3o U23",
+  "tracked": false,
+  "home_team": "Vizela U23",
+  "away_team": "Portimonense U23",
+  "commence_time": "2026-11-03T15:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.5319230200689578,
+  "draw_prob": 0.2399929536118937,
+  "away_prob": 0.22808402631914854
+ },
+ {
+  "source": "api_football",
   "league": "Liga MX Femenil",
   "tracked": false,
   "home_team": "Le\u00f3n W",
   "away_team": "Atl\u00e9tico San Luis W",
   "commence_time": "2026-11-03T01:06:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.5050493215090959,
-  "draw_prob": 0.23405634245983353,
-  "away_prob": 0.2608943360310706
+  "home_prob": 0.5027381910578195,
+  "draw_prob": 0.2333673542867983,
+  "away_prob": 0.2638944546553823
+ },
+ {
+  "source": "api_football",
+  "league": "Division 1",
+  "tracked": false,
+  "home_team": "Damac",
+  "away_team": "Al Okhdood",
+  "commence_time": "2026-11-03T12:35:00+00:00",
+  "bookmaker_count": 8,
+  "home_prob": 0.5310917094395468,
+  "draw_prob": 0.2560702461200125,
+  "away_prob": 0.2128380444404408
+ },
+ {
+  "source": "api_football",
+  "league": "Division 1",
+  "tracked": false,
+  "home_team": "Al-Raed",
+  "away_team": "Al Wehda Club",
+  "commence_time": "2026-11-03T15:00:00+00:00",
+  "bookmaker_count": 7,
+  "home_prob": 0.2287140444209138,
+  "draw_prob": 0.2432915694966803,
+  "away_prob": 0.5279943860824059
  },
  {
   "source": "api_football",
@@ -2671,9 +2923,9 @@
   "away_team": "Vegalta Sendai",
   "commence_time": "2026-11-03T04:55:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.35014817820604766,
-  "draw_prob": 0.2687188593120437,
-  "away_prob": 0.38113296248190853
+  "home_prob": 0.35027934314288867,
+  "draw_prob": 0.26864719041875984,
+  "away_prob": 0.38107346643835144
  },
  {
   "source": "api_football",
@@ -2683,9 +2935,9 @@
   "away_team": "Sagan Tosu",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.32062401761157855,
-  "draw_prob": 0.2815789474947431,
-  "away_prob": 0.3977970348936783
+  "home_prob": 0.3198689681775362,
+  "draw_prob": 0.2816299091247963,
+  "away_prob": 0.3985011226976675
  },
  {
   "source": "api_football",
@@ -2695,9 +2947,9 @@
   "away_team": "Tokushima Vortis",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.3875765248557255,
-  "draw_prob": 0.29643806507218257,
-  "away_prob": 0.31598541007209185
+  "home_prob": 0.3878132275798726,
+  "draw_prob": 0.2958152348887536,
+  "away_prob": 0.31637153753137376
  },
  {
   "source": "api_football",
@@ -2707,9 +2959,9 @@
   "away_team": "Jubilo Iwata",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.31551730739118655,
-  "draw_prob": 0.29605280509959775,
-  "away_prob": 0.38842988750921564
+  "home_prob": 0.3156815103739116,
+  "draw_prob": 0.29568747919837646,
+  "away_prob": 0.3886310104277119
  },
  {
   "source": "api_football",
@@ -2719,9 +2971,9 @@
   "away_team": "Iwaki",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.4875126135681642,
-  "draw_prob": 0.24733984686420815,
-  "away_prob": 0.26514753956762765
+  "home_prob": 0.4738359060061238,
+  "draw_prob": 0.25120203341471803,
+  "away_prob": 0.2749620605791581
  },
  {
   "source": "api_football",
@@ -2731,9 +2983,9 @@
   "away_team": "Tochigi City",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.49087769391969277,
-  "draw_prob": 0.2524225087381544,
-  "away_prob": 0.2566997973421528
+  "home_prob": 0.49971191375553287,
+  "draw_prob": 0.2491345052606433,
+  "away_prob": 0.2511535809838238
  },
  {
   "source": "api_football",
@@ -2743,9 +2995,9 @@
   "away_team": "Blaublitz Akita",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.5277375107821209,
-  "draw_prob": 0.2589280605983541,
-  "away_prob": 0.21333442861952506
+  "home_prob": 0.5277229191804789,
+  "draw_prob": 0.26008767672548844,
+  "away_prob": 0.2121894040940327
  },
  {
   "source": "api_football",
@@ -2755,9 +3007,9 @@
   "away_team": "Vanraure Hachinohe",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.43417220659161115,
-  "draw_prob": 0.2976352933504667,
-  "away_prob": 0.2681925000579221
+  "home_prob": 0.43428019561385695,
+  "draw_prob": 0.29828538002484933,
+  "away_prob": 0.2674344243612938
  },
  {
   "source": "api_football",
@@ -2767,9 +3019,9 @@
   "away_team": "Albirex Niigata",
   "commence_time": "2026-11-03T05:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.304577208847482,
-  "draw_prob": 0.2934791899737655,
-  "away_prob": 0.4019436011787525
+  "home_prob": 0.29180941465897225,
+  "draw_prob": 0.2921838175357837,
+  "away_prob": 0.41600676780524415
  },
  {
   "source": "api_football",
@@ -2779,9 +3031,9 @@
   "away_team": "Consadole Sapporo",
   "commence_time": "2026-11-03T05:50:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.3258665800724404,
-  "draw_prob": 0.2790710183490489,
-  "away_prob": 0.39506240157851075
+  "home_prob": 0.32656519689505176,
+  "draw_prob": 0.278803445826558,
+  "away_prob": 0.3946313572783901
  },
  {
   "source": "api_football",
@@ -2790,10 +3042,10 @@
   "home_team": "Newcastle Jets",
   "away_team": "SHANGHAI SIPG",
   "commence_time": "2026-11-03T07:45:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.3420605548950285,
-  "draw_prob": 0.2254129853203732,
-  "away_prob": 0.4325264597845983
+  "bookmaker_count": 9,
+  "home_prob": 0.3204897491803655,
+  "draw_prob": 0.24275515632113132,
+  "away_prob": 0.43675509449850325
  },
  {
   "source": "api_football",
@@ -2802,58 +3054,22 @@
   "home_team": "Jeonbuk Motors",
   "away_team": "Johor Darul Takzim FC",
   "commence_time": "2026-11-03T10:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.40387057641639973,
-  "draw_prob": 0.25292919829189897,
-  "away_prob": 0.34320022529170136
+  "bookmaker_count": 9,
+  "home_prob": 0.328896633322373,
+  "draw_prob": 0.2644573198608448,
+  "away_prob": 0.40664604681678224
  },
  {
   "source": "api_football",
   "league": "AFC Champions League Elite",
   "tracked": false,
-  "home_team": "Esteghlal FC",
-  "away_team": "Al Shamal",
-  "commence_time": "2026-11-03T16:00:00+00:00",
-  "bookmaker_count": 3,
-  "home_prob": 0.3479114513581038,
-  "draw_prob": 0.28340844179377167,
-  "away_prob": 0.36868010684812447
- },
- {
-  "source": "api_football",
-  "league": "Division Profesional - Clausura",
-  "tracked": false,
-  "home_team": "2 de Mayo",
-  "away_team": "Sportivo Trinidense",
-  "commence_time": "2026-11-03T20:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.2824832292339292,
-  "draw_prob": 0.2936674307586178,
-  "away_prob": 0.42384934000745306
- },
- {
-  "source": "api_football",
-  "league": "Division Profesional - Clausura",
-  "tracked": false,
-  "home_team": "Nacional Asuncion",
-  "away_team": "Club Sp. San Lorenzo",
-  "commence_time": "2026-11-03T22:30:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.71678812221782,
-  "draw_prob": 0.18561173025208264,
-  "away_prob": 0.09760014753009744
- },
- {
-  "source": "api_football",
-  "league": "Champions League",
-  "tracked": true,
-  "home_team": "Atletico Madrid",
-  "away_team": "Bayern M\u00fcnchen",
-  "commence_time": "2026-11-03T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.356621773128321,
-  "draw_prob": 0.24470785475800466,
-  "away_prob": 0.39867037211367445
+  "home_team": "Kashiwa Reysol",
+  "away_team": "Daejeon Citizen",
+  "commence_time": "2026-11-03T10:00:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.5985596120451162,
+  "draw_prob": 0.22250670025790079,
+  "away_prob": 0.17893368769698295
  },
  {
   "source": "api_football",
@@ -2863,9 +3079,9 @@
   "away_team": "Aston Villa",
   "commence_time": "2026-11-03T20:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.7610485190281814,
-  "draw_prob": 0.13957235092440118,
-  "away_prob": 0.09937913004741757
+  "home_prob": 0.7618877201260325,
+  "draw_prob": 0.13751322351963446,
+  "away_prob": 0.10059905635433314
  },
  {
   "source": "api_football",
@@ -2875,9 +3091,9 @@
   "away_team": "Lille",
   "commence_time": "2026-11-03T20:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.5143847191552993,
-  "draw_prob": 0.23991230628952692,
-  "away_prob": 0.24570297455517393
+  "home_prob": 0.5157107901957533,
+  "draw_prob": 0.23965145719867706,
+  "away_prob": 0.2446377526055697
  },
  {
   "source": "api_football",
@@ -2887,9 +3103,9 @@
   "away_team": "Inter",
   "commence_time": "2026-11-03T20:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.24393855616246055,
-  "draw_prob": 0.22673824112905988,
-  "away_prob": 0.5293232027084795
+  "home_prob": 0.24736529137144178,
+  "draw_prob": 0.22744744460178415,
+  "away_prob": 0.5251872640267741
  },
  {
   "source": "api_football",
@@ -2899,9 +3115,9 @@
   "away_team": "VfB Stuttgart",
   "commence_time": "2026-11-03T17:45:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.43569894024201383,
-  "draw_prob": 0.2395662733611946,
-  "away_prob": 0.3247347863967917
+  "home_prob": 0.4345966289851575,
+  "draw_prob": 0.23779171715147635,
+  "away_prob": 0.32761165386336605
  },
  {
   "source": "api_football",
@@ -2911,9 +3127,9 @@
   "away_team": "Slovan Bratislava",
   "commence_time": "2026-11-03T20:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.6601908663928224,
-  "draw_prob": 0.1930877958078646,
-  "away_prob": 0.14672133779931304
+  "home_prob": 0.6661268743828156,
+  "draw_prob": 0.19046321408330366,
+  "away_prob": 0.14340991153388066
  },
  {
   "source": "api_football",
@@ -2923,9 +3139,9 @@
   "away_team": "AS Roma",
   "commence_time": "2026-11-03T20:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.40209729524823384,
-  "draw_prob": 0.24597936377574622,
-  "away_prob": 0.35192334097601985
+  "home_prob": 0.4095335879005273,
+  "draw_prob": 0.24489681765978116,
+  "away_prob": 0.3455695944396915
  },
  {
   "source": "api_football",
@@ -2935,9 +3151,9 @@
   "away_team": "Sporting CP",
   "commence_time": "2026-11-03T17:45:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.2629342442997778,
-  "draw_prob": 0.2547191714568674,
-  "away_prob": 0.4823465842433549
+  "home_prob": 0.26364291702034787,
+  "draw_prob": 0.25538250838831067,
+  "away_prob": 0.4809745745913415
  },
  {
   "source": "api_football",
@@ -2947,9 +3163,9 @@
   "away_team": "Paris Saint Germain",
   "commence_time": "2026-11-03T20:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.2010616208347203,
-  "draw_prob": 0.20846622763405773,
-  "away_prob": 0.5904721515312219
+  "home_prob": 0.19690435776838633,
+  "draw_prob": 0.20709583903679987,
+  "away_prob": 0.5959998031948137
  },
  {
   "source": "api_football",
@@ -2959,9 +3175,9 @@
   "away_team": "Manta FC",
   "commence_time": "2026-11-03T20:30:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.5756786292207016,
-  "draw_prob": 0.2508053971459023,
-  "away_prob": 0.17351597363339616
+  "home_prob": 0.5886933390456291,
+  "draw_prob": 0.24566744490097045,
+  "away_prob": 0.16563921605340035
  },
  {
   "source": "api_football",
@@ -2970,10 +3186,10 @@
   "home_team": "Lyngby",
   "away_team": "Randers FC",
   "commence_time": "2026-11-03T17:00:00+00:00",
-  "bookmaker_count": 8,
-  "home_prob": 0.4370614536704201,
-  "draw_prob": 0.2609710453138745,
-  "away_prob": 0.30196750101570535
+  "bookmaker_count": 9,
+  "home_prob": 0.43809307091134336,
+  "draw_prob": 0.26091581616127657,
+  "away_prob": 0.3009911129273801
  },
  {
   "source": "api_football",
@@ -3019,9 +3235,9 @@
   "away_team": "Queen's Park",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.23373170680735034,
-  "draw_prob": 0.23567580180419379,
-  "away_prob": 0.530592491388456
+  "home_prob": 0.23582649877960007,
+  "draw_prob": 0.2357335377775409,
+  "away_prob": 0.5284399634428589
  },
  {
   "source": "api_football",
@@ -3031,9 +3247,9 @@
   "away_team": "Elgin City",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.5293669254615007,
-  "draw_prob": 0.24493303819382733,
-  "away_prob": 0.22570003634467195
+  "home_prob": 0.5286860820689987,
+  "draw_prob": 0.24544966312080035,
+  "away_prob": 0.22586425481020095
  },
  {
   "source": "api_football",
@@ -3043,9 +3259,9 @@
   "away_team": "Ayr Utd",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.1784067014398003,
-  "draw_prob": 0.21506933228347358,
-  "away_prob": 0.6065239662767262
+  "home_prob": 0.17876254497238672,
+  "draw_prob": 0.2157903670601903,
+  "away_prob": 0.605447087967423
  },
  {
   "source": "api_football",
@@ -3055,9 +3271,9 @@
   "away_team": "Queen of the South",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.5372093361115718,
-  "draw_prob": 0.242153046927091,
-  "away_prob": 0.22063761696133719
+  "home_prob": 0.5353131180231472,
+  "draw_prob": 0.24239050317025956,
+  "away_prob": 0.2222963788065933
  },
  {
   "source": "api_football",
@@ -3067,9 +3283,9 @@
   "away_team": "Dunfermline",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.10793905872801489,
-  "draw_prob": 0.17655621629787743,
-  "away_prob": 0.7155047249741077
+  "home_prob": 0.10158467039255617,
+  "draw_prob": 0.16981527789855785,
+  "away_prob": 0.7286000517088861
  },
  {
   "source": "api_football",
@@ -3079,9 +3295,9 @@
   "away_team": "Alloa Athletic",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.3291920462292248,
-  "draw_prob": 0.2548745563395707,
-  "away_prob": 0.41593339743120455
+  "home_prob": 0.3412318781669372,
+  "draw_prob": 0.25440071694606714,
+  "away_prob": 0.40436740488699563
  },
  {
   "source": "api_football",
@@ -3091,9 +3307,21 @@
   "away_team": "Stirling Albion",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.5707250676687736,
-  "draw_prob": 0.2303493823438667,
-  "away_prob": 0.1989255499873597
+  "home_prob": 0.578774844023045,
+  "draw_prob": 0.22726362892096158,
+  "away_prob": 0.1939615270559934
+ },
+ {
+  "source": "api_football",
+  "league": "Challenge Cup",
+  "tracked": false,
+  "home_team": "East Kilbride",
+  "away_team": "Stirling Albion",
+  "commence_time": "2026-11-03T19:45:00+00:00",
+  "bookmaker_count": 9,
+  "home_prob": 0.578774844023045,
+  "draw_prob": 0.22726362892096158,
+  "away_prob": 0.1939615270559934
  },
  {
   "source": "api_football",
@@ -3103,9 +3331,9 @@
   "away_team": "Partick",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.1674569618811423,
-  "draw_prob": 0.2160403174093382,
-  "away_prob": 0.6165027207095194
+  "home_prob": 0.17039380570794763,
+  "draw_prob": 0.2162499907198663,
+  "away_prob": 0.613356203572186
  },
  {
   "source": "api_football",
@@ -3115,9 +3343,9 @@
   "away_team": "Cove Rangers",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.2533016165158023,
-  "draw_prob": 0.23036650462291042,
-  "away_prob": 0.5163318788612873
+  "home_prob": 0.24908017430485033,
+  "draw_prob": 0.23358333843714776,
+  "away_prob": 0.5173364872580019
  },
  {
   "source": "api_football",
@@ -3127,9 +3355,9 @@
   "away_team": "Raith Rovers",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.2897222896834435,
-  "draw_prob": 0.2564984453698578,
-  "away_prob": 0.4537792649466988
+  "home_prob": 0.28648056034804564,
+  "draw_prob": 0.2626430288162545,
+  "away_prob": 0.4508764108356999
  },
  {
   "source": "api_football",
@@ -3139,9 +3367,9 @@
   "away_team": "Montrose",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.6284744255158955,
-  "draw_prob": 0.20566971658815575,
-  "away_prob": 0.1658558578959487
+  "home_prob": 0.6255757297664605,
+  "draw_prob": 0.20654354131718383,
+  "away_prob": 0.16788072891635564
  },
  {
   "source": "api_football",
@@ -3151,9 +3379,9 @@
   "away_team": "Kelty Hearts",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.6440267275399394,
-  "draw_prob": 0.20384595338264397,
-  "away_prob": 0.15212731907741672
+  "home_prob": 0.6466497806732732,
+  "draw_prob": 0.20362779520089266,
+  "away_prob": 0.14972242412583414
  },
  {
   "source": "api_football",
@@ -3163,9 +3391,9 @@
   "away_team": "Celtic II",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.7623943387020865,
-  "draw_prob": 0.13492121919411101,
-  "away_prob": 0.10268444210380262
+  "home_prob": 0.7714720063785234,
+  "draw_prob": 0.13252338265089525,
+  "away_prob": 0.09600461097058141
  },
  {
   "source": "api_football",
@@ -3175,9 +3403,9 @@
   "away_team": "Livingston",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.1220242840822405,
-  "draw_prob": 0.19230518400979676,
-  "away_prob": 0.6856705319079628
+  "home_prob": 0.122411332139866,
+  "draw_prob": 0.19350732119862923,
+  "away_prob": 0.6840813466615048
  },
  {
   "source": "api_football",
@@ -3187,9 +3415,9 @@
   "away_team": "Berwick Rangers",
   "commence_time": "2026-11-03T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.7942741967111696,
-  "draw_prob": 0.13418344036544375,
-  "away_prob": 0.07154236292338675
+  "home_prob": 0.7939124006031218,
+  "draw_prob": 0.13504816529776834,
+  "away_prob": 0.07103943409910987
  },
  {
   "source": "api_football",
@@ -3198,22 +3426,10 @@
   "home_team": "Monagas SC",
   "away_team": "Caracas FC",
   "commence_time": "2026-11-03T21:30:00+00:00",
-  "bookmaker_count": 4,
-  "home_prob": 0.432820448659579,
-  "draw_prob": 0.27173641062618026,
-  "away_prob": 0.29544314071424066
- },
- {
-  "source": "api_football",
-  "league": "Primera Divisi\u00f3n",
-  "tracked": false,
-  "home_team": "Deportivo Tachira FC",
-  "away_team": "Puerto Cabello",
-  "commence_time": "2026-11-03T23:30:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.457008464656431,
-  "draw_prob": 0.2832510346366205,
-  "away_prob": 0.2597405007069486
+  "bookmaker_count": 6,
+  "home_prob": 0.4330923452997084,
+  "draw_prob": 0.27096419830723745,
+  "away_prob": 0.29594345639305414
  },
  {
   "source": "api_football",
@@ -3223,9 +3439,9 @@
   "away_team": "Caiquetio",
   "commence_time": "2026-11-03T00:30:00+00:00",
   "bookmaker_count": 6,
-  "home_prob": 0.6723600798741266,
-  "draw_prob": 0.18615020171110766,
-  "away_prob": 0.14148971841476568
+  "home_prob": 0.6710271467649643,
+  "draw_prob": 0.18757842880240738,
+  "away_prob": 0.14139442443262837
  },
  {
   "source": "api_football",
@@ -3235,9 +3451,9 @@
   "away_team": "Cavalier",
   "commence_time": "2026-11-03T01:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.4568026829394373,
-  "draw_prob": 0.2785963629110364,
-  "away_prob": 0.2646009541495263
+  "home_prob": 0.4567292606964882,
+  "draw_prob": 0.28007497811626114,
+  "away_prob": 0.26319576118725063
  },
  {
   "source": "api_football",
@@ -3247,9 +3463,9 @@
   "away_team": "Vasco DA Gama",
   "commence_time": "2026-11-04T22:30:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.43864417224672675,
-  "draw_prob": 0.2680105491029654,
-  "away_prob": 0.2933452786503078
+  "home_prob": 0.43505253566043717,
+  "draw_prob": 0.26840293098005324,
+  "away_prob": 0.2965445333595096
  },
  {
   "source": "api_football",
@@ -3259,9 +3475,9 @@
   "away_team": "Gremio",
   "commence_time": "2026-11-04T22:30:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.803692790422049,
-  "draw_prob": 0.12675547992754047,
-  "away_prob": 0.06955172965041055
+  "home_prob": 0.8036450980634907,
+  "draw_prob": 0.12655946144396102,
+  "away_prob": 0.06979544049254839
  },
  {
   "source": "api_football",
@@ -3271,9 +3487,9 @@
   "away_team": "Coritiba",
   "commence_time": "2026-11-04T00:30:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.5939063911336202,
-  "draw_prob": 0.2332857314171941,
-  "away_prob": 0.17280787744918574
+  "home_prob": 0.589625646117789,
+  "draw_prob": 0.23488749163199163,
+  "away_prob": 0.17548686225021928
  },
  {
   "source": "api_football",
@@ -3283,9 +3499,9 @@
   "away_team": "Cienciano",
   "commence_time": "2026-11-04T01:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.6589025558132681,
-  "draw_prob": 0.21024830787382034,
-  "away_prob": 0.13084913631291162
+  "home_prob": 0.6599537773648144,
+  "draw_prob": 0.2092578723689889,
+  "away_prob": 0.13078835026619665
  },
  {
   "source": "api_football",
@@ -3379,9 +3595,9 @@
   "away_team": "Wolves",
   "commence_time": "2026-11-04T20:00:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.27614830338894475,
-  "draw_prob": 0.27146097735542535,
-  "away_prob": 0.4523907192556298
+  "home_prob": 0.2730471795308325,
+  "draw_prob": 0.2722714885591127,
+  "away_prob": 0.4546813319100548
  },
  {
   "source": "api_football",
@@ -3403,9 +3619,9 @@
   "away_team": "Middlesbrough",
   "commence_time": "2026-11-04T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.22341202267411492,
-  "draw_prob": 0.23862956606338095,
-  "away_prob": 0.5379584112625042
+  "home_prob": 0.22399590502216465,
+  "draw_prob": 0.23920834727359636,
+  "away_prob": 0.536795747704239
  },
  {
   "source": "api_football",
@@ -3414,10 +3630,22 @@
   "home_team": "Oxford United",
   "away_team": "Reading",
   "commence_time": "2026-11-04T19:45:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.3515645610087561,
-  "draw_prob": 0.26687638807977127,
-  "away_prob": 0.3815590509114726
+  "bookmaker_count": 10,
+  "home_prob": 0.354784095646623,
+  "draw_prob": 0.2669281647206953,
+  "away_prob": 0.37828773963268175
+ },
+ {
+  "source": "api_football",
+  "league": "U19 League",
+  "tracked": false,
+  "home_team": "Veres Rivne U19",
+  "away_team": "Kolos Kovalivka U19",
+  "commence_time": "2026-11-04T11:00:00+00:00",
+  "bookmaker_count": 1,
+  "home_prob": 0.6938735694525193,
+  "draw_prob": 0.17652360866698144,
+  "away_prob": 0.12960282188049932
  },
  {
   "source": "api_football",
@@ -3426,10 +3654,22 @@
   "home_team": "Sportivo Ameliano",
   "away_team": "Club Guarani",
   "commence_time": "2026-11-04T22:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.32952716263922244,
-  "draw_prob": 0.2865129226453832,
-  "away_prob": 0.3839599147153944
+  "bookmaker_count": 7,
+  "home_prob": 0.3260510299060853,
+  "draw_prob": 0.2871465233844336,
+  "away_prob": 0.3868024467094811
+ },
+ {
+  "source": "api_football",
+  "league": "Division Profesional - Clausura",
+  "tracked": false,
+  "home_team": "Libertad Asuncion",
+  "away_team": "Cerro Porteno",
+  "commence_time": "2026-11-04T22:00:00+00:00",
+  "bookmaker_count": 7,
+  "home_prob": 0.3500617220629919,
+  "draw_prob": 0.2828085092905445,
+  "away_prob": 0.3671297686464637
  },
  {
   "source": "api_football",
@@ -3438,10 +3678,10 @@
   "home_team": "AEK Athens FC",
   "away_team": "Real Madrid",
   "commence_time": "2026-11-04T17:45:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.10287254579698628,
-  "draw_prob": 0.14742466412880595,
-  "away_prob": 0.7497027900742078
+  "bookmaker_count": 9,
+  "home_prob": 0.0962916272875622,
+  "draw_prob": 0.14234780095307537,
+  "away_prob": 0.7613605717593623
  },
  {
   "source": "api_football",
@@ -3450,10 +3690,10 @@
   "home_team": "Borussia Dortmund",
   "away_team": "Real Betis",
   "commence_time": "2026-11-04T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.5489484470115616,
-  "draw_prob": 0.231649103075172,
-  "away_prob": 0.21940244991326627
+  "bookmaker_count": 9,
+  "home_prob": 0.551799035498932,
+  "draw_prob": 0.23045242215933875,
+  "away_prob": 0.21774854234172933
  },
  {
   "source": "api_football",
@@ -3462,10 +3702,10 @@
   "home_team": "FC Porto",
   "away_team": "Napoli",
   "commence_time": "2026-11-04T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.45604977179031314,
-  "draw_prob": 0.26361704356020477,
-  "away_prob": 0.280333184649482
+  "bookmaker_count": 9,
+  "home_prob": 0.477545511234006,
+  "draw_prob": 0.25661748486744823,
+  "away_prob": 0.2658370038985457
  },
  {
   "source": "api_football",
@@ -3474,10 +3714,10 @@
   "home_team": "Fenerbah\u00e7e",
   "away_team": "Liverpool",
   "commence_time": "2026-11-04T17:45:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.18914904884530537,
-  "draw_prob": 0.21328087207191276,
-  "away_prob": 0.5975700790827818
+  "bookmaker_count": 9,
+  "home_prob": 0.17849437533806078,
+  "draw_prob": 0.20995274071698852,
+  "away_prob": 0.6115528839449508
  },
  {
   "source": "api_football",
@@ -3486,10 +3726,10 @@
   "home_team": "Lens",
   "away_team": "Como",
   "commence_time": "2026-11-04T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.3198721673643549,
-  "draw_prob": 0.24795368782472152,
-  "away_prob": 0.4321741448109236
+  "bookmaker_count": 9,
+  "home_prob": 0.3214030902323255,
+  "draw_prob": 0.2469983353373136,
+  "away_prob": 0.4315985744303609
  },
  {
   "source": "api_football",
@@ -3498,10 +3738,10 @@
   "home_team": "PSV Eindhoven",
   "away_team": "Club Brugge KV",
   "commence_time": "2026-11-04T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.4609801887770547,
-  "draw_prob": 0.22678743849685631,
-  "away_prob": 0.31223237272608906
+  "bookmaker_count": 9,
+  "home_prob": 0.4649177428602297,
+  "draw_prob": 0.22372704294274376,
+  "away_prob": 0.31135521419702655
  },
  {
   "source": "api_football",
@@ -3510,10 +3750,10 @@
   "home_team": "RB Leipzig",
   "away_team": "Manchester City",
   "commence_time": "2026-11-04T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.18616194708053474,
-  "draw_prob": 0.20285283270521243,
-  "away_prob": 0.6109852202142529
+  "bookmaker_count": 9,
+  "home_prob": 0.18670447931909595,
+  "draw_prob": 0.20369134463610927,
+  "away_prob": 0.6096041760447949
  },
  {
   "source": "api_football",
@@ -3522,10 +3762,10 @@
   "home_team": "Slavia Praha",
   "away_team": "Arsenal",
   "commence_time": "2026-11-04T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.10732523090779328,
-  "draw_prob": 0.16770902312730465,
-  "away_prob": 0.7249657459649022
+  "bookmaker_count": 9,
+  "home_prob": 0.09594177429638161,
+  "draw_prob": 0.15946359760180906,
+  "away_prob": 0.7445946281018094
  },
  {
   "source": "api_football",
@@ -3534,10 +3774,10 @@
   "home_team": "Rennes",
   "away_team": "Olympiakos Piraeus",
   "commence_time": "2026-11-04T15:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.4403433153786129,
-  "draw_prob": 0.2666771053866743,
-  "away_prob": 0.2929795792347129
+  "bookmaker_count": 9,
+  "home_prob": 0.4232573139092852,
+  "draw_prob": 0.268860014484894,
+  "away_prob": 0.30788267160582067
  },
  {
   "source": "api_football",
@@ -3546,10 +3786,10 @@
   "home_team": "Amorebieta",
   "away_team": "UD Logro\u00f1\u00e9s",
   "commence_time": "2026-11-04T19:00:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.2268182492666815,
-  "draw_prob": 0.2533992181789932,
-  "away_prob": 0.5197825325543254
+  "bookmaker_count": 7,
+  "home_prob": 0.24849212360814268,
+  "draw_prob": 0.26703766420790687,
+  "away_prob": 0.48447021218395053
  },
  {
   "source": "api_football",
@@ -3558,10 +3798,10 @@
   "home_team": "Badajoz",
   "away_team": "Tenerife",
   "commence_time": "2026-11-04T20:00:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.17954213734625568,
-  "draw_prob": 0.24110305192016165,
-  "away_prob": 0.5793548107335827
+  "bookmaker_count": 8,
+  "home_prob": 0.16488438909782352,
+  "draw_prob": 0.23664629938856777,
+  "away_prob": 0.5984693115136087
  },
  {
   "source": "api_football",
@@ -3570,34 +3810,10 @@
   "home_team": "Deportiva Minera",
   "away_team": "FC Cartagena",
   "commence_time": "2026-11-04T19:30:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.26512532969848746,
-  "draw_prob": 0.2788784849544038,
-  "away_prob": 0.45599618534710884
- },
- {
-  "source": "api_football",
-  "league": "Copa del Rey",
-  "tracked": false,
-  "home_team": "Portugalete",
-  "away_team": "Real Uni\u00f3n",
-  "commence_time": "2026-11-04T18:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.309023882240585,
-  "draw_prob": 0.2905895007201179,
-  "away_prob": 0.400386617039297
- },
- {
-  "source": "api_football",
-  "league": "Copa del Rey",
-  "tracked": false,
-  "home_team": "Calvo Sotelo",
-  "away_team": "Albacete",
-  "commence_time": "2026-11-04T19:45:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.17828157198244268,
-  "draw_prob": 0.22007799475278197,
-  "away_prob": 0.6016404332647753
+  "home_prob": 0.29663650991369633,
+  "draw_prob": 0.2912830007660552,
+  "away_prob": 0.4120804893202485
  },
  {
   "source": "api_football",
@@ -4383,6 +4599,18 @@
   "source": "api_football",
   "league": "Serie B",
   "tracked": false,
+  "home_team": "Botafogo SP",
+  "away_team": "Londrina",
+  "commence_time": "2026-11-06T22:30:00+00:00",
+  "bookmaker_count": 4,
+  "home_prob": 0.5282864853702869,
+  "draw_prob": 0.2593769966170167,
+  "away_prob": 0.2123365180126965
+ },
+ {
+  "source": "api_football",
+  "league": "Serie B",
+  "tracked": false,
   "home_team": "Operario-PR",
   "away_team": "Sport Recife",
   "commence_time": "2026-11-06T22:30:00+00:00",
@@ -4423,9 +4651,9 @@
   "away_team": "Lyngby",
   "commence_time": "2026-11-06T18:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.38519387937406174,
-  "draw_prob": 0.2505516328153659,
-  "away_prob": 0.3642544878105723
+  "home_prob": 0.38597444160617206,
+  "draw_prob": 0.2504391934184007,
+  "away_prob": 0.3635863649754273
  },
  {
   "source": "api_football",
@@ -4435,9 +4663,9 @@
   "away_team": "Cusco",
   "commence_time": "2026-11-06T20:00:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.3938005983471941,
-  "draw_prob": 0.2738426135462992,
-  "away_prob": 0.3323567881065066
+  "home_prob": 0.38773595889590956,
+  "draw_prob": 0.2746129279151895,
+  "away_prob": 0.33765111318890095
  },
  {
   "source": "api_football",
@@ -4446,22 +4674,10 @@
   "home_team": "Chico",
   "away_team": "Internacional de Bogota",
   "commence_time": "2026-11-06T23:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.39440192998712625,
-  "draw_prob": 0.2857736952557095,
-  "away_prob": 0.31982437475716413
- },
- {
-  "source": "api_football",
-  "league": "Italian Serie A",
-  "tracked": true,
-  "home_team": "Venezia",
-  "away_team": "Udinese",
-  "commence_time": "2026-11-06T19:45:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.43486333839841823,
-  "draw_prob": 0.2646898985231167,
-  "away_prob": 0.30044676307846513
+  "bookmaker_count": 3,
+  "home_prob": 0.39173896895388965,
+  "draw_prob": 0.287033362973854,
+  "away_prob": 0.32122766807225633
  },
  {
   "source": "api_football",
@@ -4542,10 +4758,10 @@
   "home_team": "Dordrecht",
   "away_team": "NAC Breda",
   "commence_time": "2026-11-06T19:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.2290638867486673,
-  "draw_prob": 0.22360372216130991,
-  "away_prob": 0.5473323910900226
+  "bookmaker_count": 3,
+  "home_prob": 0.23080843656886332,
+  "draw_prob": 0.22069101508465447,
+  "away_prob": 0.5485005483464822
  },
  {
   "source": "api_football",
@@ -4554,10 +4770,10 @@
   "home_team": "FC Eindhoven",
   "away_team": "Jong Ajax",
   "commence_time": "2026-11-06T19:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.46601622037549717,
-  "draw_prob": 0.23277644027285174,
-  "away_prob": 0.30120733935165117
+  "bookmaker_count": 3,
+  "home_prob": 0.46369921629767547,
+  "draw_prob": 0.22918157826092359,
+  "away_prob": 0.3071192054414008
  },
  {
   "source": "api_football",
@@ -4567,9 +4783,9 @@
   "away_team": "FC Volendam",
   "commence_time": "2026-11-06T19:00:00+00:00",
   "bookmaker_count": 7,
-  "home_prob": 0.37205569821311163,
-  "draw_prob": 0.23434253696209578,
-  "away_prob": 0.39360176482479264
+  "home_prob": 0.3714815129211392,
+  "draw_prob": 0.23414570428995604,
+  "away_prob": 0.3943727827889048
  },
  {
   "source": "api_football",
@@ -4578,10 +4794,10 @@
   "home_team": "Heracles",
   "away_team": "Roda",
   "commence_time": "2026-11-06T19:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.6325265432554843,
-  "draw_prob": 0.2015207841519665,
-  "away_prob": 0.16595267259254926
+  "bookmaker_count": 3,
+  "home_prob": 0.6327340022956891,
+  "draw_prob": 0.20131387830244493,
+  "away_prob": 0.16595211940186597
  },
  {
   "source": "api_football",
@@ -4602,10 +4818,10 @@
   "home_team": "FC OSS",
   "away_team": "Waalwijk",
   "commence_time": "2026-11-06T19:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.28312866347207744,
-  "draw_prob": 0.24831497273370726,
-  "away_prob": 0.4685563637942152
+  "bookmaker_count": 3,
+  "home_prob": 0.2826773185792928,
+  "draw_prob": 0.24500502610938935,
+  "away_prob": 0.47231765531131775
  },
  {
   "source": "api_football",
@@ -4614,10 +4830,10 @@
   "home_team": "VVV Venlo",
   "away_team": "Jong PSV U21",
   "commence_time": "2026-11-06T19:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.5371331733647657,
-  "draw_prob": 0.2180779738933274,
-  "away_prob": 0.24478885274190684
+  "bookmaker_count": 3,
+  "home_prob": 0.542326576345362,
+  "draw_prob": 0.2152246465770305,
+  "away_prob": 0.24244877707760762
  },
  {
   "source": "api_football",
@@ -4662,10 +4878,10 @@
   "home_team": "Dijon",
   "away_team": "RED Star FC 93",
   "commence_time": "2026-11-06T19:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.35822047567993504,
-  "draw_prob": 0.2766020123244039,
-  "away_prob": 0.3651775119956612
+  "bookmaker_count": 5,
+  "home_prob": 0.35757571135843796,
+  "draw_prob": 0.26997820478402557,
+  "away_prob": 0.3724460838575364
  },
  {
   "source": "api_football",
@@ -4686,10 +4902,22 @@
   "home_team": "Grenoble",
   "away_team": "Reims",
   "commence_time": "2026-11-06T19:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.24296158403336726,
-  "draw_prob": 0.27686089004199455,
-  "away_prob": 0.4801775259246382
+  "bookmaker_count": 5,
+  "home_prob": 0.24287360492144475,
+  "draw_prob": 0.2739128251134004,
+  "away_prob": 0.4832135699651548
+ },
+ {
+  "source": "api_football",
+  "league": "France - Ligue 2",
+  "tracked": true,
+  "home_team": "Montpellier",
+  "away_team": "Metz",
+  "commence_time": "2026-11-06T19:00:00+00:00",
+  "bookmaker_count": 7,
+  "home_prob": 0.4566429080086318,
+  "draw_prob": 0.2915433839981353,
+  "away_prob": 0.2518137079932328
  },
  {
   "source": "api_football",
@@ -4710,10 +4938,10 @@
   "home_team": "Nancy",
   "away_team": "Sochaux",
   "commence_time": "2026-11-06T19:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.5007768778177409,
-  "draw_prob": 0.26524526356859623,
-  "away_prob": 0.23397785861366285
+  "bookmaker_count": 5,
+  "home_prob": 0.508828811574039,
+  "draw_prob": 0.2603450465764135,
+  "away_prob": 0.2308261418495474
  },
  {
   "source": "api_football",
@@ -4722,10 +4950,10 @@
   "home_team": "PAU",
   "away_team": "Nantes",
   "commence_time": "2026-11-06T19:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.3119022995654961,
-  "draw_prob": 0.28206827006694585,
-  "away_prob": 0.40602943036755806
+  "bookmaker_count": 7,
+  "home_prob": 0.31172226130638003,
+  "draw_prob": 0.2821160017949702,
+  "away_prob": 0.40616173689864987
  },
  {
   "source": "api_football",
@@ -4734,10 +4962,10 @@
   "home_team": "Saint Etienne",
   "away_team": "Laval",
   "commence_time": "2026-11-06T19:00:00+00:00",
-  "bookmaker_count": 5,
-  "home_prob": 0.7031299236026421,
-  "draw_prob": 0.18267834030426863,
-  "away_prob": 0.11419173609308929
+  "bookmaker_count": 6,
+  "home_prob": 0.7028857268475736,
+  "draw_prob": 0.18236840242912028,
+  "away_prob": 0.11474587072330619
  },
  {
   "source": "api_football",
@@ -4747,9 +4975,9 @@
   "away_team": "Strasbourg",
   "commence_time": "2026-11-06T19:45:00+00:00",
   "bookmaker_count": 9,
-  "home_prob": 0.46172433785656736,
-  "draw_prob": 0.2517712419662795,
-  "away_prob": 0.2865044201771532
+  "home_prob": 0.46194844035811694,
+  "draw_prob": 0.25161299844604745,
+  "away_prob": 0.2864385611958356
  },
  {
   "source": "api_football",
@@ -4813,27 +5041,15 @@
  },
  {
   "source": "api_football",
-  "league": "Scotland - Championship",
-  "tracked": true,
-  "home_team": "Raith Rovers",
-  "away_team": "Dunfermline",
-  "commence_time": "2026-11-06T19:30:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.34930639159144067,
-  "draw_prob": 0.3002503160105334,
-  "away_prob": 0.3504432923980259
- },
- {
-  "source": "api_football",
   "league": "English Premier League",
   "tracked": true,
   "home_team": "Everton",
   "away_team": "Coventry",
   "commence_time": "2026-11-06T20:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.5518441255464158,
-  "draw_prob": 0.24176733643906367,
-  "away_prob": 0.20638853801452045
+  "home_prob": 0.5522090552836108,
+  "draw_prob": 0.2410115292513319,
+  "away_prob": 0.20677941546505726
  },
  {
   "source": "api_football",
@@ -4914,10 +5130,10 @@
   "home_team": "Lokomotiv",
   "away_team": "Rubin",
   "commence_time": "2026-11-06T16:30:00+00:00",
-  "bookmaker_count": 4,
-  "home_prob": 0.45702870171989257,
-  "draw_prob": 0.27218854972751033,
-  "away_prob": 0.27078274855259704
+  "bookmaker_count": 2,
+  "home_prob": 0.4525705836644463,
+  "draw_prob": 0.27193532291405065,
+  "away_prob": 0.27549409342150294
  },
  {
   "source": "api_football",
@@ -4930,18 +5146,6 @@
   "home_prob": 0.3098249540741992,
   "draw_prob": 0.27283092970713063,
   "away_prob": 0.41734411621867024
- },
- {
-  "source": "api_football",
-  "league": "Austrian Bundesliga",
-  "tracked": true,
-  "home_team": "Rapid Vienna",
-  "away_team": "Wolfsberger AC",
-  "commence_time": "2026-11-06T18:30:00+00:00",
-  "bookmaker_count": 9,
-  "home_prob": 0.7487690654020283,
-  "draw_prob": 0.15057193129006788,
-  "away_prob": 0.10065900330790394
  },
  {
   "source": "api_football",
@@ -5526,10 +5730,22 @@
   "home_team": "Avai",
   "away_team": "S\u00e3o Bernardo",
   "commence_time": "2026-11-07T19:00:00+00:00",
+  "bookmaker_count": 8,
+  "home_prob": 0.4856498007112686,
+  "draw_prob": 0.2809381773440303,
+  "away_prob": 0.2334120219447011
+ },
+ {
+  "source": "api_football",
+  "league": "Serie B",
+  "tracked": false,
+  "home_team": "Cuiaba",
+  "away_team": "Juventude",
+  "commence_time": "2026-11-07T00:30:00+00:00",
   "bookmaker_count": 7,
-  "home_prob": 0.48468880933389935,
-  "draw_prob": 0.2811673566757981,
-  "away_prob": 0.23414383399030259
+  "home_prob": 0.3175814735386882,
+  "draw_prob": 0.30549102994923805,
+  "away_prob": 0.3769274965120737
  },
  {
   "source": "api_football",
@@ -5550,10 +5766,10 @@
   "home_team": "Odense",
   "away_team": "Viborg",
   "commence_time": "2026-11-07T17:00:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.35671736950102123,
-  "draw_prob": 0.25503891244064464,
-  "away_prob": 0.38824371805833413
+  "bookmaker_count": 9,
+  "home_prob": 0.3564566791466899,
+  "draw_prob": 0.2558364888392436,
+  "away_prob": 0.38770683201406647
  },
  {
   "source": "api_football",
@@ -5562,10 +5778,10 @@
   "home_team": "AS Roma",
   "away_team": "Sassuolo",
   "commence_time": "2026-11-07T19:45:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.7031500971610586,
-  "draw_prob": 0.17512427684971035,
-  "away_prob": 0.121725625989231
+  "bookmaker_count": 9,
+  "home_prob": 0.7131791696283161,
+  "draw_prob": 0.1707301927060265,
+  "away_prob": 0.11609063766565735
  },
  {
   "source": "api_football",
@@ -5574,10 +5790,10 @@
   "home_team": "Cagliari",
   "away_team": "Frosinone",
   "commence_time": "2026-11-07T14:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.34885198546824586,
-  "draw_prob": 0.2576399440853646,
-  "away_prob": 0.39350807044638964
+  "bookmaker_count": 9,
+  "home_prob": 0.3430530834093989,
+  "draw_prob": 0.2584885347229614,
+  "away_prob": 0.39845838186763965
  },
  {
   "source": "api_football",
@@ -5586,10 +5802,10 @@
   "home_team": "Parma",
   "away_team": "Bologna",
   "commence_time": "2026-11-07T17:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.21486710698063088,
-  "draw_prob": 0.2728233033553668,
-  "away_prob": 0.5123095896640023
+  "bookmaker_count": 9,
+  "home_prob": 0.2127734152746045,
+  "draw_prob": 0.27136389659686466,
+  "away_prob": 0.5158626881285308
  },
  {
   "source": "api_football",
@@ -5598,10 +5814,10 @@
   "home_team": "Torino",
   "away_team": "Lecce",
   "commence_time": "2026-11-07T14:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.5156464502020388,
-  "draw_prob": 0.2647951804540617,
-  "away_prob": 0.2195583693438995
+  "bookmaker_count": 9,
+  "home_prob": 0.5211111632570158,
+  "draw_prob": 0.26215630851578925,
+  "away_prob": 0.21673252822719496
  },
  {
   "source": "api_football",
@@ -5670,10 +5886,10 @@
   "home_team": "Ludogorets",
   "away_team": "CSKA 1948",
   "commence_time": "2026-11-07T16:30:00+00:00",
-  "bookmaker_count": 5,
-  "home_prob": 0.5765456519453753,
-  "draw_prob": 0.23866568306958066,
-  "away_prob": 0.18478866498504398
+  "bookmaker_count": 6,
+  "home_prob": 0.5770342371601783,
+  "draw_prob": 0.2382628848584703,
+  "away_prob": 0.18470287798135138
  },
  {
   "source": "api_football",
@@ -5710,18 +5926,6 @@
   "home_prob": 0.36673217088173554,
   "draw_prob": 0.26859827222812094,
   "away_prob": 0.3646695568901435
- },
- {
-  "source": "api_football",
-  "league": "Slovak First Football League",
-  "tracked": true,
-  "home_team": "Dukla Bansk\u00e1 Bystrica",
-  "away_team": "Spartak Trnava",
-  "commence_time": "2026-11-07T14:30:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.23449699448786243,
-  "draw_prob": 0.25192308986713297,
-  "away_prob": 0.5135799156450046
  },
  {
   "source": "api_football",
@@ -5847,6 +6051,18 @@
   "source": "api_football",
   "league": "Polish Ekstraklasa",
   "tracked": true,
+  "home_team": "Korona Kielce",
+  "away_team": "Radomiak Radom",
+  "commence_time": "2026-11-07T11:15:00+00:00",
+  "bookmaker_count": 5,
+  "home_prob": 0.5325716421766592,
+  "draw_prob": 0.24647831044503443,
+  "away_prob": 0.22095004737830629
+ },
+ {
+  "source": "api_football",
+  "league": "Polish Ekstraklasa",
+  "tracked": true,
   "home_team": "Slask Wroclaw",
   "away_team": "Piast Gliwice",
   "commence_time": "2026-11-07T13:45:00+00:00",
@@ -5862,10 +6078,10 @@
   "home_team": "Widzew \u0141\u00f3d\u017a",
   "away_team": "Pogon Szczecin",
   "commence_time": "2026-11-07T19:15:00+00:00",
-  "bookmaker_count": 1,
-  "home_prob": 0.4284952577919245,
-  "draw_prob": 0.27348079688484594,
-  "away_prob": 0.2980239453232295
+  "bookmaker_count": 5,
+  "home_prob": 0.4271535062913479,
+  "draw_prob": 0.26948918637324054,
+  "away_prob": 0.3033573073354115
  },
  {
   "source": "api_football",
@@ -5922,10 +6138,10 @@
   "home_team": "Hapoel Katamon",
   "away_team": "Bnei Sakhnin",
   "commence_time": "2026-11-07T18:00:00+00:00",
-  "bookmaker_count": 4,
-  "home_prob": 0.4062908062265536,
-  "draw_prob": 0.30086398723892305,
-  "away_prob": 0.29284520653452334
+  "bookmaker_count": 7,
+  "home_prob": 0.3990343946119482,
+  "draw_prob": 0.30078601054415877,
+  "away_prob": 0.30017959484389295
  },
  {
   "source": "api_football",
@@ -5934,10 +6150,10 @@
   "home_team": "Ironi Tiberias",
   "away_team": "Beitar Jerusalem",
   "commence_time": "2026-11-07T18:00:00+00:00",
-  "bookmaker_count": 4,
-  "home_prob": 0.13861632644064228,
-  "draw_prob": 0.18464140442948135,
-  "away_prob": 0.6767422691298765
+  "bookmaker_count": 6,
+  "home_prob": 0.1204715667381032,
+  "draw_prob": 0.17277291186714683,
+  "away_prob": 0.7067555213947498
  },
  {
   "source": "api_football",
@@ -5946,10 +6162,10 @@
   "home_team": "Ironi Kiryat Shmona",
   "away_team": "Hapoel Haifa",
   "commence_time": "2026-11-07T18:00:00+00:00",
-  "bookmaker_count": 4,
-  "home_prob": 0.3419097470115285,
-  "draw_prob": 0.2708516336435671,
-  "away_prob": 0.38723861934490444
+  "bookmaker_count": 6,
+  "home_prob": 0.3498435097592599,
+  "draw_prob": 0.26597152339137164,
+  "away_prob": 0.3841849668493684
  },
  {
   "source": "api_football",
@@ -6127,9 +6343,9 @@
   "away_team": "Hull City",
   "commence_time": "2026-11-07T15:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.8185348781620629,
-  "draw_prob": 0.12508410209333992,
-  "away_prob": 0.05638101974459715
+  "home_prob": 0.8215484819856474,
+  "draw_prob": 0.12317801595111054,
+  "away_prob": 0.05527350206324206
  },
  {
   "source": "api_football",
@@ -6139,9 +6355,9 @@
   "away_team": "Newcastle",
   "commence_time": "2026-11-07T15:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.43702927733632496,
-  "draw_prob": 0.26123670901909374,
-  "away_prob": 0.3017340136445813
+  "home_prob": 0.43719081863827153,
+  "draw_prob": 0.26112122726879866,
+  "away_prob": 0.30168795409292976
  },
  {
   "source": "api_football",
@@ -6151,9 +6367,9 @@
   "away_team": "Tottenham",
   "commence_time": "2026-11-07T12:30:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.3776802306583043,
-  "draw_prob": 0.280749001913533,
-  "away_prob": 0.3415707674281626
+  "home_prob": 0.37820954384100364,
+  "draw_prob": 0.2798154186451803,
+  "away_prob": 0.3419750375138161
  },
  {
   "source": "api_football",
@@ -6163,9 +6379,9 @@
   "away_team": "Manchester City",
   "commence_time": "2026-11-07T17:30:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.20747229075577553,
-  "draw_prob": 0.23435920094583496,
-  "away_prob": 0.5581685082983896
+  "home_prob": 0.20607144041757153,
+  "draw_prob": 0.2335937744883187,
+  "away_prob": 0.5603347850941097
  },
  {
   "source": "api_football",
@@ -6306,22 +6522,10 @@
   "home_team": "Akhmat",
   "away_team": "Rodina Moskva",
   "commence_time": "2026-11-07T13:30:00+00:00",
-  "bookmaker_count": 4,
-  "home_prob": 0.5631770897172734,
-  "draw_prob": 0.22727056701885254,
-  "away_prob": 0.2095523432638741
- },
- {
-  "source": "api_football",
-  "league": "Russian Football Premier League",
-  "tracked": true,
-  "home_team": "Fakel",
-  "away_team": "Dynamo",
-  "commence_time": "2026-11-07T11:00:00+00:00",
-  "bookmaker_count": 4,
-  "home_prob": 0.1825754595020706,
-  "draw_prob": 0.2366186266192522,
-  "away_prob": 0.5808059138786772
+  "bookmaker_count": 2,
+  "home_prob": 0.5603781354079673,
+  "draw_prob": 0.22751712643889463,
+  "away_prob": 0.21210473815313807
  },
  {
   "source": "api_football",
@@ -6445,39 +6649,15 @@
  },
  {
   "source": "api_football",
-  "league": "Ukrainian Premier League",
-  "tracked": true,
-  "home_team": "Polessya",
-  "away_team": "Veres Rivne",
-  "commence_time": "2026-11-07T16:00:00+00:00",
-  "bookmaker_count": 2,
-  "home_prob": 0.8082467097443434,
-  "draw_prob": 0.13755321677868304,
-  "away_prob": 0.054200073476973615
- },
- {
-  "source": "api_football",
-  "league": "Ukrainian Premier League",
-  "tracked": true,
-  "home_team": "Shakhtar Donetsk",
-  "away_team": "Dynamo Kyiv",
-  "commence_time": "2026-11-07T16:00:00+00:00",
-  "bookmaker_count": 1,
-  "home_prob": 0.5716770270922055,
-  "draw_prob": 0.23927334216641177,
-  "away_prob": 0.18904963074138278
- },
- {
-  "source": "api_football",
   "league": "Spain - Segunda Divisi\u00f3n",
   "tracked": true,
   "home_team": "Burgos",
   "away_team": "Celta de Vigo II",
   "commence_time": "2026-11-07T13:00:00+00:00",
-  "bookmaker_count": 5,
-  "home_prob": 0.549490327464465,
-  "draw_prob": 0.2521968815606011,
-  "away_prob": 0.19831279097493398
+  "bookmaker_count": 1,
+  "home_prob": 0.5462598364734285,
+  "draw_prob": 0.25279045624036317,
+  "away_prob": 0.20094970728620837
  },
  {
   "source": "api_football",
@@ -6498,10 +6678,10 @@
   "home_team": "Granada CF",
   "away_team": "Tenerife",
   "commence_time": "2026-11-07T20:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.49365546712641806,
-  "draw_prob": 0.27290267994999573,
-  "away_prob": 0.23344185292358616
+  "bookmaker_count": 1,
+  "home_prob": 0.4990314230367031,
+  "draw_prob": 0.2684929628169304,
+  "away_prob": 0.23247561414636658
  },
  {
   "source": "api_football",
@@ -6522,10 +6702,10 @@
   "home_team": "Espanyol",
   "away_team": "Deportivo La Coruna",
   "commence_time": "2026-11-07T15:15:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.43035060280912885,
-  "draw_prob": 0.28061088496868636,
-  "away_prob": 0.28903851222218485
+  "bookmaker_count": 6,
+  "home_prob": 0.42915704877510674,
+  "draw_prob": 0.2820667146551308,
+  "away_prob": 0.28877623656976253
  },
  {
   "source": "api_football",
@@ -6534,10 +6714,10 @@
   "home_team": "Malaga",
   "away_team": "Racing Santander",
   "commence_time": "2026-11-07T13:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.39741714747506335,
-  "draw_prob": 0.2653790007217558,
-  "away_prob": 0.3372038518031808
+  "bookmaker_count": 6,
+  "home_prob": 0.39819519595543296,
+  "draw_prob": 0.26462009130231506,
+  "away_prob": 0.3371847127422519
  },
  {
   "source": "api_football",
@@ -6546,10 +6726,10 @@
   "home_team": "Osasuna",
   "away_team": "Athletic Club",
   "commence_time": "2026-11-07T17:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.2875000185859556,
-  "draw_prob": 0.2826202892964424,
-  "away_prob": 0.4298796921176019
+  "bookmaker_count": 6,
+  "home_prob": 0.2842921883751665,
+  "draw_prob": 0.28172599309189134,
+  "away_prob": 0.4339818185329422
  },
  {
   "source": "api_football",
@@ -6558,10 +6738,10 @@
   "home_team": "Valencia",
   "away_team": "Real Madrid",
   "commence_time": "2026-11-07T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.11784852764800847,
-  "draw_prob": 0.1645295019309253,
-  "away_prob": 0.7176219704210661
+  "bookmaker_count": 6,
+  "home_prob": 0.1127998899544265,
+  "draw_prob": 0.16363780968904132,
+  "away_prob": 0.7235623003565322
  },
  {
   "source": "api_football",
@@ -6630,10 +6810,10 @@
   "home_team": "Nacional",
   "away_team": "Academico Viseu",
   "commence_time": "2026-11-07T15:30:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.31907974474455275,
-  "draw_prob": 0.2858837316555827,
-  "away_prob": 0.3950365235998645
+  "bookmaker_count": 5,
+  "home_prob": 0.31861204259980497,
+  "draw_prob": 0.2864676914159681,
+  "away_prob": 0.3949202659842269
  },
  {
   "source": "api_football",
@@ -6642,10 +6822,10 @@
   "home_team": "Sporting CP",
   "away_team": "Moreirense",
   "commence_time": "2026-11-07T20:30:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.8071491364199658,
-  "draw_prob": 0.12457628571741733,
-  "away_prob": 0.06827457786261704
+  "bookmaker_count": 5,
+  "home_prob": 0.8092809686581689,
+  "draw_prob": 0.12262102118700462,
+  "away_prob": 0.06809801015482637
  },
  {
   "source": "api_football",
@@ -6702,10 +6882,34 @@
   "home_team": "Academica",
   "away_team": "Amarante",
   "commence_time": "2026-11-07T15:30:00+00:00",
+  "bookmaker_count": 5,
+  "home_prob": 0.4652915162367548,
+  "draw_prob": 0.27702143743429347,
+  "away_prob": 0.2576870463289518
+ },
+ {
+  "source": "api_football",
+  "league": "Germany - 2. Bundesliga",
+  "tracked": true,
+  "home_team": "VfL Osnabr\u00fcck",
+  "away_team": "1. FC Kaiserslautern",
+  "commence_time": "2026-11-07T12:00:00+00:00",
   "bookmaker_count": 6,
-  "home_prob": 0.4668883456846086,
-  "draw_prob": 0.27711813281303654,
-  "away_prob": 0.2559935215023549
+  "home_prob": 0.3594371028359349,
+  "draw_prob": 0.25918679460218885,
+  "away_prob": 0.3813761025618764
+ },
+ {
+  "source": "api_football",
+  "league": "Portugal - Segunda Liga",
+  "tracked": true,
+  "home_team": "Academica",
+  "away_team": "Amarante",
+  "commence_time": "2026-11-07T15:30:00+00:00",
+  "bookmaker_count": 7,
+  "home_prob": 0.46453882097961713,
+  "draw_prob": 0.2768625344037543,
+  "away_prob": 0.25859864461662846
  },
  {
   "source": "api_football",
@@ -6714,10 +6918,10 @@
   "home_team": "Felgueiras 1932",
   "away_team": "Leixoes",
   "commence_time": "2026-11-07T11:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.34384379276607097,
-  "draw_prob": 0.3011678191922576,
-  "away_prob": 0.35498838804167143
+  "bookmaker_count": 7,
+  "home_prob": 0.3440022691902267,
+  "draw_prob": 0.2995781999829112,
+  "away_prob": 0.3564195308268622
  },
  {
   "source": "api_football",
@@ -6751,9 +6955,9 @@
   "away_team": "Kocaelispor",
   "commence_time": "2026-11-07T10:30:00+00:00",
   "bookmaker_count": 8,
-  "home_prob": 0.2533815785040317,
-  "draw_prob": 0.2838155958818173,
-  "away_prob": 0.46280282561415104
+  "home_prob": 0.25509120998105983,
+  "draw_prob": 0.2841481094524926,
+  "away_prob": 0.4607606805664476
  },
  {
   "source": "api_football",
@@ -6762,10 +6966,10 @@
   "home_team": "Galatasaray",
   "away_team": "Amed",
   "commence_time": "2026-11-07T16:00:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.6633398050990849,
-  "draw_prob": 0.18983521828004493,
-  "away_prob": 0.14682497662087024
+  "bookmaker_count": 8,
+  "home_prob": 0.6642494315684724,
+  "draw_prob": 0.18955983893193976,
+  "away_prob": 0.14619072949958783
  },
  {
   "source": "api_football",
@@ -6774,10 +6978,10 @@
   "home_team": "G\u00f6ztepe",
   "away_team": "Ba\u015fak\u015fehir",
   "commence_time": "2026-11-07T16:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.4614635147571331,
-  "draw_prob": 0.25734362807517097,
-  "away_prob": 0.28119285716769604
+  "bookmaker_count": 8,
+  "home_prob": 0.46102814333308617,
+  "draw_prob": 0.257366336245594,
+  "away_prob": 0.28160552042131975
  },
  {
   "source": "api_football",
@@ -6786,10 +6990,10 @@
   "home_team": "Samsunspor",
   "away_team": "Konyaspor",
   "commence_time": "2026-11-07T13:00:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.4156107620738689,
-  "draw_prob": 0.28019961462501825,
-  "away_prob": 0.304189623301113
+  "bookmaker_count": 8,
+  "home_prob": 0.4154433881441452,
+  "draw_prob": 0.2806383834726834,
+  "away_prob": 0.30391822838317134
  },
  {
   "source": "api_football",
@@ -6846,10 +7050,10 @@
   "home_team": "Aris Thessalonikis",
   "away_team": "Panetolikos",
   "commence_time": "2026-11-07T17:30:00+00:00",
-  "bookmaker_count": 7,
-  "home_prob": 0.6799423993301541,
-  "draw_prob": 0.20185293323672734,
-  "away_prob": 0.11820466743311851
+  "bookmaker_count": 8,
+  "home_prob": 0.680036990617949,
+  "draw_prob": 0.20196247452759247,
+  "away_prob": 0.11800053485445847
  },
  {
   "source": "api_football",
@@ -6922,30 +7126,6 @@
   "home_prob": 0.44047933776895953,
   "draw_prob": 0.27122732656114384,
   "away_prob": 0.28829333566989657
- },
- {
-  "source": "api_football",
-  "league": "Italy - Serie B",
-  "tracked": true,
-  "home_team": "Juve Stabia",
-  "away_team": "Arezzo",
-  "commence_time": "2026-11-07T14:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.5296615208227113,
-  "draw_prob": 0.2632168953019109,
-  "away_prob": 0.20712158387537774
- },
- {
-  "source": "api_football",
-  "league": "Italy - Serie B",
-  "tracked": true,
-  "home_team": "Padova",
-  "away_team": "Empoli",
-  "commence_time": "2026-11-07T14:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.4413377307953487,
-  "draw_prob": 0.2821114548534609,
-  "away_prob": 0.27655081435119044
  },
  {
   "source": "api_football",
@@ -7491,18 +7671,6 @@
   "source": "api_football",
   "league": "Primera Divisi\u00f3n",
   "tracked": false,
-  "home_team": "Universidad de Concepcion",
-  "away_team": "O'Higgins",
-  "commence_time": "2026-11-08T21:00:00+00:00",
-  "bookmaker_count": 8,
-  "home_prob": 0.3171220217162985,
-  "draw_prob": 0.27581889882245997,
-  "away_prob": 0.40705907946124154
- },
- {
-  "source": "api_football",
-  "league": "Primera Divisi\u00f3n",
-  "tracked": false,
   "home_team": "Union La Calera",
   "away_team": "Huachipato",
   "commence_time": "2026-11-08T21:00:00+00:00",
@@ -7522,6 +7690,18 @@
   "home_prob": 0.30697722800915633,
   "draw_prob": 0.2555991502681793,
   "away_prob": 0.4374236217226643
+ },
+ {
+  "source": "api_football",
+  "league": "K League 2",
+  "tracked": false,
+  "home_team": "Suwon Bluewings",
+  "away_team": "Yongin City",
+  "commence_time": "2026-11-08T05:00:00+00:00",
+  "bookmaker_count": 7,
+  "home_prob": 0.6918635316640428,
+  "draw_prob": 0.1840362989519946,
+  "away_prob": 0.12410016938396273
  },
  {
   "source": "api_football",
@@ -7647,18 +7827,6 @@
   "source": "api_football",
   "league": "Croatian First Football League",
   "tracked": true,
-  "home_team": "NK Osijek",
-  "away_team": "HNK Hajduk Split",
-  "commence_time": "2026-11-08T14:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.24301001999324157,
-  "draw_prob": 0.26159966847999283,
-  "away_prob": 0.4953903115267655
- },
- {
-  "source": "api_football",
-  "league": "Croatian First Football League",
-  "tracked": true,
   "home_team": "NK Varazdin",
   "away_team": "Dinamo Zagreb",
   "commence_time": "2026-11-08T17:00:00+00:00",
@@ -7771,9 +7939,9 @@
   "away_team": "Lazio",
   "commence_time": "2026-11-08T11:30:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.4606133943147674,
-  "draw_prob": 0.25937872865259576,
-  "away_prob": 0.2800078770326369
+  "home_prob": 0.4591036202545125,
+  "draw_prob": 0.25965034025644645,
+  "away_prob": 0.2812460394890411
  },
  {
   "source": "api_football",
@@ -7843,9 +8011,9 @@
   "away_team": "MVV",
   "commence_time": "2026-11-08T15:45:00+00:00",
   "bookmaker_count": 5,
-  "home_prob": 0.6435794413128447,
-  "draw_prob": 0.19856576140173923,
-  "away_prob": 0.15785479728541604
+  "home_prob": 0.6443834336190645,
+  "draw_prob": 0.19924692855265952,
+  "away_prob": 0.156369637828276
  },
  {
   "source": "api_football",
@@ -8125,15 +8293,51 @@
  },
  {
   "source": "api_football",
+  "league": "Scottish Premiership",
+  "tracked": true,
+  "home_team": "Heart Of Midlothian",
+  "away_team": "Falkirk",
+  "commence_time": "2026-11-08T15:00:00+00:00",
+  "bookmaker_count": 7,
+  "home_prob": 0.631420777177693,
+  "draw_prob": 0.20393148188797217,
+  "away_prob": 0.1646477409343349
+ },
+ {
+  "source": "api_football",
+  "league": "English Premier League",
+  "tracked": true,
+  "home_team": "Brighton",
+  "away_team": "Brentford",
+  "commence_time": "2026-11-08T14:00:00+00:00",
+  "bookmaker_count": 10,
+  "home_prob": 0.4928580184045205,
+  "draw_prob": 0.24742828121597157,
+  "away_prob": 0.2597137003795079
+ },
+ {
+  "source": "api_football",
+  "league": "English Premier League",
+  "tracked": true,
+  "home_team": "Crystal Palace",
+  "away_team": "Liverpool",
+  "commence_time": "2026-11-08T14:00:00+00:00",
+  "bookmaker_count": 10,
+  "home_prob": 0.20057317498127827,
+  "draw_prob": 0.2258347421500411,
+  "away_prob": 0.5735920828686807
+ },
+ {
+  "source": "api_football",
   "league": "English Premier League",
   "tracked": true,
   "home_team": "Ipswich",
   "away_team": "Bournemouth",
   "commence_time": "2026-11-08T14:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.2557327557626576,
-  "draw_prob": 0.2556570602517439,
-  "away_prob": 0.4886101839855985
+  "home_prob": 0.2556731779727835,
+  "draw_prob": 0.2555781698787668,
+  "away_prob": 0.48874865214844976
  },
  {
   "source": "api_football",
@@ -8143,9 +8347,9 @@
   "away_team": "Aston Villa",
   "commence_time": "2026-11-08T16:30:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.4209807539348339,
-  "draw_prob": 0.25542836319928724,
-  "away_prob": 0.3235908828658789
+  "home_prob": 0.42097585343187516,
+  "draw_prob": 0.255611281855078,
+  "away_prob": 0.323412864713047
  },
  {
   "source": "api_football",
@@ -8155,9 +8359,9 @@
   "away_team": "Chelsea",
   "commence_time": "2026-11-08T14:00:00+00:00",
   "bookmaker_count": 10,
-  "home_prob": 0.26726192075520855,
-  "draw_prob": 0.26435576854156034,
-  "away_prob": 0.4683823107032311
+  "home_prob": 0.26688651275575936,
+  "draw_prob": 0.26430533357010566,
+  "away_prob": 0.46880815367413503
  },
  {
   "source": "api_football",
@@ -8179,9 +8383,9 @@
   "away_team": "Celje",
   "commence_time": "2026-11-08T16:30:00+00:00",
   "bookmaker_count": 5,
-  "home_prob": 0.16015973150451482,
-  "draw_prob": 0.20672541293817867,
-  "away_prob": 0.6331148555573065
+  "home_prob": 0.16446690709862272,
+  "draw_prob": 0.208504491250612,
+  "away_prob": 0.6270286016507653
  },
  {
   "source": "api_football",
@@ -8334,10 +8538,10 @@
   "home_team": "Baltika",
   "away_team": "Dinamo Makhachkala",
   "commence_time": "2026-11-08T17:45:00+00:00",
-  "bookmaker_count": 3,
-  "home_prob": 0.5377151870960309,
-  "draw_prob": 0.27527835564518305,
-  "away_prob": 0.18700645725878598
+  "bookmaker_count": 2,
+  "home_prob": 0.5372402634929316,
+  "draw_prob": 0.2756078248746213,
+  "away_prob": 0.187151911632447
  },
  {
   "source": "api_football",
@@ -8358,46 +8562,10 @@
   "home_team": "Spartak Moscow",
   "away_team": "Akron",
   "commence_time": "2026-11-08T13:15:00+00:00",
-  "bookmaker_count": 3,
-  "home_prob": 0.7661457326318083,
-  "draw_prob": 0.14755034435588937,
-  "away_prob": 0.0863039230123023
- },
- {
-  "source": "api_football",
-  "league": "Russian Football Premier League",
-  "tracked": true,
-  "home_team": "Baltika",
-  "away_team": "Dinamo Makhachkala",
-  "commence_time": "2026-11-08T17:45:00+00:00",
-  "bookmaker_count": 3,
-  "home_prob": 0.5377151870960309,
-  "draw_prob": 0.27527835564518305,
-  "away_prob": 0.18700645725878598
- },
- {
-  "source": "api_football",
-  "league": "Russian Football Premier League",
-  "tracked": true,
-  "home_team": "Krylia Sovetov",
-  "away_team": "FC Orenburg",
-  "commence_time": "2026-11-08T11:00:00+00:00",
   "bookmaker_count": 2,
-  "home_prob": 0.4105757498570652,
-  "draw_prob": 0.27142592139931687,
-  "away_prob": 0.31799832874361794
- },
- {
-  "source": "api_football",
-  "league": "Russian Football Premier League",
-  "tracked": true,
-  "home_team": "Spartak Moscow",
-  "away_team": "Akron",
-  "commence_time": "2026-11-08T13:15:00+00:00",
-  "bookmaker_count": 3,
-  "home_prob": 0.7661457326318083,
-  "draw_prob": 0.14755034435588937,
-  "away_prob": 0.0863039230123023
+  "home_prob": 0.7630043177497637,
+  "draw_prob": 0.14882113183958084,
+  "away_prob": 0.08817455041065543
  },
  {
   "source": "api_football",
@@ -8454,10 +8622,10 @@
   "home_team": "CFR 1907 Cluj",
   "away_team": "Universitatea Craiova",
   "commence_time": "2026-11-08T17:00:00+00:00",
-  "bookmaker_count": 6,
-  "home_prob": 0.21075911555921645,
-  "draw_prob": 0.2511799861419168,
-  "away_prob": 0.5380608982988668
+  "bookmaker_count": 2,
+  "home_prob": 0.20621029677019745,
+  "draw_prob": 0.238518983977698,
+  "away_prob": 0.5552707192521046
  },
  {
   "source": "api_football",
@@ -8502,10 +8670,10 @@
   "home_team": "Girona",
   "away_team": "Almeria",
   "commence_time": "2026-11-08T15:15:00+00:00",
-  "bookmaker_count": 5,
-  "home_prob": 0.46436609877661633,
-  "draw_prob": 0.26198779396663396,
-  "away_prob": 0.27364610725674965
+  "bookmaker_count": 2,
+  "home_prob": 0.4687844543769547,
+  "draw_prob": 0.2567221956441939,
+  "away_prob": 0.2744933499788515
  },
  {
   "source": "api_football",
@@ -8526,10 +8694,10 @@
   "home_team": "Atletico Madrid",
   "away_team": "Barcelona",
   "commence_time": "2026-11-08T20:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.25952130601706097,
-  "draw_prob": 0.2271100439821803,
-  "away_prob": 0.5133686500007588
+  "bookmaker_count": 6,
+  "home_prob": 0.25556977876932696,
+  "draw_prob": 0.2264682630032729,
+  "away_prob": 0.5179619582274001
  },
  {
   "source": "api_football",
@@ -8538,10 +8706,10 @@
   "home_team": "Celta Vigo",
   "away_team": "Levante",
   "commence_time": "2026-11-08T17:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.5204019115953714,
-  "draw_prob": 0.25584052145606145,
-  "away_prob": 0.2237575669485671
+  "bookmaker_count": 6,
+  "home_prob": 0.5256986543823793,
+  "draw_prob": 0.25214707052871943,
+  "away_prob": 0.22215427508890132
  },
  {
   "source": "api_football",
@@ -8550,10 +8718,10 @@
   "home_team": "Elche",
   "away_team": "Real Betis",
   "commence_time": "2026-11-08T13:00:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.29807848990044844,
-  "draw_prob": 0.260715863480243,
-  "away_prob": 0.44120564661930844
+  "bookmaker_count": 6,
+  "home_prob": 0.29460538784329937,
+  "draw_prob": 0.2588910242480455,
+  "away_prob": 0.44650358790865513
  },
  {
   "source": "api_football",
@@ -8562,10 +8730,10 @@
   "home_team": "Real Sociedad",
   "away_team": "Rayo Vallecano",
   "commence_time": "2026-11-08T15:15:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.5514404747519688,
-  "draw_prob": 0.23928054385006028,
-  "away_prob": 0.20927898139797083
+  "bookmaker_count": 6,
+  "home_prob": 0.5590670786496418,
+  "draw_prob": 0.23811753936240443,
+  "away_prob": 0.20281538198795387
  },
  {
   "source": "api_football",
@@ -8574,10 +8742,10 @@
   "home_team": "Villarreal",
   "away_team": "Getafe",
   "commence_time": "2026-11-08T17:30:00+00:00",
-  "bookmaker_count": 10,
-  "home_prob": 0.6415491455779069,
-  "draw_prob": 0.21765329599148847,
-  "away_prob": 0.14079755843060476
+  "bookmaker_count": 6,
+  "home_prob": 0.6437727312000517,
+  "draw_prob": 0.2171327066822307,
+  "away_prob": 0.13909456211771767
  },
  {
   "source": "api_football",
@@ -9190,5 +9358,41 @@
   "home_prob": 0.4551911964262187,
   "draw_prob": 0.2780543527012139,
   "away_prob": 0.2667544508725673
+ },
+ {
+  "source": "api_football",
+  "league": "K League 1",
+  "tracked": false,
+  "home_team": "FC Seoul",
+  "away_team": "Ulsan Hyundai FC",
+  "commence_time": "2026-11-08T05:00:00+00:00",
+  "bookmaker_count": 7,
+  "home_prob": 0.4916450059364899,
+  "draw_prob": 0.24258397911694535,
+  "away_prob": 0.26577101494656485
+ },
+ {
+  "source": "api_football",
+  "league": "K League 1",
+  "tracked": false,
+  "home_team": "Gangwon FC",
+  "away_team": "Jeonbuk Motors",
+  "commence_time": "2026-11-08T07:30:00+00:00",
+  "bookmaker_count": 7,
+  "home_prob": 0.39864356436499193,
+  "draw_prob": 0.2975003416848489,
+  "away_prob": 0.3038560939501592
+ },
+ {
+  "source": "api_football",
+  "league": "K League 1",
+  "tracked": false,
+  "home_team": "Bucheon FC 1995",
+  "away_team": "Pohang Steelers",
+  "commence_time": "2026-11-08T07:30:00+00:00",
+  "bookmaker_count": 7,
+  "home_prob": 0.3131598977465165,
+  "draw_prob": 0.28910191581913713,
+  "away_prob": 0.39773818643434633
  }
 ]
