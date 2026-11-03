@@ -195,6 +195,127 @@ def max_remaining_points(club_country: dict[str, str], api_key: str) -> dict[str
     return out
 
 
+def _max_country_knockout_ceiling(k: int, comp_name: str) -> float:
+    """Clash-aware ceiling for the combined Knockout Play-off-through-Final
+    bonus + match points AND the League Phase final-ranking bonus (D.5b)
+    jointly achievable by `k` clubs of the SAME country in the SAME
+    competition -- the sound replacement for crediting every one of them
+    max_remaining_points' own flat per-club `ko_ceiling` (which silently
+    assumes all k could independently reach the Final AND all k could
+    simultaneously hold League Phase rank 1, both structurally impossible
+    once k > 1).
+
+    Only one club can hold any individual League Phase rank, so the best
+    this country's clubs can jointly do there is occupy ranks 1..k (not
+    all claim rank 1's own bonus). And a single-elimination bracket only
+    ever produces as many WINNERS from a round as that round HAS matches
+    (8 in the Knockout Play-off and Round of 16, 4 in the Quarter-finals,
+    2 in the Semi-finals, 1 in the Final) regardless of how the real draw
+    falls -- so with k=5, say, all 5 clubs can still reach the Round of 16
+    (16 slots is plenty), but the Quarter-finals has only 4 matches, so at
+    most 4 of those 5 can ever reach the Semi-finals; if all 4 survivors
+    reach the Semi-finals, the Semi-finals' 2 matches mean at most 2 reach
+    the Final, and the Final's 1 match means at most 1 is champion --
+    confirmed against exactly this scenario (5 clubs of one association
+    projected into the Champions League knockout rounds) 2026-11-04.
+
+    Every stage's own "reached this round" bonus is still credited to
+    every club that genuinely reaches it (reach-bonus is for competing in
+    the round, not winning it), only the count of clubs that can carry
+    on to the NEXT round is capped -- mirrors
+    league_phase_simulator.simulate_competition_winner's own real bracket
+    structure (_KO_PLAYOFF_PAIRS/_R16_SEED_TO_KO_PAIR/_QF_SEED_PAIRS/
+    _SF_QF_GROUPS), just aggregated by country instead of simulated
+    match-by-match."""
+    if k <= 0:
+        return 0.0
+    stage_bonus = _BONUS_PER_STAGE[comp_name]
+
+    # Knockout Play-off (ranks 9-24, 8 ties/16 slots) -- only the clubs
+    # beyond the top-8 direct byes need to win a tie to reach the Round of
+    # 16 at all; this stage earns no "reached" bonus of its own (D.5(a)
+    # starts at the Round of 16).
+    direct_bye = min(k, 8)
+    playoff_entrants = max(0, k - 8)
+    playoff_winners = min(playoff_entrants, 8)
+    total = playoff_winners * 2 * 2.0  # 2 legs, both won
+    entrants = direct_bye + playoff_winners  # = k whenever the playoff cap doesn't bite
+
+    for matches_in_round, legs in ((8, 2), (4, 2), (2, 2), (1, 1)):  # R16, QF, SF, Final
+        total += entrants * stage_bonus          # every entrant banks this round's reach bonus
+        winners = min(entrants, matches_in_round)  # but at most this many can WIN it
+        total += winners * legs * 2.0
+        entrants = winners
+
+    total += sum(_league_phase_bonus(r, comp_name) for r in range(1, k + 1))
+    return total
+
+
+def max_remaining_points_clash_aware(club_country: dict[str, str], api_key: str) -> dict[str, float]:
+    """{country: maximum additional UEFA coefficient points still
+    mathematically reachable this season}, clash-aware counterpart to
+    max_remaining_points -- see _max_country_knockout_ceiling's own
+    docstring for exactly what that fixes. Pre-knockout points (remaining
+    qualifying/Play-off legs, remaining League Phase fixtures) have no
+    clash to correct -- the League Phase draw never pits two clubs from
+    the same country against each other, and a Play-off tie is already a
+    fixed 1v1 pairing -- so those stay a per-club sum exactly like
+    max_remaining_points; only the Knockout Play-off-through-Final bonus
+    and the League Phase final-ranking bonus are computed once per
+    country per competition (via _max_country_knockout_ceiling) instead
+    of once per club. Returns country-level totals directly (there's no
+    single meaningful per-club split of a shared, capped bracket
+    ceiling)."""
+    out: dict[str, float] = {}
+    for comp_name in EUROPEAN_COMPETITIONS:
+        played, remaining = _fetch_comp_fixtures(comp_name, api_key)
+        played_ids = {f.get("idEvent") for f in played}
+        all_fx = played + remaining
+        clubs = {
+            f.get(side) for f in all_fx for side in ("strHomeTeam", "strAwayTeam") if f.get(side)
+        }
+        lp_clubs = {
+            f.get(side) for f in all_fx if _is_league_stage(f.get("strRound", ""))
+            for side in ("strHomeTeam", "strAwayTeam") if f.get(side)
+        }
+
+        live_by_country: dict[str, int] = {}
+        for club in clubs:
+            country = club_country.get(club)
+            if not country:
+                continue
+            if club in lp_clubs:
+                lp_remaining = sum(
+                    1 for f in remaining
+                    if _is_league_stage(f.get("strRound", ""))
+                    and club in (f.get("strHomeTeam"), f.get("strAwayTeam"))
+                )
+                out[country] = out.get(country, 0.0) + 2.0 * lp_remaining
+                live_by_country[country] = live_by_country.get(country, 0) + 1
+                continue
+            club_fixtures = [
+                f for f in all_fx if club in (f.get("strHomeTeam"), f.get("strAwayTeam"))
+            ]
+            if not club_fixtures:
+                continue
+            eliminated = False
+            qual_remaining_legs = 0
+            for legs in _group_ties(club_fixtures):
+                _winner, loser = _tie_result(legs, played_ids)
+                if loser == club:
+                    eliminated = True
+                qual_remaining_legs += sum(1 for leg in legs if leg.get("idEvent") not in played_ids)
+            if eliminated:
+                continue
+            out[country] = out.get(country, 0.0) + 1.0 * qual_remaining_legs + 2.0 * 8
+            live_by_country[country] = live_by_country.get(country, 0) + 1
+
+        for country, k in live_by_country.items():
+            out[country] = out.get(country, 0.0) + _max_country_knockout_ceiling(k, comp_name)
+
+    return out
+
+
 def aggregate_scalar_by_country(club_points: dict[str, float], club_country: dict[str, str]) -> dict[str, float]:
     """Same idea as aggregate_by_country, for a single scalar per club
     (max_remaining_points' own output) rather than an n_sim-shaped array."""
@@ -688,5 +809,24 @@ def project_country_predicted_ranking(
     _season_bounds = season_rank_bounds(real_points, country_ceiling_raw)
     table["best_season_rank"] = [_season_bounds.get(c, (1, len(table)))[0] for c in table.index]
     table["worst_season_rank"] = [_season_bounds.get(c, (1, len(table)))[1] for c in table.index]
+
+    # Maximum THIS-SEASON coefficient still mathematically reachable --
+    # coefficients.py's "Race for an extra Champions League spot
+    # Predictions" tab's own "Maximum points" column. Clash-aware (see
+    # max_remaining_points_clash_aware), unlike country_ceiling_raw above
+    # (deliberately looser, used only for the sound best/worst-RANK bounds,
+    # where overstating a country's own ceiling never produces a wrong
+    # bound -- it would here, since this column is read as a literal
+    # points figure, not just compared against other countries' bounds).
+    max_points_raw = max_remaining_points_clash_aware(club_country, api_key)
+    table["max_season_coeff"] = [
+        round(
+            real_points.get(c, 0.0) / COUNTRY_BASELINE[c]["clubs_entered"]
+            + max_points_raw.get(c, 0.0) / COUNTRY_BASELINE[c]["clubs_entered"],
+            3,
+        )
+        if COUNTRY_BASELINE.get(c, {}).get("clubs_entered", 0) > 0 else None
+        for c in table.index
+    ]
 
     return table, warnings, simulated_club_points, club_country

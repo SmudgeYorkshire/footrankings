@@ -442,7 +442,12 @@ with tab_eps_pred:
         "✓ marks a spot already mathematically secured, X one already mathematically unreachable — "
         "a real guaranteed-points-so-far vs. maximum-still-reachable comparison, not a simulation "
         "estimate (see the Country Ranking Predictions tab's own position table for the same thing "
-        "applied to the 5-season ranking)."
+        "applied to the 5-season ranking). \"Maximum points\" is that same real ceiling, accounting "
+        "for potential clashes between an association's own clubs — e.g. a single-elimination "
+        "Quarter-final only has 4 matches, so if an association still has 5 clubs alive, at most 4 "
+        "can ever reach the Semi-finals no matter how the real draw falls, and only one club can "
+        "hold any individual League Phase rank — rather than naively crediting every one of its "
+        "clubs the same best-case total as if they could all win the whole thing independently."
     )
 
     def _fmt_eps_cell(pct: float, best_rank: int, worst_rank: int, threshold: int) -> str:
@@ -463,6 +468,7 @@ with tab_eps_pred:
             "Country": _country,
             "Clubs": _r["clubs"],
             "Current points": _current_pts_by_country.get(_country, 0.0),
+            "Maximum points": _r["max_season_coeff"],
             "Projected 2026/27 points": _r["mean_season_coeff"],
             "1st": _fmt_eps_cell(_top1 * 100, _best_sr, _worst_sr, 1),
             "2nd": _fmt_eps_cell((_top2 - _top1) * 100, _best_sr, _worst_sr, 2),
@@ -481,6 +487,7 @@ with tab_eps_pred:
             "Country": st.column_config.TextColumn("Country", width="medium"),
             "Clubs": st.column_config.NumberColumn("Clubs", width="small"),
             "Current points": st.column_config.NumberColumn("Current points", format="%.3f", width="small"),
+            "Maximum points": st.column_config.NumberColumn("Maximum points", format="%.3f", width="small"),
             "Projected 2026/27 points": st.column_config.NumberColumn(
                 "Projected 2026/27 points", format="%.3f", width="small"),
             "1st": st.column_config.TextColumn("1st", width="small"),
