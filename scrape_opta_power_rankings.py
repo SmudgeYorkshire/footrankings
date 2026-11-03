@@ -36,7 +36,14 @@ META_PATH = "opta_power_rankings_meta.json"
 
 _TABLE_ROW_SEL = "table tbody tr"
 _NEXT_BTN_TEXT = ">"
-_PAGE_LOAD_WAIT_MS = 8_000
+# Confirmed 2026-11-03: the last 3 scheduled/manual runs all failed on this
+# exact wait_for_selector timing out -- page.goto's own "networkidle" wait
+# was no longer enough headroom for the table to actually paint into the DOM
+# afterward (reproduced locally: an 8s wait timed out, but the table was
+# fully there and readable a couple seconds later). Raised with real margin
+# rather than just nudging it, since a one-time few extra seconds on page
+# load is negligible next to the ~138-page scrape that follows it.
+_PAGE_LOAD_WAIT_MS = 25_000
 _PAGE_TURN_WAIT_MS = 900
 _LAST_UPDATED_RE = re.compile(r"Last updated\s+([A-Za-z]+ \d{1,2},\s*\d{4})")
 
