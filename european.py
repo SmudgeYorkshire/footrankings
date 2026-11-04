@@ -444,10 +444,33 @@ if has_lp:
     if _field_ready:
         _real_schedule_ready = is_opponent_list_complete(comp_name, [f["team"] for f in _field])
         _real_schedule = derive_fixtures(comp_name) if _real_schedule_ready else None
-        _real_results = (
-            real_league_phase_results(comp_name, _API_KEY, tuple(f["team"] for f in _field))
-            if _real_schedule_ready else {}
-        )
+        if _real_schedule_ready:
+            _real_results, _real_unresolved_names = real_league_phase_results(
+                comp_name, _API_KEY, tuple(f["team"] for f in _field),
+            )
+        else:
+            _real_results, _real_unresolved_names = {}, []
+
+        def _render_unresolved_names_warning() -> None:
+            # See real_league_phase_results' own docstring for why this
+            # matters: a club in here means its ACTUAL results aren't
+            # reaching the simulation at all -- it's being re-simulated
+            # from scratch every run instead of having its real record
+            # locked in, which can badly understate (or overstate) its
+            # true position. Confirmed live 2026-11-04 (Olympiacos/
+            # "Olympiakos Piraeus") -- this warning exists so the next
+            # one of these gets caught immediately instead of needing a
+            # user to notice a cross-tab inconsistency and report it.
+            if _real_unresolved_names:
+                st.warning(
+                    f"⚠ Couldn't match {len(_real_unresolved_names)} real result(s) to a club in "
+                    f"this competition's field, so they're being treated as still open (randomly "
+                    f"simulated) instead of locked in -- predictions below may be meaningfully "
+                    f"wrong for the club(s) involved: **{', '.join(_real_unresolved_names)}**. "
+                    f"This needs a name-mapping fix in `qualifying_projection._RAW_NAME_OVERRIDES` "
+                    f"(or `resolve_to_team`'s matching rules)."
+                )
+
         _n_pots, _opp_per_pot = _LEAGUE_PHASE_POTS[comp_name]
         _club_coeff = {f["team"]: get_coeff(f["team"], f["country"]) for f in _field}
         _n_sim = 30_000
@@ -698,6 +721,7 @@ if tab_lp_pred is not None:
                 "predictions need the full field and will appear once the rest are confirmed."
             )
         else:
+            _render_unresolved_names_warning()
             if _real_schedule_ready:
                 _decided_note = (
                     f" **{len(_real_results)} of {len(_real_schedule)} matches are already decided** and "
@@ -824,6 +848,7 @@ if tab_ko_pred is not None:
                 "knockout predictions need the full field and will appear once the rest are confirmed."
             )
         else:
+            _render_unresolved_names_warning()
             _ko_rows = []
             for _team, _r in _ls_result.iterrows():
                 _ko_rows.append({
@@ -923,6 +948,7 @@ if tab_manual is not None:
                 "the draw is known."
             )
         else:
+            _render_unresolved_names_warning()
             # Keyed by (home, away) -> the full dated-schedule fixture dict
             # (matchday/date/time), not just the matchday number, so the
             # editor can be sorted the same way the Fixtures tab is --
@@ -1150,6 +1176,7 @@ if tab_points_needed is not None:
                 "points-needed estimates need the full field and will appear once the rest are confirmed."
             )
         else:
+            _render_unresolved_names_warning()
             st.caption(
                 "Based on the same 30,000-simulation League Phase run behind League Stage "
                 "Predictions. Methodology: "

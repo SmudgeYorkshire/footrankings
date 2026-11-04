@@ -773,10 +773,22 @@ def project_country_predicted_ranking(
         # and real matches had been played.
         real_schedule_ready = is_opponent_list_complete(comp_name, [f["team"] for f in field])
         real_schedule = derive_fixtures(comp_name) if real_schedule_ready else None
-        real_results = (
-            real_league_phase_results(comp_name, api_key, tuple(f["team"] for f in field))
-            if real_schedule_ready else {}
-        )
+        if real_schedule_ready:
+            real_results, real_unresolved_names = real_league_phase_results(
+                comp_name, api_key, tuple(f["team"] for f in field),
+            )
+        else:
+            real_results, real_unresolved_names = {}, []
+        if real_unresolved_names:
+            # See real_league_phase_results' own docstring for why this
+            # matters -- a club here is being re-simulated from scratch
+            # instead of having its real record locked in, same risk
+            # european.py's own caller warns about.
+            warnings.append(
+                f"{comp_name}: couldn't match {len(real_unresolved_names)} real result(s) to a "
+                f"club in the field, so they're being treated as still open instead of locked "
+                f"in: {', '.join(real_unresolved_names)}."
+            )
         cache_key = league_phase_sim_cache_key(
             comp_name, n_sim, home_advantage, field, field_ratings_df, real_results,
         )

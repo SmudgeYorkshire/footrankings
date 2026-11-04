@@ -140,6 +140,33 @@ def _fuzzy_key(name: str) -> str:
     return " ".join(tokens)
 
 
+# API-Football's own spelling, where it differs from this site's canonical
+# field name AND isn't bridged by resolve_to_team's accent/filler/exonym/
+# containment fallbacks -- checked first, same pattern nations_league_
+# fixtures.py's own _NAME_ALIASES already uses for the identical class of
+# problem. A general _CITY_EXONYMS token fold (e.g. "olympiakos" ->
+# "olympiacos") was deliberately NOT used here instead: that would apply
+# everywhere _fuzzy_key is used, and would also silently fold the
+# UNRELATED Cypriot club "Olympiakos Nicosia" (a real, separate club in
+# our own ratings data, ratings/4630.csv) the same way -- a raw-name-
+# scoped override avoids that risk entirely.
+#
+# Real bug found and fixed 2026-11-04: "Olympiakos Piraeus" (API-
+# Football's fixtures-endpoint spelling) was failing to resolve against
+# this site's canonical League Phase field name "Olympiacos" (from
+# qualifying_bracket.CONFIRMED_LEAGUE_PHASE) -- neither a prefix/suffix of
+# the other due to the c/k spelling difference. Every one of Olympiacos's
+# real League Stage results was silently dropped from real_league_phase_
+# results() as a result, so league_phase_simulator.py was re-simulating
+# ALL of their matches from scratch every run instead of locking in their
+# actual record (confirmed live: a 10-point, 1-goal-conceded start was
+# showing just an 88.4% Top-24 chance -- a full, correct re-simulation
+# with their real results locked in gives ~99-100%).
+_RAW_NAME_OVERRIDES: dict[str, str] = {
+    "Olympiakos Piraeus": "Olympiacos",
+}
+
+
 def resolve_to_team(raw_name: str, candidate_teams: set[str] | list[str]) -> str | None:
     """Fuzzy-match a raw team name (e.g. from live API-Football fixture
     data, whose spelling doesn't always match this site's own naming) to
@@ -514,22 +541,41 @@ def _project_league_phase_field(comp_name: str, ratings_df: pd.DataFrame) -> lis
     return field
 
 
-def real_league_phase_results(comp_name: str, api_key: str, field_teams) -> dict[tuple[str, str], tuple[int, int]]:
-    """{(home, away): (home_goals, away_goals)} for every League Phase
-    fixture already finished, keyed by this site's own canonical team
-    names (matching league_phase_fixtures.derive_fixtures()'s schedule).
-    Resolved from live API-Football data, whose own team-name spelling
-    doesn't always match ours (e.g. "Slavia Praha" vs our "Slavia
+def real_league_phase_results(
+    comp_name: str, api_key: str, field_teams,
+) -> tuple[dict[tuple[str, str], tuple[int, int]], list[str]]:
+    """({(home, away): (home_goals, away_goals)}, unresolved_raw_names) for
+    every League Phase fixture already finished, keyed by this site's own
+    canonical team names (matching league_phase_fixtures.derive_fixtures()'s
+    schedule). Resolved from live API-Football data, whose own team-name
+    spelling doesn't always match ours (e.g. "Slavia Praha" vs our "Slavia
     Prague") -- a name that can't be resolved is skipped rather than
     raising, so one naming gap doesn't take the whole prediction down.
 
-    Feed this into league_phase_simulator's real_results= parameter so
-    already-decided matches are locked in instead of being re-simulated
-    from scratch on every rerun, same principle as simulator.py's
-    domestic-league played_fixtures handling."""
+    `unresolved_raw_names` is every raw API-Football name from a finished
+    fixture that failed to resolve against `field_teams`, deduped. A club
+    showing up here means its real results aren't reaching the simulation
+    AT ALL -- it gets re-simulated from scratch every run instead of
+    having its actual record locked in, which can badly understate (or
+    overstate) its true position. Confirmed as a real, live bug 2026-11-04:
+    "Olympiakos Piraeus" (API-Football's spelling) silently failed to
+    resolve against this site's own "Olympiacos" for the entire time that
+    gap existed, and the club's League Stage Predictions Top-24 chance
+    read 88.4% instead of the correct ~100% -- caught only because a user
+    happened to cross-check it against the Points Needed tab. Every
+    caller of this function should surface `unresolved_raw_names` to the
+    page (a `st.warning` or similar) rather than discard it, so the next
+    one of these doesn't go unnoticed for who knows how long -- see
+    european.py's own caller for the pattern.
+
+    Feed the first element into league_phase_simulator's real_results=
+    parameter so already-decided matches are locked in instead of being
+    re-simulated from scratch on every rerun, same principle as
+    simulator.py's domestic-league played_fixtures handling."""
     played, _remaining = _fetch_comp_fixtures(comp_name, api_key)
     field_set = set(field_teams)
     results: dict[tuple[str, str], tuple[int, int]] = {}
+    unresolved: set[str] = set()
     for f in played:
         if not (f.get("strRound") or "").startswith("League Stage"):
             continue
@@ -538,9 +584,15 @@ def real_league_phase_results(comp_name: str, api_key: str, field_teams) -> dict
         hs, as_ = f.get("intHomeScore"), f.get("intAwayScore")
         if hs is None or as_ is None or hs == "" or as_ == "":
             continue
-        home = resolve_to_team(f.get("strHomeTeam", ""), field_set)
-        away = resolve_to_team(f.get("strAwayTeam", ""), field_set)
+        raw_home = f.get("strHomeTeam", "")
+        raw_away = f.get("strAwayTeam", "")
+        home = resolve_to_team(_RAW_NAME_OVERRIDES.get(raw_home, raw_home), field_set)
+        away = resolve_to_team(_RAW_NAME_OVERRIDES.get(raw_away, raw_away), field_set)
+        if home is None:
+            unresolved.add(raw_home)
+        if away is None:
+            unresolved.add(raw_away)
         if home is None or away is None:
             continue
         results[(home, away)] = (int(hs), int(as_))
-    return results
+    return results, sorted(unresolved)
