@@ -35,14 +35,17 @@ jobs:
       - name: Fit today's odds-driven club rating adjustments
         run: python club_rating_calibration.py
 
-      - name: Rebuild the global 0-1000 Club Power Ranking
+      - name: Update the persistent, full-history odds-implied club rating (experimental, not yet live)
+        run: python club_odds_ratings.py
+
+      - name: Rebuild the global Club Power Ranking (Opta/Odds/Combined Elo)
         run: python build_club_power_rankings.py
 
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add odds_coverage/ ratings/club_rating_adjustments.csv club_power_rankings_1000.csv
+          git add odds_coverage/ ratings/club_rating_adjustments.csv ratings/club_odds_implied_ratings.csv ratings/club_odds_processed_fixtures.csv club_power_rankings_1000.csv
           git diff --staged --quiet && exit 0
           git commit -m "Daily odds pull and club ratings $(date -u +%Y-%m-%d)"
           # main can move between this job's checkout and this push (another

@@ -1,8 +1,8 @@
 """
-Builds the new, standalone 0-1000 Club Power Ranking -- every club Opta
-rates worldwide (opta_power_rankings.csv, ~14,200 teams), not just the 54
-tracked top-flight leagues, so 2nd tiers and other countries can be folded
-in later with no change to this pipeline.
+Builds the Club Power Ranking -- every club Opta rates worldwide
+(opta_power_rankings.csv, ~14,200 teams), not just the 54 tracked
+top-flight leagues, so 2nd tiers and other countries can be folded in
+later with no change to this pipeline.
 
 Separate from (not a replacement for) the per-league opta_rating used for
 match simulation: this is a derived, display-focused artifact. For the
@@ -11,10 +11,23 @@ today (club_rating_calibration.py), that adjustment is applied on top of
 the raw Opta rating before rescaling -- same number ratings_manager.
 load_ratings() hands to the simulator, just rescaled for this global view.
 
-Rescale is linear min-max over the full global pool so the single best club
-= 1000 and the single worst = 0 (not a per-tier or per-country rescale --
-deliberately one global scale, since the whole point is a single ranking
-spanning every club Opta covers).
+Three ratings are computed per club, all on one shared Elo-style number
+line (see ELO_FLOOR/ELO_CEILING):
+  - opta_elo: today's raw Opta rating + the existing small live nudge
+    (club_rating_calibration.py), same number the simulator uses.
+  - odds_elo: club_odds_ratings.py's persistent, full-history odds-implied
+    rating, for clubs with any odds-market coverage (blank otherwise --
+    deliberately NOT backfilled to Opta's number when coverage is absent).
+  - combined_elo: a confidence-weighted blend of the two (full weight on
+    the odds signal once a club has ~N_FULL_CONFIDENCE real odds-implied
+    observations, falling back toward pure Opta as that evidence thins
+    out or disappears) -- the "co-equal input" ranking, not yet wired into
+    any live prediction path (see N_FULL_CONFIDENCE's own comment).
+Rescale (for all three) is linear min-max over the full global pool so the
+single best club worldwide lands on ELO_CEILING and the single worst on
+ELO_FLOOR (not a per-tier or per-country rescale -- deliberately one
+global scale, since the whole point is a single ranking spanning every
+club Opta covers).
 
 Tracked-league membership is tagged the same way opta_rankings.py's
 "Complete Rankings" tab does it -- both import resolve_tracked_leagues()
@@ -36,8 +49,9 @@ tagged EVERY row sharing a name, which double- (sometimes 8x-) counted
 big clubs like Arsenal/Inter/Juventus/Rangers under the global scrape's
 unrelated homonyms in other countries.
 
-Writes club_power_rankings_1000.csv (rank, team, country_or_league,
-opta_rating_raw, adjustment, rating_1000, badge_url).
+Writes club_power_rankings_1000.csv (rank, team, tracked_league,
+opta_rating_raw, adjustment, odds_implied_rating, odds_n_updates,
+opta_elo, odds_elo, combined_elo, combined_confidence, badge_url).
 
 Usage: py build_club_power_rankings.py
 """
@@ -54,10 +68,46 @@ import pandas as pd
 from config import LEAGUES
 from ratings_manager import load_club_rating_adjustments
 from update_ratings_from_opta import _normalize
+from club_odds_ratings import RATINGS_OUT_PATH as ODDS_IMPLIED_PATH
 
 GLOBAL_RANKINGS_PATH = "opta_power_rankings.csv"
 OUT_PATH = "club_power_rankings_1000.csv"
 _MAX_RATING_GAP = 5.0  # see resolve_tracked_leagues' own docstring for why
+
+# Standard-looking Elo number line instead of the old 0-1000 scale -- the
+# single best club worldwide today lands on ELO_CEILING, the single worst
+# on ELO_FLOOR, same linear min-max idea as the old rating_1000, just
+# different endpoints. Anchors are a deliberate stylistic choice, not a
+# literal match to clubelo.com's own empirical range (real clubelo/World
+# Football Elo peaks run roughly 2100-2150 at most, e.g. peak Pep
+# Barcelona, peak Argentina) -- chosen instead to land in a band that
+# reads the way chess's familiar 2200-2400 ("National Master" to just
+# under "International Master") does for a casual audience: a number
+# that clearly signals "the best," without implying we've reproduced
+# clubelo's specific methodology (sequential win/draw/loss Elo updates
+# with a K-factor) -- we haven't; see club_odds_ratings.py's module
+# docstring for why this site's rating model stays the existing Poisson/
+# attack-defense fit instead.
+ELO_FLOOR = 1200.0
+ELO_CEILING = 2400.0
+
+# How much real odds-implied evidence (club_odds_ratings.py's own
+# n_updates) a club needs before the blend below trusts it as much as
+# Opta -- roughly a season's worth of real market-odds fixtures.
+# Provisional, like club_odds_ratings.py's own hyperparameters: not yet
+# swept against club_odds_rating_validation.py's held-out data.
+N_FULL_CONFIDENCE = 12
+
+
+def _to_elo(values: pd.Series, lo: float, hi: float) -> pd.Series:
+    """Linear rescale onto [ELO_FLOOR, ELO_CEILING]. NaN stays NaN -- a
+    club with no odds coverage should show a blank Odds Elo, not a
+    misleading number. `lo`/`hi` are always the SAME two anchors (the
+    global Opta pool's own adjusted_rating min/max) for every metric this
+    is applied to, so Opta/Odds/Combined Elo stay comparable on one
+    number line instead of each being independently min-maxed against
+    its own, differently-sized population."""
+    return (ELO_FLOOR + (values - lo) / (hi - lo) * (ELO_CEILING - ELO_FLOOR)).round(0)
 
 
 def tracked_league_map() -> list[tuple[str, str, float | None, set[str]]]:
@@ -210,21 +260,108 @@ def main() -> None:
     # lookup here, by design -- see tracked_league_map()'s docstring for why.
     global_df["adjustment"] = global_df["_canonical_team"].map(lambda t: adjustments.get(t, 0.0) if t else 0.0)
 
+    # club_odds_ratings.py's persistent, full-history odds-implied rating --
+    # read-only, display-only comparison column. Keyed by (league_id, team),
+    # NOT bare team name: that file deliberately disambiguates same-named
+    # clubs across different leagues (e.g. England's "Arsenal" vs Belarus's
+    # "Arsenal" -- a real collision found 2026-11-04), so the lookup here
+    # must too, or it would silently show one club's number under the
+    # other's row depending on which happened to sort last. tracked_league
+    # (just resolved above) already pins each global_df row to one specific
+    # LEAGUES entry, so the exact same league_id club_odds_ratings.py itself
+    # used is directly recoverable here -- no guessing needed. NOT folded
+    # into adjusted_rating/rating_1000 below -- this is Phase 1 (build +
+    # validate standalone, see club_odds_rating_validation.py), not a
+    # replacement for the live Opta+adjustment number yet.
+    _label_to_league_id = {
+        f"{cfg['flag']} {name}": str(cfg.get("tsdb_id", cfg["id"])) for name, cfg in LEAGUES.items()
+    }
+    global_df["_league_id"] = global_df["tracked_league"].map(_label_to_league_id)
+
+    # club_odds_ratings.py's rating is seeded from, and stays on the same
+    # units as, each club's OWN per-league ratings/{id}.csv opta_rating
+    # (that league's own best team = 100) -- NOT this file's global
+    # opta_power_rankings.csv "rating" (the single best club WORLDWIDE =
+    # 100, a different number for every club outside the very top of the
+    # global pool). Blending odds_implied_rating straight into the global
+    # scale would wrongly inflate a weak league's own top team just
+    # because it sits near 100 on ITS OWN league's scale. Instead, odds_
+    # implied_rating is converted to a DELTA against that same per-league
+    # baseline (odds_delta = odds_implied_rating - own_league_raw_rating)
+    # -- exactly the same "delta from the per-league Opta number" shape
+    # `adjustment` (club_rating_calibration.py's own nudge) already is --
+    # and that delta is what gets added onto the GLOBAL rating below, so
+    # everything stays in one consistent unit.
+    _known_rating_by_key: dict[tuple[str, str], float] = {
+        (_label_to_league_id.get(label, ""), canonical): known_rating
+        for label, canonical, known_rating, _names in tracked_league_map()
+        if known_rating is not None
+    }
+    global_df["_league_raw_rating"] = global_df.apply(
+        lambda r: _known_rating_by_key.get((r["_league_id"], r["_canonical_team"])) if r["_canonical_team"] else None,
+        axis=1,
+    )
+
+    odds_meta: dict[tuple[str, str], tuple[float, int]] = {}
+    if ODDS_IMPLIED_PATH.exists():
+        odf = pd.read_csv(ODDS_IMPLIED_PATH, dtype=str)
+        odf["opta_rating"] = pd.to_numeric(odf["opta_rating"], errors="coerce")
+        odf["n_updates"] = pd.to_numeric(odf["n_updates"], errors="coerce").fillna(0).astype(int)
+        odds_meta = {
+            (lid, t): (r, n) for lid, t, r, n in zip(odf["league_id"], odf["team"], odf["opta_rating"], odf["n_updates"])
+        }
+    global_df["odds_implied_rating"] = global_df.apply(
+        lambda r: odds_meta.get((r["_league_id"], r["_canonical_team"]), (None, 0))[0] if r["_canonical_team"] else None,
+        axis=1,
+    )
+    global_df["odds_n_updates"] = global_df.apply(
+        lambda r: odds_meta.get((r["_league_id"], r["_canonical_team"]), (None, 0))[1] if r["_canonical_team"] else 0,
+        axis=1,
+    )
+    global_df["odds_delta"] = global_df["odds_implied_rating"] - global_df["_league_raw_rating"]
+
     global_df["opta_rating_raw"] = global_df["rating"]
     global_df["adjusted_rating"] = global_df["opta_rating_raw"] + global_df["adjustment"]
 
-    lo, hi = global_df["adjusted_rating"].min(), global_df["adjusted_rating"].max()
-    global_df["rating_1000"] = ((global_df["adjusted_rating"] - lo) / (hi - lo) * 1000).round(1)
+    # Co-equal-input blend (the "Combined Strength Ranking"): confidence-
+    # weighted by how much real odds-implied evidence THIS club has
+    # (club_odds_ratings.py's own n_updates), per the user's own chosen
+    # design -- a club with deep odds coverage trusts the odds signal as
+    # much as Opta; a club with little/none falls back toward pure Opta
+    # (+ today's existing small live nudge), exactly the "Opta Rankings
+    # are good for clubs/leagues where Odds Rankings lack information"
+    # fallback this was built for. NOT wired into any live prediction
+    # path yet -- this stays a display-only column here (like odds_
+    # implied_rating already was) until a future phase decides to feed
+    # it into ratings_manager.load_ratings() for actual match simulation.
+    global_df["combined_confidence"] = (global_df["odds_n_updates"] / N_FULL_CONFIDENCE).clip(upper=1.0)
+    global_df["combined_rating"] = (
+        global_df["adjusted_rating"] + global_df["odds_delta"].fillna(0.0) * global_df["combined_confidence"]
+    )
 
-    out = global_df.sort_values("rating_1000", ascending=False).reset_index(drop=True)
-    out = out.drop(columns=["rank", "_canonical_team"])  # supersede Opta's raw rank with our post-adjustment one
+    # Elo-scale display rescale -- see ELO_FLOOR/ELO_CEILING's own comment.
+    # lo/hi are always derived from the GLOBAL Opta pool's adjusted_rating
+    # (the one metric with full coverage), reused for all three so Opta/
+    # Odds/Combined Elo are directly comparable on one number line.
+    lo, hi = global_df["adjusted_rating"].min(), global_df["adjusted_rating"].max()
+    global_df["opta_elo"] = _to_elo(global_df["adjusted_rating"], lo, hi)
+    global_df["odds_elo"] = _to_elo(
+        global_df["_league_raw_rating"] + global_df["odds_delta"], lo, hi,
+    )  # NaN where odds_delta is NaN (no coverage) -- deliberately left blank, not backfilled to Opta's number
+    global_df["combined_elo"] = _to_elo(global_df["combined_rating"], lo, hi)
+
+    out = global_df.sort_values("combined_elo", ascending=False).reset_index(drop=True)
+    out = out.drop(columns=["rank", "_canonical_team"])  # supersede Opta's raw rank with our post-blend one
     out.insert(0, "rank", out.index + 1)
     out = out[["rank", "team", "tracked_league", "opta_rating_raw", "adjustment",
-               "rating_1000", "badge_url"]]
+               "odds_implied_rating", "odds_n_updates", "opta_elo", "odds_elo", "combined_elo",
+               "combined_confidence", "badge_url"]]
     out.to_csv(OUT_PATH, index=False)
 
     n_adjusted = (out["adjustment"] != 0.0).sum()
-    print(f"Wrote {len(out)} clubs to {OUT_PATH} ({n_adjusted} with a live odds adjustment)")
+    n_odds = out["odds_implied_rating"].notna().sum()
+    print(f"Wrote {len(out)} clubs to {OUT_PATH} ({n_adjusted} with a live odds adjustment, "
+          f"{n_odds} with an odds-implied rating)")
     summary = out.head(10).to_string(index=False)
     print(summary.encode(sys.stdout.encoding or "utf-8", errors="replace").decode(sys.stdout.encoding or "utf-8"))
 

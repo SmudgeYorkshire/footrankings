@@ -1,20 +1,35 @@
 """
 Club Strength Rankings — public page.
 
-A new, standalone 0-1000 rating scale covering every club Opta rates
-worldwide (not just the 54 tracked top-flight leagues) — built by
-build_club_power_rankings.py from opta_power_rankings.csv plus whatever
-odds-driven adjustment club_rating_calibration.py fit that day. The single
-best club worldwide = 1000; the rest are scaled relative to it.
+An Elo-style rating scale (not the literal clubelo.com/World Football Elo
+formula -- this site's underlying match model stays the existing Poisson/
+attack-defense fit; see build_club_power_rankings.py's module docstring
+for why) covering every club Opta rates worldwide (not just the 54
+tracked top-flight leagues) — built by build_club_power_rankings.py from
+opta_power_rankings.csv plus whatever odds-driven signal is available.
+The single best club worldwide lands near 2400; the rest are scaled
+relative to it, on one shared number line with every other club.
+
+Three Elo numbers are shown per club:
+  - Opta Elo: Opta's own rating + today's small live odds nudge (the same
+    number the simulator uses for match predictions right now).
+  - Odds Elo: a separate, persistent rating built entirely from this
+    club's own real market-odds history (blank where that history is too
+    thin or absent -- see Opta Elo for those clubs instead).
+  - Combined Elo: a confidence-weighted blend of the two -- full weight on
+    the odds signal once a club has enough real odds-implied history,
+    falling back toward Opta where that history is thin or missing. This
+    is the headline "Strength Ranking" below and is NOT yet wired into
+    any live match prediction.
 
 This is deliberately separate from the Opta Rankings page's 0-100 scale:
-that page shows Opta's own rating (and, for tracked leagues, the same
-number the simulator uses); this page is the new, odds-aware ranking the
-site maintains itself. Clubs outside the 54 tracked leagues (2nd tiers,
-other countries) are already present here with no further work, since
-build_club_power_rankings.py starts from the complete global Opta list,
-not just the tracked-league rosters -- the "Tracked league" tag just notes
-which ones also feed live match predictions.
+that page shows Opta's own rating directly; this page is the new,
+odds-aware ranking the site maintains itself. Clubs outside the 54
+tracked leagues (2nd tiers, other countries) are already present here
+with no further work, since build_club_power_rankings.py starts from the
+complete global Opta list, not just the tracked-league rosters -- the
+"Tracked league" tag just notes which ones also feed live match
+predictions.
 """
 
 import json
@@ -49,11 +64,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.caption(
-    "A new 0-1000 rating for every club Opta tracks worldwide, not just our 54 tracked "
-    "top-flight leagues — the single best club = 1000. Built from Opta's own rating plus, "
-    "for clubs in a leading betting market, a daily adjustment fitted against real bookmaker "
-    "odds (see the Opta Rankings page for the underlying 0-100 Opta number used in match "
-    "predictions)."
+    "An Elo-style rating for every club Opta tracks worldwide, not just our 54 tracked "
+    "top-flight leagues — the single best club worldwide lands near 2400. Opta Elo, Odds Elo "
+    "and Combined Elo are three views of the same club on one shared number line: Opta's own "
+    "rating, a separate rating built entirely from real market-odds history, and a confidence-"
+    "weighted blend of the two (see the Opta Rankings page for the underlying 0-100 Opta number "
+    "actually used in match predictions today)."
 )
 
 if not Path(_RANKINGS_PATH).exists():
@@ -73,7 +89,12 @@ def _load_rankings_df(mtime: float) -> pd.DataFrame:
     df = pd.read_csv(_RANKINGS_PATH)
     df["opta_rating_raw"] = pd.to_numeric(df["opta_rating_raw"], errors="coerce")
     df["adjustment"] = pd.to_numeric(df["adjustment"], errors="coerce").fillna(0.0)
-    df["rating_1000"] = pd.to_numeric(df["rating_1000"], errors="coerce")
+    if "odds_implied_rating" in df.columns:
+        df["odds_implied_rating"] = pd.to_numeric(df["odds_implied_rating"], errors="coerce")
+    else:
+        df["odds_implied_rating"] = pd.NA
+    for col in ("odds_n_updates", "opta_elo", "odds_elo", "combined_elo", "combined_confidence"):
+        df[col] = pd.to_numeric(df[col], errors="coerce") if col in df.columns else pd.NA
     df["tracked_league"] = df["tracked_league"].fillna("")
     return df
 
@@ -118,8 +139,11 @@ def _render_table(df: pd.DataFrame, key_prefix: str, league_options: list[str]) 
     view = view.rename(columns={
         "rank": "Rank", "team": "Club", "tracked_league": "Tracked League",
         "opta_rating_raw": "Opta Rating", "adjustment": "Odds Adjustment",
-        "rating_1000": "Strength Rating", "badge_url": "Badge",
-    })[["Rank", "Badge", "Club", "Tracked League", "Opta Rating", "Odds Adjustment", "Strength Rating"]]
+        "odds_implied_rating": "Odds-Implied Rating", "odds_n_updates": "Odds Evidence (n)",
+        "opta_elo": "Opta Elo", "odds_elo": "Odds Elo", "combined_elo": "Combined Elo",
+        "combined_confidence": "Odds Weight", "badge_url": "Badge",
+    })[["Rank", "Badge", "Club", "Tracked League", "Opta Rating", "Odds-Implied Rating",
+        "Odds Evidence (n)", "Opta Elo", "Odds Elo", "Combined Elo", "Odds Weight"]]
 
     st.dataframe(
         view,
@@ -129,8 +153,43 @@ def _render_table(df: pd.DataFrame, key_prefix: str, league_options: list[str]) 
             "Club":            st.column_config.TextColumn("Club", width="medium"),
             "Tracked League":  st.column_config.TextColumn("Tracked League", width="medium"),
             "Opta Rating":     st.column_config.NumberColumn("Opta Rating", format="%.1f", width="small"),
-            "Odds Adjustment": st.column_config.NumberColumn("Odds Adjustment", format="%+.1f", width="small"),
-            "Strength Rating": st.column_config.NumberColumn("Strength Rating", format="%.1f", width="small"),
+            "Odds-Implied Rating": st.column_config.NumberColumn(
+                "Odds-Implied Rating", format="%.1f", width="small",
+                help="A separate, persistent rating built entirely from this club's real "
+                     "market-odds history (not capped, not reset each day). Blank where there's "
+                     "no odds-market coverage for this club yet.",
+            ),
+            "Odds Evidence (n)": st.column_config.NumberColumn(
+                "Odds Evidence (n)", width="small",
+                help="How many real odds-implied observations (daily market data, plus a "
+                     "one-time historical bootstrap from football-data.co.uk for ~21 leagues) "
+                     "back this club's Odds-Implied Rating -- also what Combined Elo's blend "
+                     "weight is based on.",
+            ),
+            "Opta Elo": st.column_config.NumberColumn(
+                "Opta Elo", format="%.0f", width="small",
+                help="Opta's own rating + today's small live odds nudge, rescaled onto an "
+                     "Elo-style number line (same number the simulator uses for predictions "
+                     "today, just rescaled for display).",
+            ),
+            "Odds Elo": st.column_config.NumberColumn(
+                "Odds Elo", format="%.0f", width="small",
+                help="The Odds-Implied Rating above, rescaled onto the same Elo number line. "
+                     "Blank where there's no odds-market coverage -- see Opta Elo for those "
+                     "clubs instead.",
+            ),
+            "Combined Elo": st.column_config.NumberColumn(
+                "Combined Elo", format="%.0f", width="small",
+                help="A confidence-weighted blend of Opta Elo and Odds Elo -- full weight on "
+                     "the odds signal once a club has enough real evidence, falling back "
+                     "toward Opta Elo where that evidence is thin or missing. This page's "
+                     "headline ranking. Not yet wired into any live match prediction.",
+            ),
+            "Odds Weight": st.column_config.ProgressColumn(
+                "Odds Weight", width="small", min_value=0.0, max_value=1.0,
+                help="How much of Combined Elo comes from the odds signal vs. Opta Elo "
+                     "(0 = pure Opta, 1 = pure odds-implied).",
+            ),
         },
         width="content",
         hide_index=True,

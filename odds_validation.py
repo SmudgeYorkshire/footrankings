@@ -41,6 +41,7 @@ import requests
 from config import LEAGUES
 from ratings_manager import load_ratings
 from simulator import fixture_odds
+from update_ratings_from_opta import fuzzy_token_match
 
 CACHE_DIR = Path("cache")
 BASE_URL = "https://www.football-data.co.uk"
@@ -84,6 +85,22 @@ TEAM_NAME_OVERRIDES: dict[str, str] = {
     "Man City": "Manchester City",
     "Man United": "Manchester United",
     "Nott'm Forest": "Nottingham Forest",
+    # Found while adding the fuzzy_token_match tier below (2026-11-04):
+    # "Paris SG" normalizes to tokens {paris, sg}, and "Paris FC" -- a
+    # SEPARATE, real, much smaller club also in our Ligue 1 roster --
+    # strips its "FC" suffix down to the single bare token {paris}, which
+    # is trivially a subset of {paris, sg}. Without this override, PSG's
+    # own historical odds would have been silently credited to the wrong
+    # club. Explicit override takes priority over any fuzzy tier, so it
+    # sidesteps the ambiguity entirely rather than trying to make the
+    # shared fuzzy_token_match helper itself smarter about it.
+    "Paris SG": "Paris Saint-Germain",
+    # football-data.co.uk's shortened form for a well-known club whose
+    # full name's first token ("Eintracht") isn't a prefix OR a suffix-
+    # stripped match of "Ein" -- fuzzy_token_match can't bridge an
+    # abbreviation, only a dropped suffix/subset of whole tokens. Safe:
+    # only one Frankfurt club is in our Bundesliga roster.
+    "Ein Frankfurt": "Eintracht Frankfurt",
 }
 
 
@@ -203,6 +220,20 @@ def match_team_name(name: str, ratings_df: pd.DataFrame, unmatched: set[str]) ->
     for _, row in ratings_df.iterrows():
         cand = _normalize(row["team"])
         if cand.startswith(norm_target) or norm_target.startswith(cand):
+            return row["team"]
+    # fuzzy: normalized token-SUBSET match (club_rating_calibration.py's
+    # and build_club_power_rankings.py's own shared helper) -- catches
+    # football-data.co.uk's shortened names the prefix/substring check
+    # above misses because the short form isn't a prefix of the long one,
+    # e.g. "Dortmund" ~ "Borussia Dortmund", "Leverkusen" ~ "Bayer
+    # Leverkusen", "Paris SG" ~ "Paris Saint-Germain" (confirmed these are
+    # real current-roster clubs silently falling through to `unmatched`
+    # before this tier was added -- found while building club_odds_ratings.
+    # py's historical bootstrap, 2026-11-04). Only run within one league's
+    # own ~20-team roster, same scale fuzzy_token_match's own docstring
+    # already documents as safe.
+    for _, row in ratings_df.iterrows():
+        if fuzzy_token_match(name, (row["team"], str(row.get("alias", "")))):
             return row["team"]
     unmatched.add(name)
     return None
