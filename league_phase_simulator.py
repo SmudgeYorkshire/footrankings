@@ -103,6 +103,21 @@ _KNOCKOUT_SIGMA = {
     "Conference League": 0.0,
 }
 
+
+def _resolve_knockout_sigma(
+    comp_name: str | None, season_sigma: float, knockout_sigma: float | None,
+) -> float:
+    """simulate_competition_winner's knockout_sigma=None resolution --
+    pulled out as its own function so it's independently unit-testable
+    without running a full simulation. An explicit knockout_sigma
+    (including 0.0) always wins; otherwise falls back to this
+    competition's own _KNOCKOUT_SIGMA entry, or season_sigma itself for
+    an unrecognized/missing comp_name (matches this function's pre-split
+    behaviour, when knockout noise always just reused season_sigma)."""
+    if knockout_sigma is not None:
+        return knockout_sigma
+    return _KNOCKOUT_SIGMA.get(comp_name, season_sigma)
+
 # ---------------------------------------------------------------------------
 # UEFA association (country) coefficient points -- verified against both
 # en.wikipedia.org/wiki/UEFA_coefficient's "Bonus Points" table (2024-25
@@ -746,9 +761,7 @@ def simulate_competition_winner(
     phi = OVERDISPERSION
     p_nb = 1.0 / (1.0 + phi)
 
-    _knockout_sigma = (
-        _KNOCKOUT_SIGMA.get(comp_name, season_sigma) if knockout_sigma is None else knockout_sigma
-    )
+    _knockout_sigma = _resolve_knockout_sigma(comp_name, season_sigma, knockout_sigma)
     # One shared standard-normal draw per (team, sim), rescaled separately
     # by season_sigma and _knockout_sigma below -- same realization
     # DIRECTION (a team's hot/cold run points the same way in both
