@@ -93,10 +93,42 @@ ELO_CEILING = 2400.0
 
 # How much real odds-implied evidence (club_odds_ratings.py's own
 # n_updates) a club needs before the blend below trusts it as much as
-# Opta -- roughly a season's worth of real market-odds fixtures.
-# Provisional, like club_odds_ratings.py's own hyperparameters: not yet
-# swept against club_odds_rating_validation.py's held-out data.
-N_FULL_CONFIDENCE = 12
+# Opta. Swept 2026-11-04 against club_combined_rating_validation.py's
+# held-out Brier benchmark (21 leagues, 10,416 held-out matches): every
+# N from 2-20 beat the pure live-nudge baseline (0.6141), with a fairly
+# flat curve across N=2-10 and N=6 coming out marginally best (0.6133,
+# vs the original guess of 12's 0.6136) -- lowered from an initial,
+# explicitly-provisional guess of 12.
+N_FULL_CONFIDENCE = 6
+
+
+def _combined_rating(
+    adjusted_rating: pd.Series, league_raw_rating: pd.Series, odds_delta: pd.Series, confidence: pd.Series,
+) -> pd.Series:
+    """Straight linear interpolation between adjusted_rating (Opta +
+    today's small live nudge -- Opta Elo's own basis) and the odds-implied
+    rating's global-scale equivalent (league_raw_rating + odds_delta,
+    i.e. odds_implied_rating re-expressed on this global scale -- see
+    odds_elo's own computation, which rescales this exact same quantity):
+    `adjusted_rating * (1 - confidence) + odds_equivalent * confidence`.
+
+    NOT "adjusted_rating + odds_delta * confidence" (the original, buggy
+    version of this): that double-counts the live nudge at high
+    confidence, since adjusted_rating already includes it and odds_delta
+    is computed against the UNADJUSTED raw rating -- confirmed 2026-11-04
+    via club_combined_rating_validation.py (live=92.5, odds=95.0 -> the
+    old formula gave 97.5 at full confidence instead of 95.0). Straight
+    interpolation correctly reduces to adjusted_rating at confidence=0 and
+    exactly the odds-implied rating at confidence=1, with no double-
+    counting in between.
+
+    Wherever odds_delta is NaN (no odds coverage for that club),
+    `confidence` is already guaranteed 0 by the caller (odds_n_updates
+    defaults to 0 there too) -- the `.fillna(adjusted_rating)` below only
+    exists so that guaranteed-zero-weight term doesn't poison the result
+    with NaN; its actual value is never used."""
+    odds_equivalent = (league_raw_rating + odds_delta).fillna(adjusted_rating)
+    return adjusted_rating * (1.0 - confidence) + odds_equivalent * confidence
 
 
 def _to_elo(values: pd.Series, lo: float, hi: float) -> pd.Series:
@@ -335,8 +367,9 @@ def main() -> None:
     # implied_rating already was) until a future phase decides to feed
     # it into ratings_manager.load_ratings() for actual match simulation.
     global_df["combined_confidence"] = (global_df["odds_n_updates"] / N_FULL_CONFIDENCE).clip(upper=1.0)
-    global_df["combined_rating"] = (
-        global_df["adjusted_rating"] + global_df["odds_delta"].fillna(0.0) * global_df["combined_confidence"]
+    global_df["combined_rating"] = _combined_rating(
+        global_df["adjusted_rating"], global_df["_league_raw_rating"],
+        global_df["odds_delta"], global_df["combined_confidence"],
     )
 
     # Elo-scale display rescale -- see ELO_FLOOR/ELO_CEILING's own comment.
