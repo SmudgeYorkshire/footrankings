@@ -34,8 +34,9 @@ from competition_trivia import competition_trivia, overall_trivia
 from qualifying_projection import (
     _load_combined_ratings, _resolve_field_ratings,
     _leg_aggregate_winner, _project_league_phase_field,
-    _fuzzy_key, real_league_phase_results,
+    _fuzzy_key, real_league_phase_results, resolve_to_team,
 )
+from manual_outright_odds import OUTRIGHT_ODDS, devig_outright
 
 # Real pot sizing per competition (see league_phase_simulator's docstring):
 # Champions/Europa League: 4 pots of 9, 2 opponents each = 8 League Phase
@@ -892,6 +893,52 @@ if tab_ko_pred is not None:
                 _ko_df, column_config=_ko_col_cfg, width="content",
                 hide_index=True, height=len(_ko_df) * 35 + 38,
             )
+
+            # ── Market outright odds comparison (manual, comparison-only) ───
+            _outright = OUTRIGHT_ODDS.get(comp_name)
+            if _outright and _outright.get("odds"):
+                st.markdown("#### 🎲 Our prediction vs. the real outright market")
+                st.caption(
+                    f"Manually entered from {_outright.get('source', 'a bookmaker')} as of "
+                    f"{_outright.get('as_of', 'an unknown date')} -- comparison only, NOT fed "
+                    "into any rating or prediction on this site (see manual_outright_odds.py)."
+                )
+                _field_names = [f["team"] for f in _field]
+                _devigged = devig_outright(_outright["odds"])
+                _mkt_rows = []
+                for _raw_name, _mkt_prob in _devigged.items():
+                    _matched = resolve_to_team(_raw_name, _field_names)
+                    if _matched is None:
+                        continue
+                    _our_prob = float(_ls_result.loc[_matched, "won_competition"]) if _matched in _ls_result.index else None
+                    if _our_prob is None:
+                        continue
+                    _mkt_rows.append({
+                        "Badge": badge_lookup.get(_matched, ""),
+                        "Team": _matched,
+                        "Our Win %": round(_our_prob * 100, 1),
+                        "Market Win %": round(_mkt_prob * 100, 1),
+                        "Edge": round((_our_prob - _mkt_prob) * 100, 1),
+                    })
+                if _mkt_rows:
+                    _mkt_df = pd.DataFrame(_mkt_rows).sort_values("Market Win %", ascending=False)
+                    st.dataframe(
+                        _mkt_df,
+                        column_config={
+                            "Badge": st.column_config.ImageColumn("", width="small"),
+                            "Team": st.column_config.TextColumn("Team", width="medium"),
+                            "Our Win %": st.column_config.NumberColumn("Our Win %", format="%.1f%%", width="small"),
+                            "Market Win %": st.column_config.NumberColumn("Market Win %", format="%.1f%%", width="small"),
+                            "Edge": st.column_config.NumberColumn(
+                                "Edge", format="%+.1f%%", width="small",
+                                help="Our Win % minus Market Win % -- positive means we rate that "
+                                     "club higher than the real outright market does.",
+                            ),
+                        },
+                        width="content", hide_index=True, height=min(len(_mkt_df) * 35 + 38, 600),
+                    )
+                else:
+                    st.caption("None of the priced runners matched a club in this competition's field.")
 
             # ── Predicted Knockout Bracket ───────────────────────────────────
             st.markdown("#### Predicted Knockout Bracket")
