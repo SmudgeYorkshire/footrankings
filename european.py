@@ -445,8 +445,16 @@ if has_lp:
         _real_schedule_ready = is_opponent_list_complete(comp_name, [f["team"] for f in _field])
         _real_schedule = derive_fixtures(comp_name) if _real_schedule_ready else None
         if _real_schedule_ready:
+            # Pass our own already-fetched played_fixtures (from fetch_all()
+            # at the top of this page, same source "Current Standings"
+            # uses) instead of letting real_league_phase_results() make its
+            # own separate, independently-cached API call -- removes the
+            # up-to-60s staleness-drift window between Current Standings
+            # and Predictions entirely (see real_league_phase_results'
+            # own docstring for the full story).
             _real_results, _real_unresolved_names = real_league_phase_results(
                 comp_name, _API_KEY, tuple(f["team"] for f in _field),
+                played_fixtures=played_fixtures,
             )
         else:
             _real_results, _real_unresolved_names = {}, []

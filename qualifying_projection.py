@@ -543,6 +543,7 @@ def _project_league_phase_field(comp_name: str, ratings_df: pd.DataFrame) -> lis
 
 def real_league_phase_results(
     comp_name: str, api_key: str, field_teams,
+    played_fixtures: list[dict] | None = None,
 ) -> tuple[dict[tuple[str, str], tuple[int, int]], list[str]]:
     """({(home, away): (home_goals, away_goals)}, unresolved_raw_names) for
     every League Phase fixture already finished, keyed by this site's own
@@ -568,11 +569,27 @@ def real_league_phase_results(
     one of these doesn't go unnoticed for who knows how long -- see
     european.py's own caller for the pattern.
 
+    `played_fixtures`: pass a caller's own already-fetched fixture list
+    (e.g. european.py's `fetch_all()` result) to use it directly instead
+    of making a SEPARATE, independently-cached call to
+    `_fetch_comp_fixtures()` here. Found 2026-11-04, same investigation as
+    the bug above: european.py's own `fetch_all()` (powers "Current
+    Standings") and this function's internal `_fetch_comp_fixtures()`
+    (powers Predictions) fetch the EXACT same underlying API-Football
+    data (same league id, same season) through two independently-ttl=60s-
+    cached functions, whose refresh windows don't start in lockstep --
+    for up to ~60s after a match finishes, Current Standings could already
+    show it while Predictions' simulation input was still one match
+    behind. Passing the caller's own fixtures in removes that drift
+    entirely: both read the literal same in-memory list. Defaults to None
+    (falls back to this function's own fetch) so any caller without
+    fixtures already in hand keeps working exactly as before.
+
     Feed the first element into league_phase_simulator's real_results=
     parameter so already-decided matches are locked in instead of being
     re-simulated from scratch on every rerun, same principle as
     simulator.py's domestic-league played_fixtures handling."""
-    played, _remaining = _fetch_comp_fixtures(comp_name, api_key)
+    played = played_fixtures if played_fixtures is not None else _fetch_comp_fixtures(comp_name, api_key)[0]
     field_set = set(field_teams)
     results: dict[tuple[str, str], tuple[int, int]] = {}
     unresolved: set[str] = set()

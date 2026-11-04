@@ -774,8 +774,13 @@ def project_country_predicted_ranking(
         real_schedule_ready = is_opponent_list_complete(comp_name, [f["team"] for f in field])
         real_schedule = derive_fixtures(comp_name) if real_schedule_ready else None
         if real_schedule_ready:
+            # Reuse `played` (already fetched a few lines up, this same
+            # loop iteration) instead of letting real_league_phase_results()
+            # make its own separate call -- see that function's own
+            # docstring for why.
             real_results, real_unresolved_names = real_league_phase_results(
                 comp_name, api_key, tuple(f["team"] for f in field),
+                played_fixtures=played,
             )
         else:
             real_results, real_unresolved_names = {}, []
