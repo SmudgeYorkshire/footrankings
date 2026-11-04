@@ -33,6 +33,7 @@ Knockout stage (identical structure across all three competitions):
   team's opponent-strength distribution.
 """
 
+import math
 import random
 
 import numpy as np
@@ -51,6 +52,56 @@ from qualifying_projection import home_advantage_for as _home_advantage_for
 
 _MAX_SCHEDULE_ATTEMPTS = 200
 _MAX_COUNTRY_OPPONENTS = 2
+
+# Per-competition knockout-stage strength-noise magnitude (see
+# simulate_competition_winner's knockout_sigma docstring for the full
+# story) -- calibrated 2026-11-04 against theanalyst.com's Opta
+# "supercomputer" outright-winner simulations (10,000 sims each, same
+# underlying Opta Power Rating data this site uses -- the best real
+# external benchmark available for this specific question, same
+# discipline as the original OPTA_K=4.0 PL-xPts cross-check).
+#
+# A single shared knockout_sigma cannot fit all three competitions: swept
+# 0.0-0.90 against the Opta reference figures (11 CL teams, 11 EL teams,
+# 3 UECL teams) and each competition's error-minimizing value came out
+# in a different place, confirmed NOT to be Monte Carlo noise (2 seeds x
+# 30,000 sims each, monotonic trend in every case):
+#   Champions League: shallow minimum around 0.25-0.30 (fairly flat
+#     0.0-0.30, mild improvement at the top of that range) -- directly
+#     validated against the club that triggered this whole investigation:
+#     at season_sigma=0.30 Arsenal's won_competition lands at ~21%,
+#     essentially exact against Opta's own 20.9%.
+#   Europa League: kept improving all the way out to ~0.60 (MAE 2.06pp
+#     at 0.30 -> 1.39pp at 0.60 -> rising again by 0.90) -- this field's
+#     top contenders are much more tightly bunched by rating than CL's or
+#     UECL's, which plausibly needs MORE spread-inducing noise to match
+#     Opta's own flatter simulated distribution among them.
+#   Conference League: monotonically WORSE as sigma rises from 0 (MAE
+#     0.55pp at 0.0 -> 2.82pp at 0.30) -- Brighton's rating edge over its
+#     own field is the single most extreme of any team in any of the 3
+#     competitions (relative^4 ~= 1.9), and Opta's own supercomputer
+#     independently lands on almost the exact same ~44.5% figure our
+#     model already gives it with ZERO extra knockout noise. Here the
+#     static, noise-free table was already a close match -- adding noise
+#     overcorrects a gap that, empirically, mostly wasn't there.
+#
+# Caveats, so this isn't mistaken for as rigorously validated as
+# SEASON_STRENGTH_SIGMA itself (5 leagues x 3 independent external
+# sources): this rests on ONE external source, and the Conference League
+# read in particular only has 3 reference data points. Opta's own
+# supercomputer could in principle share the same missing-variance
+# limitation this fix addresses (it's a black box, impossible to confirm
+# either way) -- but it's still the best real anchor available, and the
+# per-competition PATTERN (a tightly-bunched field wants more spread, an
+# extreme-outlier-dominated field wants less) is directionally sensible
+# on its own merits, not just curve-fit to one snapshot. Revisit if a
+# fresher Opta supercomputer snapshot or a real outright-market data
+# source becomes available.
+_KNOCKOUT_SIGMA = {
+    "Champions League": 0.30,
+    "Europa League": 0.60,
+    "Conference League": 0.0,
+}
 
 # ---------------------------------------------------------------------------
 # UEFA association (country) coefficient points -- verified against both
@@ -362,6 +413,67 @@ def _neutral_final_odds(teams: list[str], ratings_df: pd.DataFrame, n_draws: int
     return odds
 
 
+def _noisy_two_leg_advance_prob(
+    a_att: float, a_def: float, b_att: float, b_def: float,
+    ha_a: float, ha_b: float, league_avg: float, phi: float,
+    noise_a: float, noise_b: float,
+) -> float:
+    """a's probability of advancing a two-legged tie against b, for ONE
+    simulated run's noise-adjusted attack ratings (noise_a/noise_b --
+    that run's season_sigma lognormal multiplier for each team, the exact
+    same one simulate_competition_winner already draws for its League
+    Phase mini-league, reused here). Used instead of
+    _load_pairwise_advance_odds's static, noise-free table whenever
+    season_sigma > 0, so the knockout bracket gets the same season-level
+    strength uncertainty the League Phase stage already has -- see
+    simulate_competition_winner's docstring for why that was missing
+    (confirmed as a real gap 2026-11-04: the static table meant every one
+    of n_sim simulated tournaments drew each possible tie's outcome
+    against the IDENTICAL probability, so the model's single
+    highest-rated team compounded the same ~55-65% round-by-round edge
+    across 4-5 straight rounds in every simulated year, with no chance
+    that "this isn't really their year" -- overconfident vs. real
+    outright markets in exactly the way domestic title odds were before
+    SEASON_STRENGTH_SIGMA, just left unpatched here).
+
+    Each leg's goal count is NegBin(lambda/phi, 1/(1+phi)); since every
+    team/match shares the same phi, one side's two-leg TOTAL is itself
+    NegBin(sum(lambda)/phi, 1/(1+phi)) exactly (NegBin sums are additive
+    across independent draws sharing p, mean=lambda, var=lambda*(1+phi)).
+    Rather than convolving both sides' aggregate PMFs exactly (what
+    simulator.two_leg_advance_odds' analytical double-loop does -- too
+    slow to call ~23 times per simulated run x n_sim runs), this uses a
+    normal approximation to the aggregate goal margin from its NegBin
+    mean/variance. Not exact, but no less exact than
+    _load_pairwise_advance_odds' own choice to skip the Dixon-Coles
+    low-score correction for knockout ties -- and precise enough for its
+    actual job: adding the right ORDER of extra outcome variance, not
+    refining the baseline per-tie calibration (already validated against
+    real market odds via odds_validation.py)."""
+    lam_l1_a = a_att * max(b_def, 0.01) / league_avg * ha_a * noise_a
+    lam_l1_b = b_att * max(a_def, 0.01) / league_avg * noise_b
+    lam_l2_b = b_att * max(a_def, 0.01) / league_avg * ha_b * noise_b
+    lam_l2_a = a_att * max(b_def, 0.01) / league_avg * noise_a
+    mean_a = lam_l1_a + lam_l2_a
+    mean_b = lam_l1_b + lam_l2_b
+    sd = max((mean_a + mean_b) * (1.0 + phi), 1e-9) ** 0.5
+    z = (mean_a - mean_b) / sd
+    return 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
+
+
+def _noisy_single_match_prob(
+    a_att: float, a_def: float, b_att: float, b_def: float,
+    league_avg: float, phi: float, noise_a: float, noise_b: float,
+) -> float:
+    """Same normal-approximation idea as _noisy_two_leg_advance_prob, for
+    a single neutral-venue match (the Final)."""
+    lam_a = a_att * max(b_def, 0.01) / league_avg * noise_a
+    lam_b = b_att * max(a_def, 0.01) / league_avg * noise_b
+    sd = max((lam_a + lam_b) * (1.0 + phi), 1e-9) ** 0.5
+    z = (lam_a - lam_b) / sd
+    return 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
+
+
 def _load_pairwise_expected_points(
     teams: list[str], ratings_df: pd.DataFrame, home_advantage: float, n_draws: int = 8_000,
 ) -> dict:
@@ -501,6 +613,7 @@ def simulate_competition_winner(
     schedule: list[dict] | None = None,
     real_results: dict[tuple[str, str], tuple[int, int]] | None = None,
     season_sigma: float = SEASON_STRENGTH_SIGMA,
+    knockout_sigma: float | None = None,
     track_rank_points: bool = False,
 ) -> pd.DataFrame | tuple:
     """Full Monte Carlo simulation of a 36-team UEFA League Phase
@@ -525,15 +638,46 @@ def simulate_competition_winner(
     qualifying_projection.real_league_phase_results().
 
     season_sigma: same per-(team, simulated run) strength-uncertainty
-    noise as simulator.simulate_season's own season_sigma -- applied only
-    to the League Phase stage below (the 8/6-game mini-league that
-    determines who tops the table and who's in the knockout play-off
-    zone), not to the knockout bracket itself, which already draws its
-    outcomes from _load_pairwise_advance_odds's own independently-drawn
-    two-legged-tie odds rather than re-simulating goals per run. Without
-    this, the League Phase table (and therefore reached_top8/won_
-    competition etc.) has the same "match-level noise alone under-spreads
-    a full competition" issue simulate_season had -- confirmed 2026-10-12.
+    noise as simulator.simulate_season's own season_sigma, applied to the
+    League Phase stage below (the 8/6-game mini-league that determines
+    who tops the table and who's in the knockout play-off zone).
+
+    knockout_sigma: the SAME kind of noise, applied to the knockout
+    bracket itself, via _draw_winner's noisy branch
+    (_noisy_two_leg_advance_prob/_noisy_single_match_prob) -- a separate
+    magnitude from season_sigma (not the same parameter) because they
+    were found 2026-11-04 to need genuinely different values per
+    competition (see _KNOCKOUT_SIGMA). None (the default) resolves to
+    _KNOCKOUT_SIGMA.get(comp_name, season_sigma); pass an explicit float
+    (including 0.0, e.g. for an A/B check) to override. Both noise
+    sources are drawn from the SAME underlying per-(team, sim) standard
+    normal draw (just rescaled by each one's own sigma) so a team's hot/
+    cold realization points the same direction in its League Phase games
+    and its own knockout run, without forcing both stages to share one
+    magnitude.
+
+    Without League Phase noise, the table (and therefore reached_top8/
+    won_competition etc.) has the same "match-level noise alone under-
+    spreads a full competition" issue simulate_season had -- confirmed
+    2026-10-12. The knockout bracket had an *independent* instance of the
+    same underlying problem, missed at the time: _load_pairwise_advance_
+    odds's own internal Monte Carlo draws only add MATCH-outcome
+    variance to build one stable static probability per pair -- every one
+    of n_sim simulated tournaments then drew its knockout results against
+    that literal same fixed table, with zero chance in any simulated year
+    that the model's highest-rated team wasn't really that good this
+    season. That's what actually drove title odds for the single best-
+    rated team in a field (e.g. Arsenal in Champions League, post-k=4
+    amplification) well above real outright-market consensus -- confirmed
+    2026-11-04. A later same-day check against Opta's own outright-winner
+    supercomputer simulations (see _KNOCKOUT_SIGMA) showed the fix was
+    real but the right MAGNITUDE varies sharply by competition -- a
+    uniform 0.30 overcorrected the Conference League (whose one dominant
+    favourite, Brighton, Opta's own model also rates as an extreme
+    outlier) while undercorrecting the Europa League (a much more tightly
+    bunched field). knockout_sigma<=0 for a given run skips the knockout
+    noise and falls back to the original static pairwise_odds/final_odds
+    table for that run, unchanged from before this fix existed.
 
     Otherwise draws ONE representative League Phase schedule
     (see module docstring for why), simulates its 144 (or 108, for the
@@ -602,15 +746,26 @@ def simulate_competition_winner(
     phi = OVERDISPERSION
     p_nb = 1.0 / (1.0 + phi)
 
+    _knockout_sigma = (
+        _KNOCKOUT_SIGMA.get(comp_name, season_sigma) if knockout_sigma is None else knockout_sigma
+    )
+    # One shared standard-normal draw per (team, sim), rescaled separately
+    # by season_sigma and _knockout_sigma below -- same realization
+    # DIRECTION (a team's hot/cold run points the same way in both
+    # stages) at two independently-calibrated magnitudes, rather than
+    # forcing League Phase and knockout noise to share one sigma (see
+    # knockout_sigma's own docstring for why they can't).
+    if season_sigma > 0 or _knockout_sigma > 0:
+        z = rng.standard_normal(size=(n_teams, n_sim))
     if season_sigma > 0:
-        team_noise = rng.lognormal(
-            mean=-0.5 * season_sigma ** 2, sigma=season_sigma, size=(n_teams, n_sim)
-        )
+        team_noise = np.exp(-0.5 * season_sigma ** 2 + season_sigma * z)
         home_lambdas_sim = home_lambdas[:, None] * team_noise[home_idx, :]
         away_lambdas_sim = away_lambdas[:, None] * team_noise[away_idx, :]
     else:
         home_lambdas_sim = np.broadcast_to(home_lambdas[:, None], (F, n_sim))
         away_lambdas_sim = np.broadcast_to(away_lambdas[:, None], (F, n_sim))
+    if _knockout_sigma > 0:
+        team_noise_ko = np.exp(-0.5 * _knockout_sigma ** 2 + _knockout_sigma * z)
 
     home_goals = rng.negative_binomial(np.maximum(home_lambdas_sim / phi, 1e-9), p_nb)
     away_goals = rng.negative_binomial(np.maximum(away_lambdas_sim / phi, 1e-9), p_nb)
@@ -645,8 +800,14 @@ def simulate_competition_winner(
             coeff_matrix[h] += home_coeff[i]
             coeff_matrix[a] += away_coeff[i]
 
-    pairwise_odds = _load_pairwise_advance_odds(teams, ratings_df, home_advantage)
-    final_odds = _neutral_final_odds(teams, ratings_df)
+    if _knockout_sigma <= 0:
+        # No per-run knockout strength noise requested (e.g. an explicit
+        # A/B check, or a competition whose own _KNOCKOUT_SIGMA is 0) --
+        # fall back to the static, noise-free MC table exactly as before,
+        # so _knockout_sigma<=0 stays a true no-op against the original
+        # behaviour this fix was added on top of.
+        pairwise_odds = _load_pairwise_advance_odds(teams, ratings_df, home_advantage)
+        final_odds = _neutral_final_odds(teams, ratings_df)
     if track_points:
         pairwise_expected_pts = _load_pairwise_expected_points(teams, ratings_df, home_advantage)
         final_expected_pts = _neutral_final_expected_points(teams, ratings_df)
@@ -672,8 +833,34 @@ def simulate_competition_winner(
         rank8_pts = np.empty(n_sim, dtype=np.int64)
         rank24_pts = np.empty(n_sim, dtype=np.int64)
 
-    def _draw_winner(a: str, b: str, odds: dict) -> str:
-        return a if random.random() < odds[(a, b)] else b
+    if _knockout_sigma > 0:
+        # Precomputed ONCE per team (not per call) -- rat_lookup.get and
+        # especially _home_advantage_for (an @st.cache_data-wrapped call)
+        # are cheap individually but _draw_winner runs ~23 times per sim x
+        # n_sim sims (up to 690,000 calls at the site's default n_sim=
+        # 30,000), where that per-call overhead dominated: this cut a
+        # 30,000-sim Champions League run from ~32s back down to ~8s,
+        # in line with the pre-noise static-table baseline.
+        _team_meta = {
+            t: (*rat_lookup.get(t, default), _home_advantage_for(t, home_advantage)) for t in teams
+        }
+
+        def _draw_winner(a: str, b: str, sim: int, two_legged: bool) -> str:
+            a_att, a_def, ha_a = _team_meta[a]
+            b_att, b_def, ha_b = _team_meta[b]
+            noise_a = team_noise_ko[team_idx[a], sim]
+            noise_b = team_noise_ko[team_idx[b], sim]
+            if two_legged:
+                p = _noisy_two_leg_advance_prob(
+                    a_att, a_def, b_att, b_def, ha_a, ha_b, league_avg, phi, noise_a, noise_b,
+                )
+            else:
+                p = _noisy_single_match_prob(a_att, a_def, b_att, b_def, league_avg, phi, noise_a, noise_b)
+            return a if random.random() < p else b
+    else:
+        def _draw_winner(a: str, b: str, sim: int, two_legged: bool) -> str:
+            odds = pairwise_odds if two_legged else final_odds
+            return a if random.random() < odds[(a, b)] else b
 
     for sim in range(n_sim):
         order = sorted(range(n_teams), key=lambda i: (-pts_matrix[i, sim], -gd_matrix[i, sim], -gf_matrix[i, sim]))
@@ -703,7 +890,7 @@ def simulate_competition_winner(
         ko_winner_by_pair = {}
         for seeded_rank, unseeded_rank in _KO_PLAYOFF_PAIRS:
             a, b = team_by_rank[seeded_rank], team_by_rank[unseeded_rank]
-            ko_winner_by_pair[(seeded_rank, unseeded_rank)] = _draw_winner(a, b, pairwise_odds)
+            ko_winner_by_pair[(seeded_rank, unseeded_rank)] = _draw_winner(a, b, sim, True)
             if track_points:
                 coeff_matrix[team_idx[a], sim] += pairwise_expected_pts[(a, b)]
                 coeff_matrix[team_idx[b], sim] += pairwise_expected_pts[(b, a)]
@@ -714,7 +901,7 @@ def simulate_competition_winner(
             seed_team = team_by_rank[seed_rank]
             ko_pair = _R16_SEED_TO_KO_PAIR[seed_rank]
             opponent = ko_winner_by_pair[ko_pair]
-            winner = _draw_winner(seed_team, opponent, pairwise_odds)
+            winner = _draw_winner(seed_team, opponent, sim, True)
             r16_winner_by_seed[seed_rank] = winner
             reached_r16[seed_team] += 1
             reached_r16[opponent] += 1
@@ -728,7 +915,7 @@ def simulate_competition_winner(
             a, b = r16_winner_by_seed[s1], r16_winner_by_seed[s2]
             reached_qf[a] += 1
             reached_qf[b] += 1
-            qf_winner_by_group[gi] = _draw_winner(a, b, pairwise_odds)
+            qf_winner_by_group[gi] = _draw_winner(a, b, sim, True)
             if track_points:
                 coeff_matrix[team_idx[a], sim] += pairwise_expected_pts[(a, b)] + ko_bonus
                 coeff_matrix[team_idx[b], sim] += pairwise_expected_pts[(b, a)] + ko_bonus
@@ -739,7 +926,7 @@ def simulate_competition_winner(
             a, b = qf_winner_by_group[g1], qf_winner_by_group[g2]
             reached_sf[a] += 1
             reached_sf[b] += 1
-            sf_winners.append(_draw_winner(a, b, pairwise_odds))
+            sf_winners.append(_draw_winner(a, b, sim, True))
             if track_points:
                 coeff_matrix[team_idx[a], sim] += pairwise_expected_pts[(a, b)] + ko_bonus
                 coeff_matrix[team_idx[b], sim] += pairwise_expected_pts[(b, a)] + ko_bonus
@@ -748,7 +935,7 @@ def simulate_competition_winner(
         a, b = sf_winners
         reached_final[a] += 1
         reached_final[b] += 1
-        champion = a if random.random() < final_odds[(a, b)] else b
+        champion = _draw_winner(a, b, sim, False)
         won[champion] += 1
         if track_points:
             coeff_matrix[team_idx[a], sim] += final_expected_pts[(a, b)] + ko_bonus

@@ -39,7 +39,7 @@ import numpy as np
 from config import LEAGUES, DEFAULT_HOME_ADVANTAGE
 from flags import flag_url
 from api_football_fetcher import ApiFootballClient
-from ratings_manager import load_ratings, load_club_rating_adjustments
+from ratings_manager import load_ratings
 from _split_season import compute_full_standings, ensure_full_roster
 from entrants_2027_28 import STAGE_ORDER_2027_28, QUALIFYING_DATES_2027_28
 from access_list_permutations_2027_28 import apply_permutations, PERMUTATIONS, ACTIVE_PERMUTATIONS
@@ -474,11 +474,13 @@ def _load_combined_power_ratings() -> pd.DataFrame:
     """Every tracked club's own Power Rating (Opta + today's odds-driven
     adjustment) in one combined DataFrame -- the exact ratings_manager.
     load_ratings() scale every other live match prediction on this site
-    uses, via qualifying_projection._load_combined_ratings()'s already-
-    established raw-Opta combine (the same one european.py's own live
-    2026/27 qualifying ties use for cross-country pairings) with
-    club_rating_calibration.py's daily adjustment overlaid on top -- the
-    same overlay load_ratings() itself applies per-league.
+    uses. qualifying_projection._load_combined_ratings() now applies
+    club_rating_calibration.py's daily adjustment overlay itself (fixed
+    2026-11-04 -- it used to return the raw-Opta combine only, which this
+    function worked around by re-applying the same overlay locally; that
+    workaround is now redundant and would double-apply the adjustment, so
+    this is a thin pass-through kept only so existing callers don't need
+    to change).
 
     UEFA club coefficients (get_coeff_2027) are deliberately NOT used
     here -- they exist purely to determine seeding/pot placement for the
@@ -490,16 +492,7 @@ def _load_combined_power_ratings() -> pd.DataFrame:
     saturating almost every pairing to literal 0%/100% -- contradicted by
     real UEFA history (Sheriff Tiraspol, coefficient ~13 at the time,
     beat Real Madrid, coefficient ~130+, in the 2021/22 UCL group stage)."""
-    ratings = _load_combined_ratings()
-    adjustments = load_club_rating_adjustments()
-    if not adjustments or ratings.empty:
-        return ratings
-    out = ratings.copy()
-    out["opta_rating"] = out.apply(
-        lambda r: r["opta_rating"] + adjustments.get(r["team"], adjustments.get(str(r.get("alias", "")), 0.0)),
-        axis=1,
-    )
-    return out
+    return _load_combined_ratings()
 
 
 def _simulate_round(pool: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
