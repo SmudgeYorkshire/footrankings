@@ -793,7 +793,13 @@ if tab_lp_pred is not None:
                     f for f in _real_schedule
                     if (f["strHomeTeam"], f["strAwayTeam"]) not in _real_results
                 ]
-                _lp_bounds = position_bounds(_lp_standings, _lp_remaining)
+                _lp_played = [
+                    {"strHomeTeam": _h, "strAwayTeam": _a, "intHomeScore": _hg, "intAwayScore": _ag}
+                    for (_h, _a), (_hg, _ag) in _real_results.items()
+                ]
+                _lp_bounds = position_bounds(
+                    _lp_standings, _lp_remaining, _lp_played, _LEAGUE_PHASE_TIEBREAKERS,
+                )
             else:
                 _lp_bounds = None
             render_prob_table(

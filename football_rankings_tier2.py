@@ -1133,6 +1133,11 @@ def main_content():
                         _h2h_raw[_fh] += 1; _h2h_raw[_fa] += 1
                 _h2h_start_pts = {t: _math.floor(p / 2) for t, p in _h2h_raw.items()}
 
+        # Per-conference played-fixtures/tiebreakers, captured below for
+        # position_bounds -- see football_rankings.py's identical block for
+        # why (same reasoning applies here unchanged).
+        _conf_played_by_key: dict[str, list[dict]] = {}
+        _conf_tiebreakers_by_key: dict[str, list[str] | None] = {}
         for _conf_key, _teams_key in [
             ("champ_current", "champ_teams"),
             ("mid_current",   "mid_teams"),
@@ -1186,6 +1191,8 @@ def main_content():
             split_info[_conf_key] = recompute_conference_standings(
                 _base, _conf_played, pts_factor, _pts_round, tiebreakers=_conf_tiebreakers,
             )
+            _conf_played_by_key[_conf_key] = _conf_played
+            _conf_tiebreakers_by_key[_conf_key] = _conf_tiebreakers
 
     # Override pre_split with the accurate Round N snapshot if available
     if split_info and _presplit_snapshot:
@@ -1840,7 +1847,11 @@ def main_content():
                 if not probs_champ.empty:
                     render_prob_table(probs_champ, badge_lookup, champ_exp_pts,
                                       status_map=_champ_zones, team_overrides=_team_overrides,
-                                      bounds=position_bounds(split_info["champ_current"], champ_fix),
+                                      bounds=position_bounds(
+                                          split_info["champ_current"], champ_fix,
+                                          _conf_played_by_key.get("champ_current"),
+                                          _conf_tiebreakers_by_key.get("champ_current"),
+                                      ),
                                       title_emoji=True)
                     render_zone_table(probs_champ, split_info["champ_current"], cfg.get("zones"))
                 if split_info.get("mid_teams") and probs_mid is not None and not probs_mid.empty:
@@ -1851,7 +1862,11 @@ def main_content():
                     ), unsafe_allow_html=True)
                     render_prob_table(probs_mid, badge_lookup, mid_exp_pts,
                                       status_map=_mid_zones,
-                                      bounds=position_bounds(split_info["mid_current"], mid_fix))
+                                      bounds=position_bounds(
+                                          split_info["mid_current"], mid_fix,
+                                          _conf_played_by_key.get("mid_current"),
+                                          _conf_tiebreakers_by_key.get("mid_current"),
+                                      ))
                     render_zone_table(probs_mid, split_info["mid_current"], cfg.get("zones"))
                 if split_info.get("relg_current") and probs_relg is not None and not cfg.get("champ_only"):
                     st.markdown("### ⚠️ Relegation Round")
@@ -1862,7 +1877,11 @@ def main_content():
                     if not probs_relg.empty:
                         render_prob_table(probs_relg, badge_lookup, relg_exp_pts,
                                           status_map=_relg_zones,
-                                          bounds=position_bounds(split_info["relg_current"], relg_fix))
+                                          bounds=position_bounds(
+                                              split_info["relg_current"], relg_fix,
+                                              _conf_played_by_key.get("relg_current"),
+                                              _conf_tiebreakers_by_key.get("relg_current"),
+                                          ))
                         render_zone_table(probs_relg, split_info["relg_current"], cfg.get("zones"))
 
                 # ── UECL Play-offs simulation (split leagues) ─────────────
@@ -1969,7 +1988,7 @@ def main_content():
                 render_prob_table(st.session_state["sim_results"], badge_lookup, exp_pts,
                                   status_map=_main_zones,
                                   team_overrides=None if _zones_are_placeholder_only else _team_overrides,
-                                  bounds=position_bounds(standings, remaining_fixtures),
+                                  bounds=position_bounds(standings, remaining_fixtures, played_fixtures, cfg.get("tiebreakers")),
                                   title_emoji=not _is_true_split)
                 render_title_probability_history(ratings_id)
                 render_relegation_probability_history(
@@ -2489,7 +2508,10 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                         updated_st_c, unpredicted_fix_c, ratings_df, home_advantage)
                     render_prob_table(cached_c["probs"], badge_lookup, manual_exp_c,
                                       status_map=conf_zones,
-                                      bounds=position_bounds(updated_st_c, unpredicted_fix_c),
+                                      bounds=position_bounds(
+                                          updated_st_c, unpredicted_fix_c, played_fixtures,
+                                          cfg.get(tiebreaker_key, cfg.get("tiebreakers")),
+                                      ),
                                       title_emoji=conf_key in ("main", "champ"))
                     render_zone_table(cached_c["probs"], updated_st_c,
                                       cfg.get("zones") or _auto_zones(

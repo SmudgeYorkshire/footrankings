@@ -60,6 +60,7 @@ import numpy as np
 import pandas as pd
 
 from config import DEFAULT_HOME_ADVANTAGE, DEFAULT_BASE_GOALS
+from _split_season import build_h2h, _KNOWN_TIEBREAK_RULES
 
 
 def seed_from_key(key) -> int:
@@ -1013,7 +1014,66 @@ def cert_cell_format(v: float) -> str:
     return f"{v:.1f}%"
 
 
-def position_bounds(standings: list[dict], remaining_fixtures: list[dict]) -> dict[str, tuple[int, int]]:
+def _resolve_tiebreak_between(
+    t_row: dict, o_row: dict, rules: list[str] | None,
+    h2h: dict[tuple[str, str], dict], remaining_meetings: int,
+    t_remaining: int, o_remaining: int,
+) -> str | None:
+    """Returns "t" or "o" if the league's own configured tiebreak order
+    between exactly these two teams is ALREADY decided by information that
+    cannot change anymore, or None if no criterion in the chain is provably
+    fixed yet.
+
+    A head-to-head criterion (h2h_pts/h2h_gd/h2h_gf/h2h_away_gf/h2h_wins) is
+    already fixed the moment t and o have no more fixtures against EACH
+    OTHER specifically (remaining_meetings == 0) -- it can't move from
+    either side's results against anyone else, regardless of how much of
+    the season either still has left to play. Any other criterion (gd, gf,
+    wins, ...) is a whole-season total that could still shift from games
+    against OTHER opponents, so it's only safe to read off t_row/o_row
+    once BOTH teams have zero fixtures left at all this season (their
+    stats are then truly final, not just their own head-to-head slice).
+
+    Ties on an unlisted/unsupported rule (e.g. "fair_play", "playoffs" --
+    see _KNOWN_TIEBREAK_RULES) are skipped exactly like rank_tied_group
+    itself skips them, falling through to the next rule."""
+    if not rules:
+        return None
+    t, o = t_row.get("strTeam"), o_row.get("strTeam")
+    both_over = t_remaining == 0 and o_remaining == 0
+    _SEASON_TOTAL_FIELDS = {
+        "gd": "intGoalDifference", "gf": "intGoalsFor",
+        "away_gf": "intAwayGoalsFor", "wins": "intWin", "away_wins": "intAwayWin",
+    }
+    for rule in rules:
+        if rule not in _KNOWN_TIEBREAK_RULES:
+            continue
+        if rule.startswith("h2h_"):
+            if remaining_meetings > 0:
+                return None  # this pair still has a meeting left -- not fixed yet
+            field = rule[len("h2h_"):]
+            t_score = h2h.get((t, o), {}).get(field, 0)
+            o_score = h2h.get((o, t), {}).get(field, 0)
+        elif both_over:
+            if rule == "less_losses":
+                t_score, o_score = -t_row.get("intLoss", 0), -o_row.get("intLoss", 0)
+            else:
+                key = _SEASON_TOTAL_FIELDS.get(rule)
+                if key is None:
+                    continue
+                t_score, o_score = t_row.get(key, 0), o_row.get(key, 0)
+        else:
+            return None  # a season-total criterion that could still move
+        if t_score != o_score:
+            return "t" if t_score > o_score else "o"
+    return None  # every known rule tried (or unresolved) -- still genuinely tied
+
+
+def position_bounds(
+    standings: list[dict], remaining_fixtures: list[dict],
+    played_fixtures: list[dict] | None = None,
+    tiebreakers: list[str] | None = None,
+) -> dict[str, tuple[int, int]]:
     """{team: (best_reachable, worst_reachable)} -- the best (smallest
     number) and worst (largest number) final position still mathematically
     possible for every team, from guaranteed points (current) vs. maximum
@@ -1039,8 +1099,26 @@ def position_bounds(standings: list[dict], remaining_fixtures: list[dict]) -> di
     rivals can NEVER catch t even in their own best case (their ceiling is
     still below t's current points) -- t cannot possibly finish worse than
     that. A team is pinned to an exact final position only when best == worst.
+
+    played_fixtures/tiebreakers (both optional, opt-in -- every existing
+    caller that omits them keeps today's exact points-only behaviour):
+    tightens the EXACT boundary case points alone can't resolve -- one
+    rival's absolute ceiling landing on exactly the same number as the
+    other's guaranteed floor (current[o] == ceiling[t], the only way they
+    could still finish level) -- by checking whether the league's own
+    tiebreak order between just that pair is ALREADY decided (see
+    _resolve_tiebreak_between). Confirmed live 2026-11-04 (Latvian Higher
+    League, BFC Daugavpils vs FK Liepaja): the simulation already always
+    broke a 1-point-apart live tie the same way every run, correctly
+    reflecting the pair's own already-settled head-to-head, but this
+    function's points-only check couldn't prove it, showing a simulated
+    "100.0%" where a genuinely-secured "✓" belonged. Still conservative --
+    a 2+ point gap between more than two teams' overlapping ranges, or any
+    tie where the deciding criterion itself could still move, is correctly
+    left unresolved rather than guessed at.
     """
     teams = [row["strTeam"] for row in standings]
+    row_by_team = {row["strTeam"]: row for row in standings if row.get("strTeam")}
     current = {
         row["strTeam"]: int(row.get("intPoints", 0)) + float(row.get("_half_pts_bonus", 0.0))
         for row in standings
@@ -1052,10 +1130,45 @@ def position_bounds(standings: list[dict], remaining_fixtures: list[dict]) -> di
             if t in remaining_count:
                 remaining_count[t] += 1
     ceiling = {t: current[t] + 3 * remaining_count[t] for t in teams}
+
+    h2h = build_h2h(played_fixtures) if played_fixtures and tiebreakers else {}
+    remaining_meetings: dict[frozenset, int] = {}
+    if tiebreakers:
+        for f in remaining_fixtures:
+            h, a = f.get("strHomeTeam"), f.get("strAwayTeam")
+            if h and a:
+                key = frozenset({h, a})
+                remaining_meetings[key] = remaining_meetings.get(key, 0) + 1
+
+    def _tiebreak_winner(a: str, b: str) -> str | None:
+        if not tiebreakers or a not in row_by_team or b not in row_by_team:
+            return None
+        meetings = remaining_meetings.get(frozenset({a, b}), 0)
+        result = _resolve_tiebreak_between(
+            row_by_team[a], row_by_team[b], tiebreakers, h2h, meetings,
+            remaining_count.get(a, 0), remaining_count.get(b, 0),
+        )
+        if result == "t":
+            return a
+        if result == "o":
+            return b
+        return None
+
     bounds: dict[str, tuple[int, int]] = {}
     for t in teams:
-        above = sum(1 for o in teams if o != t and current[o] > ceiling[t])
-        below = sum(1 for o in teams if o != t and ceiling[o] < current[t])
+        above = 0
+        below = 0
+        for o in teams:
+            if o == t:
+                continue
+            if current[o] > ceiling[t]:
+                above += 1
+            elif current[o] == ceiling[t] and _tiebreak_winner(o, t) == o:
+                above += 1
+            if ceiling[o] < current[t]:
+                below += 1
+            elif ceiling[o] == current[t] and _tiebreak_winner(t, o) == t:
+                below += 1
         bounds[t] = (1 + above, len(teams) - below)
     return bounds
 
