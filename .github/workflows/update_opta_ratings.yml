@@ -2,13 +2,21 @@ name: Update Opta Ratings
 
 on:
   schedule:
-    - cron: '11 6 * * 1-5'  # 06:11 UTC, weekdays -- after Opta's own daily (Mon-Fri) refresh.
-                             # Off the hour (not :00) to avoid GitHub's documented
-                             # top-of-the-hour scheduled-workflow congestion, same
-                             # reasoning daily_odds_and_ratings.yml's own ':07' already
-                             # uses. A minor mitigation, not a guaranteed fix -- GitHub
-                             # scheduled triggers are best-effort and can still run
-                             # hours late, especially on public/free-tier repos.
+    - cron: '11 8 * * 1-5'  # 08:11 UTC, weekdays -- after Opta's own daily (Mon-Fri)
+                             # refresh. Moved from 06:11 UTC 2026-11-05 to land at
+                             # 9 AM CET (one hour after daily_odds_and_ratings.yml's
+                             # own 8 AM CET, so Opta ratings refresh after that day's
+                             # odds data is already in). Off the hour (not :00) to
+                             # avoid GitHub's documented top-of-the-hour scheduled-
+                             # workflow congestion, same reasoning daily_odds_and_
+                             # ratings.yml's own ':07' already uses. A minor
+                             # mitigation, not a guaranteed fix -- GitHub scheduled
+                             # triggers are best-effort and can still run late,
+                             # especially on public/free-tier repos. Fixed UTC, no
+                             # DST awareness -- becomes 10:11 CEST once European
+                             # clocks spring forward (last Sunday of March); update
+                             # by -1 hour UTC then if exact 9 AM CET year-round
+                             # matters more than a one-line comment.
   workflow_dispatch:        # allow manual "Run workflow" trigger too
 
 permissions:

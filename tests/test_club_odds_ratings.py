@@ -7,6 +7,7 @@ module's path constants, same pattern as any other filesystem-backed unit
 under test in this repo.
 """
 
+import csv
 import json
 
 import pandas as pd
@@ -150,6 +151,36 @@ def test_ledger_round_trip(ledger_path):
         ("League", "A", "B", "2026-10-10T20:00:00+00:00"),
         ("League", "C", "D", "2026-10-11T20:00:00+00:00"),
     }
+
+
+def test_append_ledger_skips_keys_already_on_disk(ledger_path):
+    """Regression test for the real bug caught live 2026-11-05: something
+    (not pinned down -- the daily automated workflow was found to commit
+    twice a day despite a single daily cron entry) re-ran this module
+    without the in-memory ledger it started from reflecting an earlier
+    run's already-landed commit, so the SAME real fixture got applied up
+    to 3x over -- confirmed via ~2,000 duplicate rows (41% of the file)
+    and n_updates inflated for 639 clubs, 441 of them wrongly showing
+    full confidence they hadn't actually earned. _append_ledger now
+    re-reads the file immediately before writing and drops anything
+    already there, so even a run that doesn't know about a just-landed
+    commit can't re-bloat the file once this guard sees it."""
+    key = ("League", "A", "B", "2026-10-10T20:00:00+00:00")
+    cor._append_ledger([key])
+    cor._append_ledger([key])  # simulates a second, unaware run re-applying the same fixture
+    with open(cor.LEDGER_PATH, encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    assert len(rows) == 1
+
+
+def test_append_ledger_only_writes_the_genuinely_new_subset(ledger_path):
+    key_a = ("League", "A", "B", "2026-10-10T20:00:00+00:00")
+    key_c = ("League", "C", "D", "2026-10-11T20:00:00+00:00")
+    cor._append_ledger([key_a])
+    cor._append_ledger([key_a, key_c])  # key_a already there, key_c genuinely new
+    with open(cor.LEDGER_PATH, encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    assert len(rows) == 2
 
 
 @pytest.fixture()

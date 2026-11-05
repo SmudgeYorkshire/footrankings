@@ -257,13 +257,37 @@ def _load_ledger() -> set[tuple]:
 
 
 def _append_ledger(keys: list[tuple]) -> None:
+    """Re-reads the ledger fresh right before writing (not just the
+    `ledger` set main() loaded at the very start of its own run) and
+    skips any key already on disk -- confirmed live 2026-11-05 that this
+    file had accumulated ~2,000 duplicate rows (41% of its own size),
+    one real fixture's correction applied up to 3x over, from something
+    re-running this script without the ledger it started from reflecting
+    an earlier run's not-yet-landed commit (closest confirmed trigger:
+    the daily workflow commits twice a day, not once, despite a single
+    daily cron entry -- root cause not pinned down further; this is the
+    defense against whatever it turns out to be). This alone doesn't
+    stop a concurrent run's gradient fit from double-counting an
+    observation in memory before either process writes -- only a
+    write-time guard here, re-checking disk state as close to the
+    actual write as this module can get, can't fully close a true race
+    between two processes that both started before either committed --
+    but it does stop the ledger FILE itself from re-accumulating
+    duplicate rows on every subsequent appearance of the same key,
+    which is what actually matters for n_updates staying correct on any
+    run after the first.
+    """
+    on_disk = _load_ledger()
+    new_keys = [k for k in keys if k not in on_disk]
+    if not new_keys:
+        return
     LEDGER_PATH.parent.mkdir(exist_ok=True)
     is_new = not LEDGER_PATH.exists()
     with open(LEDGER_PATH, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         if is_new:
             writer.writerow(["league", "home_team", "away_team", "commence_time"])
-        writer.writerows(keys)
+        writer.writerows(new_keys)
 
 
 def _clean_str(v) -> str:
