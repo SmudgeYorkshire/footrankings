@@ -351,6 +351,24 @@ def main() -> None:
     _save_state(state)
     print("Done -- ratings/club_odds_implied_ratings.csv updated for every priced club above.")
 
+    # Every live prediction page (domestic and European) reads this run's
+    # state change immediately -- ratings_manager.load_ratings() and
+    # qualifying_projection's own field-ratings loaders call club_odds_
+    # ratings.blend_with_live_rating() fresh each time, no caching of the
+    # state file itself. club_power_rankings_1000.csv is the one exception:
+    # a static, pre-built display artifact (the Club Power Rankings page,
+    # cup_predictions.py's cup-winner strength lookup) that only reflects
+    # whatever it was last built against -- confirmed live 2026-11-05 as a
+    # real, confusing gap (Man City's corrected rating showed up instantly
+    # in the Champions League/domestic predictions but not there) until
+    # rebuilt by hand. Rebuilding it automatically here, every run, closes
+    # that gap for good instead of relying on someone remembering to run
+    # build_club_power_rankings.py separately afterward.
+    from build_club_power_rankings import main as rebuild_power_rankings
+    print("\nRebuilding club_power_rankings_1000.csv so the Club Power Rankings "
+          "page reflects today's nudge too...")
+    rebuild_power_rankings()
+
 
 if __name__ == "__main__":
     main()
