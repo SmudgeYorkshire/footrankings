@@ -7,6 +7,7 @@ must not be silently overwritten by a page load.
 import pandas as pd
 import pytest
 
+import club_odds_ratings as cor
 import ratings_manager as rm
 
 
@@ -77,3 +78,33 @@ def test_build_lookup_maps_both_team_and_alias():
     lookup = rm.build_lookup(ratings)
     assert lookup["Man City"] == 95.0
     assert lookup["Manchester City"] == 95.0
+
+
+# ---------------------------------------------------------------------------
+# 2026-11-05: load_ratings' apply_adjustments=True path now also blends in
+# club_odds_ratings.py's persistent Odds-Implied rating. apply_adjustments
+# =False (the raw baseline every fitting/calibration script relies on) must
+# NEVER see it -- that's the one correctness constraint this whole feature
+# depends on (see club_odds_ratings.blend_with_live_rating's own docstring).
+# ---------------------------------------------------------------------------
+
+def test_load_ratings_apply_adjustments_true_blends_in_odds_implied_rating(isolated_ratings_dir, monkeypatch):
+    csv_path = isolated_ratings_dir / "1.csv"
+    pd.DataFrame({"team": ["A"], "alias": [""], "opta_rating": ["100.0"]}).to_csv(csv_path, index=False)
+    monkeypatch.setattr(cor, "_load_state", lambda: {
+        ("1", "A"): {"rating": 90.0, "seed": 90.0, "n_updates": cor.N_FULL_CONFIDENCE, "last_updated": "x"},
+    })
+
+    df = rm.load_ratings(1, _standings(["A"]), apply_adjustments=True)
+    assert df.loc[df["team"] == "A", "opta_rating"].iloc[0] == pytest.approx(90.0)
+
+
+def test_load_ratings_apply_adjustments_false_never_sees_odds_implied_blend(isolated_ratings_dir, monkeypatch):
+    csv_path = isolated_ratings_dir / "1.csv"
+    pd.DataFrame({"team": ["A"], "alias": [""], "opta_rating": ["100.0"]}).to_csv(csv_path, index=False)
+    monkeypatch.setattr(cor, "_load_state", lambda: {
+        ("1", "A"): {"rating": 90.0, "seed": 90.0, "n_updates": cor.N_FULL_CONFIDENCE, "last_updated": "x"},
+    })
+
+    df = rm.load_ratings(1, _standings(["A"]), apply_adjustments=False)
+    assert df.loc[df["team"] == "A", "opta_rating"].iloc[0] == pytest.approx(100.0)

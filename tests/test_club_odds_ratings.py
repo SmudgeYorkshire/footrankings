@@ -185,3 +185,59 @@ def test_state_keeps_same_team_name_separate_across_leagues(ratings_path):
     assert loaded[("4328", "Arsenal")]["rating"] == 102.0
     assert loaded[("4622", "Arsenal")]["rating"] == 63.9
     assert len(loaded) == 2
+
+
+# ---------------------------------------------------------------------------
+# blend_with_live_rating -- the 2026-11-05 switch to wiring the persistent
+# Odds-Implied rating into live predictions site-wide (not just the display-
+# only Combined Elo column build_club_power_rankings.py already had). Same
+# confidence-weighted formula that column already used, just exercised
+# directly here with a synthetic state dict (no file I/O needed).
+# ---------------------------------------------------------------------------
+
+def test_blend_with_live_rating_no_state_entry_returns_base_unchanged():
+    assert cor.blend_with_live_rating("4328", "Nobody", 88.0, state={}) == 88.0
+
+
+def test_blend_with_live_rating_zero_updates_returns_base_unchanged():
+    state = {("4328", "Arsenal"): {"rating": 70.0, "seed": 70.0, "n_updates": 0, "last_updated": "x"}}
+    assert cor.blend_with_live_rating("4328", "Arsenal", 100.0, state=state) == 100.0
+
+
+def test_blend_with_live_rating_full_confidence_returns_pure_odds_implied():
+    state = {("4328", "Arsenal"): {"rating": 95.0, "seed": 90.0, "n_updates": cor.N_FULL_CONFIDENCE, "last_updated": "x"}}
+    assert cor.blend_with_live_rating("4328", "Arsenal", 100.0, state=state) == pytest.approx(95.0)
+
+
+def test_blend_with_live_rating_beyond_full_confidence_still_clamps_to_pure_odds_implied():
+    state = {("4328", "Arsenal"): {"rating": 95.0, "seed": 90.0, "n_updates": cor.N_FULL_CONFIDENCE * 3, "last_updated": "x"}}
+    assert cor.blend_with_live_rating("4328", "Arsenal", 100.0, state=state) == pytest.approx(95.0)
+
+
+def test_blend_with_live_rating_partial_confidence_interpolates():
+    n = cor.N_FULL_CONFIDENCE
+    state = {("4328", "Arsenal"): {"rating": 90.0, "seed": 90.0, "n_updates": n // 2, "last_updated": "x"}}
+    confidence = (n // 2) / n
+    expected = 100.0 * (1.0 - confidence) + 90.0 * confidence
+    assert cor.blend_with_live_rating("4328", "Arsenal", 100.0, state=state) == pytest.approx(expected)
+
+
+def test_blend_with_live_rating_different_league_same_team_name_not_confused():
+    state = {
+        ("4328", "Arsenal"): {"rating": 102.0, "seed": 100.0, "n_updates": cor.N_FULL_CONFIDENCE, "last_updated": "x"},
+        ("4622", "Arsenal"): {"rating": 63.9, "seed": 63.9, "n_updates": cor.N_FULL_CONFIDENCE, "last_updated": "x"},
+    }
+    assert cor.blend_with_live_rating("4328", "Arsenal", 80.0, state=state) == pytest.approx(102.0)
+    assert cor.blend_with_live_rating("4622", "Arsenal", 80.0, state=state) == pytest.approx(63.9)
+
+
+def test_blend_with_live_rating_toggle_off_always_returns_base(monkeypatch):
+    monkeypatch.setattr(cor, "USE_LIVE_ODDS_BLEND", False)
+    state = {("4328", "Arsenal"): {"rating": 95.0, "seed": 90.0, "n_updates": cor.N_FULL_CONFIDENCE, "last_updated": "x"}}
+    assert cor.blend_with_live_rating("4328", "Arsenal", 100.0, state=state) == 100.0
+
+
+def test_blend_with_live_rating_loads_state_itself_when_none_given(ratings_path):
+    state = {("4328", "Arsenal"): {"alias": "", "rating": 95.0, "seed": 90.0, "n_updates": cor.N_FULL_CONFIDENCE, "last_updated": "2026-10-20"}}
+    cor._save_state(state)
+    assert cor.blend_with_live_rating("4328", "Arsenal", 100.0) == pytest.approx(95.0)

@@ -23,6 +23,7 @@ from simulator import two_leg_advance_odds
 from qualifying_bracket import PLAYOFF_BRACKET, CONFIRMED_LEAGUE_PHASE
 from coefficients_live import _load_club_country_map
 from ratings_manager import load_club_rating_adjustments
+from club_odds_ratings import blend_with_live_rating, _load_state as _load_odds_state
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 _CURRENT_EURO_SEASON = "2026-2027"  # only the current season is tracked
@@ -74,47 +75,25 @@ def home_advantage_for(team: str, base: float) -> float:
 
 @st.cache_data(ttl=60, show_spinner=False)
 def _load_combined_ratings() -> pd.DataFrame:
-    """Merge all domestic league ratings CSVs into one DataFrame, with
-    club_rating_calibration.py's daily odds-fitted adjustment overlaid on
-    top of each raw Opta value -- the same overlay ratings_manager.
-    load_ratings(apply_adjustments=True) applies for every other live page
-    on the site. This function exists only because the League Phase field
-    spans many different countries' ratings CSVs at once (load_ratings()
-    is scoped to a single league), not because European competition
-    predictions were meant to skip that calibration -- confirmed missing
-    2026-11-04 (flagged by the user: Arsenal/Bayern were coming out far
-    more favoured for the Champions League than PSG/Barcelona relative to
-    real bookmaker markets, and Union Saint-Gilloise was outrating AC
-    Milan in the Europa League field despite Milan's own daily adjustment
-    being +1.98 vs Union SG's -0.26 -- applying adjustments alone flips
-    that specific ordering).
+    """Flat, global team-name-keyed merge of every domestic league's
+    ratings, for the one caller (european.py's pre-League-Phase Qualifying/
+    Play-off round projection, plus coefficients_live.py's own field
+    projection and competition_trivia.py) that needs a single cross-country
+    lookup rather than _load_ratings_by_country's per-country scoping.
 
-    Short TTL (matches the sitewide live-data convention) rather than the
-    1h this used to have — this only reads local CSVs (cheap, no API
-    quota at stake), and a long TTL meant Qualifying Predictions odds
-    could keep using a rating for up to an hour after admin.py saved a
-    new one.
+    Delegates entirely to _load_ratings_by_country() and flattens its
+    already country-scoped tables -- so this gets the exact same daily-
+    adjustment overlay AND (2026-11-05) the same persistent Odds-Implied
+    live blend that function already applies, with no separate CSV-reading
+    or blending logic to keep in sync. The collision risk a flat global
+    key reintroduces (e.g. English Arsenal vs a same-named Belarusian club)
+    is unchanged from before this refactor -- this function was already
+    flat/global, never per-country; only the loading was deduplicated.
     """
-    rows = []
-    for league_cfg in LEAGUES.values():
-        csv_path = Path("ratings") / f"{league_cfg.get('tsdb_id', league_cfg['id'])}.csv"
-        if csv_path.exists():
-            df = pd.read_csv(csv_path, dtype=str)
-            if "team" in df.columns and "opta_rating" in df.columns:
-                if "alias" not in df.columns:
-                    df["alias"] = ""
-                df["alias"] = df["alias"].fillna("")
-                df["opta_rating"] = pd.to_numeric(df["opta_rating"], errors="coerce")
-                rows.append(df[["team", "alias", "opta_rating"]].dropna(subset=["opta_rating"]))
-    combined = pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=["team", "alias", "opta_rating"])
-
-    adjustments = load_club_rating_adjustments()
-    if adjustments and not combined.empty:
-        combined["opta_rating"] = combined.apply(
-            lambda r: r["opta_rating"] + adjustments.get(r["team"], adjustments.get(str(r.get("alias", "")), 0.0)),
-            axis=1,
-        )
-    return combined
+    by_country = _load_ratings_by_country()
+    if not by_country:
+        return pd.DataFrame(columns=["team", "alias", "opta_rating"])
+    return pd.concat(by_country.values(), ignore_index=True)
 
 
 def _normalize_club_name(s: str) -> str:
@@ -207,7 +186,8 @@ def _load_ratings_by_country() -> dict[str, pd.DataFrame]:
     by_country: dict[str, list[pd.DataFrame]] = {}
     for league_cfg in LEAGUES.values():
         country = league_cfg.get("country", "")
-        csv_path = Path("ratings") / f"{league_cfg.get('tsdb_id', league_cfg['id'])}.csv"
+        league_id = league_cfg.get("tsdb_id", league_cfg["id"])
+        csv_path = Path("ratings") / f"{league_id}.csv"
         if not csv_path.exists():
             continue
         df = pd.read_csv(csv_path, dtype=str)
@@ -217,8 +197,9 @@ def _load_ratings_by_country() -> dict[str, pd.DataFrame]:
             df["alias"] = ""
         df["alias"] = df["alias"].fillna("")
         df["opta_rating"] = pd.to_numeric(df["opta_rating"], errors="coerce")
+        df["_league_id"] = str(league_id)
         by_country.setdefault(country, []).append(
-            df[["team", "alias", "opta_rating"]].dropna(subset=["opta_rating"])
+            df[["team", "alias", "opta_rating", "_league_id"]].dropna(subset=["opta_rating"])
         )
     merged = {c: pd.concat(dfs, ignore_index=True) for c, dfs in by_country.items()}
 
@@ -229,7 +210,13 @@ def _load_ratings_by_country() -> dict[str, pd.DataFrame]:
                 lambda r: r["opta_rating"] + adjustments.get(r["team"], adjustments.get(str(r.get("alias", "")), 0.0)),
                 axis=1,
             )
-    return merged
+
+    odds_state = _load_odds_state()
+    for df in merged.values():
+        df["opta_rating"] = df.apply(
+            lambda r: blend_with_live_rating(r["_league_id"], r["team"], r["opta_rating"], odds_state), axis=1,
+        )
+    return {c: df[["team", "alias", "opta_rating"]] for c, df in merged.items()}
 
 
 @st.cache_data(ttl=60, show_spinner=False)

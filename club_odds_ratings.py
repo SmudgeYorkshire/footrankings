@@ -164,6 +164,65 @@ MIN_BOOKMAKERS_FOR_FULL_WEIGHT = 5
 RATING_SANITY_MIN = 0.0
 RATING_SANITY_MAX = 150.0
 
+# How much real odds-implied evidence (n_updates below) a club needs
+# before the live blend below trusts it as much as Opta. Swept 2026-11-04
+# against club_combined_rating_validation.py's held-out Brier benchmark
+# (21 leagues, 10,416 held-out matches): every N from 2-20 beat the pure
+# live-nudge baseline, with a fairly flat curve across N=2-10 and N=6
+# coming out marginally best. Owned here (not build_club_power_
+# rankings.py, which only DISPLAYS a rating computed with this same
+# number) so the display and the live blend below can never drift onto
+# different thresholds.
+N_FULL_CONFIDENCE = 6
+
+# One-line rollback: flip to False to make blend_with_live_rating() below
+# always return the input unchanged (pure Opta + today's small daily
+# nudge, exactly today's pre-2026-11-05 behavior), with no other code
+# change needed, if the live odds blend ever needs to be pulled quickly.
+USE_LIVE_ODDS_BLEND = True
+
+
+def blend_with_live_rating(
+    league_id: str, team: str, base_rating: float, state: dict | None = None,
+) -> float:
+    """The actual LIVE prediction rating for one club: `base_rating`
+    (today's existing Opta + small daily nudge, from ratings_manager.
+    load_ratings()'s apply_adjustments=True path) confidence-weighted-
+    blended with this club's persistent Odds-Implied rating -- the exact
+    same formula build_club_power_rankings._combined_rating() already
+    uses for the (until 2026-11-05) display-only Combined Elo column, now
+    also the real prediction input, not just a display number. Reduces to
+    `base_rating` unchanged for a club with no state entry (zero
+    confidence) -- "Opta covers the gaps" for a club club_odds_ratings.py
+    hasn't accumulated any real odds history for yet, no special-casing
+    needed -- and to the pure persisted Odds-Implied rating once a club
+    clears N_FULL_CONFIDENCE real observations.
+
+    CALLERS: only ever call this from the apply_adjustments=True path.
+    NEVER from apply_adjustments=False (the raw baseline every fitting/
+    calibration script in this codebase relies on, including this
+    module's OWN main()/_fit_persistent) -- letting this leak into the
+    raw path would make club_odds_ratings.py fit its own persistent
+    rating against an input that already includes itself, compounding
+    indefinitely. See ratings_manager.load_ratings()'s own docstring for
+    the same warning about the existing daily nudge; this is the same
+    risk, one layer further out.
+
+    `state`: pass an already-loaded `_load_state()` dict to avoid
+    re-reading ratings/club_odds_implied_ratings.csv from disk on every
+    single call (callers iterating many teams/leagues in one page render
+    should load it once and pass it through); defaults to a fresh
+    `_load_state()` call if not given."""
+    if not USE_LIVE_ODDS_BLEND:
+        return base_rating
+    state = state if state is not None else _load_state()
+    entry = state.get((league_id, team))
+    if not entry:
+        return base_rating
+    confidence = min(1.0, entry["n_updates"] / N_FULL_CONFIDENCE)
+    return base_rating * (1.0 - confidence) + entry["rating"] * confidence
+
+
 def _load_all_tracked_observations() -> list[dict]:
     """Every api_football, tracked observation across EVERY odds_coverage/
     daily_odds/*.json file (no trailing-window limit), deduped to the

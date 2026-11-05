@@ -8,21 +8,30 @@ Separate from (not a replacement for) the per-league opta_rating used for
 match simulation: this is a derived, display-focused artifact. For the
 subset of clubs in a tracked league that also got an odds-driven adjustment
 today (club_rating_calibration.py), that adjustment is applied on top of
-the raw Opta rating before rescaling -- same number ratings_manager.
-load_ratings() hands to the simulator, just rescaled for this global view.
+the raw Opta rating before rescaling -- the same number ratings_manager.
+load_ratings() used to hand the simulator unmodified; as of 2026-11-05 the
+simulator additionally blends in the persistent Odds-Implied rating on
+top of this (see combined_elo below), so opta_elo is now this pipeline's
+pre-blend baseline rather than an exact mirror of the simulator's input.
 
 Three ratings are computed per club, all on one shared Elo-style number
 line (see ELO_FLOOR/ELO_CEILING):
   - opta_elo: today's raw Opta rating + the existing small live nudge
-    (club_rating_calibration.py), same number the simulator uses.
+    (club_rating_calibration.py) -- the simulator's own pre-odds-blend
+    baseline, not the final number it predicts with (see above).
   - odds_elo: club_odds_ratings.py's persistent, full-history odds-implied
     rating, for clubs with any odds-market coverage (blank otherwise --
     deliberately NOT backfilled to Opta's number when coverage is absent).
   - combined_elo: a confidence-weighted blend of the two (full weight on
     the odds signal once a club has ~N_FULL_CONFIDENCE real odds-implied
     observations, falling back toward pure Opta as that evidence thins
-    out or disappears) -- the "co-equal input" ranking, not yet wired into
-    any live prediction path (see N_FULL_CONFIDENCE's own comment).
+    out or disappears) -- this same confidence-weighted blend (via
+    club_odds_ratings.blend_with_live_rating, sharing this module's own
+    N_FULL_CONFIDENCE) was wired into the actual live prediction path
+    2026-11-05, in ratings_manager.load_ratings() and qualifying_
+    projection.py -- opta_elo above (pure Opta + daily nudge, no odds
+    blend) is now a display-only BASELINE for comparison, not "the same
+    number the simulator uses" it was before that change.
 Rescale (for all three) is linear min-max over the full global pool so the
 single best club worldwide lands on ELO_CEILING and the single worst on
 ELO_FLOOR (not a per-tier or per-country rescale -- deliberately one
@@ -68,7 +77,7 @@ import pandas as pd
 from config import LEAGUES
 from ratings_manager import load_club_rating_adjustments
 from update_ratings_from_opta import _normalize
-from club_odds_ratings import RATINGS_OUT_PATH as ODDS_IMPLIED_PATH
+from club_odds_ratings import N_FULL_CONFIDENCE, RATINGS_OUT_PATH as ODDS_IMPLIED_PATH
 
 GLOBAL_RANKINGS_PATH = "opta_power_rankings.csv"
 OUT_PATH = "club_power_rankings_1000.csv"
@@ -90,16 +99,6 @@ _MAX_RATING_GAP = 5.0  # see resolve_tracked_leagues' own docstring for why
 # attack-defense fit instead.
 ELO_FLOOR = 1200.0
 ELO_CEILING = 2400.0
-
-# How much real odds-implied evidence (club_odds_ratings.py's own
-# n_updates) a club needs before the blend below trusts it as much as
-# Opta. Swept 2026-11-04 against club_combined_rating_validation.py's
-# held-out Brier benchmark (21 leagues, 10,416 held-out matches): every
-# N from 2-20 beat the pure live-nudge baseline (0.6141), with a fairly
-# flat curve across N=2-10 and N=6 coming out marginally best (0.6133,
-# vs the original guess of 12's 0.6136) -- lowered from an initial,
-# explicitly-provisional guess of 12.
-N_FULL_CONFIDENCE = 6
 
 
 def _combined_rating(

@@ -43,22 +43,39 @@ def load_ratings(league_id: int, standings: list[dict], apply_adjustments: bool 
 
     apply_adjustments=True (the default, used by every live page) overlays
     club_rating_calibration.py's odds-fitted adjustment on top of the raw
-    CSV value. club_rating_calibration.py itself calls with
-    apply_adjustments=False to fit against the true raw baseline each run --
-    fitting against an already-adjusted value would compound indefinitely
-    instead of refitting from scratch.
+    CSV value, THEN (2026-11-05) blends in club_odds_ratings.py's
+    persistent Odds-Implied rating wherever a club has enough real
+    evidence (club_odds_ratings.blend_with_live_rating -- confidence-
+    weighted, degrades to the adjusted Opta value unchanged for a club
+    with no/thin odds history). club_rating_calibration.py itself calls
+    with apply_adjustments=False to fit against the true raw baseline
+    each run -- fitting against an already-adjusted value would compound
+    indefinitely instead of refitting from scratch. club_odds_ratings.py's
+    OWN internal fitting (main()/_load_tracked_ratings_with_source())
+    ALSO always calls with apply_adjustments=False for the identical
+    reason -- the blend below must never be visible to either fitting
+    path, only to the live-page default.
     """
     raw = _load_raw_ratings(league_id, standings)
     if not apply_adjustments:
         return raw
 
+    # Local import -- club_odds_ratings.py itself imports load_ratings
+    # FROM this module (for its own cross-league field resolution), so a
+    # top-level import here would be circular. Cheap after the first call
+    # (Python caches the module), so no real cost to doing it per call.
+    from club_odds_ratings import blend_with_live_rating, _load_state
+
     adjustments = load_club_rating_adjustments()
-    if not adjustments:
-        return raw
     out = raw.copy()
+    if adjustments:
+        out["opta_rating"] = out.apply(
+            lambda r: r["opta_rating"] + adjustments.get(r["team"], adjustments.get(str(r.get("alias", "")), 0.0)),
+            axis=1,
+        )
+    odds_state = _load_state()
     out["opta_rating"] = out.apply(
-        lambda r: r["opta_rating"] + adjustments.get(r["team"], adjustments.get(str(r.get("alias", "")), 0.0)),
-        axis=1,
+        lambda r: blend_with_live_rating(str(league_id), r["team"], r["opta_rating"], odds_state), axis=1,
     )
     return out
 
