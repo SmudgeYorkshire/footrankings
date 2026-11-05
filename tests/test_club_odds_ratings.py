@@ -183,6 +183,68 @@ def test_append_ledger_only_writes_the_genuinely_new_subset(ledger_path):
     assert len(rows) == 2
 
 
+# ---------------------------------------------------------------------------
+# main() -- regression test for the real bug caught live 2026-11-05 while
+# rebuilding full history under new hyperparameters: the "already
+# processed?" ledger check compared observations' own RAW odds-feed team
+# names against a ledger that's always written with RESOLVED (canonical)
+# names (_resolve_observations always returns ratings_df's own "team"
+# column, never the raw/alias string that matched it). For any team whose
+# raw odds-feed name needs alias resolution (confirmed live: "Coleraine
+# FC" in the odds feed vs this site's own canonical "Coleraine"), that
+# mismatch meant the fixture never matched its own ledger entry and so
+# never looked "already processed" -- main() kept re-adding and re-fitting
+# it on every subsequent call forever, inflating n_updates far past the
+# real match count. A single day-by-day replay loop exposed it hard
+# (30+x inflation for the worst-hit clubs); real daily production would
+# have hit the identical bug, just slower. Fixed by moving the ledger
+# check to run on resolved (canonical) names instead of raw ones.
+# ---------------------------------------------------------------------------
+
+@pytest.fixture()
+def main_env(tmp_path, monkeypatch, daily_odds_dir, ledger_path, ratings_path):
+    """Full main()-level harness: a single synthetic league whose one
+    tracked team has a canonical name that differs from the raw name the
+    (synthetic) odds feed actually uses for it -- the exact shape of the
+    real Coleraine/"Coleraine FC" bug."""
+    league_ratings_df = pd.DataFrame({
+        "team": ["Coleraine", "Bangor"],
+        "alias": ["Coleraine FC", ""],
+        "opta_rating": [66.5, 55.0],
+    })
+    monkeypatch.setattr(cor, "LEAGUES", {"Test League": {"id": "9999"}})
+    monkeypatch.setattr(cor, "LEAGUES_TIER2", {})
+    monkeypatch.setattr(cor, "EUROPEAN_COMPETITIONS", {})
+    monkeypatch.setattr(cor, "load_ratings", lambda *a, **k: league_ratings_df.copy())
+    return league_ratings_df
+
+
+def test_main_does_not_reprocess_a_fixture_whose_raw_name_needed_alias_resolution(main_env):
+    _write_day(cor.DAILY_ODDS_DIR, "2026-10-01.json", [{
+        "source": "api_football", "league": "Test League", "tracked": True,
+        "home_team": "Bangor", "away_team": "Coleraine FC",  # raw odds-feed spelling, not canonical
+        "commence_time": "2026-10-04T14:00:00+00:00",
+        "bookmaker_count": 9, "home_prob": 0.3, "draw_prob": 0.3, "away_prob": 0.4,
+    }])
+
+    cor.main("2026-10-05")  # kickoff (10-04) now in the past -> processed once
+    state = cor._load_state()
+    assert state[("9999", "Coleraine")]["n_updates"] == 1
+
+    # Nothing new has kicked off, but the SAME observation is still sitting
+    # in daily_odds_dir (fetch_daily_odds.py never deletes old captures) --
+    # a second call must recognize it as already-ledgered and leave
+    # n_updates alone, not silently refit and inflate it again.
+    cor.main("2026-10-06")
+    cor.main("2026-10-20")
+    state = cor._load_state()
+    assert state[("9999", "Coleraine")]["n_updates"] == 1
+
+    with open(cor.LEDGER_PATH, encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    assert len(rows) == 1
+
+
 @pytest.fixture()
 def ratings_path(tmp_path, monkeypatch):
     p = tmp_path / "ratings.csv"

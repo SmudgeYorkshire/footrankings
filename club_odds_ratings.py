@@ -140,17 +140,22 @@ DAILY_ODDS_DIR = Path("odds_coverage") / "daily_odds"
 RATINGS_OUT_PATH = Path("ratings") / "club_odds_implied_ratings.csv"
 LEDGER_PATH = Path("ratings") / "club_odds_processed_fixtures.csv"
 
-# Starting defaults, deliberately the same as club_rating_calibration.py's
-# for continuity -- this is a genuinely different dynamic (accumulating
-# over a season+ instead of refit from a 14-day window every run), so
-# there's no principled reason these particular numbers are already
-# correct for it. Treat as provisional until club_odds_rating_validation.py
-# has enough history to actually sweep them against real held-out market
-# data, the same discipline OPTA_K/SEASON_STRENGTH_SIGMA were tuned with --
-# don't hand-tune these from a single run's output.
-LEARNING_RATE = 1.2
-L2_SHRINKAGE = 0.03
-EPOCHS = 40
+# Validated 2026-11-05 by club_odds_hyperparameter_sweep.py: one-at-a-time
+# sweeps against the same held-out pre-2026-10-01 football-data.co.uk
+# Brier benchmark club_odds_rating_validation.py / club_combined_rating_
+# validation.py use, replaying the full real fixture history day-by-day
+# (same granularity main() itself runs at) across all 21 football-data.co.uk-
+# covered leagues. The original values (copied from club_rating_calibration.py
+# for continuity, never independently validated) scored 0.6157 combined
+# n-weighted Brier; a first pass found LEARNING_RATE and L2_SHRINKAGE both
+# consistently better at more extreme values across all 21 leagues (not
+# cherry-picked) and EPOCHS better lower, landing a combined 0.6116; a
+# second, finer pass around that neighborhood plateaued at 0.6113-0.6114,
+# confirming these three values capture the real gain rather than chasing
+# noise. MIN_BOOKMAKERS_FOR_FULL_WEIGHT (below) swept flat -- no change.
+LEARNING_RATE = 0.6
+L2_SHRINKAGE = 0.10
+EPOCHS = 10
 
 # bookmaker_count-based confidence weighting -- how reliable THIS match's
 # own market price is, not how many fixtures a team happens to have in the
@@ -440,17 +445,30 @@ def main(as_of_date: str) -> None:
     all_obs = _load_all_tracked_observations()
     ledger = _load_ledger()
 
-    # Only fixtures whose kickoff date is STRICTLY before today are
-    # finalized -- fetch_daily_odds.py only ever looks forward, so once a
-    # date is in the past no future pull could still refine our capture of
-    # it; applying it any earlier risks locking in a stale early-week price
+    # Group by league and drop only "still pending kickoff" observations
+    # here -- that needs just commence_time, no team-name resolution.
+    # fetch_daily_odds.py only ever looks forward, so once a kickoff date
+    # is in the past no future pull could still refine our capture of it;
+    # applying it any earlier risks locking in a stale early-week price
     # over whatever closer-to-kickoff capture would otherwise still arrive.
-    ready_by_league: dict[str, list[dict]] = {}
+    #
+    # The ledger-already-processed check deliberately does NOT happen here,
+    # against these observations' own RAW odds-feed team names -- it
+    # happens below, AFTER _resolve_observations, against the RESOLVED
+    # (canonical) names. _append_ledger always writes canonical names (see
+    # `resolved` below), so comparing a raw name here would never match a
+    # canonically-keyed ledger entry for any team whose raw odds-feed name
+    # needs alias resolution (e.g. "Coleraine FC" in the odds feed vs this
+    # site's own canonical "Coleraine") -- that fixture would look
+    # perpetually unprocessed and get refit on every future run forever.
+    # Confirmed live 2026-11-05 while rebuilding full history under new
+    # hyperparameters: several clubs' n_updates were inflated far past
+    # their real match count purely from this, exposed hard by a tight
+    # day-by-day replay loop but present (and silently worsening) in real
+    # daily production too, for any team needing alias resolution.
+    obs_by_league: dict[str, list[dict]] = {}
     pending = 0
     for o in all_obs:
-        key = (o["league"], o["home_team"], o["away_team"], o["commence_time"])
-        if key in ledger:
-            continue
         try:
             kickoff_date = datetime.fromisoformat(o["commence_time"]).date()
         except ValueError:
@@ -458,9 +476,9 @@ def main(as_of_date: str) -> None:
         if kickoff_date >= as_of:
             pending += 1
             continue
-        ready_by_league.setdefault(o["league"], []).append(o)
+        obs_by_league.setdefault(o["league"], []).append(o)
 
-    if not ready_by_league:
+    if not obs_by_league:
         print(f"No newly-kicked-off fixtures ready to incorporate as of {as_of_date} "
               f"({pending} captured but still pending kickoff).")
         return
@@ -472,7 +490,7 @@ def main(as_of_date: str) -> None:
     combined_with_source = None
     home_league_lookup: dict[str, str] = {}
 
-    for league_name, obs in ready_by_league.items():
+    for league_name, obs in obs_by_league.items():
         if league_name in EUROPEAN_COMPETITIONS:
             if combined_with_source is None:
                 combined_with_source = _load_tracked_ratings_with_source()
@@ -489,7 +507,13 @@ def main(as_of_date: str) -> None:
             home_advantage = cfg.get("home_advantage", 1.20)
             team_league_id = {t: league_id for t in raw_ratings_df["team"]}  # every team here shares one league_id
 
-        resolved = _resolve_observations(league_name, raw_ratings_df, obs)
+        resolved_all = _resolve_observations(league_name, raw_ratings_df, obs)
+        # Ledger membership check, now against RESOLVED (canonical) names
+        # -- see the comment above obs_by_league's own construction.
+        resolved = [
+            o for o in resolved_all
+            if (o["league"], o["home_team"], o["away_team"], o["commence_time"]) not in ledger
+        ]
         if not resolved:
             continue
 
