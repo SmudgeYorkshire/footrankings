@@ -17,7 +17,7 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-from config import EUROPEAN_COMPETITIONS, LEAGUES
+from config import EUROPEAN_COMPETITIONS, LEAGUES, CURRENT_EURO_SEASON
 from api_football_fetcher import ApiFootballClient
 from simulator import two_leg_advance_odds
 from qualifying_bracket import PLAYOFF_BRACKET, CONFIRMED_LEAGUE_PHASE
@@ -26,7 +26,7 @@ from ratings_manager import load_club_rating_adjustments
 from club_odds_ratings import blend_with_live_rating, _load_state as _load_odds_state
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
-_CURRENT_EURO_SEASON = "2026-2027"  # only the current season is tracked
+_CURRENT_EURO_SEASON = CURRENT_EURO_SEASON  # config.py's one shared value -- see its own comment
 
 _PLAYOFF_ROUND_NAMES = frozenset({"Play-offs", "Playoff round"})
 

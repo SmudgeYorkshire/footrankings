@@ -15,7 +15,7 @@ import pandas as pd
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
-from config import EUROPEAN_COMPETITIONS, LEAGUES
+from config import EUROPEAN_COMPETITIONS, LEAGUES, CURRENT_EURO_SEASON
 from api_football_fetcher import ApiFootballClient
 from _split_season import build_h2h, rank_tied_group
 from simulator import position_bounds, build_live_odds_lambda_overrides
@@ -47,7 +47,7 @@ _LEAGUE_PHASE_POTS = {
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 _CET = ZoneInfo("Europe/Berlin")
-_CURRENT_EURO_SEASON = "2026-2027"  # only the current season is tracked
+_CURRENT_EURO_SEASON = CURRENT_EURO_SEASON  # config.py's one shared value -- see its own comment
 
 
 def _utc_to_cet(date_str: str, time_str: str) -> str:

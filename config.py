@@ -666,6 +666,22 @@ def get_current_season(season_type: str) -> str:
     return f"{year - 1}-{year}" if now.month < 7 else f"{year}-{year + 1}"
 
 
+# The current European club season, as "{start_year}-{end_year}" -- was
+# independently hardcoded in european.py, coefficients_live.py, and
+# qualifying_projection.py (three separate copies of the literal string,
+# confirmed live 2026-11-05), a real risk that a future season rollover
+# updates some of them and silently misses another, leaving pages
+# disagreeing with each other. One shared constant here instead.
+#
+# Bumping this at the actual rollover does NOT mean deleting or
+# overwriting the outgoing season's own data/pages -- this site's own
+# convention (see european_2027_28.py, already built and live well before
+# API-Football itself exposed any 2027-28 data) is to stand up next
+# season's page/config *alongside* the current one as soon as enough is
+# known to do so by hand, not to wait for the API and not to retire the
+# old season's page the moment a new one starts.
+CURRENT_EURO_SEASON = "2026-2027"
+
 # ---------------------------------------------------------------------------
 # UEFA European Competitions — API-Football IDs.
 #   n_direct  = teams advancing directly to R16 from league phase

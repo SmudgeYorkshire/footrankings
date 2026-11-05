@@ -17,7 +17,7 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-from config import LEAGUES, EUROPEAN_COMPETITIONS
+from config import LEAGUES, EUROPEAN_COMPETITIONS, CURRENT_EURO_SEASON
 from api_football_fetcher import ApiFootballClient
 from coefficients_baseline import (
     COUNTRY_BASELINE, COUNTRY_NAME_FIXUP, CLUB_COUNTRY_OVERRIDE,
@@ -30,7 +30,7 @@ from qualifying_bracket import CONFIRMED_LEAGUE_PHASE
 _SECURED_LP_FLOOR = {"Champions League": 6.0, "Europa League": 0.0, "Conference League": 0.0}
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
-_SEASON = "2026-2027"
+_SEASON = CURRENT_EURO_SEASON  # config.py's one shared value -- see its own comment
 
 # Exact strRound text that counts at the halved qualifying rate (D.3).
 # Everything else that's a real match round (League Stage onward, incl. the
