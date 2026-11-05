@@ -8,8 +8,10 @@ includes it and odds_delta is computed against the UNADJUSTED raw rating.
 """
 
 import pandas as pd
+import pytest
 
-from build_club_power_rankings import _combined_rating
+from build_club_power_rankings import _combined_rating, N_FULL_CONFIDENCE
+from club_odds_ratings import blend_with_live_rating
 
 
 def test_combined_rating_zero_confidence_equals_adjusted_rating():
@@ -55,3 +57,35 @@ def test_combined_rating_handles_no_odds_coverage_without_nan():
         odds_delta=pd.Series([float("nan")]), confidence=pd.Series([0.0]),
     )
     assert out.iloc[0] == 88.0
+
+
+# ---------------------------------------------------------------------------
+# The Club Power Rankings page's "Combined Strength Ranking" column must be
+# a live mirror of what blend_with_live_rating() actually feeds every real
+# prediction (wired in 2026-11-05) -- not a separate number that merely
+# happens to agree. Checked at a PARTIAL confidence level specifically,
+# since full/zero confidence collapse both formulas to the same trivial
+# endpoint regardless of whether they're truly the same formula.
+# ---------------------------------------------------------------------------
+
+def test_combined_rating_matches_blend_with_live_rating_at_partial_confidence():
+    adjusted_rating = 92.5     # Opta + today's small daily nudge
+    league_raw_rating = 90.0   # this club's raw, pre-nudge Opta rating
+    odds_implied_rating = 101.0
+    n_updates = N_FULL_CONFIDENCE // 2  # partial confidence, not 0 or full
+    confidence = n_updates / N_FULL_CONFIDENCE
+
+    display_value = _combined_rating(
+        adjusted_rating=pd.Series([adjusted_rating]),
+        league_raw_rating=pd.Series([league_raw_rating]),
+        odds_delta=pd.Series([odds_implied_rating - league_raw_rating]),
+        confidence=pd.Series([confidence]),
+    ).iloc[0]
+
+    state = {("4328", "Test FC"): {
+        "rating": odds_implied_rating, "seed": league_raw_rating,
+        "n_updates": n_updates, "last_updated": "x",
+    }}
+    live_value = blend_with_live_rating("4328", "Test FC", adjusted_rating, state)
+
+    assert display_value == pytest.approx(live_value)

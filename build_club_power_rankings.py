@@ -361,10 +361,13 @@ def main() -> None:
     # much as Opta; a club with little/none falls back toward pure Opta
     # (+ today's existing small live nudge), exactly the "Opta Rankings
     # are good for clubs/leagues where Odds Rankings lack information"
-    # fallback this was built for. NOT wired into any live prediction
-    # path yet -- this stays a display-only column here (like odds_
-    # implied_rating already was) until a future phase decides to feed
-    # it into ratings_manager.load_ratings() for actual match simulation.
+    # fallback this was built for. This exact formula (same N_FULL_
+    # CONFIDENCE, imported from club_odds_ratings.py rather than defined
+    # here, so the two can never drift apart) is what every live
+    # prediction actually uses too, via club_odds_ratings.
+    # blend_with_live_rating() -- wired in 2026-11-05. This column was
+    # display-only before that; it's now a live mirror of the real input,
+    # not a separate number that happens to look similar.
     global_df["combined_confidence"] = (global_df["odds_n_updates"] / N_FULL_CONFIDENCE).clip(upper=1.0)
     global_df["combined_rating"] = _combined_rating(
         global_df["adjusted_rating"], global_df["_league_raw_rating"],

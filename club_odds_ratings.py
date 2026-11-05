@@ -44,9 +44,11 @@ pull could still improve on whatever capture of it we already have;
 applying it any earlier risks locking in a stale "3 days out" price that
 a closer-to-kickoff capture would have refined.
 
-NOT wired into any live prediction path. See club_odds_rating_validation.py
-for how this rating gets checked, standalone, against real market data
-before any future phase considers blending it with Opta.
+Wired into every live prediction (domestic and European) as of 2026-11-05
+via blend_with_live_rating() below, confidence-weighted against Opta +
+club_rating_calibration.py's daily nudge -- see that function's own
+docstring. See club_odds_rating_validation.py for how this rating gets
+checked, standalone, against real market data.
 
 Writes:
   ratings/club_odds_implied_ratings.csv

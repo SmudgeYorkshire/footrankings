@@ -45,7 +45,7 @@ jobs:
       - name: Fit today's odds-driven club rating adjustments
         run: python club_rating_calibration.py
 
-      - name: Update the persistent, full-history odds-implied club rating (experimental, not yet live)
+      - name: Update the persistent, full-history odds-implied club rating
         run: python club_odds_ratings.py
 
       - name: Rebuild the global Club Power Ranking (Opta/Odds/Combined Elo)
