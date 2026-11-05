@@ -26,12 +26,16 @@ def _load_strength_ranking() -> dict[str, list[tuple[float, float]]]:
     """{team name: [(opta_rating_raw, rating_1000), ...]} from this site's
     own Club Power Ranking (build_club_power_rankings.py's output) -- the
     ranking cup-winner predictions are made from (2026-10-19), replacing
-    the raw per-league opta_rating. That column is calibrated for the
-    Poisson goals model (match simulation still uses it via fixture_odds
-    below, unaffected by this), not as a general "how strong is this
-    club" ranking, and could run above its nominal 0-100 ceiling for a
-    club with a large odds-driven adjustment applied on top -- confirmed
-    live 2026-10-19 (Arsenal showing "Opta 103.8").
+    the raw per-league opta_rating. rating_1000 (opta_rating_raw +
+    adjustment, computed here -- build_club_power_rankings.py stopped
+    persisting it under that name in commit a8d078f, which this file
+    wasn't updated for at the time, silently breaking this whole module
+    until caught and fixed 2026-11-05) is calibrated for the Poisson goals
+    model (match simulation still uses it via fixture_odds below,
+    unaffected by this), not as a general "how strong is this club"
+    ranking, and could run above its nominal 0-100 ceiling for a club
+    with a large odds-driven adjustment applied on top -- confirmed live
+    2026-10-19 (Arsenal showing "Opta 103.8").
 
     Restricted to tracked_league rows only (the ones
     build_club_power_rankings.resolve_tracked_leagues already matched to
@@ -55,7 +59,7 @@ def _load_strength_ranking() -> dict[str, list[tuple[float, float]]]:
     df = df[df["tracked_league"].notna() & (df["tracked_league"] != "")]
     out: dict[str, list[tuple[float, float]]] = {}
     for _, r in df.iterrows():
-        out.setdefault(r["team"], []).append((r["opta_rating_raw"], r["rating_1000"]))
+        out.setdefault(r["team"], []).append((r["opta_rating_raw"], r["opta_rating_raw"] + r["adjustment"]))
     return out
 
 
@@ -77,7 +81,7 @@ def _load_strength_ranking_fuzzy() -> dict[str, list[tuple[float, float]]]:
     df = df[df["tracked_league"].notna() & (df["tracked_league"] != "")]
     out: dict[str, list[tuple[float, float]]] = {}
     for _, r in df.iterrows():
-        out.setdefault(_fuzzy_key(r["team"]), []).append((r["opta_rating_raw"], r["rating_1000"]))
+        out.setdefault(_fuzzy_key(r["team"]), []).append((r["opta_rating_raw"], r["opta_rating_raw"] + r["adjustment"]))
     return out
 
 

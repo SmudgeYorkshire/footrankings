@@ -53,7 +53,7 @@ from update_ratings_from_opta import fuzzy_token_match
 from api_football_fetcher import ApiFootballClient
 from club_coefficients import get_coeff
 from club_odds_ratings import (
-    _load_state, _save_state,
+    _load_state, _save_state, blend_with_live_rating,
     RATING_SANITY_MIN, RATING_SANITY_MAX,
 )
 from league_phase_simulator import simulate_competition_winner
@@ -63,7 +63,7 @@ from qualifying_projection import (
     real_league_phase_results, resolve_to_team,
 )
 from league_phase_fixtures import is_opponent_list_complete, derive_fixtures
-from ratings_manager import load_ratings
+from ratings_manager import load_ratings, load_club_rating_adjustments
 from manual_outright_odds import OUTRIGHT_ODDS, devig_outright
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
@@ -173,19 +173,18 @@ def calibrate_european_competition(comp_name: str, state: dict) -> None:
         print(f"[{comp_name}] only {len(field)}/36 League Phase clubs known yet -- skipping")
         return
 
+    # _resolve_field_ratings already returns each club's live CURRENT rating
+    # (Opta + daily nudge + the persistent Odds-Implied confidence-weighted
+    # blend, via _load_ratings_by_country -- see club_odds_ratings.
+    # blend_with_live_rating) -- no separate override needed here. Used to
+    # hand-roll a full (unweighted) override with state[...]["rating"]
+    # before that blend existed; after 2026-11-05's live-blend rollout it
+    # would have overridden the correct confidence-weighted number with an
+    # all-or-nothing one, undoing exactly the thing that blend was built to
+    # do -- removed instead of layering a second blend on top, which would
+    # double-apply the weighting and distort it.
     field_ratings_df = _resolve_field_ratings(field)
     home_league_lookup = _resolve_field_league_ids(field)
-
-    def _current_rating(team: str, raw: float) -> float:
-        lid = home_league_lookup.get(team)
-        if lid and (lid, team) in state:
-            return state[(lid, team)]["rating"]
-        return raw
-
-    field_ratings_df = field_ratings_df.copy()
-    field_ratings_df["opta_rating"] = field_ratings_df.apply(
-        lambda r: _current_rating(r["team"], r["opta_rating"]), axis=1,
-    )
     raw_lookup = dict(zip(field_ratings_df["team"], field_ratings_df["opta_rating"]))
     alias_lookup = dict(zip(field_ratings_df["team"], field_ratings_df["alias"].fillna("")))
 
@@ -253,15 +252,23 @@ def calibrate_domestic_league(league_name: str, state: dict) -> None:
         return
     played, remaining = client.get_fixtures(af_id, season)
 
+    # apply_adjustments=False -- need the pre-blend raw+nudge base below to
+    # hand to blend_with_live_rating ourselves, using the in-memory `state`
+    # (not apply_adjustments=True's own fresh disk read, which would miss
+    # any nudge main() already applied to a European competition earlier
+    # in THIS run -- e.g. a club priced in both a European outright market
+    # and its own domestic title odds).
     ratings_df = load_ratings(ratings_id, standings, apply_adjustments=False)
-    raw_lookup = dict(zip(ratings_df["team"], ratings_df["opta_rating"]))
     alias_lookup = dict(zip(ratings_df["team"], ratings_df["alias"].fillna("")))
+    adjustments = load_club_rating_adjustments()
 
     def _current_rating(team: str, raw: float) -> float:
-        return state[(league_id, team)]["rating"] if (league_id, team) in state else raw
+        base = raw + adjustments.get(team, adjustments.get(alias_lookup.get(team, ""), 0.0))
+        return blend_with_live_rating(league_id, team, base, state)
 
     ratings_df = ratings_df.copy()
     ratings_df["opta_rating"] = ratings_df.apply(lambda r: _current_rating(r["team"], r["opta_rating"]), axis=1)
+    raw_lookup = dict(zip(ratings_df["team"], ratings_df["opta_rating"]))
     field_teams = list(ratings_df["team"])
 
     print(f"[{league_name}] running {N_SIM:,}-sim season simulation...")

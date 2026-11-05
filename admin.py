@@ -184,7 +184,7 @@ with st.sidebar:
     st.divider()
     n_sim = st.select_slider(
         "Simulations",
-        options=[1_000, 5_000, 10_000, 50_000, 100_000],
+        options=[1_000, 5_000, 10_000, 30_000, 50_000, 100_000],
         value=DEFAULT_N_SIMULATIONS,
     )
     home_advantage = st.slider(
