@@ -40,7 +40,19 @@ Usage: py club_outright_odds_calibration.py
 """
 
 import os
+import sys
 from pathlib import Path
+
+# Windows' console defaults to cp1252, which can't encode every character
+# a club name might contain (confirmed live 2026-11-05: a Turkish club
+# name crashed this script's own progress printing partway through a run
+# -- after the League Phase simulation had already run but BEFORE main()'s
+# single _save_state(state) call at the very end, so the exception lost
+# every nudge computed in that run, not just the one that failed to
+# print). Guarded since sys.stdout isn't guaranteed to be a reconfigurable
+# TextIOWrapper in every environment this could run in.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -104,10 +116,14 @@ def apply_outright_nudge(
     return new_rating - current_rating
 
 
-def _resolve_field_league_ids(field: list[dict]) -> dict[str, str]:
-    """{team: league_id} for just THIS field's clubs, resolved per club
-    by (team, country) and checked against BOTH the "team" and "alias"
-    columns of each country-matching league's ratings CSV.
+def _resolve_field_league_ids(field: list[dict]) -> dict[str, tuple[str, str]]:
+    """{field_team: (league_id, canonical_team)} for just THIS field's
+    clubs, resolved per club by (team, country) and checked against BOTH
+    the "team" and "alias" columns of each country-matching league's
+    ratings CSV. canonical_team is that CSV's own "team" column value --
+    the exact name ratings_manager.load_ratings()/club_odds_ratings.
+    blend_with_live_rating() key the live persistent state by -- which is
+    NOT always the same string as field_team (see below).
 
     NOT a flat bare-team-name dict keyed only by the "team" column (an
     earlier version of this used club_odds_ratings._load_tracked_
@@ -125,8 +141,22 @@ def _resolve_field_league_ids(field: list[dict]) -> dict[str, str]:
     instead of its real, already-accumulating domestic entry. Checking
     both columns, scoped to the field club's own (hand-verified or
     already-disambiguated, see qualifying_projection._project_league_
-    phase_field's own docstring) country, fixes both at once."""
-    result: dict[str, str] = {}
+    phase_field's own docstring) country, fixes both at once.
+
+    A THIRD failure mode, caught live 2026-11-05 (confirmed by comparing
+    this file's own git history for ratings/club_odds_implied_ratings.csv
+    across commits): returning only league_id (not also the canonical
+    name) let the caller key its nudge by field_team whenever that
+    differed from the CSV's own "team" column -- e.g. field's "Bayern
+    Munich"/"Inter Milan"/"Atlético Madrid" vs the CSV's own "Bayern
+    München"/"Inter"/"Atlético de Madrid". The league_id resolved
+    correctly either way, but the nudge landed on a brand new, never-
+    read orphan state entry instead of the real one -- confirmed live:
+    34 clubs' entire 2026-11-04 outright-odds correction silently had
+    zero effect on any live prediction. Returning canonical_team too
+    lets the caller key its nudge the same way the rest of the site
+    reads this state, closing that gap."""
+    result: dict[str, tuple[str, str]] = {}
     all_cfgs = list(LEAGUES.items()) + list(LEAGUES_TIER2.items())
     for f in field:
         team, country = f["team"], f["country"]
@@ -144,10 +174,16 @@ def _resolve_field_league_ids(field: list[dict]) -> dict[str, str]:
             if "team" not in df.columns:
                 continue
             names = set(df["team"].dropna())
+            alias_to_team = {}
             if "alias" in df.columns:
-                names |= set(df["alias"].dropna())
+                for _, row in df.iterrows():
+                    alias = str(row.get("alias", "")).strip()
+                    if alias:
+                        alias_to_team[alias] = row["team"]
+                names |= set(alias_to_team)
             if team in names:
-                result[team] = league_id
+                canonical = alias_to_team.get(team, team)
+                result[team] = (league_id, canonical)
                 break
             # Fuzzy tier (e.g. field's "Inter Milan" vs ratings' team=
             # "Internazionale"/alias="Inter", or "Atlético Madrid" vs
@@ -156,8 +192,10 @@ def _resolve_field_league_ids(field: list[dict]) -> dict[str, str]:
             # Only run within this ONE country's own small roster, the
             # same scale fuzzy_token_match's own docstring already
             # documents as safe.
-            if fuzzy_token_match(team, names):
-                result[team] = league_id
+            fuzzy_match = fuzzy_token_match(team, names)
+            if fuzzy_match:
+                canonical = alias_to_team.get(fuzzy_match, fuzzy_match)
+                result[team] = (league_id, canonical)
                 break
     return result
 
@@ -223,10 +261,10 @@ def calibrate_european_competition(comp_name: str, state: dict) -> None:
         if matched is None or matched not in result.index:
             print(f"[{comp_name}] WARNING: couldn't match outright entry {raw_name!r} to a field club")
             continue
-        lid = home_league_lookup.get(matched, f"EURO:{comp_name}")
+        lid, canonical_team = home_league_lookup.get(matched, (f"EURO:{comp_name}", matched))
         model_prob = float(result.loc[matched, "won_competition"])
         delta = apply_outright_nudge(
-            state, (lid, matched), raw_lookup.get(matched, 75.0), alias_lookup.get(matched, ""),
+            state, (lid, canonical_team), raw_lookup.get(matched, 75.0), alias_lookup.get(matched, ""),
             model_prob, market_prob,
         )
         sign = "+" if delta >= 0 else ""

@@ -39,57 +39,54 @@ real match results already do, but an exact match is always safest.
 
 OUTRIGHT_ODDS: dict[str, dict] = {
     "Champions League": {
-        "as_of": "2026-11-04", "source": "bettingodds.com",
+        "as_of": "2026-11-05", "source": "bettingodds.com",
         "odds": {
-            "Paris Saint-Germain": 4.50, "Real Madrid": 9.00, "Barcelona": 4.50, "Arsenal": 6.50,
-            "Bayern Munich": 7.00, "Liverpool": 21.00, "Manchester City": 11.00,
-            "Aston Villa": 51.00, "Betis": 67.00, "Inter": 41.00,
-            "Borussia Dortmund": 67.00, "Atletico Madrid": 34.00, "Como": 67.00,
-            "Sporting CP": 81.00, "Stuttgart": 126.00, "Manchester United": 51.00,
-            "Club Brugge": 151.00, "Napoli": 101.00, "Roma": 67.00,
-            "Galatasaray": 201.00, "PSV Eindhoven": 251.00, "RB Leipzig": 151.00,
-            "Villarreal": 81.00, "Porto": 151.00, "Bodo/Glimt": 251.00,
-            "Fenerbahce": 251.00, "Lens": 351.00, "Feyenoord": 251.00,
-            "Shakhtar Donetsk": 501.00, "LASK": 1001.00, "AEK Athens": 501.00,
-            "Viking": 1001.00, "Slovan Bratislava": 4501.00, "Lille": 351.00,
-            "Slavia Prague": 1001.00,
+            "Paris Saint-Germain": 4.55, "Real Madrid": 8.33, "Arsenal": 7.14, "Barcelona": 14.29,
+            "Bayern Munich": 16.67, "Manchester City": 25.00, "Liverpool": 33.33,
+            "Aston Villa": 100.00, "Como": 100.00, "Borussia Dortmund": 100.00, "Betis": 100.00,
+            "Atletico Madrid": 34.00, "Inter": 41.00, "Manchester United": 51.00,
+            "Sporting CP": 81.00, "Roma": 67.00, "Stuttgart": 101.00,
+            "Club Brugge": 126.00, "Napoli": 101.00, "Galatasaray": 151.00,
+            "Villarreal": 81.00, "Porto": 126.00, "RB Leipzig": 151.00,
+            "Fenerbahce": 201.00, "PSV Eindhoven": 201.00, "Feyenoord": 126.00,
+            "Bodo/Glimt": 201.00, "Shakhtar Donetsk": 201.00, "Lille": 251.00,
+            "LASK": 501.00, "Viking": 501.00, "AEK Athens": 501.00,
+            "Lens": 201.00, "Slavia Prague": 1001.00,
         },
     },
     "Europa League": {
-        # Not today's date like the other two -- bettingodds.com's EL page
-        # was still showing a stale pre-season September snapshot, and
-        # every other aggregator tried (Squawka, Oddschecker, Scotsman,
-        # bet365's own news site, SportyTrader, OddsPortal) blocked
-        # automated fetching. odds1x2.com was the one accessible source
-        # with real post-League-Phase-start prices; its own page doesn't
-        # give one clean timestamp, but the latest price-change date shown
-        # was 2026-10-22, so that's used as a conservative as_of.
-        "as_of": "2026-10-22", "source": "odds1x2.com",
+        # Not today's date like the other two -- bettingodds.com's EL
+        # "/winner" page is still stuck on a stale pre-season September
+        # snapshot even now (confirmed again 2026-11-05, same as
+        # 2026-10-22's refresh), and Squawka/Oddschecker/goal.com all
+        # either blocked fetching or returned old-season content.
+        # sportsbettingdime.com (DraftKings prices) was the one accessible
+        # source with real current-season prices, dated by its own
+        # "Last updated" line -- 11 days old, not same-day like the other
+        # two, but the freshest available rather than mixing dates within
+        # one competition's snapshot. Shorter list than before (16 vs 34
+        # teams) since that's everything this source actually prices --
+        # the missing long tail is all sub-1% mass, immaterial to the
+        # de-vig of the contenders that actually matter for the nudge.
+        "as_of": "2026-10-26", "source": "sportsbettingdime.com (DraftKings)",
         "odds": {
-            "Benfica": 6.00, "Bayer Leverkusen": 6.00, "Bournemouth": 7.00,
-            "Juventus": 8.00, "AC Milan": 19.00, "Sunderland": 17.00,
-            "Besiktas": 21.00, "Crystal Palace": 21.00, "Real Sociedad": 21.00,
-            "TSG Hoffenheim": 26.00, "Celta Vigo": 34.00, "Olympiacos": 26.00,
-            "Lyon": 26.00, "Union Saint-Gilloise": 34.00, "Rennes": 34.00,
-            "AZ Alkmaar": 51.00, "Ferencvarosi TC": 41.00, "Omonia Nicosia": 201.00,
-            "Marseille": 101.00, "Anderlecht": 101.00, "NEC Nijmegen": 101.00,
-            "Red Bull Salzburg": 151.00, "Sparta Prague": 151.00, "Dinamo Zagreb": 151.00,
-            "Celtic": 201.00, "Sturm Graz": 201.00, "Plzen": 201.00,
-            "Levski Sofia": 201.00, "Jagiellonia": 251.00, "Lillestrom": 351.00,
-            "Celje": 501.00, "Torreense": 501.00, "Lech Poznan": 501.00,
-            "OFI": 751.00,
+            "Benfica": 5.15, "Bayer Leverkusen": 5.55, "Bournemouth": 6.40,
+            "Juventus": 7.00, "Sunderland": 15.25, "AC Milan": 17.00,
+            "Besiktas": 19.00, "Real Sociedad": 20.00, "Crystal Palace": 20.00,
+            "TSG Hoffenheim": 24.00, "Olympiacos": 25.00, "Lyon": 25.00,
+            "Union Saint-Gilloise": 27.00, "Celta Vigo": 27.00, "Rennes": 30.00,
+            "Ferencvarosi TC": 39.00,
         },
     },
     "Conference League": {
-        "as_of": "2026-11-04", "source": "bettingodds.com",
+        "as_of": "2026-11-05", "source": "bettingodds.com",
         "odds": {
-            "Brighton": 3.25, "Monaco": 6.50, "Atalanta": 8.50, "Ajax": 10.00,
-            "Sporting Braga": 15.00, "SC Freiburg": 15.00, "Panathinaikos": 19.00,
-            "Trabzonspor": 21.00, "FC Copenhagen": 21.00, "Lugano": 26.00,
-            "Twente": 26.00, "FK Crvena Zvezda": 34.00, "St. Truiden": 34.00,
-            "Brann": 26.00, "FC Midtjylland": 51.00, "Gent": 51.00,
-            "FC Nordsjaelland": 51.00, "Hajduk Split": 51.00, "Getafe": 67.00,
-            "Pafos FC": 81.00, "Universitatea Craiova": 101.00, "Borac Banja Luka": 101.00,
+            "Brighton": 3.23, "Monaco": 6.67, "Atalanta": 9.09, "Ajax": 10.00,
+            "Sporting Braga": 14.29, "SC Freiburg": 14.29, "Panathinaikos": 20.00,
+            "Trabzonspor": 20.00, "FC Copenhagen": 20.00, "Lugano": 25.00,
+            "Twente": 25.00, "FK Crvena Zvezda": 33.33, "St. Truiden": 33.33,
+            "Brann": 33.33, "FC Midtjylland": 50.00, "Gent": 50.00,
+            "FC Nordsjaelland": 50.00, "Hajduk Split": 100.00, "Getafe": 100.00,
         },
     },
 }

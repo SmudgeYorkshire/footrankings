@@ -60,18 +60,25 @@ def test_apply_outright_nudge_negative_error_lowers_rating():
 
 # ---------------------------------------------------------------------------
 # _resolve_field_league_ids -- regression coverage for the real collision
-# bug caught live 2026-11-04: a flat, team-column-only dict silently
-# resolved England's "Arsenal" to Belarus's league_id (both share the
-# literal name), and separately missed any club whose field name is a
-# ratings CSV's ALIAS rather than its "team" column (e.g. "Olympiacos").
+# bug caught live 2026-11-04 (a flat, team-column-only dict silently
+# resolved England's "Arsenal" to Belarus's league_id, both sharing the
+# literal name) and the separate orphaned-nudge bug caught live 2026-11-05
+# (resolving only league_id, not also the ratings CSV's own canonical
+# "team" name, let a nudge for a club whose field name differs from that
+# column -- e.g. "Olympiacos"/"Inter Milan" vs the CSV's own "Olympiakos
+# Piraeus"/"Internazionale" -- land on a brand new, never-read state key
+# instead of the real one. 34 real clubs' entire 2026-11-04 outright-odds
+# correction had silently had zero effect on any live prediction as a
+# result.)
 # ---------------------------------------------------------------------------
 
 @pytest.fixture()
 def synthetic_leagues(tmp_path, monkeypatch):
     """Two small, same-country-name-colliding domestic leagues (mirrors
-    the real England/Belarus "Arsenal" collision) plus one league with an
-    alias-only match case (mirrors "Olympiacos"), all in a temp ratings/
-    dir so this test never touches real data on disk."""
+    the real England/Belarus "Arsenal" collision) plus leagues with an
+    alias-only match case (mirrors "Olympiacos") and a fuzzy-tier match
+    case (mirrors "Inter Milan"), all in a temp ratings/ dir so this test
+    never touches real data on disk."""
     ratings_dir = tmp_path / "ratings"
     ratings_dir.mkdir()
 
@@ -84,11 +91,15 @@ def synthetic_leagues(tmp_path, monkeypatch):
     (ratings_dir / "300.csv").write_text(
         "team,alias,opta_rating\nOlympiakos Piraeus,Olympiacos,85.0\n", encoding="utf-8",
     )
+    (ratings_dir / "400.csv").write_text(
+        "team,alias,opta_rating\nInternazionale,Inter,95.0\n", encoding="utf-8",
+    )
 
     leagues = {
         "England": {"id": 1, "tsdb_id": 100, "country": "England"},
         "Belarus": {"id": 2, "tsdb_id": 200, "country": "Belarus"},
         "Greece": {"id": 3, "tsdb_id": 300, "country": "Greece"},
+        "Italy": {"id": 4, "tsdb_id": 400, "country": "Italy"},
     }
     monkeypatch.setattr(coc, "LEAGUES", leagues)
     monkeypatch.setattr(coc, "LEAGUES_TIER2", {})
@@ -103,14 +114,18 @@ def test_resolve_field_league_ids_avoids_cross_country_name_collision(synthetic_
         {"team": "Chelsea", "country": "England"},
     ]
     result = coc._resolve_field_league_ids(field)
-    assert result["Arsenal"] == "100"
-    assert result["Chelsea"] == "100"
+    assert result["Arsenal"] == ("100", "Arsenal")
+    assert result["Chelsea"] == ("100", "Chelsea")
 
 
 def test_resolve_field_league_ids_matches_alias_not_just_team_column(synthetic_leagues):
     field = [{"team": "Olympiacos", "country": "Greece"}]
     result = coc._resolve_field_league_ids(field)
-    assert result["Olympiacos"] == "300"
+    # The whole point of returning canonical_team too: a nudge keyed by
+    # "Olympiacos" (the field's own name) instead of "Olympiakos Piraeus"
+    # (the ratings CSV's "team" column) would silently create a dead,
+    # never-read state entry -- confirmed as a real, live bug 2026-11-05.
+    assert result["Olympiacos"] == ("300", "Olympiakos Piraeus")
 
 
 def test_resolve_field_league_ids_belarus_arsenal_resolves_to_its_own_league(synthetic_leagues):
@@ -119,4 +134,13 @@ def test_resolve_field_league_ids_belarus_arsenal_resolves_to_its_own_league(syn
     about (field's own country disambiguates correctly either way)."""
     field = [{"team": "Arsenal", "country": "Belarus"}]
     result = coc._resolve_field_league_ids(field)
-    assert result["Arsenal"] == "200"
+    assert result["Arsenal"] == ("200", "Arsenal")
+
+
+def test_resolve_field_league_ids_fuzzy_tier_also_returns_canonical_team(synthetic_leagues):
+    """Same orphaned-nudge bug, via the fuzzy-match tier instead of the
+    alias tier -- field's "Inter Milan" vs the ratings CSV's own
+    team="Internazionale"/alias="Inter" (neither an exact match)."""
+    field = [{"team": "Inter Milan", "country": "Italy"}]
+    result = coc._resolve_field_league_ids(field)
+    assert result["Inter Milan"] == ("400", "Internazionale")
