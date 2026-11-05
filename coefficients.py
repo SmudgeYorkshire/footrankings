@@ -642,6 +642,7 @@ with tab_week:
         # ── Points won this week by nation ──────────────────────────────────────
         st.markdown("##### Points won this week, by nation")
         weekly_totals: dict[str, float] = {}
+        wdl: dict[str, list[int]] = {}  # country -> [wins, draws, losses], club-level results
         for comp_name in EUROPEAN_COMPETITIONS:
             played, _ = _fetch_comp_fixtures(comp_name, _API_KEY)
             for f in played:
@@ -657,20 +658,28 @@ with tab_week:
                 a_country = club_country.get(f.get("strAwayTeam", ""))
                 if hs > aws:
                     h_add, a_add = win_pts, 0.0
+                    h_result, a_result = "W", "L"
                 elif aws > hs:
                     h_add, a_add = 0.0, win_pts
+                    h_result, a_result = "L", "W"
                 else:
                     h_add, a_add = draw_pts, draw_pts
+                    h_result, a_result = "D", "D"
                 if h_country:
                     weekly_totals[h_country] = weekly_totals.get(h_country, 0.0) + h_add
+                    wdl.setdefault(h_country, [0, 0, 0])["WDL".index(h_result)] += 1
                 if a_country:
                     weekly_totals[a_country] = weekly_totals.get(a_country, 0.0) + a_add
+                    wdl.setdefault(a_country, [0, 0, 0])["WDL".index(a_result)] += 1
             for bonus_club, bonus_raw in _tie_bonus_this_week(comp_name, _API_KEY, _week_start, _week_end).values():
                 bonus_country = club_country.get(bonus_club)
                 if bonus_country:
                     weekly_totals[bonus_country] = weekly_totals.get(bonus_country, 0.0) + bonus_raw
-        # Include every nation with a club playing this week, even at 0.0 so far
+        # Include every nation with a club playing this week, even at 0.0 so far,
+        # and list that nation's own still-to-play fixtures (both clubs' nations
+        # get the same fixture listed once each, not just the home side's).
         countries_this_week = set()
+        remaining_by_country: dict[str, list[str]] = {}
         for comp_name in EUROPEAN_COMPETITIONS:
             played, remaining = _fetch_comp_fixtures(comp_name, _API_KEY)
             for f in played + remaining:
@@ -681,6 +690,18 @@ with tab_week:
                     c = club_country.get(t)
                     if c:
                         countries_this_week.add(c)
+            for f in remaining:
+                d = f.get("dateEvent", "")
+                if not (_week_start <= d <= _week_end):
+                    continue
+                home, away = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
+                label = f"{home} vs {away}"
+                h_country = club_country.get(home)
+                a_country = club_country.get(away)
+                if h_country:
+                    remaining_by_country.setdefault(h_country, []).append(label)
+                if a_country and a_country != h_country:
+                    remaining_by_country.setdefault(a_country, []).append(label)
 
         _five_yr_total = dict(zip(_df["Country"], _df["5-Year Total"]))
         _weekly_rows = []
@@ -688,9 +709,14 @@ with tab_week:
             raw_pts = weekly_totals.get(c, 0.0)
             clubs_entered = COUNTRY_BASELINE.get(c, {}).get("clubs_entered", 0)
             contribution = round(raw_pts / clubs_entered, 3) if clubs_entered else 0.0
+            w, d_, l = wdl.get(c, [0, 0, 0])
+            remaining_list = remaining_by_country.get(c, [])
+            remaining_str = ", ".join(f"{i}: {m}" for i, m in enumerate(remaining_list, start=1))
             _weekly_rows.append({
                 "Flag": _flag_url(c), "Country": c,
                 "Coefficient points this week": contribution,
+                "W-D-L": f"{w}-{d_}-{l}",
+                "Remaining": remaining_str,
                 "_5yr": _five_yr_total.get(c, 0.0),
             })
         _weekly_df = pd.DataFrame(_weekly_rows).sort_values(
@@ -698,7 +724,8 @@ with tab_week:
         ).drop(columns=["_5yr"]).reset_index(drop=True)
         st.caption(
             "Points ÷ that country's total clubs entered this season (UEFA Annex D.3) — "
-            "the same division the season-long coefficient uses."
+            "the same division the season-long coefficient uses. W-D-L is the nation's "
+            "clubs' actual match results this week, not a points tally."
         )
         st.dataframe(
             _weekly_df,
@@ -707,6 +734,11 @@ with tab_week:
                 "Country": st.column_config.TextColumn("Country", width=120),
                 "Coefficient points this week": st.column_config.NumberColumn(
                     "Coefficient points", format="%.3f", width=120),
+                "W-D-L": st.column_config.TextColumn("W-D-L", width=70),
+                "Remaining": st.column_config.TextColumn(
+                    "Remaining fixtures this week", width=280,
+                    help="This nation's clubs' matches this week that haven't been played yet.",
+                ),
             },
             use_container_width=False, hide_index=True, height=len(_weekly_df) * 35 + 38,
         )
