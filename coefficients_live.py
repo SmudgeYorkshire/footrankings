@@ -397,13 +397,28 @@ def _compute_todays_raw_points(key: str, today_str: str) -> dict[str, float]:
 def _compute_ecl_eliminations(key: str) -> list[dict]:
     """Every Conference League club knocked out so far this season (aggregate
     loss, no further competition to drop into) — one entry per elimination,
-    with the date of the decisive leg so callers can scope to a date range."""
+    with the date of the decisive leg so callers can scope to a date range.
+
+    Only the Qualifying/Play-off rounds and the genuine knockout rounds
+    (R16/QF/SF/Final) are tie-elimination rounds -- losing one of those
+    really does end the club's season. The League Phase is NOT: each
+    matchday pairs a club with a different opponent, so _group_ties's own
+    frozenset({home, away}) grouping (built for two-legged knockout ties)
+    sees each individual League Phase match as its own one-off "tie" and
+    _tie_result would happily call its loser eliminated -- confirmed live
+    2026-11-05 as a real bug (several clubs mid-League-Phase, merely having
+    lost one match, were wrongly shown as eliminated). League Phase
+    survival is decided by the final table, not any single result, so it's
+    excluded here entirely; this function only ever reports a TRUE knockout."""
     club_country = _load_club_country_map()
     played, remaining = _fetch_comp_fixtures("Conference League", key)
     played_ids = {f.get("idEvent") for f in played}
     rounds_map: dict[str, list] = {}
     for f in played + remaining:
-        rounds_map.setdefault(f.get("strRound", ""), []).append(f)
+        round_name = f.get("strRound", "")
+        if _is_league_stage(round_name):
+            continue
+        rounds_map.setdefault(round_name, []).append(f)
 
     eliminations: list[dict] = []
     for round_name, fixtures in rounds_map.items():
