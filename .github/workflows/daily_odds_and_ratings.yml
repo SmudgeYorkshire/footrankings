@@ -51,6 +51,9 @@ jobs:
       - name: Rebuild the global Club Power Ranking (Opta/Odds/Combined Elo)
         run: python build_club_power_rankings.py
 
+      - name: Sanity-check the ratings pipeline (report-only, never fails the run)
+        run: python ratings_sanity_check.py
+
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"

@@ -369,6 +369,14 @@ def main() -> None:
           "page reflects today's nudge too...")
     rebuild_power_rankings()
 
+    # Same standing data-integrity check the daily automated workflow runs
+    # (report-only -- see ratings_sanity_check.run_checks's own docstring
+    # for why) -- a manual nudge run writes to the exact same persistent
+    # state, so it deserves the exact same safety net.
+    from ratings_sanity_check import main as sanity_check
+    print()
+    sanity_check()
+
 
 if __name__ == "__main__":
     main()
