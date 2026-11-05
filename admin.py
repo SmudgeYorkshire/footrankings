@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
 from api_football_fetcher import ApiFootballClient
-from simulator import simulate_season, fixture_odds
+from simulator import simulate_season, fixture_odds, build_live_odds_lambda_overrides
 from ratings_manager import load_ratings, save_ratings, build_lookup, _defaults_from_standings
 from _split_season import get_split_info, conference_fixtures, compute_full_standings, ensure_full_roster
 
@@ -361,6 +361,9 @@ with tab_proj:
                     ratings=ratings_df,
                     n_sim=n_sim,
                     home_advantage=home_advantage,
+                    live_odds_lambda_overrides=build_live_odds_lambda_overrides(
+                        champ_fix, ratings_df, home_advantage, league_name,
+                    ),
                 )
                 probs_relg = simulate_season(
                     standings=split_info["relg_current"],
@@ -368,6 +371,9 @@ with tab_proj:
                     ratings=ratings_df,
                     n_sim=n_sim,
                     home_advantage=home_advantage,
+                    live_odds_lambda_overrides=build_live_odds_lambda_overrides(
+                        relg_fix, ratings_df, home_advantage, league_name,
+                    ),
                 )
             st.session_state["admin_sim_results"] = (probs_champ, probs_relg)
             st.session_state["admin_sim_key"] = sim_key
@@ -401,6 +407,9 @@ with tab_proj:
                     ratings=ratings_df,
                     n_sim=n_sim,
                     home_advantage=home_advantage,
+                    live_odds_lambda_overrides=build_live_odds_lambda_overrides(
+                        remaining_fixtures, ratings_df, home_advantage, league_name,
+                    ),
                 )
             st.session_state["admin_sim_results"] = probs
             st.session_state["admin_sim_key"] = sim_key

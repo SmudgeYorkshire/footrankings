@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 from config import LEAGUES_TIER2 as LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
 from api_football_fetcher import ApiFootballClient
-from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff, position_bounds, cert_value, cert_cell_format, seed_from_key
+from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff, position_bounds, cert_value, cert_cell_format, seed_from_key, build_live_odds_lambda_overrides
 from ratings_manager import load_ratings, check_coverage
 from _split_season import get_split_info, conference_fixtures, recompute_conference_standings, compute_full_standings, ensure_full_roster
 from league_status import LEAGUE_STATUS
@@ -232,15 +232,24 @@ def render_relegation_probability_history(tsdb_id: int, relegation_positions: li
 # so two different simulations never collide on one cache entry.
 # ---------------------------------------------------------------------------
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, ttl=3_600)
 def _cached_simulate_season(
     cache_key: tuple, _standings, _remaining_fixtures, _ratings_df,
     _n_sim: int, _home_advantage: float, _tiebreakers=None, _played_fixtures=None,
+    _league_name: str | None = None,
 ) -> pd.DataFrame:
+    # 1h TTL + live-odds override: see football_rankings.py's identical
+    # wrapper for the full rationale (same pattern, same file-pair
+    # convention this site already uses for top-flight/tier-2 twins).
+    _live_odds_overrides = (
+        build_live_odds_lambda_overrides(_remaining_fixtures, _ratings_df, _home_advantage, _league_name)
+        if _league_name else {}
+    )
     return simulate_season(
         standings=_standings, remaining_fixtures=_remaining_fixtures, ratings=_ratings_df,
         n_sim=_n_sim, home_advantage=_home_advantage, tiebreakers=_tiebreakers,
         played_fixtures=_played_fixtures, seed=seed_from_key(cache_key),
+        live_odds_lambda_overrides=_live_odds_overrides,
     )
 
 
@@ -1809,12 +1818,14 @@ def main_content():
                         sim_key + ("champ",),
                         split_info["champ_current"], champ_fix, ratings_df,
                         n_sim, home_advantage, _tiebreakers, played_fixtures,
+                        _league_name=league_name,
                     )
                     probs_mid = (
                         _cached_simulate_season(
                             sim_key + ("mid",),
                             split_info["mid_current"], mid_fix, ratings_df,
                             n_sim, home_advantage, _tiebreakers, played_fixtures,
+                            _league_name=league_name,
                         ) if split_info.get("mid_teams") and split_info["mid_current"]
                         else None
                     )
@@ -1823,6 +1834,7 @@ def main_content():
                             sim_key + ("relg",),
                             split_info["relg_current"], relg_fix, ratings_df,
                             n_sim, home_advantage, _tiebreakers, played_fixtures,
+                            _league_name=league_name,
                         ) if split_info.get("relg_current")
                         else None
                     )
@@ -1965,6 +1977,7 @@ def main_content():
                         sim_key + ("main",),
                         standings, remaining_fixtures, ratings_df,
                         n_sim, home_advantage, cfg.get("tiebreakers"), played_fixtures,
+                        _league_name=league_name,
                     )
                 st.session_state["sim_results"] = probs
                 st.session_state["sim_key"] = sim_key
@@ -2496,6 +2509,9 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                         home_advantage=home_advantage,
                         tiebreakers=cfg.get(tiebreaker_key, cfg.get("tiebreakers")),
                         played_fixtures=played_fixtures,
+                        live_odds_lambda_overrides=build_live_odds_lambda_overrides(
+                            unpredicted_fix_c, ratings_df, home_advantage, league_name,
+                        ),
                     )
                 st.session_state[sim_store_c] = {"probs": manual_probs_c, "fingerprint": pred_fp_c}
                 cached_c = st.session_state[sim_store_c]

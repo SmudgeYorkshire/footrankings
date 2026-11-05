@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import simulator
 from simulator import (
     EXTRA_TIME_FRACTION,
     SEASON_STRENGTH_SIGMA,
@@ -22,6 +23,9 @@ from simulator import (
     simulate_season,
     simulate_final_four,
     two_leg_advance_odds,
+    _outcome_probs_from_lambdas,
+    _solve_lambdas_for_market_probs,
+    build_live_odds_lambda_overrides,
 )
 
 
@@ -214,3 +218,126 @@ def test_season_sigma_widens_title_odds_without_flipping_the_favourite(monkeypat
     assert p_no_variance > 0.97
     assert 0.5 < p_with_variance < 0.97
     assert p_with_variance < p_no_variance
+
+
+# ---------------------------------------------------------------------------
+# Live match odds -- feeding a near-term fixture's real bookmaker odds
+# directly into its own (home_lambda, away_lambda) pair (2026-11-05).
+# ---------------------------------------------------------------------------
+
+def test_outcome_probs_from_lambdas_sums_to_one():
+    p_home, p_draw, p_away = _outcome_probs_from_lambdas(1.5, 1.1)
+    assert p_home + p_draw + p_away == pytest.approx(1.0)
+
+
+def test_outcome_probs_from_lambdas_higher_home_lambda_favours_home():
+    low = _outcome_probs_from_lambdas(1.0, 1.0)
+    high = _outcome_probs_from_lambdas(2.0, 1.0)
+    assert high[0] > low[0]
+
+
+def test_solve_lambdas_self_consistent_target_barely_moves():
+    # Feeding a pair's own actual probabilities back in as the target
+    # should recover (almost) exactly the same pair -- zero error the
+    # whole time, so the iterative nudge should barely move it.
+    lam_h0, lam_a0 = 1.6, 1.1
+    target = _outcome_probs_from_lambdas(lam_h0, lam_a0)
+    lam_h, lam_a = _solve_lambdas_for_market_probs(lam_h0, lam_a0, *target)
+    assert lam_h == pytest.approx(lam_h0, abs=1e-6)
+    assert lam_a == pytest.approx(lam_a0, abs=1e-6)
+
+
+def test_solve_lambdas_converges_toward_a_realistic_market_shift():
+    # Model starts out roughly even; market says the home side is a
+    # heavy favourite -- solved probabilities should land close to it.
+    lam_h, lam_a = _solve_lambdas_for_market_probs(1.3, 1.2, 0.70, 0.18, 0.12)
+    p_home, p_draw, p_away = _outcome_probs_from_lambdas(lam_h, lam_a)
+    assert p_home == pytest.approx(0.70, abs=0.02)
+    assert p_away == pytest.approx(0.12, abs=0.02)
+
+
+def test_solve_lambdas_respects_sanity_clamp_on_extreme_target():
+    lam_h, lam_a = _solve_lambdas_for_market_probs(1.3, 1.2, 0.999, 0.0005, 0.0005)
+    assert simulator._LIVE_ODDS_LAMBDA_MIN <= lam_h <= simulator._LIVE_ODDS_LAMBDA_MAX
+    assert simulator._LIVE_ODDS_LAMBDA_MIN <= lam_a <= simulator._LIVE_ODDS_LAMBDA_MAX
+
+
+def _two_team_ratings():
+    return pd.DataFrame({"team": ["A", "B"], "alias": ["", ""], "opta_rating": [75.0, 75.0]})
+
+
+def test_build_live_odds_lambda_overrides_empty_when_toggle_off(monkeypatch):
+    monkeypatch.setattr(simulator, "USE_LIVE_MATCH_ODDS", False)
+    result = build_live_odds_lambda_overrides(
+        [{"strHomeTeam": "A", "strAwayTeam": "B"}], _two_team_ratings(), 1.2, "Test League",
+    )
+    assert result == {}
+
+
+def test_build_live_odds_lambda_overrides_empty_when_no_coverage(monkeypatch):
+    import daily_odds_loader
+    monkeypatch.setattr(daily_odds_loader, "load_live_odds_for_league", lambda league_name, **k: {})
+    result = build_live_odds_lambda_overrides(
+        [{"strHomeTeam": "A", "strAwayTeam": "B"}], _two_team_ratings(), 1.2, "Test League",
+    )
+    assert result == {}
+
+
+def test_build_live_odds_lambda_overrides_skips_excluded_fixtures(monkeypatch):
+    import daily_odds_loader
+    monkeypatch.setattr(daily_odds_loader, "load_live_odds_for_league", lambda league_name, **k: {
+        ("A", "B"): {"home_prob": 0.70, "draw_prob": 0.18, "away_prob": 0.12, "bookmaker_count": 10},
+    })
+    result = build_live_odds_lambda_overrides(
+        [{"strHomeTeam": "A", "strAwayTeam": "B"}], _two_team_ratings(), 1.2, "Test League",
+        exclude={("A", "B")},
+    )
+    assert result == {}
+
+
+def test_build_live_odds_lambda_overrides_skips_fixtures_with_no_odds_entry(monkeypatch):
+    import daily_odds_loader
+    monkeypatch.setattr(daily_odds_loader, "load_live_odds_for_league", lambda league_name, **k: {
+        ("C", "D"): {"home_prob": 0.5, "draw_prob": 0.25, "away_prob": 0.25, "bookmaker_count": 10},
+    })
+    result = build_live_odds_lambda_overrides(
+        [{"strHomeTeam": "A", "strAwayTeam": "B"}], _two_team_ratings(), 1.2, "Test League",
+    )
+    assert result == {}
+
+
+def test_build_live_odds_lambda_overrides_full_confidence_matches_solved_pair(monkeypatch):
+    import daily_odds_loader
+    from club_odds_ratings import MIN_BOOKMAKERS_FOR_FULL_WEIGHT
+    monkeypatch.setattr(daily_odds_loader, "load_live_odds_for_league", lambda league_name, **k: {
+        ("A", "B"): {
+            "home_prob": 0.70, "draw_prob": 0.18, "away_prob": 0.12,
+            "bookmaker_count": MIN_BOOKMAKERS_FOR_FULL_WEIGHT,
+        },
+    })
+    result = build_live_odds_lambda_overrides(
+        [{"strHomeTeam": "A", "strAwayTeam": "B"}], _two_team_ratings(), 1.2, "Test League",
+    )
+    lam_h, lam_a = result[("A", "B")]
+    p_home, _p_draw, p_away = _outcome_probs_from_lambdas(lam_h, lam_a)
+    assert p_home == pytest.approx(0.70, abs=0.02)
+    assert p_away == pytest.approx(0.12, abs=0.02)
+
+
+def test_build_live_odds_lambda_overrides_zero_bookmakers_is_a_full_model_fallback(monkeypatch):
+    import daily_odds_loader
+    monkeypatch.setattr(daily_odds_loader, "load_live_odds_for_league", lambda league_name, **k: {
+        ("A", "B"): {"home_prob": 0.95, "draw_prob": 0.03, "away_prob": 0.02, "bookmaker_count": 0},
+    })
+    ratings = _two_team_ratings()
+    result = build_live_odds_lambda_overrides(
+        [{"strHomeTeam": "A", "strAwayTeam": "B"}], ratings, 1.2, "Test League",
+    )
+    # Equal ratings, home_advantage=1.2 -> the model's own lambda pair is
+    # fully recoverable without reaching into simulator internals: both
+    # attack/defense values are equal, so lam_h0/lam_a0 are just
+    # DEFAULT_BASE_GOALS scaled by home_advantage and 1.0 respectively.
+    from config import DEFAULT_BASE_GOALS
+    lam_h, lam_a = result[("A", "B")]
+    assert lam_h == pytest.approx(DEFAULT_BASE_GOALS * 1.2, rel=1e-6)
+    assert lam_a == pytest.approx(DEFAULT_BASE_GOALS, rel=1e-6)

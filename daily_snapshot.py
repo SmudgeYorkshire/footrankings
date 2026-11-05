@@ -39,7 +39,7 @@ from config import LEAGUES, LEAGUES_TIER2, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_A
 from api_football_fetcher import ApiFootballClient
 from ratings_manager import load_ratings
 from _split_season import get_split_info, compute_full_standings, conference_fixtures, ensure_full_roster
-from simulator import simulate_season
+from simulator import simulate_season, build_live_odds_lambda_overrides
 
 HISTORY_DIR = "history"
 
@@ -55,7 +55,7 @@ def _load_presplit_snapshot(league_id, season):
     return None
 
 
-def snapshot_league(cfg: dict, key: str, client: ApiFootballClient):
+def snapshot_league(cfg: dict, key: str, client: ApiFootballClient, league_name: str | None = None):
     """Return (probs, relg_probs) for one league, or (None, None) if
     there's not enough data yet (season hasn't started, etc.).
 
@@ -104,6 +104,10 @@ def snapshot_league(cfg: dict, key: str, client: ApiFootballClient):
     if not target_standings:
         return None, None
 
+    _live_odds_overrides = (
+        build_live_odds_lambda_overrides(target_fixtures, ratings_df, home_advantage, league_name)
+        if league_name else {}
+    )
     probs = simulate_season(
         standings=target_standings,
         remaining_fixtures=target_fixtures,
@@ -112,18 +116,25 @@ def snapshot_league(cfg: dict, key: str, client: ApiFootballClient):
         home_advantage=home_advantage,
         tiebreakers=tiebreakers,
         played_fixtures=played,
+        live_odds_lambda_overrides=_live_odds_overrides,
     )
 
     relg_probs = None
     if split_info and split_info.get("relg_current"):
+        _relg_fixtures = conference_fixtures(remaining, split_info["relg_teams"])
+        _relg_live_odds_overrides = (
+            build_live_odds_lambda_overrides(_relg_fixtures, ratings_df, home_advantage, league_name)
+            if league_name else {}
+        )
         relg_probs = simulate_season(
             standings=split_info["relg_current"],
-            remaining_fixtures=conference_fixtures(remaining, split_info["relg_teams"]),
+            remaining_fixtures=_relg_fixtures,
             ratings=ratings_df,
             n_sim=DEFAULT_N_SIMULATIONS,
             home_advantage=home_advantage,
             tiebreakers=tiebreakers,
             played_fixtures=played,
+            live_odds_lambda_overrides=_relg_live_odds_overrides,
         )
 
     return probs, relg_probs
@@ -195,7 +206,7 @@ def main():
         try:
             tsdb_id = cfg.get("tsdb_id", cfg["id"])
             before = _yesterdays_title_probs(tsdb_id, date_str)
-            probs, relg_probs = snapshot_league(cfg, key, client)
+            probs, relg_probs = snapshot_league(cfg, key, client, league_name)
             title_probs = append_snapshot(tsdb_id, probs, date_str)
             if title_probs is None:
                 skipped += 1

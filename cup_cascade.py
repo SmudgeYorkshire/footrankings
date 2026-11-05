@@ -69,7 +69,7 @@ import pandas as pd
 
 from cup_predictions import resolve_predicted_cup_winner, fetch_cup_fixtures, _team_name_set
 from access_list_permutations_2027_28 import cup_winner_status
-from simulator import simulate_season, seed_from_key
+from simulator import simulate_season, seed_from_key, build_live_odds_lambda_overrides
 from update_ratings_from_opta import _normalize
 
 _COMP_RANK = {"UCL": 3, "UEL": 2, "UECL": 1}
@@ -350,12 +350,16 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
                 league_name, len(played_fixtures),
                 tuple((r.get("strTeam"), r.get("intPoints"), r.get("intGoalDifference")) for r in standings),
             )
+            _home_advantage = cfg.get("home_advantage", 1.0)
             try:
                 probs = simulate_season(
                     standings, remaining_fixtures, ratings_df, n_sim=n_sim,
-                    home_advantage=cfg.get("home_advantage", 1.0),
+                    home_advantage=_home_advantage,
                     tiebreakers=cfg.get("tiebreakers"), played_fixtures=played_fixtures,
                     seed=seed_from_key(seed_key),
+                    live_odds_lambda_overrides=build_live_odds_lambda_overrides(
+                        remaining_fixtures, ratings_df, _home_advantage, league_name,
+                    ),
                 )
             except Exception:
                 return {}

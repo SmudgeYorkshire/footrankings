@@ -288,6 +288,153 @@ def fixture_odds(
     return results
 
 
+# ---------------------------------------------------------------------------
+# Live match odds -- for a near-term remaining fixture with real bookmaker
+# coverage (odds_coverage/daily_odds/*.json, via daily_odds_loader.py),
+# calibrate THAT ONE fixture's own (home_lambda, away_lambda) pair so its
+# closed-form 1X2 probabilities match the market, then hand the pair back
+# to the caller to substitute into its normal per-fixture lambda array
+# before the existing vectorized Negative-Binomial draw -- the draw itself,
+# Dixon-Coles adjustment, and points/GD/GF bookkeeping are all completely
+# unchanged; only the INPUT rate for that one fixture differs. See
+# build_live_odds_lambda_overrides's own docstring for why this is done at
+# the lambda level (pre-draw) rather than forcing a scoreline (post-draw,
+# simulate_competition_winner's own real_results mechanism) -- we only know
+# a probability triple here, not a certain result, and the match still
+# needs to be randomly drawn every simulation for GD/GF to stay realistic.
+#
+# One-line rollback: flip to False to make build_live_odds_lambda_overrides
+# below always return {} (every fixture falls back to its normal model
+# lambda, exactly today's pre-2026-11 behavior), no other code change
+# needed, if this ever needs to be pulled quickly.
+USE_LIVE_MATCH_ODDS = True
+
+# Tested empirically against self-consistency (feeding a pair's own actual
+# probabilities back in as the target barely moves it) and realistic/extreme
+# market shifts (0.90/0.07/0.03 converges within ~0.001 of target) -- not
+# swept/validated the way N_FULL_CONFIDENCE was, flagged here as a
+# reasonable starting point rather than a proven-optimal one.
+_LIVE_ODDS_SOLVE_LR = 0.6
+_LIVE_ODDS_SOLVE_ITERS = 25
+_LIVE_ODDS_LAMBDA_MIN = 0.05
+_LIVE_ODDS_LAMBDA_MAX = 6.0
+
+
+def _outcome_probs_from_lambdas(lam_h: float, lam_a: float) -> tuple[float, float, float]:
+    """(home_win, draw, away_win) for a single fixture directly from a
+    (home_lambda, away_lambda) pair -- the same closed-form Negative-
+    Binomial/Dixon-Coles combination fixture_odds() applies per-fixture
+    over a whole ratings DataFrame, pulled out as a pure function of just
+    the two lambdas so it can be solved against a target probability
+    triple without needing a ratings DataFrame at all."""
+    pmf_h = _goals_pmf(lam_h)
+    pmf_a = _goals_pmf(lam_a)
+    p_home = p_draw = p_away = 0.0
+    for gh in range(_MAX_GOALS + 1):
+        for ga in range(_MAX_GOALS + 1):
+            p = pmf_h[gh] * pmf_a[ga] * _dc_tau(gh, ga, lam_h, lam_a)
+            if gh > ga:
+                p_home += p
+            elif gh == ga:
+                p_draw += p
+            else:
+                p_away += p
+    total = p_home + p_draw + p_away
+    return p_home / total, p_draw / total, p_away / total
+
+
+def _solve_lambdas_for_market_probs(
+    lam_h0: float, lam_a0: float, target_home: float, target_draw: float, target_away: float,
+) -> tuple[float, float]:
+    """Starting from the model's own (lam_h0, lam_a0) guess, find a nearby
+    (home_lambda, away_lambda) pair whose own _outcome_probs_from_lambdas
+    closely matches (target_home, target_draw, target_away) -- the
+    market's de-vigged triple for this one fixture.
+
+    Hand-rolled multiplicative gradient nudge (no scipy dependency
+    anywhere else in this codebase): each iteration, nudge lam_h toward
+    matching home_win and lam_a toward matching away_win (draw comes along
+    implicitly as both move -- there's no independent third lambda to
+    target it with directly). Multiplicative (exp) updates keep both
+    lambdas positive with no separate clamp-to-positive step; the min/max
+    clamp below is just a sanity backstop against a pathological input,
+    not expected to bind in practice."""
+    lam_h, lam_a = lam_h0, lam_a0
+    for _ in range(_LIVE_ODDS_SOLVE_ITERS):
+        p_home, _p_draw, p_away = _outcome_probs_from_lambdas(lam_h, lam_a)
+        lam_h *= math.exp(_LIVE_ODDS_SOLVE_LR * (target_home - p_home))
+        lam_a *= math.exp(_LIVE_ODDS_SOLVE_LR * (target_away - p_away))
+        lam_h = min(max(lam_h, _LIVE_ODDS_LAMBDA_MIN), _LIVE_ODDS_LAMBDA_MAX)
+        lam_a = min(max(lam_a, _LIVE_ODDS_LAMBDA_MIN), _LIVE_ODDS_LAMBDA_MAX)
+    return lam_h, lam_a
+
+
+def build_live_odds_lambda_overrides(
+    fixtures: list[dict],
+    ratings: pd.DataFrame,
+    home_advantage: float,
+    league_name: str,
+    home_advantage_overrides: dict[tuple[str, str], float] | None = None,
+    exclude: set[tuple[str, str]] | None = None,
+) -> dict[tuple[str, str], tuple[float, float]]:
+    """{(home_team, away_team): (home_lambda, away_lambda)} for every
+    fixture in `fixtures` that both (a) has real live odds coverage for
+    `league_name` today (daily_odds_loader.load_live_odds_for_league) and
+    (b) isn't in `exclude` -- pass real_results.keys() here when calling
+    this for simulate_competition_winner's own schedule, since an already-
+    played match's certain result always takes precedence over a live-odds
+    probability nudge.
+
+    Returns {} immediately if USE_LIVE_MATCH_ODDS is False, or if
+    `league_name` has no live odds coverage at all right now (e.g. no
+    fixture in `fixtures` falls within fetch_daily_odds.py's ~7-day
+    lookahead) -- both are a pure no-op for the caller, identical to
+    passing no override at all.
+
+    Each matched fixture's calibrated pair is confidence-weighted by
+    bookmaker_count against the model's own lambda pair, reusing
+    club_odds_ratings.MIN_BOOKMAKERS_FOR_FULL_WEIGHT -- a thinly-covered
+    fixture nudges partway toward the market rather than fully overriding
+    on weak evidence, the same precedent club_odds_ratings._fit_persistent
+    already uses for rating fits. Local import: club_odds_ratings.py
+    itself imports fixture_odds/_opta_to_attack_defense FROM this module,
+    so importing the other way at module top-level would be circular."""
+    if not USE_LIVE_MATCH_ODDS:
+        return {}
+    from club_odds_ratings import MIN_BOOKMAKERS_FOR_FULL_WEIGHT
+    from daily_odds_loader import load_live_odds_for_league
+
+    live_odds = load_live_odds_for_league(league_name)
+    if not live_odds:
+        return {}
+
+    if "opta_rating" in ratings.columns and "attack" not in ratings.columns:
+        ratings = _opta_to_attack_defense(ratings)
+    rat_lookup, league_avg = _build_rat_lookup(ratings, DEFAULT_BASE_GOALS)
+    default = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
+    exclude = exclude or set()
+
+    overrides: dict[tuple[str, str], tuple[float, float]] = {}
+    for f in fixtures:
+        home, away = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
+        key = (home, away)
+        if key in exclude or key not in live_odds:
+            continue
+        odds = live_odds[key]
+        h_att, h_def = rat_lookup.get(home, default)
+        a_att, a_def = rat_lookup.get(away, default)
+        ha = (home_advantage_overrides or {}).get(key, home_advantage)
+        lam_h0 = h_att * max(a_def, 0.01) / league_avg * ha
+        lam_a0 = a_att * max(h_def, 0.01) / league_avg
+        lam_h, lam_a = _solve_lambdas_for_market_probs(
+            lam_h0, lam_a0, odds["home_prob"], odds["draw_prob"], odds["away_prob"],
+        )
+        w = min(1.0, odds.get("bookmaker_count", 0) / MIN_BOOKMAKERS_FOR_FULL_WEIGHT)
+        overrides[key] = (lam_h0 * (1.0 - w) + lam_h * w, lam_a0 * (1.0 - w) + lam_a * w)
+
+    return overrides
+
+
 def two_leg_advance_odds(
     team1: str,
     team2: str,
@@ -671,6 +818,7 @@ def simulate_season(
     home_advantage_overrides: dict[tuple[str, str], float] | None = None,
     season_sigma: float = SEASON_STRENGTH_SIGMA,
     seed: int | None = None,
+    live_odds_lambda_overrides: dict[tuple[str, str], tuple[float, float]] | None = None,
 ) -> pd.DataFrame:
     """
     Run a Monte Carlo simulation of the remaining season.
@@ -718,6 +866,15 @@ def simulate_season(
                          on those same inputs (stable for every visitor
                          until something real changes, instead of fresh
                          Monte Carlo noise on every cold page load).
+    live_odds_lambda_overrides : {(home, away): (home_lambda, away_lambda)},
+                         from build_live_odds_lambda_overrides -- replaces
+                         that one fixture's computed lambda pair (after
+                         form/season_sigma would otherwise apply) with a
+                         market-calibrated one for every simulated trial,
+                         so the match is still randomly drawn each run but
+                         its aggregate outcome frequency tracks real near-
+                         term bookmaker odds. A fixture not in the dict is
+                         completely unaffected. None/empty is a full no-op.
 
     Returns
     -------
@@ -867,6 +1024,25 @@ def simulate_season(
     else:
         home_lambdas_sim = np.broadcast_to(home_lambdas[:, None], (F, n_sim))
         away_lambdas_sim = np.broadcast_to(away_lambdas[:, None], (F, n_sim))
+
+    # Live match odds override -- full-row replacement across every
+    # simulated trial for just the overridden fixtures, same idiom
+    # simulate_competition_winner's own real_results uses for an already-
+    # played match's goals (just one step earlier, at the lambda level,
+    # since here we only know a probability triple, not a certain
+    # scoreline). Applied AFTER form/season_sigma deliberately -- the
+    # market price already reflects the team's real current form, so this
+    # replaces (not layers on top of) the model's own view for that match.
+    # np.broadcast_to's result above is read-only, so copy only when an
+    # override actually needs writing -- zero extra cost otherwise.
+    if live_odds_lambda_overrides:
+        home_lambdas_sim = np.array(home_lambdas_sim, copy=True)
+        away_lambdas_sim = np.array(away_lambdas_sim, copy=True)
+        for i, f in enumerate(valid_fixtures):
+            override = live_odds_lambda_overrides.get((f["strHomeTeam"], f["strAwayTeam"]))
+            if override is not None:
+                home_lambdas_sim[i, :] = override[0]
+                away_lambdas_sim[i, :] = override[1]
 
     # Draw goals from Negative Binomial (overdispersed Poisson)
     _phi  = OVERDISPERSION

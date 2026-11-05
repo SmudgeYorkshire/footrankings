@@ -72,9 +72,8 @@ Usage: py club_rating_calibration.py [--date YYYY-MM-DD] [--window-days 14]
 
 import argparse
 import csv
-import json
 import sys
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -83,11 +82,11 @@ load_dotenv()
 import pandas as pd
 
 from config import LEAGUES, LEAGUES_TIER2, EUROPEAN_COMPETITIONS
+from daily_odds_loader import daily_odds_files_exist, load_windowed_observations as _load_windowed_observations_core
 from ratings_manager import load_ratings
 from simulator import fixture_odds
 from update_ratings_from_opta import _normalize, fuzzy_token_match
 
-DAILY_ODDS_DIR = Path("odds_coverage") / "daily_odds"
 OUT_PATH = Path("ratings") / "club_rating_adjustments.csv"
 
 # How many trailing calendar days of fetch_daily_odds.py output to pool
@@ -256,30 +255,17 @@ def _load_windowed_observations(end_date: str, window_days: int) -> list[dict]:
     """Pool api_football observations from the window_days calendar days
     ending at end_date (inclusive), keeping only the freshest capture of
     each real-world fixture -- see this module's own docstring for why
-    both of those matter."""
-    end = date.fromisoformat(end_date)
-    # Oldest day first, so a later day's capture of the same fixture
-    # overwrites an earlier one -- "freshest capture wins".
-    by_fixture: dict[tuple, dict] = {}
-    found_any_file = False
-    for offset in range(window_days - 1, -1, -1):
-        d = (end - timedelta(days=offset)).isoformat()
-        path = DAILY_ODDS_DIR / f"{d}.json"
-        if not path.exists():
-            continue
-        found_any_file = True
-        with open(path, encoding="utf-8") as f:
-            day_obs = json.load(f)
-        for o in day_obs:
-            if o.get("source") != "api_football":
-                continue  # excludes the removed Odds API's rows still on disk in older files
-            key = (o.get("league"), o.get("home_team"), o.get("away_team"))
-            by_fixture[key] = o
-    if not found_any_file:
+    both of those matter. The actual pooling/dedup logic now lives in
+    daily_odds_loader.py (shared with simulator.py's live-match-odds
+    override, which can't import this module -- see that module's own
+    docstring) -- this wrapper only adds back this CLI's own hard-exit
+    when the window has no odds files at all, which the shared, library-
+    safe core deliberately does not do on its own."""
+    if not daily_odds_files_exist(end_date, window_days):
         print(f"No daily odds files found in the {window_days}-day window ending {end_date} "
               f"-- run fetch_daily_odds.py first.", file=sys.stderr)
         sys.exit(1)
-    return list(by_fixture.values())
+    return _load_windowed_observations_core(end_date, window_days)
 
 
 def _load_persisted_adjustments() -> dict[str, float]:

@@ -51,7 +51,7 @@ from access_list_permutations_2027_28 import apply_permutations, PERMUTATIONS, A
 ACCESS_LIST_2027_28 = apply_permutations()
 from club_coefficients_2027 import get_coeff_2027
 from cup_predictions import resolve_predicted_cup_winner, fetch_cup_fixtures
-from simulator import two_leg_advance_odds, simulate_season
+from simulator import two_leg_advance_odds, simulate_season, build_live_odds_lambda_overrides
 from nations_league_simulator import most_likely_group_order
 from qualifying_projection import home_advantage_for, _load_combined_ratings
 
@@ -111,10 +111,13 @@ def _predicted_standings(league_id: int, season: int, league_name: str):
     if not standings:
         return standings
     ratings_df = load_ratings(cfg.get("tsdb_id", league_id), standings)
+    _home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
+    _live_odds_overrides = build_live_odds_lambda_overrides(remaining, ratings_df, _home_advantage, league_name)
     probs = simulate_season(
         standings, remaining, ratings_df, n_sim=_PREDICTION_N_SIM,
-        home_advantage=cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE),
+        home_advantage=_home_advantage,
         tiebreakers=tiebreakers, played_fixtures=played,
+        live_odds_lambda_overrides=_live_odds_overrides,
     )
     if probs.empty:
         return standings
@@ -666,10 +669,13 @@ def _season_position_probs(league_id: int, season: int, league_name: str) -> pd.
     if not standings:
         return pd.DataFrame()
     ratings_df = load_ratings(cfg.get("tsdb_id", league_id), standings)
+    _home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
+    _live_odds_overrides = build_live_odds_lambda_overrides(remaining, ratings_df, _home_advantage, league_name)
     return simulate_season(
         standings, remaining, ratings_df, n_sim=_PREDICTION_N_SIM,
-        home_advantage=cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE),
+        home_advantage=_home_advantage,
         tiebreakers=tiebreakers, played_fixtures=played,
+        live_odds_lambda_overrides=_live_odds_overrides,
     )
 
 

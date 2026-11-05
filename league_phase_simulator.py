@@ -47,6 +47,7 @@ from simulator import (
     SEASON_STRENGTH_SIGMA,
     _opta_to_attack_defense,
     _build_rat_lookup,
+    build_live_odds_lambda_overrides,
 )
 from qualifying_projection import home_advantage_for as _home_advantage_for
 
@@ -630,6 +631,7 @@ def simulate_competition_winner(
     season_sigma: float = SEASON_STRENGTH_SIGMA,
     knockout_sigma: float | None = None,
     track_rank_points: bool = False,
+    live_odds_lambda_overrides: dict[tuple[str, str], tuple[float, float]] | None = None,
 ) -> pd.DataFrame | tuple:
     """Full Monte Carlo simulation of a 36-team UEFA League Phase
     competition through to a champion.
@@ -729,6 +731,14 @@ def simulate_competition_winner(
     points would actually have been enough to finish Top 8 / Top 24 --
     same methodology as theanalyst.com's and arxiv 2508.20075's own
     League Phase points-needed analyses.
+
+    live_odds_lambda_overrides: {(home, away): (home_lambda, away_lambda)},
+    from simulator.build_live_odds_lambda_overrides -- same mechanism and
+    placement as simulator.simulate_season's own parameter of the same
+    name (see there for the full rationale). A fixture already resolved
+    via real_results always wins; build_live_odds_lambda_overrides itself
+    should be called with exclude=real_results.keys() so the two never
+    disagree, but this function doesn't re-check that itself.
     """
     teams = [f["team"] for f in field]
     team_country = {f["team"]: f["country"] for f in field}
@@ -779,6 +789,20 @@ def simulate_competition_winner(
         away_lambdas_sim = np.broadcast_to(away_lambdas[:, None], (F, n_sim))
     if _knockout_sigma > 0:
         team_noise_ko = np.exp(-0.5 * _knockout_sigma ** 2 + _knockout_sigma * z)
+
+    # Live match odds override -- same full-row-replacement idiom as
+    # simulator.simulate_season's own (see its comment for the full
+    # rationale); applied after season_sigma, before real_results below
+    # (which always wins for an already-played match regardless, since it
+    # overrides at the goals level after the draw rather than here).
+    if live_odds_lambda_overrides:
+        home_lambdas_sim = np.array(home_lambdas_sim, copy=True)
+        away_lambdas_sim = np.array(away_lambdas_sim, copy=True)
+        for i, f in enumerate(schedule):
+            override = live_odds_lambda_overrides.get((f["strHomeTeam"], f["strAwayTeam"]))
+            if override is not None:
+                home_lambdas_sim[i, :] = override[0]
+                away_lambdas_sim[i, :] = override[1]
 
     home_goals = rng.negative_binomial(np.maximum(home_lambdas_sim / phi, 1e-9), p_nb)
     away_goals = rng.negative_binomial(np.maximum(away_lambdas_sim / phi, 1e-9), p_nb)
@@ -1039,12 +1063,27 @@ def cached_league_phase_simulation(
     so every caller's key construction actually matches. Leading
     underscores on the non-key args are the standard Streamlit
     convention for "don't hash this, trust the explicit cache_key
-    instead" -- these are DataFrames/dicts/lists, not cleanly hashable."""
+    instead" -- these are DataFrames/dicts/lists, not cleanly hashable.
+
+    Builds the live-match-odds override here too (2026-11-05) when the
+    real schedule is already known -- a schedule-less (not-yet-drawn)
+    competition has no fixed (home, away) pairs to match live odds
+    against yet, so it's skipped entirely in that case (a no-op, not an
+    error). excludes any fixture already in _real_results -- an already-
+    played match's certain result always wins; see simulator.
+    build_live_odds_lambda_overrides's own docstring."""
+    _live_odds_overrides = (
+        build_live_odds_lambda_overrides(
+            _schedule, _ratings_df, home_advantage, comp_name,
+            exclude=set(_real_results.keys()) if _real_results else None,
+        ) if _schedule else {}
+    )
     return simulate_competition_winner(
         field=_field, club_coeff=_club_coeff, ratings_df=_ratings_df,
         n_pots=n_pots, opponents_per_pot=opponents_per_pot, n_sim=n_sim,
         home_advantage=home_advantage, comp_name=comp_name, track_points=True,
         schedule=_schedule, real_results=_real_results, track_rank_points=True,
+        live_odds_lambda_overrides=_live_odds_overrides,
     )
 
 
@@ -1058,6 +1097,7 @@ def build_predicted_bracket(
     home_advantage: float = DEFAULT_HOME_ADVANTAGE,
     schedule: list[dict] | None = None,
     real_results: dict[tuple[str, str], tuple[int, int]] | None = None,
+    comp_name: str | None = None,
 ) -> dict:
     """A single, concrete predicted knockout bracket -- Knockout Play-off
     through Final -- rather than per-team reach probabilities.
@@ -1077,6 +1117,13 @@ def build_predicted_bracket(
     Returns {"ko_playoff": [...], "r16": [...], "qf": [...], "sf": [...],
     "final": [...], "champion": str}, where each round is a list of
     {"team_a", "team_b", "pct_a", "pct_b", "winner"} dicts.
+
+    comp_name: passed through to build_live_odds_lambda_overrides (same
+    mechanism as simulate_competition_winner's own live_odds_lambda_
+    overrides -- see there for the full rationale), so this one concrete
+    predicted path reflects real near-term bookmaker odds exactly like
+    the reach-probability table above it does. None (the default) skips
+    it entirely, same as omitting it anywhere else.
     """
     teams = [f["team"] for f in field]
     team_country = {f["team"]: f["country"] for f in field}
@@ -1104,6 +1151,16 @@ def build_predicted_bracket(
         ha = _home_advantage_for(f["strHomeTeam"], home_advantage)
         home_lambdas[i] = h_att * max(a_def, 0.01) / league_avg * ha
         away_lambdas[i] = a_att * max(h_def, 0.01) / league_avg
+
+    if comp_name:
+        _live_odds_overrides = build_live_odds_lambda_overrides(
+            schedule, ratings_df, home_advantage, comp_name,
+            exclude=set(real_results.keys()) if real_results else None,
+        )
+        for i, f in enumerate(schedule):
+            override = _live_odds_overrides.get((f["strHomeTeam"], f["strAwayTeam"]))
+            if override is not None:
+                home_lambdas[i], away_lambdas[i] = override
 
     rng = np.random.default_rng()
     phi = OVERDISPERSION

@@ -18,7 +18,7 @@ from zoneinfo import ZoneInfo
 from config import EUROPEAN_COMPETITIONS, LEAGUES
 from api_football_fetcher import ApiFootballClient
 from _split_season import build_h2h, rank_tied_group
-from simulator import position_bounds
+from simulator import position_bounds, build_live_odds_lambda_overrides
 from qualifying_bracket import CONFIRMED_LEAGUE_PHASE
 from club_coefficients import get_coeff
 from league_phase_simulator import (
@@ -954,6 +954,7 @@ if tab_ko_pred is not None:
                     n_pots=_n_pots, opponents_per_pot=_opp_per_pot, n_sim=_n_sim,
                     home_advantage=_home_advantage,
                     schedule=_real_schedule, real_results=_real_results,
+                    comp_name=comp_name,
                 )
             _round_labels = [
                 ("ko_playoff", "Knockout Play-off (9th–24th)"),
@@ -1149,6 +1150,10 @@ if tab_manual is not None:
                             home_advantage=_home_advantage, comp_name=comp_name,
                             track_points=False, schedule=_real_schedule,
                             real_results=_predicted_results,
+                            live_odds_lambda_overrides=build_live_odds_lambda_overrides(
+                                _real_schedule, _field_ratings_df, _home_advantage, comp_name,
+                                exclude=set(_predicted_results.keys()) if _predicted_results else None,
+                            ),
                         )
                     st.session_state[_sim_store_key] = {"result": _manual_result, "fingerprint": _pred_fp}
                     _cached = st.session_state[_sim_store_key]

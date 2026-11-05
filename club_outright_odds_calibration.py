@@ -57,7 +57,7 @@ from club_odds_ratings import (
     RATING_SANITY_MIN, RATING_SANITY_MAX,
 )
 from league_phase_simulator import simulate_competition_winner
-from simulator import simulate_season
+from simulator import simulate_season, build_live_odds_lambda_overrides
 from qualifying_projection import (
     _project_league_phase_field, _load_combined_ratings, _resolve_field_ratings,
     real_league_phase_results, resolve_to_team,
@@ -202,12 +202,19 @@ def calibrate_european_competition(comp_name: str, state: dict) -> None:
         if unresolved:
             print(f"[{comp_name}] WARNING: {len(unresolved)} real result(s) unresolved: {unresolved}")
 
+    _live_odds_overrides = (
+        build_live_odds_lambda_overrides(
+            real_schedule, field_ratings_df, home_advantage, comp_name,
+            exclude=set(real_results.keys()) if real_results else None,
+        ) if real_schedule else {}
+    )
     print(f"[{comp_name}] running {N_SIM:,}-sim League Phase simulation...")
     result = simulate_competition_winner(
         field=field, club_coeff=club_coeff, ratings_df=field_ratings_df,
         n_pots=n_pots, opponents_per_pot=opp_per_pot, n_sim=N_SIM,
         home_advantage=home_advantage, comp_name=comp_name,
         schedule=real_schedule, real_results=real_results,
+        live_odds_lambda_overrides=_live_odds_overrides,
     )
 
     devigged = devig_outright(outright["odds"])
@@ -271,11 +278,12 @@ def calibrate_domestic_league(league_name: str, state: dict) -> None:
     raw_lookup = dict(zip(ratings_df["team"], ratings_df["opta_rating"]))
     field_teams = list(ratings_df["team"])
 
+    _live_odds_overrides = build_live_odds_lambda_overrides(remaining, ratings_df, home_advantage, league_name)
     print(f"[{league_name}] running {N_SIM:,}-sim season simulation...")
     result = simulate_season(
         standings=standings, remaining_fixtures=remaining, ratings=ratings_df,
         n_sim=N_SIM, home_advantage=home_advantage, tiebreakers=cfg.get("tiebreakers"),
-        played_fixtures=played,
+        played_fixtures=played, live_odds_lambda_overrides=_live_odds_overrides,
     )
     if result.empty or "1" not in result.columns:
         print(f"[{league_name}] simulation returned no usable result -- skipping")
