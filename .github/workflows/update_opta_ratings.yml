@@ -2,21 +2,31 @@ name: Update Opta Ratings
 
 on:
   schedule:
-    - cron: '11 8 * * 1-5'  # 08:11 UTC, weekdays -- after Opta's own daily (Mon-Fri)
-                             # refresh. Moved from 06:11 UTC 2026-11-05 to land at
-                             # 9 AM CET (one hour after daily_odds_and_ratings.yml's
-                             # own 8 AM CET, so Opta ratings refresh after that day's
-                             # odds data is already in). Off the hour (not :00) to
+    - cron: '11 3 * * 1-5'  # 03:11 UTC, weekdays -- after Opta's own daily (Mon-Fri)
+                             # refresh, and one hour after daily_odds_and_ratings.yml's
+                             # own 02:07 UTC so Opta ratings refresh after that day's
+                             # odds data is already in. Moved from 08:11 UTC 2026-11-06
+                             # (which itself was only a few weeks old) -- confirmed live
+                             # that GitHub's own scheduler was running this 5-6 HOURS
+                             # late most days regardless (08:11 UTC landing at
+                             # 14:02-14:31 UTC), a documented "best-effort" limitation
+                             # of free-tier scheduled workflows, worse during high-load
+                             # windows -- 08:11 UTC itself sits in a globally busy
+                             # stretch. 03:11 UTC lands in one of the quieter global
+                             # windows instead, aiming to actually land by the time
+                             # anyone in CET checks the site each morning rather than
+                             # mid-afternoon. See the "Skip if today's update already
+                             # landed" step below for the other half of this fix --
+                             # shifting the schedule alone doesn't prevent someone
+                             # manually triggering a run before the (still possibly
+                             # delayed) scheduled one fires. Off the hour (not :00) to
                              # avoid GitHub's documented top-of-the-hour scheduled-
                              # workflow congestion, same reasoning daily_odds_and_
-                             # ratings.yml's own ':07' already uses. A minor
-                             # mitigation, not a guaranteed fix -- GitHub scheduled
-                             # triggers are best-effort and can still run late,
-                             # especially on public/free-tier repos. Fixed UTC, no
-                             # DST awareness -- becomes 10:11 CEST once European
-                             # clocks spring forward (last Sunday of March); update
-                             # by -1 hour UTC then if exact 9 AM CET year-round
-                             # matters more than a one-line comment.
+                             # ratings.yml's own ':07' already uses. Fixed UTC, no DST
+                             # awareness -- becomes 04:11 CEST once European clocks
+                             # spring forward (last Sunday of March); update by -1 hour
+                             # UTC then if exact 4 AM CET year-round matters more than
+                             # a one-line comment.
   workflow_dispatch:        # allow manual "Run workflow" trigger too
 
 permissions:
@@ -27,35 +37,70 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # actions/checkout@v4 defaults to a depth-1 shallow clone, which
+          # would make the "git log --since" check below blind to anything
+          # before the single latest commit -- fetching full history so it
+          # reliably sees every commit made today, not just the newest one.
+          fetch-depth: 0
+
+      - name: Skip if today's update already landed (scheduled runs only)
+        # Applies only to the SCHEDULED trigger -- a manual "Run workflow"
+        # click always runs regardless, since that's an explicit override.
+        # The commit step below always uses the github-actions[bot]
+        # identity and this exact dated message whether the run was
+        # scheduled or manually triggered, so checking for today's message
+        # catches either case: if a manual run (or an earlier scheduled
+        # one) already landed today's update, a later delayed scheduled
+        # firing has nothing new to do and would just waste a run -- or
+        # worse, start from the same pre-commit state the earlier run did,
+        # unaware of it, which is exactly what caused the ledger-
+        # duplication bug fixed 2026-11-05 in the sibling odds workflow.
+        id: check
+        if: github.event_name == 'schedule'
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          if git log --since="${TODAY}T00:00:00Z" --format=%s | grep -qF "Update Opta ratings ${TODAY}"; then
+            echo "Today's update already landed -- skipping this scheduled run."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: actions/setup-python@v5
+        if: steps.check.outputs.skip != 'true'
         with:
           python-version: '3.12'
 
       - name: Install dependencies
+        if: steps.check.outputs.skip != 'true'
         run: |
           pip install -r requirements-scraper.txt
           playwright install --with-deps chromium
 
       - name: Scrape the complete global Opta Power Rankings
+        if: steps.check.outputs.skip != 'true'
         run: python scrape_opta_power_rankings.py
 
       - name: Update our 54 tracked leagues' ratings from the scrape
+        if: steps.check.outputs.skip != 'true'
         run: python update_ratings_from_opta.py
 
       - name: Rebuild the global 0-1000 Club Power Ranking
         # Also runs at the end of daily_odds_and_ratings.yml -- whichever of
         # the two workflows runs LAST on a given day needs to be the one that
         # leaves club_power_rankings_1000.csv fresh. Without this, a normal
-        # day (odds nominally 05:07 UTC, Opta 06:11 UTC) always built that
-        # file from the PREVIOUS day's Opta numbers, since nothing re-ran it
-        # after Opta's own refresh landed -- confirmed live 2026-10-13
-        # (Coventry showing 89.0 here vs 89.5 on Opta's actual site right
-        # after a manual Opta-only trigger). Pure local CSV processing, no
-        # API calls, cheap enough to run from both workflows.
+        # day always built that file from the PREVIOUS day's Opta numbers,
+        # since nothing re-ran it after Opta's own refresh landed --
+        # confirmed live 2026-10-13 (Coventry showing 89.0 here vs 89.5 on
+        # Opta's actual site right after a manual Opta-only trigger). Pure
+        # local CSV processing, no API calls, cheap enough to run from both
+        # workflows.
+        if: steps.check.outputs.skip != 'true'
         run: python build_club_power_rankings.py
 
       - name: Commit and push changes
+        if: steps.check.outputs.skip != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

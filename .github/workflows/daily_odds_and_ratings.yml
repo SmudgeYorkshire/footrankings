@@ -2,20 +2,28 @@ name: Daily Odds Pull and Club Ratings
 
 on:
   schedule:
-    # 07:07 UTC every day (including weekends -- odds and matches happen
+    # 02:07 UTC every day (including weekends -- odds and matches happen
     # on weekends, unlike Opta's own Mon-Fri scrape cadence), off the hour
-    # to avoid the top-of-hour scheduling crowd. Moved from 05:07 UTC
-    # 2026-11-05 -- that ran too early to be ready by the time anyone
-    # actually checked the site each morning, so it was being triggered
-    # manually every day instead (confirmed as the real cause of the
-    # ledger-duplication bug fixed the same day: the automatic and manual
-    # runs both started from the same pre-run state, unaware of each
-    # other). 07:07 UTC = 08:07 CET in winter (standard time, currently
-    # active) -- GitHub Actions cron is fixed UTC with no DST awareness,
-    # so this becomes 09:07 CEST once European clocks spring forward
-    # (last Sunday of March); update this by -1 hour UTC then if an exact
-    # 8 AM CET year-round matters more than a one-line comment.
-    - cron: '7 7 * * *'
+    # to avoid the top-of-hour scheduling crowd. Moved from 07:07 UTC
+    # 2026-11-06 -- confirmed live that GitHub's own scheduler was running
+    # this 5-6 HOURS late most days regardless (07:07 UTC landing at
+    # 12:44-13:25 UTC), a documented "best-effort" limitation of free-tier
+    # scheduled workflows, worse during high-load windows -- 07:07 UTC
+    # itself sits right in a globally busy stretch (both US evening and
+    # European business hours overlapping). 02:07 UTC lands in one of the
+    # quieter global windows instead, aiming to actually land by the time
+    # anyone in CET checks the site each morning rather than mid-afternoon.
+    # See the "Skip if today's update already landed" step below for the
+    # other half of this fix -- shifting the schedule alone doesn't
+    # prevent someone manually triggering a run before the (still
+    # possibly delayed) scheduled one fires, which is exactly what caused
+    # the ledger-duplication bug fixed 2026-11-05.
+    # 02:07 UTC = 03:07 CET in winter (standard time, currently active) --
+    # GitHub Actions cron is fixed UTC with no DST awareness, so this
+    # becomes 04:07 CEST once European clocks spring forward (last Sunday
+    # of March); update this by -1 hour UTC then if an exact 3 AM CET
+    # year-round matters more than a one-line comment.
+    - cron: '7 2 * * *'
   workflow_dispatch:       # allow manual "Run workflow" trigger too
 
 permissions:
@@ -26,35 +34,73 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # actions/checkout@v4 defaults to a depth-1 shallow clone, which
+          # would make the "git log --since" check below blind to anything
+          # before the single latest commit -- fetching full history so it
+          # reliably sees every commit made today, not just the newest one.
+          fetch-depth: 0
+
+      - name: Skip if today's update already landed (scheduled runs only)
+        # Applies only to the SCHEDULED trigger -- a manual "Run workflow"
+        # click always runs regardless, since that's an explicit override.
+        # The commit step below always uses the github-actions[bot]
+        # identity and this exact dated message whether the run was
+        # scheduled or manually triggered, so checking for today's message
+        # catches either case: if a manual run (or an earlier scheduled
+        # one) already landed today's update, a later delayed scheduled
+        # firing has nothing new to do and would just waste a run -- or
+        # worse, start from the same pre-commit state the earlier run did,
+        # unaware of it, which is exactly what caused the ledger-
+        # duplication bug fixed 2026-11-05.
+        id: check
+        if: github.event_name == 'schedule'
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          if git log --since="${TODAY}T00:00:00Z" --format=%s | grep -qF "Daily odds pull and club ratings ${TODAY}"; then
+            echo "Today's update already landed -- skipping this scheduled run."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: actions/setup-python@v5
+        if: steps.check.outputs.skip != 'true'
         with:
           python-version: '3.12'
 
       - name: Install dependencies
+        if: steps.check.outputs.skip != 'true'
         run: pip install -r requirements.txt
 
       - name: Pull today's odds from API-Football
+        if: steps.check.outputs.skip != 'true'
         env:
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
         run: python fetch_daily_odds.py
 
       - name: Log today's API-Football coverage
+        if: steps.check.outputs.skip != 'true'
         run: python odds_comparison_snapshot.py
 
       - name: Fit today's odds-driven club rating adjustments
+        if: steps.check.outputs.skip != 'true'
         run: python club_rating_calibration.py
 
       - name: Update the persistent, full-history odds-implied club rating
+        if: steps.check.outputs.skip != 'true'
         run: python club_odds_ratings.py
 
       - name: Rebuild the global Club Power Ranking (Opta/Odds/Combined Elo)
+        if: steps.check.outputs.skip != 'true'
         run: python build_club_power_rankings.py
 
       - name: Sanity-check the ratings pipeline (report-only, never fails the run)
+        if: steps.check.outputs.skip != 'true'
         run: python ratings_sanity_check.py
 
       - name: Commit and push changes
+        if: steps.check.outputs.skip != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
