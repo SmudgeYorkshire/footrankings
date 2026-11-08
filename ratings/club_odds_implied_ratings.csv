@@ -1,10 +1,10 @@
 league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
-4334,Paris Saint-Germain,Paris Saint Germain,101.1,97.2,8,2026-11-03
-4328,Arsenal,,99.63,100.0,4,2026-11-01
-4335,Real Madrid,,98.68,96.0,7,2026-11-04
+4334,Paris Saint-Germain,Paris Saint Germain,100.55,97.2,10,2026-11-07
+4328,Arsenal,,99.91,100.0,5,2026-11-07
+4335,Real Madrid,,98.83,96.0,8,2026-11-07
 4335,Barcelona,,98.53,97.2,7,2026-11-03
-4331,Bayern München,Bayern Munich,98.19,99.4,7,2026-11-03
-4328,Manchester City,,97.66,97.6,7,2026-11-04
+4331,Bayern München,Bayern Munich,98.42,99.4,8,2026-11-07
+4328,Manchester City,,97.79,97.6,8,2026-11-07
 4328,Liverpool,,95.56,94.8,7,2026-11-04
 4332,Internazionale,Inter,95.42,93.8,8,2026-11-03
 4344,Benfica,SL Benfica,94.78,92.6,6,2026-11-05
@@ -12,35 +12,35 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 4335,Atlético de Madrid,Atletico Madrid,93.73,92.0,7,2026-11-03
 4328,Bournemouth,,93.66,93.5,7,2026-11-05
 4331,Bayer Leverkusen,,93.4,90.1,7,2026-11-05
-4331,Borussia Dortmund,,93.21,92.5,7,2026-11-04
+4331,Borussia Dortmund,,93.34,92.5,8,2026-11-07
 4328,Aston Villa,,92.85,93.3,7,2026-11-03
 4328,Brentford,,92.71,92.0,4,2026-10-31
-4328,Tottenham Hotspur,Tottenham,92.33,92.3,4,2026-10-31
+4328,Tottenham Hotspur,Tottenham,92.38,92.3,5,2026-11-07
 4328,Manchester United,,92.3,91.2,7,2026-11-03
+4332,Roma,AS Roma,92.22,91.3,9,2026-11-07
 4332,Como,,92.13,92.6,8,2026-11-04
-4332,Roma,AS Roma,92.06,91.3,8,2026-11-03
 4332,Juventus,,91.88,89.5,8,2026-11-05
 4328,Everton,,91.8,92.0,5,2026-11-06
 4328,Brighton & Hove Albion,Brighton,91.61,95.1,7,2026-11-05
-4328,Newcastle United,Newcastle,91.52,91.0,4,2026-11-02
 4344,Porto,FC Porto,91.39,90.5,6,2026-11-04
-4344,Sporting CP,Sporting Lisbon,91.27,90.9,6,2026-11-03
+4328,Newcastle United,Newcastle,91.31,91.0,5,2026-11-07
 4338,Club Brugge,Club Brugge KV,91.22,92.1,6,2026-11-04
-4328,Leeds United,Leeds,91.11,91.1,4,2026-10-31
-4328,Fulham,,90.68,90.1,4,2026-10-31
-4328,Nottingham Forest,,90.44,90.2,4,2026-10-31
+4344,Sporting CP,Sporting Lisbon,91.2,90.9,7,2026-11-07
+4328,Leeds United,Leeds,90.98,91.1,5,2026-11-07
+4328,Fulham,,90.92,90.1,5,2026-11-07
+4328,Nottingham Forest,,90.33,90.2,5,2026-11-07
+4331,RB Leipzig,,90.25,89.3,8,2026-11-07
 4358,Bodø / Glimt,Bodo/Glimt,90.24,89.5,7,2026-11-03
 4328,Sunderland,,90.08,89.0,7,2026-11-05
 4335,Real Betis,,90.07,89.0,7,2026-11-04
-4331,Stuttgart,VfB Stuttgart,89.98,89.2,7,2026-11-03
 4332,Milan,AC Milan,89.98,89.2,8,2026-11-05
-4331,RB Leipzig,,89.94,89.3,7,2026-11-04
+4331,Stuttgart,VfB Stuttgart,89.88,89.2,8,2026-11-07
 4338,Union Saint-Gilloise,Union St. Gilloise,89.61,91.1,6,2026-11-05
 4332,Napoli,,89.42,88.4,8,2026-11-04
 4334,Monaco,AS Monaco,89.33,87.7,7,2026-11-05
 4335,Villarreal,,89.16,87.8,7,2026-11-03
+4339,Galatasaray,,88.84,88.4,8,2026-11-07
 4337,PSV,PSV Eindhoven,88.81,88.4,7,2026-11-04
-4339,Galatasaray,,88.73,88.4,7,2026-11-03
 4328,Ipswich Town,Ipswich,88.7,89.1,4,2026-10-31
 4332,Lazio,,88.64,89.2,5,2026-11-01
 4328,Crystal Palace,,88.61,88.8,7,2026-11-05
@@ -50,27 +50,27 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 4331,Freiburg,SC Freiburg,88.05,88.3,7,2026-11-05
 4332,Atalanta,,87.79,85.9,8,2026-11-05
 4328,Coventry City,Coventry,87.72,88.5,5,2026-11-06
-4328,Hull City,,87.66,88.6,4,2026-10-31
 4334,Olympique Lyonnais,Lyon,87.63,87.6,9,2026-11-05
 4339,Beşiktaş,Besiktas,87.57,85.8,7,2026-11-05
+4328,Hull City,,87.52,88.6,5,2026-11-07
 4337,Feyenoord,,87.43,86.2,7,2026-11-03
 4331,Hoffenheim,1899 Hoffenheim,87.4,86.3,7,2026-11-05
 4336,Olympiakos Piraeus,Olympiacos,87.39,87.5,8,2026-11-05
+4335,Athletic Club,Athletic Bilbao,87.38,86.4,6,2026-11-07
 4334,Lens,RC Lens,87.32,87.0,7,2026-11-04
-4335,Athletic Club,Athletic Bilbao,87.28,86.4,5,2026-11-01
 4358,Viking,Viking FK,87.13,87.2,7,2026-11-04
 4334,Rennes,Stade Rennais,86.91,86.3,9,2026-11-05
-20011,West Ham,,86.7,86.2,6,2026-11-04
+4334,Paris FC,,86.84,85.8,6,2026-11-07
+20011,West Ham,,86.76,86.2,7,2026-11-07
 4337,Twente,FC Twente,86.68,85.7,7,2026-11-05
-4334,Paris FC,,86.45,85.8,4,2026-11-01
+4332,Bologna,,86.28,86.8,6,2026-11-07
 4344,Sporting Braga,SC Braga,86.27,84.9,7,2026-11-05
+20011,Middlesbrough,,86.23,85.1,7,2026-11-07
 4336,Panathinaikos,,86.18,85.5,8,2026-11-05
-4332,Bologna,,86.17,86.8,5,2026-10-31
 4335,Celta de Vigo,Celta Vigo,86.17,85.6,7,2026-11-05
-20011,Middlesbrough,,86.11,85.1,6,2026-11-04
 4334,Olympique Marseille,Marseille,86.09,85.5,7,2026-11-05
-4331,Mainz 05,FSV Mainz 05,86.07,85.4,4,2026-10-30
-4331,Eintracht Frankfurt,,85.79,85.3,4,2026-11-01
+4331,Mainz 05,FSV Mainz 05,86.01,85.4,5,2026-11-07
+4331,Eintracht Frankfurt,,85.86,85.3,5,2026-11-07
 4335,Rayo Vallecano,,85.77,85.9,4,2026-10-31
 4339,Trabzonspor,,85.69,84.6,7,2026-11-05
 4336,AEK Athens,AEK Athens FC,85.68,85.7,8,2026-11-04
@@ -81,29 +81,29 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 4338,Genk,KRC Genk,85.41,85.3,3,2026-10-31
 4335,Sevilla,,85.31,84.9,5,2026-11-06
 4332,Fiorentina,,85.29,84.7,5,2026-11-02
+4331,Werder Bremen,,85.24,85.3,5,2026-11-07
 4690,Ferencváros,Ferencvarosi TC,85.23,85.6,7,2026-11-05
 4334,Lille,Lille OSC,85.18,87.0,7,2026-11-03
 4340,Midtjylland,FC Midtjylland,85.17,84.9,7,2026-11-05
-4331,Werder Bremen,,85.08,85.3,4,2026-10-31
-20011,Wolves,,85.06,85.1,7,2026-11-04
+20011,Wolves,,85.07,85.1,8,2026-11-07
+4621,LASK,Lask Linz,85.0,83.9,8,2026-11-07
 4334,Toulouse,,84.94,84.8,6,2026-11-06
 4621,Salzburg,Red Bull Salzburg,84.91,84.4,7,2026-11-05
 4629,Dinamo Zagreb,GNK Dinamo Zagreb,84.84,84.0,8,2026-11-05
-4621,LASK,Lask Linz,84.83,83.9,7,2026-11-03
-4331,Augsburg,FC Augsburg,84.78,84.5,4,2026-10-31
 4631,Slavia Praha,Slavia Prague,84.77,87.9,7,2026-11-04
+4338,Sporting Charleroi,Charleroi,84.76,84.5,4,2026-11-07
+20011,Southampton,,84.73,85.3,7,2026-11-07
 4338,Gent,KAA Gent,84.72,84.8,6,2026-11-05
 4334,Strasbourg,RC Strasbourg,84.71,85.0,5,2026-11-06
-4338,Sporting Charleroi,Charleroi,84.7,84.5,3,2026-11-01
 4335,Alavés,Alaves,84.67,84.9,5,2026-11-06
-20011,Southampton,,84.66,85.3,6,2026-11-03
+4331,Augsburg,FC Augsburg,84.66,84.5,5,2026-11-07
 4675,Lugano,FC Lugano,84.54,84.8,6,2026-11-05
-4335,Valencia,,84.48,85.1,4,2026-11-01
+4335,Valencia,,84.42,85.1,5,2026-11-07
 4347,Hammarby,Hammarby FF,84.4,82.6,6,2026-11-06
-4671,Crvena Zvezda,FK Crvena Zvezda,84.25,83.2,9,2026-11-05
-4335,Deportivo de A Coruña,Deportivo La Coruna,84.08,84.3,4,2026-11-02
+4671,Crvena Zvezda,FK Crvena Zvezda,84.22,83.2,10,2026-11-07
+4332,Frosinone,,84.12,84.2,6,2026-11-07
 4422,Lech Poznań,Lech Poznan,84.01,85.1,8,2026-11-05
-4332,Frosinone,,84.0,84.2,5,2026-11-01
+4335,Deportivo de A Coruña,Deportivo La Coruna,83.99,84.3,5,2026-11-07
 4338,Sint-Truiden,St. Truiden,83.89,83.3,6,2026-11-05
 4630,Omonia Nicosia,AC Omonia,83.88,84.9,7,2026-11-05
 4335,Elche,,83.81,84.4,4,2026-11-01
@@ -111,812 +111,811 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 4335,Levante,,83.72,84.4,5,2026-10-31
 4621,Rapid,Rapid Vienna,83.66,82.7,5,2026-11-06
 4334,Nice,OGC Nice,83.65,83.2,5,2026-10-31
+4358,Rosenborg,Rosenborg BK,83.65,83.1,5,2026-11-07
 4340,Nordsjælland,FC Nordsjaelland,83.63,82.2,7,2026-11-05
 4334,Brest,Stade Brestois 29,83.56,84.1,5,2026-11-02
-4335,Osasuna,,83.53,83.9,4,2026-11-02
-4331,Elversberg,SV Elversberg,83.51,83.7,4,2026-10-30
+4331,Elversberg,SV Elversberg,83.48,83.7,5,2026-11-07
 4631,Sparta Praha,Sparta Prague,83.46,83.0,7,2026-11-05
 4331,Köln,1. FC Köln,83.41,83.1,4,2026-11-01
-4335,Espanyol,RCD Espanyol,83.36,83.6,4,2026-10-30
-4358,Rosenborg,Rosenborg BK,83.36,83.1,4,2026-10-31
-4332,Torino,,83.33,83.7,5,2026-11-01
+4335,Osasuna,,83.39,83.9,5,2026-11-07
+4332,Torino,,83.39,83.7,6,2026-11-07
+4335,Espanyol,RCD Espanyol,83.37,83.6,5,2026-11-07
 20043,Castellón,,83.31,82.9,4,2026-11-06
-4354,Shakhtar Donetsk,,83.29,83.7,7,2026-11-03
+4354,Shakhtar Donetsk,,83.29,83.7,8,2026-11-07
+4644,Maccabi Tel Aviv,,83.2,82.8,7,2026-11-07
 4355,Spartak Moskva,Spartak Moscow,83.19,83.0,5,2026-11-01
-4644,Maccabi Tel Aviv,,83.13,82.8,6,2026-11-06
+20011,Birmingham,,83.04,82.4,7,2026-11-07
 4334,Lorient,FC Lorient,82.94,83.3,5,2026-11-02
-4335,Racing de Santander,Racing Santander,82.93,82.8,4,2026-11-01
 4332,Genoa,,82.92,83.4,5,2026-11-01
+4675,Young Boys,BSC Young Boys,82.9,81.9,4,2026-11-07
 4331,Union Berlin,,82.89,83.1,4,2026-11-01
 4358,Molde,Molde FK,82.89,82.1,4,2026-11-01
+4335,Racing de Santander,Racing Santander,82.86,82.8,5,2026-11-07
 4330,Celtic,,82.8,81.7,9,2026-11-05
-20011,Birmingham,,82.78,82.4,6,2026-11-03
 4331,Borussia M'Gladbach,Borussia Mönchengladbach,82.77,82.8,5,2026-11-06
 4335,Getafe,,82.75,82.9,7,2026-11-05
-20011,Norwich,,82.71,82.4,6,2026-11-03
-20011,Swansea,,82.7,83.1,6,2026-11-03
-4332,Sassuolo,,82.68,82.2,5,2026-11-02
-4675,Young Boys,BSC Young Boys,82.68,81.9,3,2026-11-01
+20011,Norwich,,82.66,82.4,7,2026-11-07
 4631,Viktoria Plzeň,Plzen,82.65,81.9,7,2026-11-05
-4422,Górnik Zabrze,Gornik Zabrze,82.63,83.3,5,2026-10-31
-4331,Paderborn,SC Paderborn 07,82.6,82.8,4,2026-10-31
-20011,Millwall,,82.43,83.0,6,2026-11-03
+4332,Sassuolo,,82.63,82.2,6,2026-11-07
+4331,Paderborn,SC Paderborn 07,82.59,82.8,5,2026-11-07
+4422,Górnik Zabrze,Gornik Zabrze,82.5,83.3,6,2026-11-07
+20011,Swansea,,82.43,83.1,7,2026-11-07
+4330,Rangers,,82.38,81.8,6,2026-11-07
 4629,Hajduk Split,HNK Hajduk Split,82.37,82.6,8,2026-11-05
-4330,Rangers,,82.35,81.8,5,2026-10-28
+20011,Millwall,,82.24,83.0,7,2026-11-07
 4331,Hamburger SV,Hamburg,82.21,82.5,5,2026-11-06
 4422,Legia Warszawa,Legia Warsaw,82.2,82.5,5,2026-10-31
-4332,Cagliari,,82.17,82.7,5,2026-11-01
 4344,Santa Clara,CD Santa Clara,82.1,82.3,3,2026-11-01
+4332,Cagliari,,82.09,82.7,6,2026-11-07
 20043,Almeria,Almería,82.09,81.9,4,2026-10-31
 4331,Schalke 04,FC Schalke 04,82.09,81.9,4,2026-10-31
 4347,Djurgården,Djurgardens IF,82.06,81.5,5,2026-11-01
 4630,AEK Larnaca,,82.03,83.0,5,2026-11-06
+20011,West Brom,,82.01,81.6,7,2026-11-07
 4621,Sturm Graz,,81.99,82.6,7,2026-11-05
-4338,Westerlo,KVC Westerlo,81.94,82.1,3,2026-10-31
-4355,Krasnodar,FC Krasnodar,81.93,82.3,4,2026-10-31
+4338,Westerlo,KVC Westerlo,81.93,82.1,4,2026-11-07
 4693,Sabah,Sabah FA,81.9,82.7,6,2026-11-04
-20011,West Brom,,81.83,81.6,6,2026-11-03
 4338,Standard Liège,Standard Liege,81.81,81.4,4,2026-11-06
 4693,Qarabağ,Qarabag,81.8,81.8,5,2026-11-06
 4332,Udinese,,81.76,81.6,6,2026-11-06
 4358,Brann,SK Brann,81.75,81.2,7,2026-11-05
-4355,Dinamo Moskva,Dynamo,81.72,82.1,4,2026-10-31
 4626,Levski Sofia,,81.71,82.7,7,2026-11-05
-4335,Málaga,Malaga,81.6,81.9,4,2026-10-31
-4334,Auxerre,AJ Auxerre,81.6,82.0,4,2026-11-01
-4675,Sion,FC Sion,81.57,81.8,3,2026-10-31
+4335,Málaga,Malaga,81.67,81.9,5,2026-11-07
+4355,Dinamo Moskva,Dynamo,81.66,82.1,5,2026-11-07
+4355,Krasnodar,FC Krasnodar,81.64,82.3,5,2026-11-07
+20011,QPR,,81.61,80.7,7,2026-11-07
 4344,Famalicão,Famalicao,81.56,81.8,4,2026-11-06
+4675,Sion,FC Sion,81.55,81.8,4,2026-11-07
 4332,Monza,,81.53,81.3,5,2026-10-31
-20011,QPR,,81.33,80.7,6,2026-11-03
+4334,Auxerre,AJ Auxerre,81.3,82.0,6,2026-11-07
 20043,Girona,,81.29,81.1,3,2026-10-31
+4339,Göztepe,Goztepe,81.29,81.9,5,2026-11-07
 20043,Mallorca,,81.27,80.9,4,2026-11-02
-20011,Wrexham,,81.21,82.0,6,2026-11-04
 4337,NEC,NEC Nijmegen,81.17,80.4,7,2026-11-05
-4339,Göztepe,Goztepe,81.12,81.9,4,2026-10-31
-20011,Burnley,,81.02,81.1,6,2026-11-03
+20011,Wrexham,,81.13,82.0,7,2026-11-07
 4630,Pafos,Pafos FC,81.0,80.9,7,2026-11-05
-4340,Viborg,Viborg FF,81.0,80.8,4,2026-11-01
-4630,Apollon,Apollon Limassol,80.98,81.5,4,2026-10-31
 4675,St.Gallen,FC ST. Gallen,80.98,81.0,3,2026-10-31
+4340,Viborg,Viborg FF,80.95,80.8,5,2026-11-07
 4358,Tromsø,Tromso,80.94,80.7,4,2026-11-01
+4630,Apollon,Apollon Limassol,80.93,81.5,5,2026-11-07
+20011,Burnley,,80.91,81.1,7,2026-11-07
+4672,DAC 1904,Dunajska Streda,80.83,81.3,6,2026-11-07
 4338,Zulte Waregem,SV Zulte Waregem,80.79,80.6,3,2026-10-30
 20043,Eibar,,80.78,82.2,5,2026-11-06
-4339,Amed,,80.78,80.1,4,2026-11-01
-4644,Hapoel Tel Aviv,Hapoel Tel-Aviv,80.75,80.2,7,2026-11-02
+4339,Amed,,80.76,80.1,5,2026-11-07
 4691,Universitatea Craiova,,80.75,81.0,10,2026-11-05
-4339,İstanbul Başakşehir,Başakşehir,80.72,81.0,4,2026-11-01
+4629,Rijeka,HNK Rijeka,80.74,79.8,6,2026-11-07
 4340,Brøndby,Brondby,80.71,80.4,4,2026-11-01
-4332,Parma,,80.68,81.2,5,2026-11-02
-20017,Hertha BSC,,80.68,81.1,4,2026-10-31
-4672,DAC 1904,Dunajska Streda,80.66,81.3,5,2026-11-01
-4629,Rijeka,HNK Rijeka,80.66,79.8,5,2026-11-01
+20017,Hertha BSC,,80.7,81.1,5,2026-11-07
+4644,Hapoel Tel Aviv,Hapoel Tel-Aviv,80.68,80.2,8,2026-11-07
 4344,Vitória Guimarães,Vitória SC,80.63,80.3,3,2026-11-02
 4338,Beveren,SK Beveren,80.62,80.4,4,2026-11-06
+4339,İstanbul Başakşehir,Başakşehir,80.59,81.0,5,2026-11-07
 4337,Heerenveen,SC Heerenveen,80.59,80.6,4,2026-10-31
 4347,Häcken,BK Hacken,80.58,79.8,5,2026-11-01
+4338,Antwerp,Royal Antwerp,80.58,80.6,4,2026-11-07
 4332,Venezia,,80.57,80.0,6,2026-11-06
+4355,CSKA Moskva,CSKA Moscow,80.57,80.5,5,2026-11-07
 4347,Sirius,IK Sirius,80.55,80.7,5,2026-11-03
 4344,Arouca,FC Arouca,80.55,81.5,5,2026-11-06
+4644,Hapoel Be'er Sheva,Hapoel Beer Sheva,80.55,81.9,10,2026-11-07
+4332,Parma,,80.53,81.2,6,2026-11-07
 4344,Gil Vicente,GIL Vicente,80.53,81.2,4,2026-11-02
 4422,Wisła Kraków,Wisla Krakow,80.49,80.3,6,2026-11-06
-4644,Hapoel Be'er Sheva,Hapoel Beer Sheva,80.46,81.9,9,2026-11-05
+4334,Troyes,Estac Troyes,80.45,80.4,7,2026-11-07
+4631,Slovan Liberec,FC Slovan Liberec,80.44,80.2,5,2026-11-07
 4340,AGF,Aarhus,80.42,80.3,7,2026-11-05
-20011,Bristol City,,80.39,80.5,6,2026-11-04
-4332,Lecce,,80.39,81.0,5,2026-11-01
-4355,CSKA Moskva,CSKA Moscow,80.38,80.5,4,2026-11-01
+20011,Bristol City,,80.41,80.5,7,2026-11-07
 4334,Le Havre,,80.35,80.2,4,2026-10-30
+4332,Lecce,,80.3,81.0,6,2026-11-07
 4334,Le Mans,,80.3,80.2,4,2026-10-31
-4338,Antwerp,Royal Antwerp,80.29,80.6,3,2026-11-01
-4338,Lommel,Lommel United,80.21,81.2,3,2026-11-01
-4334,Troyes,Estac Troyes,80.19,80.4,5,2026-10-31
-4338,Cercle Brugge,,80.13,79.8,3,2026-11-01
+20011,Cardiff,,80.17,79.0,7,2026-11-07
 4422,Jagiellonia Białystok,Jagiellonia,80.13,80.2,8,2026-11-05
-4631,Slovan Liberec,FC Slovan Liberec,80.1,80.2,4,2026-10-31
-20017,VfL Wolfsburg,,80.08,79.5,4,2026-10-31
-20011,Cardiff,,80.02,79.0,6,2026-11-04
-20015,Saint Etienne,Saint-Étienne,79.98,79.3,6,2026-11-06
+20017,VfL Wolfsburg,,80.12,79.5,5,2026-11-07
+20015,Saint Etienne,Saint-Étienne,80.01,79.3,7,2026-11-07
+4338,Cercle Brugge,,80.0,79.8,4,2026-11-07
+4338,Lommel,Lommel United,79.99,81.2,4,2026-11-07
 4334,Angers SCO,Angers,79.91,79.8,5,2026-11-01
-20011,Stoke City,,79.91,79.4,6,2026-11-03
-4344,Alverca,,79.88,79.8,4,2026-11-02
-20011,Portsmouth,,79.88,80.1,7,2026-11-03
-4338,Mechelen,KV Mechelen,79.87,80.3,4,2026-11-04
-4422,Pogoń Szczecin,Pogon Szczecin,79.77,80.4,4,2026-11-02
-4626,Ludogorets Razgrad,Ludogorets,79.73,79.7,4,2026-10-31
+4626,Ludogorets Razgrad,Ludogorets,79.86,79.7,5,2026-11-07
+20011,Stoke City,,79.85,79.4,7,2026-11-07
+20011,Portsmouth,,79.82,80.1,8,2026-11-07
+4338,Mechelen,KV Mechelen,79.79,80.3,5,2026-11-07
 4337,Utrecht,FC Utrecht,79.68,80.1,4,2026-11-01
+4344,Alverca,,79.67,79.8,5,2026-11-07
+4422,Pogoń Szczecin,Pogon Szczecin,79.67,80.4,5,2026-11-07
+4644,Beitar Jerusalem,,79.67,78.8,7,2026-11-07
 4675,Servette,Servette FC,79.57,79.8,3,2026-10-31
 20023,Palermo,,79.54,80.0,6,2026-11-06
 4631,Jablonec,FK Jablonec,79.53,80.0,7,2026-11-05
 4337,Groningen,FC Groningen,79.52,79.2,4,2026-11-01
-20043,Oviedo,,79.49,79.3,4,2026-11-02
-20043,Burgos,,79.43,80.8,4,2026-11-01
-20011,Lincoln,,79.41,80.8,6,2026-11-03
-4631,Sigma Olomouc,SK Sigma Olomouc,79.41,79.6,4,2026-10-31
-4644,Beitar Jerusalem,,79.34,78.8,5,2026-10-31
-4338,OH Leuven,Oud-Heverlee Leuven,79.28,78.9,3,2026-11-01
+20043,Burgos,,79.51,80.8,5,2026-11-07
+4631,Sigma Olomouc,SK Sigma Olomouc,79.37,79.6,5,2026-11-07
+4338,OH Leuven,Oud-Heverlee Leuven,79.35,78.9,4,2026-11-07
+20043,Oviedo,,79.27,79.3,5,2026-11-07
 20017,Hannover 96,,79.23,80.0,4,2026-11-01
 4626,CSKA Sofia,,79.21,79.2,7,2026-11-05
-4344,Académico de Viseu,Academico Viseu,79.2,79.8,3,2026-11-01
+4672,Slovan Bratislava,SK Slovan Bratislava,79.2,79.9,9,2026-11-07
+4344,Académico de Viseu,Academico Viseu,79.19,79.8,4,2026-11-07
+20011,Lincoln,,79.18,80.8,7,2026-11-07
 4339,Çorum,Çorum FK,79.14,79.1,4,2026-10-31
 4630,Aris Limassol,Aris,79.12,79.6,5,2026-11-01
-20011,Blackburn,,79.11,79.8,6,2026-11-03
+4644,Maccabi Haifa,,79.11,77.7,9,2026-11-07
 4630,APOEL,Apoel Nicosia,79.09,78.7,4,2026-11-01
+20011,Blackburn,,79.07,79.8,7,2026-11-07
 4422,GKS Katowice,,79.06,79.6,5,2026-10-31
-4422,Korona Kielce,,79.03,78.7,4,2026-11-02
+4358,Vålerenga,Valerenga,79.0,78.6,5,2026-11-07
 4358,Lillestrøm,Lillestrom,78.98,79.2,7,2026-11-05
-4358,Vålerenga,Valerenga,78.97,78.6,4,2026-11-01
-4672,Slovan Bratislava,SK Slovan Bratislava,78.94,79.9,8,2026-11-03
+4422,Korona Kielce,,78.95,78.7,5,2026-11-07
 4347,Elfsborg,IF Elfsborg,78.89,78.5,6,2026-11-06
 4422,Raków Częstochowa,Rakow Czestochowa,78.85,79.0,4,2026-11-02
 4693,Neftçi,Neftchi Baku,78.84,78.5,5,2026-11-06
 4358,Sarpsborg 08,Sarpsborg 08 FF,78.84,78.2,4,2026-11-01
-4354,Dynamo Kyiv,Dynamo Kiev,78.82,79.0,6,2026-11-02
+4336,Aris,Aris Thessalonikis,78.82,78.6,5,2026-11-07
+4354,Dynamo Kyiv,Dynamo Kiev,78.81,79.0,7,2026-11-07
 4690,Győri ETO,Gyori ETO FC,78.78,79.5,5,2026-10-31
 20017,1. FC Heidenheim,,78.77,79.0,4,2026-10-31
-4619,Noah,FC Noah,78.76,79.0,4,2026-11-01
 4339,Kasımpaşa,Kasimpasa,78.75,79.0,5,2026-11-06
 4339,Rizespor,Caykur Rizespor,78.74,78.8,4,2026-10-31
-4336,Aris,Aris Thessalonikis,78.71,78.6,4,2026-11-01
-4644,Maccabi Haifa,,78.7,77.7,7,2026-11-02
-4337,Go Ahead Eagles,GO Ahead Eagles,78.62,77.5,4,2026-10-31
-4675,Luzern,FC Luzern,78.6,78.3,3,2026-10-31
+4337,Go Ahead Eagles,GO Ahead Eagles,78.71,77.5,5,2026-11-07
+20043,Cordoba,Córdoba,78.62,77.5,5,2026-11-07
 20043,Las Palmas,,78.58,79.3,4,2026-11-02
 20043,Sabadell,,78.54,78.5,4,2026-10-31
-4631,Hradec Králové,Hradec Kralove,78.49,78.2,4,2026-11-01
+4675,Luzern,FC Luzern,78.52,78.3,4,2026-11-07
+4631,Hradec Králové,Hradec Kralove,78.51,78.2,5,2026-11-07
+4422,Widzew Łódź,Widzew Lodz,78.48,77.8,5,2026-11-07
 4629,Varaždin,NK Varazdin,78.43,78.9,5,2026-11-01
 20011,Bolton,,78.42,79.0,7,2026-11-06
-4422,Widzew Łódź,Widzew Lodz,78.41,77.8,4,2026-10-31
+4422,Piast Gliwice,,78.4,79.2,6,2026-11-07
 20011,Derby,,78.38,79.9,7,2026-11-06
-4624,Borac Banja Luka,FK Borac Banja Luka,78.32,80.0,7,2026-11-05
-4339,Konyaspor,,78.32,77.9,4,2026-10-30
-4422,Piast Gliwice,,78.31,79.2,5,2026-10-31
+20043,Granada CF,Granada,78.36,78.3,5,2026-11-07
 4354,Polissya,Polessya,78.27,78.8,8,2026-11-06
-20043,Cordoba,Córdoba,78.26,77.5,4,2026-10-31
+4619,Noah,FC Noah,78.26,79.0,5,2026-11-07
 4422,Motor Lublin,,78.2,78.3,6,2026-11-06
+4339,Konyaspor,,78.19,77.9,5,2026-11-07
 20023,Modena,,78.18,77.6,5,2026-10-31
-20043,Granada CF,Granada,78.16,78.3,4,2026-11-01
+4340,OB,Odense,78.18,78.1,5,2026-11-07
 4631,Mladá Boleslav,Mlada Boleslav,78.16,78.3,5,2026-11-01
+4624,Borac Banja Luka,FK Borac Banja Luka,78.13,80.0,8,2026-11-07
+20011,Sheffield Utd,,78.12,75.0,7,2026-11-07
 20017,1. FC Magdeburg,,78.11,77.8,4,2026-10-31
-4347,GAIS,Gais,78.11,77.8,5,2026-11-02
-4340,OB,Odense,78.08,78.1,4,2026-11-01
 20017,FC St. Pauli,St. Pauli,78.04,77.6,4,2026-11-01
 4422,Cracovia,Cracovia Krakow,78.03,77.6,6,2026-11-06
-20011,Charlton,,78.02,78.5,6,2026-11-03
+4338,Raal La Louvière,RAAL La Louvière,77.96,77.8,4,2026-11-07
 20043,FC Andorra,,77.94,77.6,1,2026-10-26
+4690,Paks,FC Paksi,77.94,77.4,5,2026-11-07
 4422,Zagłębie Lubin,Zaglebie Lubin,77.9,78.5,4,2026-11-02
 4339,Alanyaspor,,77.9,77.5,4,2026-11-02
-4338,Raal La Louvière,RAAL La Louvière,77.9,77.8,3,2026-11-01
 4675,Basel,FC Basel 1893,77.9,77.7,3,2026-11-01
 4355,Baltika,Baltika Kaliningrad,77.88,78.6,5,2026-11-01
 4330,Heart of Midlothian,Heart Of Midlothian,77.86,78.3,9,2026-11-05
 4338,Kortrijk,,77.85,77.6,4,2026-11-04
 4631,Teplice,FK Teplice,77.84,78.5,4,2026-10-31
+4339,Kocaelispor,,77.79,78.2,5,2026-11-07
 20015,Reims,,77.78,78.5,6,2026-11-06
-4339,Kocaelispor,,77.77,78.2,4,2026-10-31
-4690,Paks,FC Paksi,77.72,77.4,4,2026-11-01
-20011,Sheffield Utd,,77.7,75.0,6,2026-11-03
+4347,GAIS,Gais,77.71,77.8,6,2026-11-07
 4347,IFK Göteborg,IFK Goteborg,77.66,77.3,5,2026-11-01
 20043,Valladolid,,77.66,77.3,4,2026-11-02
-4344,Moreirense,,77.59,78.6,3,2026-10-31
-20011,Watford,,77.55,77.9,6,2026-11-03
+4344,Moreirense,,77.62,78.6,4,2026-11-07
+4339,Samsunspor,,77.61,77.4,5,2026-11-07
+20011,Charlton,,77.56,78.5,7,2026-11-07
 4336,OFI,OFI Crete,77.55,78.2,7,2026-11-05
-4339,Samsunspor,,77.53,77.4,4,2026-11-01
 4358,Fredrikstad,Fredrikstad FK,77.53,77.7,4,2026-10-31
 4344,Estrela,Estrela Amadora,77.53,76.7,3,2026-10-31
 4347,Malmö FF,Malmo FF,77.51,77.2,5,2026-11-01
-4690,Puskás,Puskas Academy,77.51,77.4,4,2026-11-01
-20043,Tenerife,,77.44,77.7,3,2026-10-25
-4624,Zrinjski,Zrinjski Mostar,77.44,78.4,4,2026-10-31
+20011,Watford,,77.5,77.9,7,2026-11-07
 4422,Wisła Płock,Wisla Plock,77.41,77.4,6,2026-11-06
 20017,VfL Bochum,,77.38,77.8,4,2026-10-30
 4650,Riga,Riga FC,77.35,78.2,7,2026-11-05
 20015,Montpellier,,77.31,77.1,6,2026-11-06
+4422,Wieczysta Kraków,,77.28,75.8,7,2026-11-07
 4675,Thun,FC Thun,77.27,77.1,6,2026-11-05
 4339,Erzurumspor FK,,77.26,77.4,4,2026-10-31
-4631,Bohemians 1905,,77.23,78.0,6,2026-11-04
-4422,Wieczysta Kraków,,77.21,75.8,6,2026-10-31
-4631,Zbrojovka Brno,,77.2,77.5,4,2026-10-31
+20043,Tenerife,,77.24,77.7,4,2026-11-07
+4690,Puskás,Puskas Academy,77.23,77.4,5,2026-11-07
 4629,Osijek,NK Osijek,77.19,76.6,6,2026-11-01
-4691,Rapid București,Rapid,77.19,77.2,8,2026-10-31
-20017,Arminia Bielefeld,,77.19,76.7,4,2026-10-30
+4691,Rapid București,Rapid,77.19,77.2,9,2026-11-07
+20017,Arminia Bielefeld,,77.19,76.7,5,2026-11-07
+4631,Zbrojovka Brno,,77.18,77.5,5,2026-11-07
 4690,Debrecen,Debreceni VSC,77.17,77.5,4,2026-11-01
+4624,Zrinjski,Zrinjski Mostar,77.16,78.4,5,2026-11-07
 4358,Sandefjord,Sandefjord Fotball,77.09,77.6,4,2026-10-31
-4621,Ried,SV Ried,77.08,77.4,4,2026-10-31
 4344,Estoril,Estoril Praia,77.07,76.4,3,2026-10-31
 4355,Rostov,FC Rostov,77.07,77.5,5,2026-11-01
-20023,Hellas Verona,,77.06,76.8,5,2026-11-01
-4337,Sparta Rotterdam,,77.05,77.4,4,2026-11-01
+4621,Ried,SV Ried,77.03,77.4,5,2026-11-07
+20023,Hellas Verona,,77.02,76.8,6,2026-11-07
+4337,Sparta Rotterdam,,77.0,77.4,5,2026-11-07
 20043,Eldense,,76.99,77.1,4,2026-11-01
+20023,Pisa,,76.98,76.3,6,2026-11-07
+4631,Bohemians 1905,,76.97,78.0,7,2026-11-07
 4358,KFUM,KFUM Oslo,76.96,77.5,4,2026-11-01
 4344,Marítimo,Maritimo,76.94,77.2,3,2026-11-01
+20043,Leganes,Leganés,76.94,76.8,5,2026-11-07
 4631,Pardubice,FK Pardubice,76.92,76.9,4,2026-10-31
-20011,Preston,,76.91,77.6,6,2026-11-03
 4690,Újpest,Ujpest,76.91,76.5,4,2026-11-01
+20011,Preston,,76.88,77.6,7,2026-11-07
 20015,RED Star FC 93,,76.88,77.3,6,2026-11-06
-20015,Nantes,,76.81,76.1,6,2026-11-06
-20017,Holstein Kiel,,76.81,76.6,4,2026-11-01
-20043,Leganes,Leganés,76.8,76.8,4,2026-11-02
-4671,Vojvodina,FK Vojvodina,76.8,77.3,5,2026-11-01
+4671,Vojvodina,FK Vojvodina,76.85,77.3,6,2026-11-07
+20015,Nantes,,76.77,76.1,7,2026-11-07
+20017,Holstein Kiel,,76.76,76.6,5,2026-11-07
 4692,Celje,NK Celje,76.75,77.4,7,2026-11-05
-4337,Fortuna Sittard,,76.68,77.2,4,2026-10-31
+20017,1. FC Nürnberg,,76.74,75.0,5,2026-11-07
 20034,Stromsgodset,,76.65,75.4,5,2026-11-01
 20017,Dynamo Dresden,,76.65,76.0,5,2026-11-06
-20023,Pisa,,76.63,76.3,5,2026-11-01
+4337,Fortuna Sittard,,76.64,77.2,5,2026-11-07
 20043,Real Sociedad II,,76.63,76.5,4,2026-10-31
 4339,Gençlerbirliği,Gençlerbirliği S.K.,76.62,76.8,4,2026-11-02
-4672,Žilina,MSK Zilina,76.57,76.9,4,2026-10-31
 4340,Lyngby,,76.56,76.3,5,2026-11-06
-4337,Excelsior,SBV Excelsior,76.55,76.2,4,2026-11-01
 4621,Hartberg,TSV Hartberg,76.54,77.7,5,2026-10-30
-20043,Albacete,,76.54,77.0,4,2026-10-31
+4691,FCSB,Steaua Bucharest,76.54,75.3,8,2026-11-07
 4621,Austria Wien,Austria Vienna,76.52,76.4,4,2026-11-01
 4636,HJK,HJK Helsinki,76.51,76.3,6,2026-11-02
-4626,CSKA 1948 Sofia,CSKA 1948,76.47,77.4,4,2026-10-30
-4344,Nacional,Nacional de Madeira,76.47,76.5,3,2026-11-01
+4337,Excelsior,SBV Excelsior,76.48,76.2,5,2026-11-07
 4358,Aalesund,Aalesund FK,76.43,75.9,4,2026-10-31
-4691,FCSB,Steaua Bucharest,76.42,75.3,7,2026-11-02
+20043,Albacete,,76.37,77.0,5,2026-11-07
 4344,Rio Ave,,76.37,76.5,3,2026-11-01
-4422,Radomiak Radom,,76.34,76.3,4,2026-11-02
+4344,Nacional,Nacional de Madeira,76.36,76.5,4,2026-11-07
+4422,Radomiak Radom,,76.35,76.3,5,2026-11-07
+4626,CSKA 1948 Sofia,CSKA 1948,76.34,77.4,5,2026-11-07
 4690,Vasas,,76.34,75.7,5,2026-10-31
-20017,1. FC Nürnberg,,76.33,75.0,4,2026-11-01
+4344,Casa Pia,,76.34,76.7,4,2026-11-07
 4636,Inter Turku,FC Inter Turku,76.33,75.9,6,2026-11-02
+4672,Žilina,MSK Zilina,76.32,76.9,5,2026-11-07
 4347,AIK,AIK Stockholm,76.32,76.3,5,2026-11-02
 4355,Lokomotiv Moskva,Lokomotiv,76.31,76.9,5,2026-11-06
-4344,Casa Pia,,76.29,76.7,3,2026-10-30
-4622,ML Vitebsk,Maxline Vitebsk,76.27,75.9,9,2026-11-01
-4347,Västerås,Vasteras SK FK,76.26,76.8,5,2026-11-01
+4622,ML Vitebsk,Maxline Vitebsk,76.26,75.9,11,2026-11-07
 4617,Egnatia Rrogozhinë,Egnatia,76.25,77.4,8,2026-11-05
 4650,Rīgas FS,RFS,76.18,76.3,5,2026-11-01
-20017,SV Darmstadt 98,,76.18,76.4,4,2026-10-31
 20034,Haugesund,,76.17,75.8,5,2026-11-01
 20015,Metz,,76.14,76.3,5,2026-11-06
-4422,Śląsk Wrocław,Slask Wroclaw,76.14,76.7,4,2026-11-02
 4340,Horsens,AC Horsens,76.14,76.9,4,2026-11-01
 4339,Gaziantep FK,Gaziantep,76.13,75.6,5,2026-11-06
 4340,Silkeborg,Silkeborg IF,76.12,76.0,5,2026-11-06
 4621,SCR Altach,,76.1,75.6,4,2026-10-31
 4340,Randers,Randers FC,76.09,75.7,4,2026-10-30
-20023,Mantova,,76.06,76.4,5,2026-10-31
-4672,Spartak Trnava,FC Spartak Trnava,76.06,76.4,4,2026-10-31
+20023,Mantova,,76.04,76.4,6,2026-11-07
+4422,Śląsk Wrocław,Slask Wroclaw,76.03,76.7,5,2026-11-07
 4358,HamKam,Ham-Kam,76.02,76.6,4,2026-11-01
+4691,Universitatea Cluj,FC Universitatea Cluj,76.01,78.3,10,2026-11-07
+4347,Västerås,Vasteras SK FK,75.99,76.8,6,2026-11-07
+4672,Spartak Trnava,FC Spartak Trnava,75.98,76.4,5,2026-11-07
 4675,Zürich,FC Zurich,75.97,76.1,3,2026-11-01
 20023,Cremonese,,75.97,76.5,5,2026-10-31
-4691,Universitatea Cluj,FC Universitatea Cluj,75.94,78.3,9,2026-11-02
-4629,Istra 1961,NK Istra 1961,75.94,76.5,5,2026-10-30
-4692,Koper,NK Koper,75.94,77.0,4,2026-11-02
-20017,VfL Osnabrück,,75.88,76.3,4,2026-10-31
+20017,SV Darmstadt 98,,75.91,76.4,5,2026-11-07
 4337,Cambuur,,75.88,76.3,4,2026-10-31
+4629,Istra 1961,NK Istra 1961,75.83,76.5,6,2026-11-07
 20005,Dender,,75.83,76.1,4,2026-11-04
-20043,Celta de Vigo II,,75.81,76.4,4,2026-10-31
+20017,VfL Osnabrück,,75.81,76.3,5,2026-11-07
+4675,Vaduz,FC Vaduz,75.81,75.5,4,2026-11-07
+4692,Maribor,NK Maribor,75.79,75.2,5,2026-11-07
 20017,Energie Cottbus,,75.78,76.9,5,2026-11-06
 4649,Kairat,Kairat Almaty,75.76,76.1,6,2026-11-05
+4337,Telstar,SC Telstar,75.76,76.1,5,2026-11-07
 4355,Orenburg,FC Orenburg,75.75,76.3,4,2026-11-01
-4337,Telstar,SC Telstar,75.75,76.1,4,2026-11-01
+20043,Cadiz,Cádiz,75.75,75.4,5,2026-11-07
 4642,Víkingur Reykjavík,Vikingur Reykjavik,75.74,76.9,5,2026-10-24
-4675,Vaduz,FC Vaduz,75.72,75.5,3,2026-10-31
-20023,Benevento,,75.72,74.7,5,2026-10-31
 20036,Torreense,,75.72,75.7,6,2026-11-05
-20017,1. FC Kaiserslautern,,75.65,75.0,4,2026-10-31
-4644,Maccabi Netanya,,75.65,74.3,7,2026-10-31
+20017,1. FC Kaiserslautern,,75.72,75.0,5,2026-11-07
+20043,Celta de Vigo II,,75.71,76.4,5,2026-11-07
+20023,Benevento,,75.68,74.7,6,2026-11-07
 4347,Mjällby,Mjallby AIF,75.63,75.4,8,2026-11-05
-20043,Cadiz,Cádiz,75.62,75.4,4,2026-11-02
+4692,Koper,NK Koper,75.6,77.0,5,2026-11-07
 20023,Ascoli,,75.59,74.9,6,2026-11-06
-4690,Zalaegerszeg,Zalaegerszegi TE,75.57,75.5,4,2026-10-31
 4968,Malisheva,FC Malisheva,75.57,75.1,4,2026-11-01
-4336,Kifisia,,75.55,75.8,4,2026-10-31
 20035,Ruch Chorzów,,75.55,75.0,4,2026-11-03
-20043,AD Ceuta FC,,75.53,76.1,4,2026-11-01
-4354,Kharkiv,FC Kharkiv,75.52,75.2,5,2026-11-01
+4336,Kifisia,,75.53,75.8,5,2026-11-07
+4644,Maccabi Netanya,,75.51,74.3,9,2026-11-07
 20017,SpVgg Greuther Fürth,,75.5,75.5,5,2026-11-06
-4355,Akhmat Grozny,Akhmat,75.5,75.3,4,2026-10-31
 4340,Sønderjyske,Sonderjyske,75.49,75.4,4,2026-11-02
-4621,Grazer AK,,75.49,75.0,4,2026-10-30
+4621,Grazer AK,,75.48,75.0,5,2026-11-07
 4693,Turan,Turan Tovuz,75.48,75.9,4,2026-11-06
-4692,Maribor,NK Maribor,75.47,75.2,4,2026-10-31
+4671,Partizan,FK Partizan,75.48,75.0,8,2026-11-07
+4690,Zalaegerszeg,Zalaegerszegi TE,75.46,75.5,5,2026-11-07
 4355,Krylya Sovetov,Krylia Sovetov,75.46,75.8,4,2026-11-02
 20015,Nancy,,75.46,74.2,5,2026-11-06
+4354,Kharkiv,FC Kharkiv,75.45,75.2,7,2026-11-07
 20043,Sporting Gijon,,75.45,75.0,4,2026-11-01
-4671,Partizan,FK Partizan,75.44,75.0,7,2026-11-01
-4631,Baník Ostrava,Banik Ostrava,75.44,75.0,4,2026-11-01
 20017,Eintracht Braunschweig,,75.44,75.0,5,2026-11-06
-4693,Zira,Zira FK,75.42,76.2,4,2026-10-31
-20015,Rodez,,75.38,76.0,5,2026-11-06
+4631,Baník Ostrava,Banik Ostrava,75.42,75.0,5,2026-11-07
+4355,Akhmat Grozny,Akhmat,75.39,75.3,5,2026-11-07
+4693,Zira,Zira FK,75.37,76.2,5,2026-11-07
+20015,Rodez,,75.36,76.0,6,2026-11-07
+20043,AD Ceuta FC,,75.32,76.1,5,2026-11-07
 4337,PEC Zwolle,,75.32,75.5,5,2026-11-06
-4358,Start,IK Start,75.31,74.6,4,2026-11-01
-20023,Catanzaro,,75.29,76.5,5,2026-10-31
 4621,WSG Tirol,WSG Wattens,75.25,75.3,4,2026-10-31
 20038,Nizhny Novgorod,,75.25,75.0,5,2026-10-31
-4622,Dinamo Minsk,FC Dinamo Minsk,75.21,75.8,9,2026-11-01
+20005,Beerschot VA,,75.25,75.0,4,2026-11-07
+4630,AEL,AEL Limassol,75.25,75.0,5,2026-11-07
+4622,Dinamo Minsk,FC Dinamo Minsk,75.24,75.8,11,2026-11-07
+20023,Juve Stabia,,75.24,75.7,6,2026-11-07
 4336,Levadiakos,,75.19,76.8,4,2026-11-01
+4358,Start,IK Start,75.18,74.6,5,2026-11-07
 4336,Atromitos,Atromitos Athens,75.18,75.7,4,2026-11-02
-20023,Juve Stabia,,75.18,75.7,5,2026-11-01
-20005,Beerschot VA,,75.17,75.0,3,2026-10-31
 20036,Farense,,75.17,75.1,4,2026-11-01
 4355,Rubin Kazan,Rubin,75.16,75.5,6,2026-11-06
 4652,Shkendija,Shkëndija,75.14,75.3,1,2026-10-11
 20017,Karlsruher SC,,75.13,75.0,4,2026-10-31
-4630,AEL,AEL Limassol,75.12,75.0,4,2026-10-31
 20034,Kongsvinger,,75.1,75.4,5,2026-11-02
 20023,Virtus Entella,,75.1,75.1,5,2026-10-31
 20045,Stade Lausanne-Ouchy,,75.09,75.0,4,2026-11-06
-4672,FC Košice,FK Košice,75.05,74.7,5,2026-10-31
+20023,Catanzaro,,75.04,76.5,6,2026-11-07
+4672,FC Košice,FK Košice,75.01,74.7,6,2026-11-07
 20036,Tondela,,75.0,74.5,4,2026-11-01
 4649,Ordabasy,Ordabasy Shymkent,74.96,75.2,4,2026-10-31
+4358,Kristiansund,Kristiansund BK,74.94,74.9,5,2026-11-07
 20015,Annecy,,74.92,76.2,5,2026-11-06
 20002,Austria Vienna (Am),,74.92,75.0,2,2026-10-31
-4358,Kristiansund,Kristiansund BK,74.89,74.9,4,2026-11-01
+4690,MTK,MTK Budapest,74.92,74.2,5,2026-11-07
 20023,Sampdoria,,74.89,74.6,5,2026-10-31
 20035,Lechia Gdansk,,74.86,75.0,4,2026-10-31
+4337,ADO Den Haag,,74.86,74.4,5,2026-11-07
 4619,Pyunik,Pyunik Yerevan,74.81,75.8,5,2026-11-06
-4337,ADO Den Haag,,74.8,74.4,4,2026-11-01
-4690,MTK,MTK Budapest,74.79,74.2,4,2026-10-31
-20035,Polonia Warszawa,,74.76,75.0,4,2026-11-02
+20019,Kecskeméti TE,,74.79,75.0,5,2026-11-07
 20001,Olympia Yerevan,,74.75,75.0,1,2026-11-03
 20024,Shakhter Karagandy,,74.74,75.0,2,2026-10-16
 4629,Lokomotiva Zagreb,NK Lokomotiva Zagreb,74.7,74.9,7,2026-11-06
-20036,Penafiel,,74.7,75.1,3,2026-11-02
 20015,Dijon,,74.69,74.1,5,2026-11-06
+20004,Shakhter Soligorsk,,74.69,75.0,1,2026-11-07
 20035,Polonia Bytom,,74.68,75.0,4,2026-11-02
 20032,NAC Breda,,74.67,75.0,5,2026-11-06
 4690,Nyíregyháza Spartacus,Nyiregyhaza,74.66,74.4,4,2026-11-01
-4671,Železničar Pančevo,Zeleznicar Pancevo,74.65,75.3,6,2026-11-02
-20023,Sudtirol,Südtirol,74.65,75.5,5,2026-10-31
-4330,Hibernian,,74.64,74.3,4,2026-10-28
+20036,Penafiel,,74.62,75.1,4,2026-11-07
 20036,União de Leiria,,74.6,75.5,3,2026-10-31
 4692,Olimpija,Olimpija Ljubljana,74.58,74.6,5,2026-11-06
 4347,Kalmar,Kalmar FF,74.54,73.6,5,2026-11-02
+4330,Hibernian,,74.53,74.3,5,2026-11-07
+20035,Polonia Warszawa,,74.52,75.0,5,2026-11-07
 20015,Guingamp,,74.52,74.5,5,2026-11-06
 4619,Ararat-Armenia,FC Ararat-Armenia,74.51,76.2,7,2026-11-05
 4631,Artis Brno,Artis,74.51,74.3,5,2026-11-04
-20045,FC Winterthur,Winterthur,74.48,73.0,3,2026-11-01
+20023,Cesena,,74.51,74.7,6,2026-11-07
+4671,Železničar Pančevo,Zeleznicar Pancevo,74.48,75.3,8,2026-11-07
 20036,Sporting CP B,,74.38,75.0,3,2026-10-31
+20023,Sudtirol,Südtirol,74.36,75.5,6,2026-11-07
+20045,FC Winterthur,Winterthur,74.36,73.0,4,2026-11-07
 4336,Kalamata,,74.36,74.5,4,2026-11-02
-20015,PAU,Pau,74.32,74.2,5,2026-11-06
 4347,Brommapojkarna,IF Brommapojkarna,74.31,75.4,5,2026-11-01
-20002,Floridsdorfer AC,,74.3,75.0,3,2026-10-31
 4691,CFR Cluj,CFR 1907 Cluj,74.29,75.0,7,2026-10-31
 4672,Podbrezová,Železiarne Podbrezová,74.29,74.1,4,2026-10-31
 4354,LNZ Cherkasy,,74.28,74.6,5,2026-11-01
-20023,Cesena,,74.28,74.7,5,2026-10-31
-20035,Arka Gdynia,,74.27,75.0,4,2026-11-03
+4675,Lausanne-Sport,Lausanne,74.28,73.8,4,2026-11-07
 20036,Benfica B,,74.26,75.0,3,2026-10-31
 4336,Asteras Tripolis,,74.26,73.9,4,2026-11-01
+20015,PAU,Pau,74.25,74.2,6,2026-11-07
 4636,KuPS,KuPS Kuopio,74.24,73.2,9,2026-11-05
-4690,Honvéd,Budapest Honved,74.22,73.2,5,2026-10-31
-4675,Lausanne-Sport,Lausanne,74.19,73.8,3,2026-11-01
 4630,Anorthosis,Anorthosis Famagusta,74.16,74.0,5,2026-11-01
 4621,Wolfsberger AC,,74.15,73.6,6,2026-11-06
-20023,Avellino,,74.13,74.6,5,2026-11-01
-20023,Padova,,74.1,73.9,5,2026-10-31
-4354,Karpaty Lviv,Karpaty,74.09,74.4,5,2026-11-02
+20023,Padova,,74.13,73.9,6,2026-11-07
+4690,Honvéd,Budapest Honved,74.12,73.2,6,2026-11-07
+20023,Avellino,,74.08,74.6,6,2026-11-07
+4354,Karpaty Lviv,Karpaty,74.08,74.4,7,2026-11-07
 20015,Dunkerque,,74.06,74.4,5,2026-11-06
+4621,Austria Lustenau,,74.05,74.1,5,2026-11-07
 20040,TSC Backa Topola,,74.04,75.0,4,2026-11-01
-4621,Austria Lustenau,,74.03,74.1,4,2026-11-01
-4675,Grasshoppers,Grasshopper Club Zurich,74.02,74.0,3,2026-10-31
 4651,Kauno Žalgiris,FK Kauno Zalgiris,74.01,74.0,6,2026-11-05
 20028,Detonit Plachkovica,,73.98,75.0,1,2026-11-01
 20005,Patro Eisden,,73.95,75.0,4,2026-11-06
 4355,Dinamo Makhachkala,Dynamo Makhachkala,73.95,73.9,4,2026-11-01
-20047,Yarud Mariupol',,73.95,75.0,3,2026-10-23
 20035,Odra Opole,,73.94,75.0,5,2026-11-06
-20023,Empoli,,73.94,74.7,5,2026-11-01
 20018,Niki Volos,,73.94,75.0,3,2026-10-24
 4691,UTA Arad,Uta Arad,73.93,74.0,6,2026-11-06
-20019,Kecskeméti TE,,73.91,75.0,4,2026-11-02
+4675,Grasshoppers,Grasshopper Club Zurich,73.92,74.0,4,2026-11-07
 4968,Drita,FC Drita,73.91,74.0,5,2026-11-04
 20032,Heracles,,73.9,71.9,5,2026-11-06
 20023,Vicenza Virtus,,73.9,74.1,5,2026-11-01
-4330,Motherwell,,73.85,74.3,5,2026-10-31
-4629,HNK Gorica,NK Gorica,73.81,73.5,5,2026-10-31
+20023,Empoli,,73.83,74.7,6,2026-11-07
+4330,Motherwell,,73.8,74.3,6,2026-11-07
 20036,Lusitânia Lourosa,,73.79,74.2,4,2026-11-01
 4626,Botev Plovdiv,,73.79,73.5,5,2026-11-06
+4629,HNK Gorica,NK Gorica,73.75,73.5,6,2026-11-07
 4336,Iraklis 1908,,73.75,73.7,4,2026-11-02
-4629,Slaven Koprivnica,NK Slaven Belupo,73.75,73.6,5,2026-10-30
-4617,Teuta Durrës,Teuta Durres,73.73,73.0,4,2026-11-02
+4629,Slaven Koprivnica,NK Slaven Belupo,73.75,73.6,6,2026-11-07
+4617,Teuta Durrës,Teuta Durres,73.74,73.0,5,2026-11-07
 20046,Kayserispor,,73.73,72.9,5,2026-11-02
-4652,Vardar Skopje,Vardar,73.73,73.8,3,2026-11-02
-20038,Torpedo Moskva,,73.72,75.0,7,2026-11-01
 4355,Akron,Akron Tolyatti,73.72,73.6,4,2026-11-01
-20019,Kazincbarcikai,,73.71,75.0,4,2026-11-01
 4626,Arda Kardzhali,PFC Arda,73.65,74.3,4,2026-11-02
 20036,FC Porto B,,73.65,75.0,3,2026-10-31
-4631,Slovácko,FC Slovacko,73.65,72.9,4,2026-10-31
 20002,Wacker Innsbruck,,73.62,75.0,4,2026-11-06
+20035,Arka Gdynia,,73.6,75.0,5,2026-11-07
 20038,Spartak Kostroma,,73.6,75.0,5,2026-10-30
 20035,Unia Skierniewice,,73.6,75.0,5,2026-11-06
+4631,Slovácko,FC Slovacko,73.59,72.9,5,2026-11-07
 20005,KRC Genk II,,73.58,75.0,4,2026-11-06
 20032,Waalwijk,,73.57,75.0,5,2026-11-06
-20019,Diosgyori VTK,,73.47,75.0,5,2026-11-02
+20002,Floridsdorfer AC,,73.5,75.0,4,2026-11-07
 20034,Stabaek,,73.47,72.5,5,2026-11-02
 20028,Kozuv Gevgelija,,73.46,75.0,1,2026-10-31
 20024,Turan Turkistan,,73.44,75.0,3,2026-10-22
-4644,Hapoel Haifa,,73.4,72.7,6,2026-10-31
-20036,Felgueiras 1932,,73.34,73.5,4,2026-11-01
-4691,FCV Farul Constanța,Farul Constanta,73.33,73.4,7,2026-11-02
+20038,Torpedo Moskva,,73.4,75.0,9,2026-11-07
+4690,Kisvárda,Kisvarda FC,73.37,73.6,6,2026-11-07
+4652,Vardar Skopje,Vardar,73.31,73.8,4,2026-11-07
 20007,Jadran LP,,73.28,75.0,6,2026-11-06
 20024,Ekibastuz,,73.27,75.0,2,2026-10-22
 20024,Aktobe Jas,,73.27,75.0,1,2026-10-22
-20040,Semendrija 1924,,73.25,75.0,4,2026-11-01
+20019,Kazincbarcikai,,73.26,75.0,5,2026-11-07
+4330,Dundee United,Dundee Utd,73.26,73.7,6,2026-11-07
+20036,Leixoes,Leixões,73.26,74.5,4,2026-11-07
+4691,FCV Farul Constanța,Farul Constanta,73.25,73.4,8,2026-11-07
 20036,Vizela,,73.24,74.9,4,2026-11-06
-4330,Dundee United,Dundee Utd,73.22,73.7,5,2026-10-31
+20036,Chaves,,73.24,72.8,4,2026-11-07
 4617,Dinamo City,Dinamo Tirana,73.21,73.8,5,2026-11-02
-20036,Chaves,,73.21,72.8,3,2026-10-31
+4644,Hapoel Haifa,,73.19,72.7,8,2026-11-07
 20045,FC WIL 1900,,73.18,75.0,4,2026-11-06
 20015,Sochaux,,73.18,73.6,6,2026-11-06
-4339,Eyüpspor,Eyupspor,73.13,73.6,4,2026-11-01
 4649,Astana,FC Astana,73.12,74.1,5,2026-10-31
-4690,Kisvárda,Kisvarda FC,73.12,73.6,5,2026-10-31
-20036,Leixoes,Leixões,73.12,74.5,3,2026-10-31
 20009,Dukla Praha,,73.1,75.0,5,2026-11-06
 4643,St Patrick's Athletic,St Patrick's Athl.,73.1,72.2,7,2026-10-30
+20036,Felgueiras 1932,,73.09,73.5,5,2026-11-07
+4622,Isloch,FC Isloch Minsk R.,73.09,74.2,10,2026-11-07
+4355,Rodina Moskva,,73.08,73.3,5,2026-11-07
+4624,Sarajevo,FK Sarajevo,73.08,73.4,6,2026-11-07
+4339,Eyüpspor,Eyupspor,73.06,73.6,5,2026-11-07
+4630,Olympiakos Nicosia,Olympiakos,73.06,72.7,5,2026-11-07
 4629,Rudeš,Rudes,73.05,74.3,6,2026-11-06
-4630,Olympiakos Nicosia,Olympiakos,73.04,72.7,4,2026-10-30
-4336,Panaitolikos,Panetolikos,73.04,73.0,4,2026-11-01
 20047,Ahrobiznes Volochysk,,73.03,75.0,3,2026-10-30
 20035,Pogoń Grod. Mazowiecki,,73.02,75.0,4,2026-10-30
-4355,Rodina Moskva,,73.02,73.3,4,2026-10-31
-4624,Sarajevo,FK Sarajevo,73.0,73.4,5,2026-11-01
 20045,FC Aarau,Aarau,73.0,71.9,4,2026-11-06
 20015,Grenoble,,72.99,74.2,5,2026-11-06
-4622,Isloch,FC Isloch Minsk R.,72.99,74.2,8,2026-11-01
-20005,RSC Anderlecht II,,72.98,75.0,3,2026-11-04
 20004,FC Energetik-Bgu Minsk,,72.97,75.0,3,2026-10-31
 4630,Nea Salamis,,72.96,72.7,5,2026-11-06
 20006,Chernomorets 1919 Burgas,,72.96,75.0,3,2026-10-31
+4336,Panaitolikos,Panetolikos,72.94,73.0,5,2026-11-07
 20040,FK Spartak Zdrepceva KRV,,72.94,75.0,4,2026-11-02
+4671,Radnički Kragujevac,Radnicki 1923,72.94,72.7,8,2026-11-07
 20045,Yverdon Sport,,72.92,72.5,3,2026-10-30
 20035,Puszcza Niepołomice,,72.89,75.0,6,2026-11-06
-4671,Radnički Kragujevac,Radnicki 1923,72.89,72.7,6,2026-11-01
-4691,Corvinul Hunedoara,,72.89,72.8,7,2026-10-31
 20005,AS Eupen,Eupen,72.89,71.9,3,2026-11-01
 4968,Prishtina,FC Prishtina,72.88,73.1,5,2026-11-04
 20023,Carrarese,,72.85,73.3,5,2026-11-01
 20038,Volga Ulyanovsk,,72.84,75.0,6,2026-10-31
+4671,IMT Novi Beograd,FK IMT,72.84,72.5,7,2026-11-07
 20009,Vysočina Jihlava,,72.83,75.0,5,2026-11-06
 20005,KAA Gent II,,72.81,75.0,4,2026-11-06
 4330,Falkirk,,72.81,73.8,6,2026-11-01
-20007,Mladost Ždralovi,,72.79,75.0,5,2026-10-30
+20019,Diosgyori VTK,,72.78,75.0,6,2026-11-07
+4691,Corvinul Hunedoara,,72.78,72.8,8,2026-11-07
 20003,Cəbrayıl,,72.78,75.0,2,2026-11-05
-20044,IFK Norrkoping,,72.78,73.5,4,2026-10-31
 20037,CS Dinamo București,,72.78,75.0,2,2026-10-24
 4619,Alashkert,Alashkert FC,72.78,72.1,5,2026-11-06
 20040,Borac Cacak,,72.77,75.0,4,2026-11-01
 20002,Admira Wacker,,72.73,75.0,5,2026-11-06
 4694,Differdange 03,FC Differdange 03,72.73,72.9,4,2026-10-31
+20044,IFK Norrkoping,,72.7,73.5,5,2026-11-07
 20015,Boulogne,,72.7,72.1,5,2026-11-06
-20047,Metal Kharkiv,,72.67,75.0,3,2026-11-02
 20038,Ural,,72.67,73.0,4,2026-11-01
-20008,Spartakos Kitiou,,72.67,75.0,4,2026-10-31
-20023,Arezzo,,72.66,73.4,5,2026-11-01
 20046,Fatih Karagümrük,,72.62,75.0,5,2026-10-31
-20037,Bihor Oradea,,72.62,75.0,4,2026-10-31
+20047,Yarud Mariupol',,72.61,75.0,4,2026-11-07
 4337,Willem II,,72.61,72.2,5,2026-11-06
 4691,Botoșani,FC Botosani,72.61,72.3,5,2026-11-01
-4692,Bravo,NK Bravo,72.58,73.7,4,2026-11-02
 4643,Bohemians,Bohemian FC,72.58,72.3,5,2026-10-30
-4617,AF Elbasani,Elbasani,72.55,73.0,4,2026-11-01
+20023,Arezzo,,72.54,73.4,6,2026-11-07
 4655,Sheriff,Sheriff Tiraspol,72.54,72.8,4,2026-10-31
-4671,IMT Novi Beograd,FK IMT,72.53,72.5,5,2026-11-01
 20021,Cork City,,72.51,75.0,2,2026-10-16
 4354,Zorya,Zorya Luhansk,72.5,73.1,4,2026-11-02
 4652,Struga,FK Struga,72.5,72.6,4,2026-11-02
-20035,Nieciecza,,72.45,71.0,4,2026-10-31
+4347,Degerfors,Degerfors IF,72.5,71.9,6,2026-11-07
+4617,AF Elbasani,Elbasani,72.47,73.0,5,2026-11-07
+20008,Spartakos Kitiou,,72.45,75.0,5,2026-11-07
 4643,Shamrock Rovers,,72.45,71.9,5,2026-10-30
 20007,Sesvete,,72.41,75.0,5,2026-11-06
-20038,Arsenal Tula,,72.41,75.0,7,2026-10-31
 4642,KR,KR Reykjavik,72.41,72.2,4,2026-10-24
 20034,Bryne,,72.41,72.4,5,2026-11-01
-4355,Fakel,,72.39,72.1,4,2026-10-31
+20002,FC BW Linz,BW Linz,72.41,70.8,4,2026-11-07
+4330,Dundee,,72.39,72.6,5,2026-11-07
 20046,Bursaspor,,72.38,70.0,6,2026-11-06
+4355,Fakel,,72.37,72.1,5,2026-11-07
 20036,AVS,,72.36,73.4,4,2026-11-06
 20035,Pogoń Siedlce,,72.36,75.0,5,2026-11-03
-20042,Tabor Sežana,,72.32,75.0,4,2026-10-31
-20015,Clermont Foot,,72.31,72.9,5,2026-11-06
-4631,Zlín,Zlin,72.29,72.2,4,2026-10-31
-4330,Dundee,,72.27,72.6,4,2026-10-28
+20047,Metal Kharkiv,,72.35,75.0,4,2026-11-07
+20005,RSC Anderlecht II,,72.34,75.0,4,2026-11-07
+20040,Semendrija 1924,,72.33,75.0,5,2026-11-07
+4692,Bravo,NK Bravo,72.32,73.7,5,2026-11-07
+20035,Nieciecza,,72.29,71.0,5,2026-11-07
+20015,Clermont Foot,,72.29,72.9,6,2026-11-07
+4631,Zlín,Zlin,72.29,72.2,5,2026-11-07
+20007,Mladost Ždralovi,,72.24,75.0,6,2026-11-07
 20008,Digenis Morphou,,72.2,75.0,3,2026-11-01
-20015,Laval,,72.19,72.5,5,2026-11-06
-4347,Degerfors,Degerfors IF,72.18,71.9,5,2026-11-01
+20015,Laval,,72.16,72.5,6,2026-11-07
 4968,Gjilani,FC Gjilani,72.15,71.3,5,2026-11-01
 20036,Portimonense,,72.15,71.7,3,2026-10-31
 4691,Argeș,Arges Pitesti,72.14,72.0,8,2026-10-31
 20002,SV Kapfenberg,,72.12,75.0,4,2026-10-31
+20037,Bihor Oradea,,72.07,75.0,5,2026-11-07
+4347,Örgryte,Orgryte IS,72.05,72.0,6,2026-11-07
 20005,Lokeren-Temse,,72.04,70.8,2,2026-10-31
-20036,Amarante,,72.03,72.0,3,2026-10-31
-20037,Cetatea Suceava,,72.0,75.0,4,2026-10-31
-20002,WSPG Wels,,71.98,75.0,3,2026-10-30
-4330,Aberdeen,,71.96,71.7,4,2026-10-28
+20037,Cetatea Suceava,,72.04,75.0,5,2026-11-07
+4330,Aberdeen,,71.99,71.7,5,2026-11-07
 4635,KÍ,KI Klaksvik,71.95,72.7,4,2026-10-31
 4968,Dukagjini,FC Dukagjini,71.91,71.4,4,2026-11-01
+20008,ASIL Lysi,,71.89,75.0,5,2026-11-07
 4968,Ballkani,FC Ballkani,71.88,71.6,4,2026-10-30
-20026,Rēzekne FA,,71.88,75.0,1,2026-10-31
 20007,Dinamo Zagreb U21,,71.87,75.0,5,2026-11-06
 20022,Bnei Yehuda,,71.85,71.8,4,2026-11-02
-4336,Volos NFC,Volos,71.85,71.2,4,2026-11-02
 4691,Petrolul 52,Petrolul Ploiesti,71.84,72.5,8,2026-11-06
-4671,Čukarički,Cukaricki,71.84,71.6,6,2026-11-01
+4336,Volos NFC,Volos,71.81,71.2,5,2026-11-07
 4636,Ilves,Ilves Tampere,71.81,72.3,2,2026-10-17
 20038,Ska-khabarovsk,,71.78,75.0,7,2026-10-31
-4622,Dinamo Brest,Dynamo Brest,71.78,72.2,7,2026-10-31
-4347,Örgryte,Orgryte IS,71.77,72.0,5,2026-11-01
+4622,Dinamo Brest,Dynamo Brest,71.76,72.2,8,2026-11-07
 4354,Kolos Kovalivka,,71.74,72.4,6,2026-11-01
-4634,FCI Levadia,FC Levadia Tallinn,71.74,73.8,6,2026-10-31
+20038,Arsenal Tula,,71.73,75.0,8,2026-11-07
+20042,Tabor Sežana,,71.7,75.0,5,2026-11-07
 20045,Stade Nyonnais,,71.7,75.0,4,2026-11-06
-20008,ASIL Lysi,,71.7,75.0,4,2026-11-01
 20009,Karviná,,71.7,70.0,5,2026-11-06
 4691,Oțelul Galați,Oţelul,71.69,72.1,7,2026-11-01
 20032,FC OSS,,71.68,75.0,5,2026-11-06
-20037,CSM Satu Mare,,71.68,75.0,3,2026-10-31
-20044,United Nordic,,71.67,75.0,4,2026-10-31
+4671,Čukarički,Cukaricki,71.64,71.6,8,2026-11-07
 20031,Mogren,,71.64,75.0,2,2026-10-31
 20035,Miedz Legnica,,71.63,70.3,5,2026-11-06
 20008,Anagennisi Deryneia,,71.62,75.0,3,2026-10-30
 20002,SKN ST. Polten,,71.62,69.5,5,2026-11-06
-4622,Neman Grodno,Neman,71.58,71.8,7,2026-11-01
-4330,St. Johnstone,ST Johnstone,71.55,71.6,5,2026-10-31
+4622,Neman Grodno,Neman,71.54,71.8,8,2026-11-07
 20036,Feirense,,71.53,71.3,3,2026-11-02
 4630,Omonia Aradippou,,71.49,71.2,5,2026-11-06
 4630,Omonia 29is Maiou,,71.46,72.6,4,2026-11-01
-20046,Vanspor FK,,71.46,75.0,5,2026-10-31
 4649,Aktobe,FC Aktobe,71.42,71.8,4,2026-10-31
-4630,Krasava Ypsonas,,71.41,71.6,4,2026-10-31
-20002,FC BW Linz,BW Linz,71.4,70.8,3,2026-10-31
 20035,ŁKS Łódź,,71.39,71.3,4,2026-11-02
 20032,Jong Ajax,,71.37,75.0,5,2026-11-06
-20009,Arsenal Česká Lípa,,71.37,75.0,4,2026-10-31
+4330,St. Johnstone,ST Johnstone,71.36,71.6,6,2026-11-07
+20046,Vanspor FK,,71.31,75.0,6,2026-11-07
 4691,Sepsi,Sepsi OSK Sfantu Gheorghe,71.31,71.3,6,2026-11-01
 20034,ODD Ballklubb,,71.31,70.7,5,2026-11-01
+4630,Krasava Ypsonas,,71.29,71.6,5,2026-11-07
 20018,Larisa,,71.29,75.0,4,2026-11-01
 4693,Şamaxi,Şamaxı FK,71.28,71.2,4,2026-11-01
 20007,Bsk Bijelo Brdo,,71.27,75.0,5,2026-11-06
-4671,Radnik Surdulica,FK Radnik Surdulica,71.26,72.1,4,2026-11-02
-20041,Tatran Prešov,,71.25,75.0,4,2026-10-31
-20046,Manisa F.K.,,71.25,75.0,5,2026-10-31
-4617,Tirana,FK Tirana,71.21,71.3,4,2026-11-01
+4634,FCI Levadia,FC Levadia Tallinn,71.24,73.8,7,2026-11-07
+20002,WSPG Wels,,71.21,75.0,4,2026-11-07
 20032,Jong AZ,,71.18,75.0,5,2026-11-06
 20040,OFK Bor 1919,,71.18,75.0,4,2026-11-02
-20037,Gloria Bistriţa,,71.18,75.0,4,2026-11-01
-4671,Novi Pazar,FK Novi Pazar,71.17,71.6,5,2026-11-01
-4626,Cherno More Varna,Cherno More,71.14,71.3,4,2026-11-02
-20019,Nagykanizsai ULE,,71.12,75.0,4,2026-11-01
+4671,Radnik Surdulica,FK Radnik Surdulica,71.17,72.1,5,2026-11-07
 20014,Tampere United,,71.11,75.0,2,2026-10-18
+4617,Tirana,FK Tirana,71.1,71.3,5,2026-11-07
+4644,Ironi Kiryat Shmona,Hapoel Ironi Kiryat Shmona,71.09,70.9,9,2026-11-07
 4672,Zemplín Michalovce,MFK Zemplin,71.08,70.5,4,2026-10-31
 4630,Karmiotissa,,71.08,71.3,5,2026-11-06
+20037,Gloria Bistriţa,,71.07,75.0,5,2026-11-07
+4626,Cherno More Varna,Cherno More,71.07,71.3,5,2026-11-07
 20010,AB Copenhagen,,71.06,75.0,5,2026-11-06
-4330,St. Mirren,ST Mirren,71.06,71.0,5,2026-10-31
+4330,St. Mirren,ST Mirren,71.03,71.0,6,2026-11-07
 4672,Komárno,MFK Komarno,71.02,70.5,4,2026-10-31
 4672,Ružomberok,MFK Ruzomberok,71.02,70.7,4,2026-11-01
 20008,Polemidion,,71.01,75.0,3,2026-10-31
-4644,Hapoel Jerusalem,Hapoel Katamon,71.0,71.0,7,2026-10-31
 20041,Liptovský Mikuláš,,71.0,75.0,4,2026-10-30
-4644,Maccabi Petah Tikva,,70.96,70.6,7,2026-11-06
+4644,Maccabi Petah Tikva,,70.97,70.6,8,2026-11-07
+4671,Novi Pazar,FK Novi Pazar,70.96,71.6,6,2026-11-07
 20010,FC Fredericia,Fredericia,70.96,68.7,5,2026-11-06
 4964,Lincoln Red Imps,Lincoln Red Imps FC,70.95,71.3,4,2026-11-05
-4671,OFK Beograd,,70.93,70.3,7,2026-11-01
+4671,OFK Beograd,,70.94,70.3,8,2026-11-07
+4644,Hapoel Jerusalem,Hapoel Katamon,70.9,71.0,9,2026-11-07
+20044,Ostersunds FK,Östersunds,70.89,68.7,5,2026-11-07
 20032,Almere City FC,,70.88,71.0,5,2026-11-06
 4651,Žalgiris,FK Zalgiris Vilnius,70.87,70.9,3,2026-10-26
-20040,Naftagas,,70.86,75.0,4,2026-11-01
-20037,ASA Targu Mures,,70.85,75.0,4,2026-10-31
 4649,Okzhetpes,Okzhetpes Kokshetau,70.85,70.7,4,2026-10-31
+20046,Keçiörengücü,,70.85,70.5,6,2026-11-07
 20006,Sportist Svoge,,70.84,75.0,3,2026-11-02
+20044,United Nordic,,70.83,75.0,5,2026-11-07
+20046,Manisa F.K.,,70.83,75.0,6,2026-11-07
 4330,Kilmarnock,,70.83,70.9,5,2026-10-31
+20009,Arsenal Česká Lípa,,70.82,75.0,5,2026-11-07
 20037,Popești-Leordeni,,70.82,75.0,5,2026-11-05
 4638,Iberia 1999,FC Iberia 1999,70.82,71.5,9,2026-11-05
-4644,Ironi Kiryat Shmona,Hapoel Ironi Kiryat Shmona,70.81,70.9,7,2026-10-31
+20046,Esenler Erokspor,,70.81,69.6,6,2026-11-07
 20006,Spartak Pleven,,70.79,75.0,2,2026-11-02
-20046,Esenler Erokspor,,70.78,69.6,5,2026-10-30
+20041,Tatran Prešov,,70.76,75.0,5,2026-11-07
 4347,Halmstad,Halmstads BK,70.75,70.7,5,2026-11-03
 4655,Petrocub,Petrocub Hîncești,70.75,71.3,3,2026-10-24
 20022,Ashdod,,70.73,70.0,4,2026-11-02
 4652,Tikvesh,Tikveš,70.72,70.5,4,2026-11-01
 20002,First Vienna,,70.71,69.9,4,2026-10-31
-20009,Hanácká,,70.7,75.0,5,2026-11-01
-20032,Jong Utrecht,,70.69,75.0,4,2026-11-02
 4655,Zimbru,Zimbru Chișinău,70.63,71.3,3,2026-10-31
-20044,Ostersunds FK,Östersunds,70.56,68.7,4,2026-10-31
+20019,Nagykanizsai ULE,,70.58,75.0,5,2026-11-07
+4652,Sileks,FK Sileks,70.58,69.6,5,2026-11-07
+20037,CSM Satu Mare,,70.53,75.0,4,2026-11-07
 20032,Jong PSV U21,,70.53,75.0,5,2026-11-06
-20041,Inter Bratislava,,70.53,75.0,4,2026-10-31
 20010,Vejle,,70.52,70.0,5,2026-11-06
-4644,Hapoel Ramat Gan,,70.51,70.8,7,2026-11-02
+4644,Hapoel Ramat Gan,,70.51,70.8,9,2026-11-07
 20022,Maccabi Kabilio Jaffa,,70.49,75.0,4,2026-11-02
+4638,Dinamo Batumi,FC Dinamo Batumi,70.49,70.3,5,2026-11-07
 20038,FC Sochi,Sochi,70.47,70.3,4,2026-11-01
 20034,Ranheim,,70.44,69.9,5,2026-11-01
-4617,Vllaznia Shkodër,Vllaznia Shkoder,70.41,70.4,4,2026-11-01
-20005,Francs Borains,,70.4,69.9,4,2026-11-04
+20035,Chrobry Głogów,,70.43,69.8,5,2026-11-07
+4617,Vllaznia Shkodër,Vllaznia Shkoder,70.4,70.4,5,2026-11-07
 20009,Vlašim,,70.38,68.9,6,2026-11-06
-4626,Lokomotiv Plovdiv,,70.37,70.8,4,2026-10-31
-20035,Chrobry Głogów,,70.37,69.8,4,2026-11-03
+20009,Hanácká,,70.37,75.0,6,2026-11-07
+20005,Francs Borains,,70.37,69.9,5,2026-11-07
 4472,The New Saints,,70.36,70.8,5,2026-11-06
-4638,Dinamo Batumi,FC Dinamo Batumi,70.36,70.3,4,2026-11-01
 4651,Sūduva,Suduva Marijampole,70.3,70.3,3,2026-11-01
-20046,Keçiörengücü,,70.29,70.5,5,2026-10-30
+4672,Dukla Banská Bystrica,,70.3,70.3,5,2026-11-07
 4636,Lahti,FC Lahti,70.29,70.1,2,2026-10-17
 20006,Lokomotiv G. Oryahovitsa,,70.28,75.0,3,2026-10-30
 4694,UNA Strassen,FC UNA Strassen,70.26,70.9,4,2026-10-31
-4652,Sileks,FK Sileks,70.25,69.6,4,2026-11-02
-4672,Dukla Banská Bystrica,,70.23,70.3,4,2026-11-01
 4618,Inter Club d'Escaldes,Inter Escaldes,70.2,71.1,6,2026-11-05
 20048,Bangor City 1876 FC,,70.19,75.0,4,2026-11-06
+20047,Lokomotiv Kyiv,,70.17,75.0,5,2026-11-07
 4619,Urartu,FC Urartu,70.14,70.8,4,2026-10-30
 4354,Bukovyna,,70.13,68.7,6,2026-10-31
 4638,Dinamo Tbilisi,FC Dinamo Tbilisi,70.11,70.5,6,2026-10-31
-4354,Kryvbas KR,Kryvbas Kryvyi Rih,70.09,71.3,6,2026-11-02
 4617,Vora,FK Vora,70.09,70.6,4,2026-11-02
 20005,K. Lierse S.K.,,70.07,68.5,4,2026-11-04
+20037,ASA Targu Mures,,70.05,75.0,5,2026-11-07
 20038,Rotor Volgograd,,70.03,69.9,6,2026-11-01
-20007,HNK Cibalia,Cibalia,70.03,70.2,4,2026-10-30
 20008,MEAP Nisou,,70.03,75.0,4,2026-10-31
+4622,Gomel,FC Gomel,70.03,69.4,9,2026-11-07
+4626,Lokomotiv Plovdiv,,70.02,70.8,5,2026-11-07
 20009,Ústí nad Labem,,70.0,70.4,5,2026-11-06
-4644,Ironi Tiberias,,70.0,71.1,7,2026-10-31
+20041,Inter Bratislava,,69.99,75.0,5,2026-11-07
 4617,Skënderbeu Korçë,Skenderbeu Korce,69.99,70.5,4,2026-11-01
 20005,Liège,,69.99,69.9,3,2026-10-30
 4626,Lokomotiv Sofia 1929,Lokomotiv Sofia,69.98,69.1,5,2026-11-06
-20044,Falkenbergs FF,,69.98,70.5,4,2026-10-31
-4617,Laçi,Laci,69.95,70.1,5,2026-11-01
-20044,Oddevold,,69.95,68.8,4,2026-10-30
-20047,Lokomotiv Kyiv,,69.91,75.0,4,2026-10-31
-20018,Apollon Pontou,,69.9,75.0,5,2026-11-02
-4644,Hapoel Petah Tikva,Hapoel Petach Tikva,69.89,70.0,6,2026-10-31
+20032,Jong Utrecht,,69.97,75.0,5,2026-11-07
+4644,Hapoel Petah Tikva,Hapoel Petach Tikva,69.97,70.0,8,2026-11-07
+4672,Skalica,MFK Skalica,69.96,69.5,5,2026-11-07
+4644,Ironi Tiberias,,69.92,71.1,9,2026-11-07
 4642,Fram,Fram Reykjavik,69.88,69.0,5,2026-10-24
 4650,Auda,Auda Kekava,69.87,70.9,4,2026-11-01
+4617,Laçi,Laci,69.85,70.1,6,2026-11-07
 20014,KPV-j,,69.84,75.0,2,2026-10-18
-4672,Trenčín,AS Trencin,69.84,69.2,5,2026-10-31
+4354,Kryvbas KR,Kryvbas Kryvyi Rih,69.82,71.3,9,2026-11-07
 4643,Shelbourne,Shelbourne FC,69.82,70.2,5,2026-10-30
 4636,Gnistan,FC Gnistan,69.8,70.1,6,2026-11-02
 20042,Slovan Ljubljana,,69.79,75.0,4,2026-11-01
+20040,Naftagas,,69.78,75.0,5,2026-11-07
 4643,Derry City,,69.78,70.1,6,2026-10-30
-20044,Landskrona BoIS,,69.77,69.2,5,2026-11-02
 20045,Rapperswil,,69.76,68.2,4,2026-11-06
 4649,Tobol Kostanay,FK Tobol Kostanay,69.76,70.7,4,2026-10-31
-4672,Skalica,MFK Skalica,69.75,69.5,4,2026-11-01
-4622,Gomel,FC Gomel,69.75,69.4,8,2026-11-06
-4644,Bnei Sakhnin,,69.74,69.5,7,2026-10-31
+4672,Trenčín,AS Trencin,69.75,69.2,6,2026-11-07
 4693,Sumqayıt,Sumgayit FK,69.74,69.3,4,2026-11-02
-4626,Slavia Sofia,,69.73,70.2,4,2026-10-31
 20034,Egersund,,69.71,69.7,5,2026-11-01
+4644,Bnei Sakhnin,,69.7,69.5,9,2026-11-07
 4653,Valletta,Valletta FC,69.7,70.3,5,2026-11-01
 4653,Hamrun Spartans,Ħamrun Spartans,69.67,70.4,5,2026-10-31
+4626,Slavia Sofia,,69.66,70.2,5,2026-11-07
+20044,Oddevold,,69.65,68.8,5,2026-11-07
 4692,Aluminij,NK Aluminij,69.65,69.6,4,2026-10-31
-20041,Lokomotíva Zvolen,,69.64,75.0,4,2026-10-31
+20007,HNK Cibalia,Cibalia,69.63,70.2,5,2026-11-07
 4693,İmişli,Imisli FK,69.6,70.0,4,2026-11-01
 20018,Anagennisi Karditsas,,69.57,75.0,5,2026-10-25
 4636,SJK,SJK Seinajoki,69.57,69.6,2,2026-10-17
 20032,FC Volendam,Volendam,69.56,68.6,5,2026-11-06
+20036,Amarante,,69.55,72.0,4,2026-11-07
+4626,Botev Vratsa,,69.55,69.8,5,2026-11-07
 20005,Sporting Hasselt,,69.54,68.5,3,2026-11-06
-20026,Riga Mariners,,69.51,75.0,4,2026-10-31
 20046,Iğdır FK,Iğdır,69.45,68.8,6,2026-11-06
+4354,Epitsentr,Epitsentr Dunayivtsi,69.45,69.0,8,2026-11-07
 4692,Nafta,,69.44,69.5,5,2026-11-06
 20032,VVV Venlo,,69.44,67.3,5,2026-11-06
+20044,Landskrona BoIS,,69.43,69.2,6,2026-11-07
 4651,Transinvest Vilnius,TransINVEST Vilnius,69.43,68.3,3,2026-10-31
+20044,Falkenbergs FF,,69.39,70.5,5,2026-11-07
 4649,Yelimay,Yelimay Semey,69.38,70.3,5,2026-10-31
 4691,Voluntari,FC Voluntari,69.38,69.5,7,2026-11-02
 20009,Příbram,,69.36,68.1,5,2026-11-06
-4626,Botev Vratsa,,69.35,69.8,4,2026-11-02
-20033,H&W Welders,,69.35,75.0,3,2026-10-24
+20044,Varbergs BoIS FC,,69.35,69.8,5,2026-11-07
+20035,Warta Poznań,,69.34,68.6,5,2026-11-07
 20046,Sarıyer,,69.32,68.8,6,2026-11-06
-4693,Araz Naxçivan,Araz,69.31,69.1,4,2026-10-31
 4642,ÍA,IA Akranes,69.3,69.1,4,2026-10-24
 20046,Antalyaspor,,69.28,69.0,6,2026-11-06
 4636,Oulu,AC Oulu,69.28,69.8,6,2026-11-01
-4354,Epitsentr,Epitsentr Dunayivtsi,69.27,69.0,5,2026-11-02
 20037,Chindia Targoviste,,69.25,65.4,5,2026-11-05
 20046,Bandırmaspor,,69.22,68.8,5,2026-10-31
 4643,Waterford,Waterford FC,69.22,69.7,5,2026-10-30
 20032,Vitesse,,69.22,68.5,4,2026-11-02
 4693,Kapaz,Kəpəz,69.22,68.8,5,2026-11-06
-20035,Warta Poznań,,69.2,68.6,4,2026-10-31
+20009,Táborsko,,69.21,69.4,5,2026-11-07
 20034,Lyn,,69.18,69.2,5,2026-11-01
-20005,Excelsior Virton,,69.16,69.5,3,2026-11-01
 20046,Batman Petrolspor,,69.16,68.4,5,2026-10-31
+4693,Araz Naxçivan,Araz,69.14,69.1,5,2026-11-07
+20005,Excelsior Virton,,69.11,69.5,4,2026-11-07
+4671,Radnički Niš,Radnicki NIS,69.11,68.5,7,2026-11-07
 20032,De Graafschap,,69.09,66.7,4,2026-10-30
 4635,NSÍ,NSI Runavik,69.07,70.1,4,2026-10-31
 20009,Baník Ostrava II,,69.06,68.5,4,2026-11-02
-4671,Radnički Niš,Radnicki NIS,69.04,68.5,5,2026-11-02
 20046,Mardin 1969,,69.04,67.2,5,2026-11-01
+20046,Pendikspor,,69.02,68.5,6,2026-11-07
+20041,Lokomotíva Zvolen,,68.97,75.0,5,2026-11-07
 20010,Hvidovre,,68.96,69.4,4,2026-10-31
-20044,Varbergs BoIS FC,,68.95,69.8,4,2026-11-01
-20046,Pendikspor,,68.92,68.5,5,2026-10-31
 20045,SC Kriens,Kriens,68.9,68.4,4,2026-11-06
 20002,SKU Amstetten,,68.9,68.0,4,2026-11-06
 20035,Stal Rzeszów,,68.89,67.7,4,2026-11-02
 20038,Enisey,,68.87,67.9,7,2026-10-31
-4624,Zeljeznicar,Zeljeznicar Sarajevo,68.84,69.2,5,2026-10-31
+4671,Mladost Lučani,Mladost Lucani,68.84,69.2,7,2026-11-07
+20026,Rēzekne FA,,68.79,75.0,2,2026-11-07
 20046,Bodrum FK,Bodrum,68.75,69.6,5,2026-11-01
-4671,Mladost Lučani,Mladost Lucani,68.73,69.2,6,2026-11-02
-20009,Táborsko,,68.71,69.4,4,2026-10-31
-4617,Partizani Tirana,Partizani,68.7,68.4,5,2026-11-02
+4617,Partizani Tirana,Partizani,68.71,68.4,6,2026-11-07
 4636,VPS,VPS Vaasa,68.69,68.4,6,2026-11-02
-4693,Qəbələ,Qabala,68.66,68.3,4,2026-10-31
-4622,Arsenal,Arsenal Dzerzhinsk,68.64,64.0,11,2026-11-06
-20038,Shinnik Yaroslavl,,68.57,69.1,5,2026-11-01
-20005,Seraing United,,68.57,67.6,3,2026-10-30
+20018,Apollon Pontou,,68.66,75.0,6,2026-11-07
+4693,Qəbələ,Qabala,68.66,68.3,5,2026-11-07
+20005,Seraing United,,68.6,67.6,4,2026-11-07
 4653,Floriana,Floriana FC,68.55,69.9,5,2026-11-01
+20005,Club Brugge II,,68.55,67.3,4,2026-11-07
 20029,Pietà Hotspurs,,68.54,75.0,4,2026-10-31
 4968,Drenica Skënderaj,Drenica,68.53,68.6,4,2026-10-30
 20045,Neuchatel Xamax FC,,68.49,67.8,3,2026-10-30
+4624,Zeljeznicar,Zeljeznicar Sarajevo,68.48,69.2,7,2026-11-07
 4968,Feronikeli,,68.45,69.3,4,2026-11-01
+20019,Soroksar,Soroksár,68.44,68.2,5,2026-11-07
 4626,Spartak Varna,,68.42,68.8,4,2026-10-30
+20035,Podbeskidzie,,68.42,66.8,5,2026-11-07
+4622,Arsenal,Arsenal Dzerzhinsk,68.41,64.0,12,2026-11-07
 20009,Opava,,68.41,67.3,5,2026-11-06
 20037,Metalul Buzău,,68.37,66.1,4,2026-10-31
 4692,Brinje Grosuplje,Brinje-Grosuplje,68.32,68.1,4,2026-11-01
 4642,Breiðablik,Breidablik,68.31,68.0,4,2026-10-24
 20009,Kladno,,68.29,66.3,4,2026-11-01
 4354,Livyi Bereh,,68.29,67.7,7,2026-11-06
-4622,Vitebsk,FC Vitebsk,68.26,68.3,5,2026-10-31
+20019,Mezokovesd-zsory,,68.25,67.4,6,2026-11-07
+20045,Étoile Carouge,Etoile Carouge,68.24,67.7,4,2026-11-07
+4692,Mura,NS Mura,68.24,67.1,5,2026-11-07
 4622,Slavia,Slavia Mozyr,68.23,68.6,8,2026-11-01
-4622,Torpedo Belaz,Torpedo Zhodino,68.21,69.4,8,2026-11-01
 20012,Tartu Welco,,68.19,75.0,5,2026-10-31
-4691,Csikszereda,Csikszereda Miercurea,68.17,68.6,7,2026-10-31
 20022,Kiryat Yam SC,,68.17,68.2,4,2026-11-02
-4624,Velez,Velež,68.15,68.8,4,2026-11-01
 20034,Moss,,68.14,67.0,5,2026-11-01
-20045,Étoile Carouge,Etoile Carouge,68.14,67.7,3,2026-10-30
-20029,Victoria Hotspurs,,68.08,75.0,4,2026-10-30
+4622,Vitebsk,FC Vitebsk,68.13,68.3,7,2026-11-07
+20026,Riga Mariners,,68.11,75.0,5,2026-11-07
+4691,Csikszereda,Csikszereda Miercurea,68.1,68.6,8,2026-11-07
+4624,Velez,Velež,68.09,68.8,6,2026-11-07
 20034,Sogndal,,68.07,67.5,6,2026-11-01
-20019,Soroksar,Soroksár,68.06,68.2,4,2026-11-01
-4692,Mura,NS Mura,68.04,67.1,4,2026-11-01
+20039,Partick,,68.07,68.3,6,2026-11-07
+20037,Slatina,,68.06,68.2,5,2026-11-07
+20038,Shinnik Yaroslavl,,68.01,69.1,7,2026-11-07
 4638,Torpedo Kutaisi,FC Torpedo Kutaisi,68.01,68.4,4,2026-11-02
-20035,Podbeskidzie,,68.0,66.8,4,2026-10-31
 20022,Hapoel Rishon LeZion,,68.0,66.4,4,2026-10-30
 20035,Stal Mielec,,67.99,67.3,4,2026-10-30
 4638,Dila,Dila Gori,67.98,67.9,3,2026-11-02
-20005,Club Brugge II,,67.97,67.3,3,2026-10-31
+20044,Sandviken,,67.98,67.8,5,2026-11-07
 20034,hodd,,67.97,68.6,5,2026-11-01
 4643,Dundalk,Dundalk FC,67.96,67.8,4,2026-10-30
 20038,Veles,,67.96,67.4,4,2026-10-30
 4354,Veres Rivne,,67.96,67.7,11,2026-11-06
 4650,Liepāja,FK Liepaja,67.95,67.4,4,2026-11-01
-20039,Partick,,67.94,68.3,5,2026-10-31
+4638,Rustavi,FC Rustavi,67.95,68.1,5,2026-11-07
 4635,HB,HB Torshavn,67.94,68.3,4,2026-10-31
-4638,Rustavi,FC Rustavi,67.93,68.1,4,2026-11-01
+20007,Segesta Sisak,,67.88,65.7,5,2026-11-07
 20032,Emmen,,67.86,66.8,5,2026-11-01
-20042,Dren Vrhnika,,67.81,75.0,4,2026-10-31
-4671,Mačva Šabac,Macva,67.79,68.4,6,2026-10-31
-20046,Sivasspor,,67.76,67.5,5,2026-11-01
+20046,Sivasspor,,67.86,67.5,6,2026-11-07
+4622,Torpedo Belaz,Torpedo Zhodino,67.85,69.4,10,2026-11-07
+20032,Den Bosch,,67.77,65.1,6,2026-11-07
+4671,Mačva Šabac,Macva,67.76,68.4,7,2026-11-07
+4693,Safa,Safa Baku,67.76,67.9,5,2026-11-07
 4694,Atert Bissen,,67.74,68.1,2,2026-10-18
-20037,Slatina,,67.7,68.2,4,2026-11-01
-4659,Coleraine,Coleraine FC,67.68,68.3,5,2026-10-30
+20038,FC UFA,Ufa,67.7,67.1,8,2026-11-07
 20008,Ethnikos Achna,,67.66,64.5,4,2026-10-31
+20033,H&W Welders,,67.65,75.0,4,2026-11-07
 4968,Llapi,FC Llapi,67.65,67.4,5,2026-10-31
 4618,FC Santa Coloma,,67.64,68.0,4,2026-11-01
-20019,Mezokovesd-zsory,,67.63,67.4,5,2026-11-01
-20007,Opatija,,67.62,67.0,4,2026-10-30
+20007,Croatia Zmijavci,,67.62,66.1,5,2026-11-07
+4659,Coleraine,Coleraine FC,67.57,68.3,6,2026-11-07
 4694,Mondorf-les-Bains,US Mondorf-les-bains,67.57,68.0,3,2026-10-31
-4693,Safa,Safa Baku,67.56,67.9,4,2026-11-02
+4624,Siroki Brijeg,Široki Brijeg,67.56,68.1,6,2026-11-07
+20044,IFK Varnamo,,67.56,66.8,5,2026-11-07
 4626,Dunav Ot Ruse,Dunav Ruse,67.54,67.8,5,2026-11-06
 4643,Galway United,,67.54,67.7,5,2026-10-30
 4692,Radomlje,NK Radomlje,67.54,67.2,4,2026-10-31
 20022,Hapoel Kfar Shalem,,67.54,67.3,4,2026-11-02
 20037,CSM Reşiţa,,67.53,64.5,4,2026-11-01
-20007,Segesta Sisak,,67.52,65.7,4,2026-10-31
 20008,PAEEK,,67.51,63.9,4,2026-10-31
-20038,FC UFA,Ufa,67.49,67.1,6,2026-11-01
-4624,Siroki Brijeg,Široki Brijeg,67.47,68.1,4,2026-10-31
 20009,Slavia Praha II,,67.45,67.3,4,2026-10-30
 20038,KAMAZ,,67.44,66.4,7,2026-11-01
-20044,IFK Varnamo,,67.42,66.8,4,2026-10-31
 20034,Sandnes ULF,,67.42,67.1,5,2026-11-01
-20046,Muğlaspor,,67.41,66.8,5,2026-11-02
+20019,Szeged 2011,,67.41,65.3,6,2026-11-07
 4649,Kyzyl-Zhar,Kyzylzhar Petropavl,67.4,67.3,4,2026-10-31
 20022,Maccabi Bnei Raina,,67.39,66.9,4,2026-10-30
+20046,Muğlaspor,,67.37,66.8,6,2026-11-07
 4642,KA,KA Akureyri,67.36,66.8,4,2026-10-24
-20019,Tiszakecske FC,Tiszakécske,67.36,67.0,4,2026-10-31
-20007,Croatia Zmijavci,,67.34,66.1,4,2026-11-01
-4622,Minsk,FC Minsk,67.32,67.1,5,2026-11-01
+4622,Minsk,FC Minsk,67.33,67.1,6,2026-11-07
 4642,Stjarnan,,67.3,67.5,3,2026-10-24
+20007,Opatija,,67.29,67.0,5,2026-11-07
 20018,Marko,,67.26,64.2,6,2026-11-02
 4649,Jenis,Zhenys,67.24,68.0,4,2026-10-31
 20046,Ümraniyespor,,67.24,65.9,5,2026-11-01
 20040,Javor,,67.24,66.0,4,2026-11-02
 4653,Marsaxlokk,,67.23,68.3,5,2026-11-01
 20007,Dugopolje,,67.21,67.0,4,2026-10-31
-20019,Szeged 2011,,67.17,65.3,5,2026-11-04
 20009,Viktoria Žižkov,,67.17,64.9,5,2026-11-06
-4624,Radnik Bijeljina,FK Radnik Bijeljina,67.08,67.0,4,2026-10-31
+20019,Gyirmot SE,Gyirmót,67.15,65.0,5,2026-11-07
+20019,Tiszakecske FC,Tiszakécske,67.14,67.0,5,2026-11-07
+4624,Radnik Bijeljina,FK Radnik Bijeljina,67.14,67.0,5,2026-11-07
 20022,Hapoel Ra'anana,,67.08,67.0,4,2026-11-02
-20044,Sandviken,,67.02,67.8,4,2026-10-31
 4354,Obolon Kyiv,Obolon'-Brovar,67.01,67.6,8,2026-11-06
-20027,Be1 NFA,,67.0,75.0,6,2026-11-04
-4624,Čelik,,66.99,67.0,4,2026-10-31
 20002,Voitsberg,,66.95,65.1,4,2026-10-31
 4651,Banga,Banga Gargždai,66.93,66.8,3,2026-11-01
 4651,Panevėžys,FK Panevezys,66.92,67.8,3,2026-10-31
@@ -924,279 +923,283 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20007,Vukovar,,66.9,67.1,5,2026-11-06
 20010,Aalborg,,66.89,66.3,5,2026-11-06
 4649,Atyrau,FC Atyrau,66.89,65.9,6,2026-10-31
-20019,Gyirmot SE,Gyirmót,66.88,65.0,4,2026-10-31
 4650,BFC Daugavpils,Daugavpils,66.88,66.7,4,2026-11-01
-20044,Osters IF,,66.86,67.8,4,2026-11-02
 4656,Sutjeska,Sutjeska Niksic,66.86,67.4,5,2026-11-02
 4643,Drogheda United,,66.85,67.0,4,2026-10-30
 20034,Strommen,,66.85,66.8,5,2026-11-01
-20032,Den Bosch,,66.83,65.1,5,2026-11-01
-4354,Chornomorets,,66.83,67.4,5,2026-10-31
+4354,Chornomorets,,66.85,67.4,7,2026-11-07
 4642,FH,FH hafnarfjordur,66.82,67.0,4,2026-10-24
 4649,Ertis,Irtysh,66.8,66.1,5,2026-10-31
 4626,Septemvri Sofia,,66.8,66.3,5,2026-11-06
+4624,Čelik,,66.79,67.0,6,2026-11-07
 4653,Sliema Wanderers,,66.77,67.0,5,2026-10-31
 20022,Maccabi Herzliya,,66.76,66.5,4,2026-10-30
+20038,Chelyabinsk,,66.76,66.0,6,2026-11-07
 20010,Aarhus Fremad,,66.74,66.5,4,2026-11-01
 4642,Valur,Valur Reykjavik,66.7,67.0,4,2026-10-24
-20044,Norrby IF,Norrby,66.64,64.7,4,2026-10-31
+20019,Fehérvár FC,Fehérvár,66.64,65.6,5,2026-11-07
 4649,Kaspiy,Caspiy Aktau,66.61,66.7,3,2026-10-31
 4694,Racing,Racing FC Union Luxembourg,66.6,66.3,3,2026-10-25
-20019,Kozarmisleny FC,Kozármisleny,66.52,65.8,4,2026-11-01
+20042,Dren Vrhnika,,66.59,75.0,5,2026-11-07
 20002,FC Liefering,Liefering,66.52,67.6,4,2026-10-31
 4659,Larne,,66.51,68.3,7,2026-11-06
-20019,Fehérvár FC,Fehérvár,66.45,65.6,4,2026-10-31
+20027,Be1 NFA,,66.49,75.0,7,2026-11-07
 20007,Orijent 1919,,66.42,66.2,5,2026-11-06
-4624,BSK Banja Luka,,66.34,66.6,4,2026-11-01
-20038,Chelyabinsk,,66.33,66.0,5,2026-11-01
-20046,İstanbulspor,,66.31,67.1,5,2026-11-01
-4671,Zemun,,66.31,66.7,6,2026-11-01
+20019,Kozarmisleny FC,Kozármisleny,66.41,65.8,5,2026-11-07
+20029,Victoria Hotspurs,,66.39,75.0,5,2026-11-07
+20044,Norrby IF,Norrby,66.35,64.7,5,2026-11-07
+4624,BSK Banja Luka,,66.33,66.6,5,2026-11-07
+20010,Kolding IF,Kolding,66.32,65.4,5,2026-11-07
+20044,Osters IF,,66.31,67.8,5,2026-11-07
+20044,Helsingborg,,66.31,65.6,5,2026-11-07
+4622,BATE,Bate Borisov,66.3,65.7,10,2026-11-07
 4694,Progrès Niederkorn,Progres Niederkorn,66.28,66.6,3,2026-10-31
+20037,Concordia,,66.27,64.9,5,2026-11-07
 4642,Keflavík,Keflavik,66.25,66.2,4,2026-10-24
 20018,Panionios,,66.24,66.2,5,2026-11-01
-20039,Livingston,,66.23,65.1,4,2026-10-30
+20046,İstanbulspor,,66.23,67.1,6,2026-11-07
 20032,Dordrecht,,66.18,64.6,5,2026-11-06
-4354,Kudrivka,,66.16,66.1,7,2026-11-02
-20010,Kolding IF,Kolding,66.15,65.4,4,2026-10-31
 20041,Petržalka,,66.15,66.1,4,2026-11-01
+20039,Livingston,,66.12,65.1,5,2026-11-07
+20044,Orebro SK,Örebro,66.11,64.1,6,2026-11-07
 4635,Víkingur,Vikingur Gota,66.09,66.9,4,2026-10-31
+4354,Kudrivka,,66.05,66.1,9,2026-11-07
 20007,Karlovac 1919,,66.04,64.4,5,2026-11-06
+20009,Třinec,,66.04,64.9,5,2026-11-07
 4649,Kaisar Kyzylorda,Kaisar,66.03,65.2,4,2026-10-31
 4656,Mornar,Mornar Bar,65.99,67.4,5,2026-11-01
-4622,BATE,Bate Borisov,65.99,65.7,8,2026-10-31
+4671,Zemun,,65.98,66.7,8,2026-11-07
 20007,Dubrava Zagreb,,65.98,66.1,4,2026-10-30
+20038,FK Neftekhimik,Neftekhimik,65.97,65.8,8,2026-11-07
 4636,Jaro,FF Jaro,65.95,66.0,2,2026-10-17
-20038,FK Neftekhimik,Neftekhimik,65.89,65.8,6,2026-10-31
 20032,Helmond Sport,,65.86,64.2,5,2026-11-06
 20032,FC Eindhoven,Eindhoven,65.85,64.1,5,2026-11-06
-4624,Sloga Doboj,FK Sloga Doboj,65.84,65.3,4,2026-11-01
-20009,Třinec,,65.8,64.9,4,2026-10-31
 20032,Roda,,65.79,60.9,5,2026-11-06
 4655,Milsami,Milsami Orhei,65.77,65.3,4,2026-11-01
-20044,Helsingborg,,65.77,65.6,4,2026-11-02
+4624,Sloga Doboj,FK Sloga Doboj,65.74,65.3,5,2026-11-07
 20007,Kustosija,Kustošija,65.74,64.6,5,2026-11-06
+20002,Schwarz-Weiß Bregenz,,65.74,62.9,5,2026-11-07
 20039,Dunfermline,,65.71,65.4,7,2026-11-06
-4656,Budućnost,Buducnost Podgorica,65.68,67.1,5,2026-11-02
-4622,Dnepr Mogilev,FC Dnepr Mogilev,65.64,64.8,7,2026-10-31
+20044,IK brage,Brage,65.71,64.8,5,2026-11-07
+4622,Dnepr Mogilev,FC Dnepr Mogilev,65.66,64.8,8,2026-11-07
 4651,Džiugas Telšiai,FK Dziugas,65.61,65.7,3,2026-10-31
 20034,Asane,Åsane,65.57,65.8,5,2026-11-01
 20009,Prostějov,,65.56,64.9,4,2026-11-01
 4653,Birkirkara,Birkirkara FC,65.54,64.7,5,2026-10-31
-20019,BVSC,,65.52,64.8,5,2026-11-04
 20040,FK Vozdovac,Voždovac,65.48,65.1,4,2026-11-02
-20002,Schwarz-Weiß Bregenz,,65.47,62.9,4,2026-10-31
-20037,Concordia,,65.44,64.9,4,2026-11-01
 20038,Leningradets,,65.42,65.2,6,2026-10-31
-20010,Hillerød,,65.41,66.1,4,2026-11-01
-20044,IK brage,Brage,65.4,64.8,4,2026-10-30
-20019,Szentlőrinc SE,Szentlőrinc,65.39,65.1,5,2026-11-01
-20010,Esbjerg,,65.35,65.4,4,2026-10-31
-20044,Orebro SK,Örebro,65.35,64.1,5,2026-11-02
+20018,Panserraikos,,65.38,62.6,5,2026-11-07
+20010,Esbjerg,,65.32,65.4,5,2026-11-07
+20044,Ljungskile SK,Ljungskile,65.32,64.9,5,2026-11-07
 4694,F91 Dudelange,,65.31,65.4,3,2026-10-31
+20019,BVSC,,65.3,64.8,6,2026-11-07
 20010,HB Koge,,65.3,63.9,5,2026-11-06
 4652,Shkëndija Haraçinë,,65.27,65.1,4,2026-11-01
 20010,Vendsyssel FF,,65.27,65.3,5,2026-11-06
 20042,Triglav,,65.26,65.7,5,2026-11-06
 4636,Mariehamn,IFK Mariehamn,65.23,64.7,2,2026-10-17
+20010,Hillerød,,65.22,66.1,5,2026-11-07
+20007,Hrvace,,65.22,64.1,5,2026-11-07
+20002,Sturm Graz II,,65.22,62.6,4,2026-11-07
+20019,Szentlőrinc SE,Szentlőrinc,65.17,65.1,6,2026-11-07
 20018,Kallithea,,65.14,64.1,5,2026-11-01
+4656,Budućnost,Buducnost Podgorica,65.13,67.1,6,2026-11-07
 4652,Bregalnica Štip,,65.12,65.2,2,2026-10-17
-4638,Samgurali,Samgurali Tskhaltubo,65.11,65.0,4,2026-10-31
-20040,Loznica,,65.09,64.1,4,2026-11-01
-20037,FC Bacau,FC Bacău,65.02,64.1,4,2026-10-31
+4638,Samgurali,Samgurali Tskhaltubo,65.05,65.0,5,2026-11-07
 4649,Zhetysu,Jetysu Taldykorgan,65.02,64.2,4,2026-10-31
 20039,Raith Rovers,,65.01,65.6,5,2026-11-06
-20044,Ljungskile SK,Ljungskile,64.99,64.9,4,2026-11-01
 4642,ÍBV,IBV Vestmannaeyjar,64.97,64.8,4,2026-10-24
 20022,Hapoel Kfar Saba,,64.95,64.4,4,2026-11-02
-20007,Hrvace,,64.94,64.1,4,2026-10-31
 4649,Altay,Altai Öskemen,64.89,65.2,1,2026-10-18
-4634,Paide,Paide Linnameeskond,64.68,66.4,6,2026-10-31
-4659,Linfield,,64.66,65.5,5,2026-10-31
+20037,FC Bacau,FC Bacău,64.88,64.1,5,2026-11-07
+20040,Loznica,,64.82,64.1,5,2026-11-07
+4634,Nõmme Kalju,Kalju Nomme,64.77,65.5,7,2026-11-07
+4659,Linfield,,64.73,65.5,6,2026-11-07
 20042,Beltinci,,64.64,63.4,4,2026-11-02
+4634,Flora,Flora Tallinn,64.62,64.1,7,2026-11-07
 20038,Tekstilshchik,,64.6,64.3,5,2026-10-31
-20041,Šamorín,,64.59,63.5,4,2026-10-31
-20002,Sturm Graz II,,64.58,62.6,3,2026-10-31
 20022,Hapoel Afula,,64.56,64.2,4,2026-10-30
+20041,Šamorín,,64.51,63.5,5,2026-11-07
 20022,Kafr Qasim,,64.51,64.7,4,2026-10-30
 20019,Karcag SE,Karcag,64.51,64.2,4,2026-11-01
+20040,OFK Vršac,,64.49,63.4,5,2026-11-07
 4642,Þór,Thor Akureyri,64.48,64.3,3,2026-10-24
 4656,Dečić,FK Decic,64.48,64.1,5,2026-11-03
+4634,Paide,Paide Linnameeskond,64.46,66.4,7,2026-11-07
 20034,Raufoss,,64.45,64.9,6,2026-11-01
-4634,Nõmme Kalju,Kalju Nomme,64.39,65.5,6,2026-11-01
-20037,Metaloglobus,,64.38,64.3,4,2026-10-31
-4634,Flora,Flora Tallinn,64.37,64.1,6,2026-11-01
+20041,Považská Bystrica,,64.45,61.1,5,2026-11-07
+20037,Unirea Slobozia,,64.44,63.0,5,2026-11-07
+20019,Ajka,,64.36,64.3,6,2026-11-07
+20037,Metaloglobus,,64.33,64.3,5,2026-11-07
 4652,Aresimi,Arsimi,64.31,64.2,3,2026-11-02
 4968,Vushtrria,,64.3,65.0,4,2026-10-31
-20019,Ajka,,64.3,64.3,5,2026-10-31
+4619,Shirak,Shirak Gyumri,64.28,63.3,5,2026-11-07
 20003,Səbail,,64.26,62.3,4,2026-11-05
-20039,Inverness CT,,64.25,62.8,5,2026-10-31
-4638,Spaeri,FC Spaeri,64.19,63.5,4,2026-10-31
+20039,Inverness CT,,64.25,62.8,6,2026-11-07
+20010,Hobro,,64.15,64.2,5,2026-11-07
 20022,Ironi Modi'in,,64.14,63.4,4,2026-11-02
 20008,Doxa,,64.14,62.3,4,2026-10-30
-4622,Belshina,Belshina Bobruisk,64.13,63.8,8,2026-11-01
-20010,Hobro,,64.11,64.2,4,2026-10-30
 4651,Hegelmann,Hegelmann Litauen,64.1,64.3,3,2026-10-31
-4619,Shirak,Shirak Gyumri,64.07,63.3,4,2026-10-31
+4638,Spaeri,FC Spaeri,64.08,63.5,5,2026-11-07
 4649,Ulytau,Ulytau Zhezkazgan,64.05,64.7,4,2026-10-31
+4622,Belshina,Belshina Bobruisk,64.04,63.8,10,2026-11-07
 4653,Hibernians,Hibernians Malta,64.04,64.1,5,2026-10-31
 4635,B36,B36 Torshavn,64.02,64.3,4,2026-10-31
-20041,Považská Bystrica,,63.99,61.1,4,2026-11-01
 20008,Enosis,,63.96,62.3,3,2026-10-31
 4638,Gagra,FC Gagra,63.93,64.2,4,2026-11-01
-4619,Sardarapat,,63.93,64.4,4,2026-10-30
-20018,Panserraikos,,63.89,62.6,4,2026-11-01
 20032,MVV,,63.82,63.4,4,2026-10-31
 20022,Maccabi Kiryat Gat,,63.78,63.6,4,2026-10-30
+4656,Otrant-Olympic,,63.78,64.0,6,2026-11-07
 20008,Akritas,,63.77,62.3,4,2026-10-31
-20040,OFK Vršac,,63.74,63.4,4,2026-11-01
-20000,Pogradeci,,63.73,64.3,5,2026-11-01
-20002,Rapid Wien II,,63.71,62.8,4,2026-10-31
 20051,Laktaši,,63.68,64.2,2,2026-10-31
 4694,UN Käerjéng,UN Kaerjeng 97,63.63,63.2,2,2026-10-31
 4656,Petrovac,FK Petrovac,63.62,63.7,5,2026-11-01
-4659,Glentoran,,63.54,64.8,5,2026-10-30
+20002,Rapid Wien II,,63.58,62.8,5,2026-11-07
+4619,Sardarapat,,63.56,64.4,5,2026-11-07
+4659,Glentoran,,63.53,64.8,6,2026-11-07
 4472,Connah's Quay,GAP Connah S Quay FC,63.52,64.4,5,2026-11-06
 20037,CSA Steaua Bucureşti,,63.5,63.5,3,2026-10-25
-4656,Otrant-Olympic,,63.49,64.0,5,2026-11-03
-20037,Unirea Slobozia,,63.42,63.0,4,2026-10-31
-20037,CS Afumati,,63.39,62.4,4,2026-10-31
+20037,CS Afumati,,63.47,62.4,5,2026-11-07
 4619,Van,Van FC,63.34,64.8,5,2026-11-06
-20039,Stenhousemuir,,63.33,65.3,5,2026-10-30
+20000,Pogradeci,,63.28,64.3,6,2026-11-07
 20046,Boluspor,,63.26,63.8,5,2026-11-01
 20037,FC Politehnica Timisoara,,63.25,60.4,4,2026-10-31
 4653,Balzan,Balzan FC,63.17,62.9,5,2026-10-31
 4643,Sligo Rovers,,63.16,63.5,4,2026-10-30
 20047,Oleksandria,,63.1,61.7,2,2026-10-24
+4619,Ararat,Ararat Yerevan,63.09,62.6,5,2026-11-07
 20040,Napredak,,63.07,61.4,4,2026-11-02
 20019,Csakvar,,63.0,63.4,4,2026-10-31
 4653,Zabbar St. Patrick,Żabbar St Patrick,62.99,63.4,5,2026-10-31
+20039,Stenhousemuir,,62.97,65.3,6,2026-11-07
 4618,Ranger's,FC Rànger's,62.92,63.2,2,2026-11-01
+20041,Zlaté Moravce,,62.87,62.2,5,2026-11-07
 4619,BKMA,BKMA Yerevan,62.85,63.1,5,2026-11-06
-4619,Ararat,Ararat Yerevan,62.85,62.6,4,2026-10-31
 4650,FS Jelgava,Jelgava,62.82,62.7,4,2026-11-01
-20008,Halkanoras,,62.79,61.4,4,2026-10-31
+20008,Halkanoras,,62.7,61.4,5,2026-11-07
 4650,Super Nova,FK Super Nova,62.68,62.9,5,2026-11-01
 20022,Maccabi Ahi Nazareth,,62.62,62.4,4,2026-10-30
 4652,Skopje,,62.61,62.8,3,2026-11-02
-20041,Zlaté Moravce,,62.6,62.2,4,2026-10-31
 20001,BKMA II,,62.57,62.4,1,2026-11-03
+20037,Viitorul Şelimbăr,,62.56,61.1,5,2026-11-07
+20008,Ermis,,62.55,59.7,4,2026-11-07
 4656,Bokelj,FK Bokelj,62.53,63.2,5,2026-11-02
-20008,Ermis,,62.51,59.7,3,2026-10-30
+20039,Ayr Utd,,62.51,63.0,5,2026-11-07
 4651,FA Šiauliai,Šiauliai,62.45,62.5,2,2026-10-31
 20018,PAOK II,,62.41,61.7,6,2026-11-01
-20037,Viitorul Şelimbăr,,62.29,61.1,4,2026-10-31
-20039,Ayr Utd,,62.28,63.0,4,2026-10-31
 4619,Syunik,,62.27,62.7,4,2026-11-01
 4694,Jeunesse d'Esch,AS Jeunesse Esch,62.25,62.3,1,2026-10-31
 20018,Ellas Syros,,62.24,62.4,4,2026-11-01
 20041,Pohronie,,62.19,62.0,4,2026-10-30
 4652,Bashkimi Kumanovo,Bashkimi,62.16,62.8,4,2026-11-02
 20041,Žilina II,,62.16,60.1,4,2026-10-30
-20044,GIF Sundsvall,,62.09,61.8,4,2026-10-31
-20000,Besa Kavajë,,62.0,61.6,5,2026-11-01
+20042,Primorje,,62.09,60.5,5,2026-11-07
+20000,Besa Kavajë,,62.07,61.6,6,2026-11-07
 4472,Caernarfon Town,,61.96,61.4,5,2026-11-06
 4638,Meshakhte,Meshakhte Tkibuli,61.92,61.9,3,2026-11-01
-20042,Rudar,,61.91,60.2,4,2026-10-31
+20044,GIF Sundsvall,,61.88,61.8,5,2026-11-07
 20008,APEA,,61.88,61.1,4,2026-10-31
 20003,Şahdağ,,61.82,60.3,4,2026-11-04
+20042,Rudar,,61.81,60.2,5,2026-11-07
 4653,Birzebbuga,,61.8,61.5,5,2026-10-31
-20042,Primorje,,61.78,60.5,4,2026-11-01
 20006,Fratria,,61.74,61.3,4,2026-11-02
-4622,Naftan,Naftan Novopolotsk,61.73,61.2,5,2026-10-24
+4622,Naftan,Naftan Novopolotsk,61.74,61.2,7,2026-11-07
+20040,Grafičar,,61.69,60.3,5,2026-11-07
 20006,Vihren,,61.68,61.4,3,2026-10-30
-20041,Slovan Bratislava II,,61.67,59.9,4,2026-10-30
-20039,Arbroath,,61.66,63.0,4,2026-10-31
+4656,Jezero,Jezero Plav,61.66,62.1,6,2026-11-07
 20037,CSM Ramnicu Valcea,,61.63,61.3,4,2026-10-31
 4650,Grobiņa,Grobiņas,61.61,61.1,4,2026-11-01
 4472,Penybont,,61.6,62.0,5,2026-11-06
 4653,Mosta,Mosta FC,61.58,61.2,6,2026-10-31
 20000,Flamurtari,,61.55,61.5,4,2026-11-02
 4656,Mladost DG,Mladost Donja Gorica,61.51,61.3,5,2026-11-02
-4656,Jezero,Jezero Plav,61.5,62.1,5,2026-11-03
+20041,Slovan Bratislava II,,61.5,59.9,5,2026-11-07
 20041,Baník Lehota p.Vtáčnikom,,61.46,58.7,4,2026-10-31
+20040,Dubočica,,61.33,59.3,5,2026-11-07
 20042,Bistrica,,61.29,60.8,5,2026-11-06
+20039,Arbroath,,61.28,63.0,5,2026-11-07
 20008,Ayia Napa,,61.25,60.8,3,2026-10-31
 20028,Pelister,,61.23,60.2,1,2026-11-01
 20029,Santa Lucía,,61.2,65.7,4,2026-11-01
-20040,Grafičar,,61.2,60.3,4,2026-11-02
-20040,Dubočica,,61.16,59.3,4,2026-11-02
 20051,Leotar,,61.13,61.3,1,2026-10-24
 4653,Gzira United,Gżira United,61.09,61.1,6,2026-11-01
+20041,Malženice,,61.02,60.0,5,2026-11-07
 20022,Hapoel Acre,,60.93,61.0,4,2026-10-30
-20027,Minija,,60.92,59.0,4,2026-11-04
-20041,Malženice,,60.88,60.0,4,2026-10-31
 20031,Rudar,,60.88,60.2,1,2026-10-17
 20000,Bylis,,60.86,61.6,5,2026-11-01
 20006,CSKA Sofia II,,60.83,61.1,3,2026-10-31
 20040,Metalac GM,,60.83,60.9,4,2026-11-02
+20041,Galanta,,60.72,59.5,5,2026-11-07
 4650,Tukums,Tukums 2000,60.65,60.3,4,2026-11-01
+20027,Minija,,60.63,59.0,5,2026-11-07
 20003,Karvan,,60.58,61.3,3,2026-11-05
 20008,Iraklis Yerolakkou,,60.53,60.8,4,2026-10-30
 4694,Résidence Walferdange,,60.45,60.4,3,2026-10-31
 4655,Dacia-Buiucani,Dacia Buiucani,60.43,60.2,4,2026-11-01
 4472,Colwyn Bay,,60.41,60.0,5,2026-11-06
+20047,Prykarpattia,,60.39,58.6,3,2026-11-07
 20047,Inhulets,Inhulets',60.31,59.6,4,2026-10-31
 4694,Hostert,US Hostert,60.3,59.8,4,2026-10-31
 4694,Victoria Rosport,,60.29,59.6,4,2026-10-31
 20006,Beroe,,60.28,59.6,3,2026-10-30
 20047,SK Poltava,,60.26,60.4,2,2026-10-17
-20041,Galanta,,60.25,59.5,4,2026-10-31
 20018,Olympiakos Piraeus II,,60.22,60.6,5,2026-11-01
 20018,Asteras Tripolis II,,60.21,60.7,6,2026-11-01
 20018,Panthrakikos,,60.2,60.0,5,2026-11-01
 20050,Stupčanica Olovo,,60.18,60.2,2,2026-10-18
-20027,Babrungas,,60.15,60.4,4,2026-10-30
-4656,Arsenal Tivat,FK Arsenal Tivat,60.11,60.9,5,2026-11-03
 4655,Politehnica UTM,Politehnica Chisinau,60.06,60.0,3,2026-11-01
-4634,Laagri,Harju Laagri,60.06,60.0,6,2026-10-31
 20040,Jedinstvo Ub,,60.02,58.9,4,2026-11-02
 20018,Nestos Chrisoupolis,,60.01,60.3,4,2026-11-01
-4634,Tammeka,Tartu Tammeka,60.0,60.1,6,2026-10-31
+4634,Laagri,Harju Laagri,59.99,60.0,7,2026-11-07
+20027,Babrungas,,59.97,60.4,5,2026-11-07
 20040,Teleoptik,,59.97,59.2,4,2026-11-02
 4659,Cliftonville,Cliftonville FC,59.86,60.8,6,2026-11-06
 4619,Gandzasar,Gandzasar Kapan,59.85,58.4,4,2026-11-01
-20037,Ştefăneşti,,59.84,58.6,4,2026-10-31
 20006,Yantra 2019,,59.79,59.9,3,2026-10-29
+4656,Arsenal Tivat,FK Arsenal Tivat,59.77,60.9,6,2026-11-07
 4650,Ogre United,FK Ogre,59.69,59.2,4,2026-11-01
-20047,Prykarpattia,,59.55,58.6,2,2026-10-30
-20028,FK Rabotnicki,Rabotnički,59.53,59.3,1,2026-11-01
+20037,Ştefăneşti,,59.62,58.6,5,2026-11-07
+20028,FK Rabotnicki,Rabotnički,59.6,59.3,2,2026-11-07
+4634,Tammeka,Tartu Tammeka,59.53,60.1,7,2026-11-07
 20050,Sloboda Tuzla,,59.52,59.4,1,2026-10-10
-4659,Carrick Rangers,,59.47,59.1,5,2026-10-31
+4659,Carrick Rangers,,59.52,59.1,6,2026-11-07
 20026,Metta / LU,,59.41,56.6,4,2026-10-31
-20039,Queen's Park,,59.37,59.8,5,2026-10-31
-20004,FC Slutsk,Slutsk,59.36,59.5,2,2026-10-16
+20004,FC Slutsk,Slutsk,59.37,59.5,3,2026-11-07
 4472,Barry Town United,Barry Town,59.35,60.3,5,2026-11-06
 20050,Travnik,,59.35,59.6,2,2026-10-18
 20042,Ilirija,,59.33,57.1,5,2026-11-06
+20039,Queen's Park,,59.26,59.8,6,2026-11-07
 20050,GOŠK Gabela,,59.18,59.3,3,2026-10-25
 20042,Dekani,,59.09,57.7,5,2026-11-06
-20037,Dumbrăviţa,,59.03,58.4,4,2026-10-31
+4634,Nõmme United,Nomme United,59.09,57.4,7,2026-11-07
+20037,Dumbrăviţa,,59.03,58.4,5,2026-11-07
+20000,Iliria Fushë-Krujë,,59.01,58.8,6,2026-11-07
 4694,Wiltz,,58.97,58.7,3,2026-10-31
 20018,Zakynthos,,58.97,56.7,6,2026-11-01
-4634,Nõmme United,Nomme United,58.85,57.4,6,2026-10-31
 20001,Andranik,,58.79,59.1,3,2026-11-02
-20000,Iliria Fushë-Krujë,,58.77,58.8,5,2026-11-02
+4659,Dungannon Swifts,,58.78,57.7,6,2026-11-07
 20004,Niva,,58.73,58.5,2,2026-10-31
+20039,Morton,,58.72,58.3,5,2026-11-07
 20050,Posušje,,58.69,58.7,1,2026-10-18
-4659,Dungannon Swifts,,58.64,57.7,5,2026-10-31
-20029,Swieqi United,,58.62,56.3,4,2026-11-01
+20041,Humenné,,58.66,58.3,5,2026-11-07
 20003,MOIK,,58.59,56.6,4,2026-11-05
 4635,Skála,Skala IF,58.54,58.0,4,2026-10-31
 4655,Real Sireți,Sireți,58.54,58.2,3,2026-11-01
 20018,Pyrgos 1968,,58.52,57.6,5,2026-11-01
-20039,Morton,,58.49,58.3,4,2026-10-31
 20021,Bray Wanderers,,58.49,58.5,5,2026-11-01
 20016,Samtredia,,58.46,58.2,3,2026-10-31
-20041,Humenné,,58.42,58.3,4,2026-10-31
+20029,Swieqi United,,58.39,56.3,5,2026-11-07
+4659,Ballymena United,,58.37,57.1,6,2026-11-07
+4634,Vaprus,Pärnu Vaprus,58.33,57.7,7,2026-11-07
 20006,Hebar 1918,,58.32,56.8,3,2026-10-29
-4659,Ballymena United,,58.23,57.1,5,2026-10-31
 20006,Etar Veliko Tarnovo,,58.21,56.9,3,2026-10-30
+20000,Besëlidhja Lezhë,,58.21,56.8,6,2026-11-07
+20042,Bilje,,58.2,57.3,5,2026-11-07
 4472,Airbus UK,,58.07,58.5,5,2026-11-06
-20047,Nyva Ternopil,,58.03,57.6,3,2026-11-01
 20006,Montana,,58.0,56.4,4,2026-11-02
+20000,FK Kukesi,Kukësi,57.99,56.4,6,2026-11-07
 20051,Drina Zvornik,,57.98,57.6,3,2026-10-24
-20000,Besëlidhja Lezhë,,57.95,56.8,5,2026-11-01
-4634,Vaprus,Pärnu Vaprus,57.91,57.7,6,2026-10-31
+20047,Nyva Ternopil,,57.95,57.6,4,2026-11-07
 20006,Ludogorets II,,57.9,56.6,4,2026-11-02
 20047,UCSA,,57.89,56.5,3,2026-10-25
 20021,UCD,,57.87,58.4,5,2026-11-01
@@ -1204,22 +1207,19 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20006,Rilski Sportist,,57.78,56.0,3,2026-10-30
 20047,Kolos Kovalivka II,,57.7,56.4,4,2026-11-02
 20000,Korabi Peshkopi,,57.66,57.8,4,2026-10-28
-20042,Krka,,57.66,55.9,4,2026-11-02
-20016,Telavi,,57.57,57.9,3,2026-10-31
-4634,Kuressaare,FC Kuressaare,57.56,57.0,7,2026-11-01
+20016,Telavi,,57.66,57.9,4,2026-11-07
+20042,Krka,,57.65,55.9,5,2026-11-07
 20042,Jesenice,,57.55,56.6,4,2026-10-31
-20000,FK Kukesi,Kukësi,57.48,56.4,5,2026-11-02
 20006,Marek,,57.47,57.2,4,2026-10-31
-20016,Gareji,,57.45,58.4,2,2026-10-31
 20021,Kerry,,57.37,55.8,4,2026-10-27
+4634,Kuressaare,FC Kuressaare,57.36,57.0,8,2026-11-07
 20021,Cobh Ramblers,,57.35,57.6,2,2026-10-16
-4618,Casa de Portugal,,57.31,56.9,3,2026-11-01
-20004,Lida,,57.27,57.5,1,2026-10-31
+20004,Lida,,57.29,57.5,2,2026-11-07
 4635,AB,AB Argir,57.22,56.7,4,2026-10-31
-20042,Bilje,,57.21,57.3,4,2026-10-31
 20000,Kastrioti Krujë,,57.14,57.3,4,2026-10-28
 4635,EB / Streymur,EB/Streymur,57.04,56.5,4,2026-10-31
 20016,Shturmi,,56.95,57.0,3,2026-10-31
+20016,Gareji,,56.94,58.4,3,2026-11-07
 4472,Haverfordwest County,Haverfordwest County AFC,56.92,56.3,5,2026-11-06
 4635,B68,B68 Toftir,56.73,56.2,4,2026-10-31
 20041,MFK Bytča,,56.72,55.8,4,2026-10-31
@@ -1227,83 +1227,89 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20048,Newtown AFC,Newtown,56.63,59.9,4,2026-11-06
 20006,Nesebar,,56.61,56.0,2,2026-10-31
 4635,07 Vestur,,56.6,56.4,4,2026-10-31
-20000,Sopoti Librazhd,,56.59,57.1,4,2026-11-02
-4659,Crusaders,Crusaders FC,56.57,56.7,5,2026-10-31
+4618,Casa de Portugal,,56.58,56.9,4,2026-11-07
 20050,Jedinstvo Bihać,,56.54,56.6,1,2026-10-11
 20006,Dobrudzha,,56.45,56.4,4,2026-11-02
 4618,Ordino,FC Ordino,56.43,56.5,2,2026-10-25
 4964,Mons Calpe,Mons Calpe SC,56.42,56.4,2,2026-10-27
-20000,Burreli,,56.38,57.2,5,2026-11-01
+4634,Trans,Trans Narva,56.42,55.0,8,2026-11-07
 20021,Athlone Town,,56.32,55.6,2,2026-10-16
-4634,Trans,Trans Narva,56.31,55.0,7,2026-11-01
+4659,Crusaders,Crusaders FC,56.3,56.7,6,2026-11-07
+20000,Burreli,,56.29,57.2,6,2026-11-07
 20003,Mingəçevir,,56.28,59.6,4,2026-11-04
 20029,Tarxien Rainbows,,56.28,53.5,4,2026-10-30
+20016,Kolkheti Poti,,56.23,55.5,4,2026-11-07
+20000,Sopoti Librazhd,,56.2,57.1,5,2026-11-07
 4472,Cambrian United,Cambrian & Clydach,56.2,55.8,5,2026-11-06
 20042,Dravinja,,56.18,56.6,4,2026-10-31
 20014,OLS,,56.18,55.5,2,2026-10-18
 20021,Longford Town,,56.13,56.2,4,2026-10-27
 20050,Bratstvo Gračanica,,56.12,56.2,1,2026-10-25
-4659,Limavady United,,56.12,55.6,6,2026-10-31
 20003,Baku Sportinq,,56.09,57.4,3,2026-11-05
-20016,Kolkheti Poti,,56.08,55.5,3,2026-10-31
+4659,Limavady United,,56.05,55.6,7,2026-11-07
 4964,Magpies,FCB Magpies,55.97,56.2,1,2026-10-16
-20027,Neptūną Klaipėda,,55.93,57.4,5,2026-10-30
 20051,FK Majevica Lopare,,55.91,56.2,2,2026-11-04
 20004,Molodechno-DYuSSh 4,,55.9,55.4,2,2026-10-17
 4618,Penya Encarnada,Penya Encarnada d'Andorra,55.85,56.6,3,2026-11-01
 20014,Rops,RoPS,55.81,54.1,2,2026-10-18
 4472,Llandudno,,55.77,54.7,5,2026-11-06
 20003,Zaqatala,,55.74,56.5,4,2026-11-05
-4659,Portadown,,55.73,55.1,5,2026-10-30
-20016,Sioni,,55.72,56.0,3,2026-10-31
 20003,Xankəndi FK,Xankəndi,55.69,53.5,4,2026-11-05
-20027,Tauras,,55.65,56.3,4,2026-11-04
+20027,Neptūną Klaipėda,,55.66,57.4,6,2026-11-07
+4659,Portadown,,55.65,55.1,6,2026-11-07
 20029,Naxxar Lions,,55.6,53.3,4,2026-11-01
+20016,Sioni,,55.59,56.0,4,2026-11-07
 20051,Slavija,,55.56,55.5,1,2026-10-24
 20024,Akademiya Ontustik,,55.5,54.4,3,2026-10-22
 4472,Briton Ferry,Briton Ferry Llansawel,55.5,54.7,5,2026-11-06
-20042,Brežice,,55.4,54.8,4,2026-11-02
+20042,Brežice,,55.42,54.8,5,2026-11-07
+20016,Merani Martvili,,55.36,55.0,2,2026-11-07
 20050,Radnik Hadžići,,55.35,55.4,1,2026-10-10
-20016,Aragvi Dusheti,,55.13,54.8,3,2026-10-24
+20027,Tauras,,55.3,56.3,5,2026-11-07
 4694,Swift Hesperange,,55.09,55.4,3,2026-10-31
 20051,Potkozarje,,55.07,55.1,1,2026-11-01
+4659,Bangor,,55.01,54.1,6,2026-11-07
+20029,Melita,,55.01,53.0,5,2026-11-07
 20014,SalPa,,54.98,53.6,2,2026-10-18
-20016,Merani Martvili,,54.98,55.0,1,2026-10-31
+20016,Aragvi Dusheti,,54.95,54.8,4,2026-11-07
+4618,Esperança d'Andorra,FC Esperanca,54.88,52.7,4,2026-11-07
+20027,Dainava,,54.87,55.0,5,2026-11-07
 4472,Flint Town United,,54.78,54.2,5,2026-11-06
-4659,Bangor,,54.7,54.1,5,2026-10-31
+20047,Polissya II,,54.74,54.7,1,2026-11-07
+20042,Krško,,54.68,54.3,5,2026-11-07
 20021,Wexford,,54.67,54.2,2,2026-10-16
-20027,Dainava,,54.61,55.0,4,2026-11-01
-20042,Krško,,54.61,54.3,4,2026-11-01
 20031,Jedinstvo,,54.44,54.5,1,2026-10-09
 20016,Odishi 1919,,54.44,54.5,1,2026-10-31
-20027,BFA,,54.42,55.8,4,2026-11-01
 20051,Famos Vojkovići,,54.31,54.5,1,2026-10-17
 20003,Şimal,,54.28,52.3,4,2026-11-05
 20026,JDFS Alberts,,54.27,53.8,2,2026-10-31
 4667,Virtus,SS Virtus,54.18,55.5,2,2026-10-23
-4618,Esperança d'Andorra,FC Esperanca,54.14,52.7,3,2026-10-31
 20024,Taraz,,54.08,53.2,1,2026-10-22
 20014,VJS,,53.97,53.4,2,2026-10-18
 20004,Smorgon,,53.97,54.1,1,2026-11-01
-20027,Atmosfera,,53.97,53.4,5,2026-11-04
-20000,Oriku,,53.94,55.0,5,2026-11-01
 20031,Zeta,,53.9,52.6,1,2026-10-31
-20029,Melita,,53.83,53.0,4,2026-11-01
+20028,Osogovo,,53.86,53.9,1,2026-11-07
+20027,Žalgiris II,,53.83,54.3,5,2026-11-07
 20047,Probiy Horodenka,,53.82,53.5,3,2026-11-01
+20027,BFA,,53.79,55.8,5,2026-11-07
 20029,Fgura United,,53.77,52.3,4,2026-11-01
+20000,Oriku,,53.75,55.0,6,2026-11-07
+20027,Atmosfera,,53.61,53.4,6,2026-11-07
 20021,Treaty United,,53.58,53.9,2,2026-10-16
-20027,Žalgiris II,,53.5,54.3,4,2026-10-31
+20028,Teteks,,53.55,53.6,1,2026-11-07
 4618,Sporting Escaldes,,53.34,53.7,1,2026-10-31
+20004,Dinamo Minsk II,,53.21,53.2,1,2026-11-07
+20026,Valmiera / BSS,,52.9,52.0,4,2026-11-07
 20004,Slonim,,52.74,52.2,1,2026-10-31
 20013,Víkingur II,,52.69,52.8,1,2026-10-17
 20051,Zvijezda 09,,52.56,52.3,3,2026-10-31
+20004,Volna,,52.49,52.1,2,2026-11-07
+20026,Leevon / PPK,,52.48,51.3,4,2026-11-07
 20014,PKKU,,52.45,52.8,2,2026-10-18
 20029,Sirens,,52.43,52.4,4,2026-11-01
 4618,Carroi,FC Carroi,52.36,52.2,3,2026-11-01
-20026,Valmiera / BSS,,52.34,52.0,3,2026-10-31
-20004,Volna,,52.33,52.1,1,2026-11-01
+20033,Glenavon FC,Glenavon,52.34,50.5,3,2026-11-07
 20051,Omarska,,52.24,52.4,3,2026-11-01
-20033,Glenavon FC,Glenavon,52.18,50.5,2,2026-10-16
 20024,Jaiyq,,52.08,52.3,2,2026-10-22
 20014,FC jazz,Jazz,51.98,52.3,2,2026-10-18
 20013,Suduroy,,51.98,53.4,1,2026-10-24
@@ -1311,9 +1317,8 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20006,Pirin Blagoevgrad,,51.94,51.5,2,2026-10-30
 20024,Astana II,,51.9,50.7,1,2026-10-22
 4472,Trefelin,,51.88,51.7,5,2026-11-06
-20027,Jonava,,51.88,50.7,4,2026-10-31
 20051,Sutjeska Foča,,51.74,51.7,1,2026-11-04
-20026,Leevon / PPK,,51.6,51.3,3,2026-10-31
+20027,Jonava,,51.58,50.7,5,2026-11-07
 20014,Inter Turku II,,51.32,48.6,3,2026-10-18
 20029,Mgarr United,,51.02,50.3,4,2026-11-01
 4667,Tre Fiori,SS Tre Fiori,50.97,51.6,2,2026-10-23
@@ -1325,46 +1330,48 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20031,Lovćen,,50.55,50.5,1,2026-10-09
 4667,Tre Penne,SS Tre Penne,50.49,51.3,3,2026-11-01
 20033,Annagh United,,50.47,51.4,4,2026-11-06
+20027,Garliava,,50.16,49.3,5,2026-11-07
 20029,Zurrieq,,50.1,49.8,4,2026-10-31
 20004,Uni Minsk,,50.1,49.7,3,2026-10-31
 20014,JJK,,50.06,49.7,2,2026-10-18
-20027,Garliava,,50.02,49.3,4,2026-11-01
 20014,TPV,,50.01,48.2,2,2026-10-18
 20024,Khan Tengri,,49.96,49.7,1,2026-10-09
-20004,BATE II,,49.65,49.7,2,2026-10-31
+20004,BATE II,,49.65,49.7,3,2026-11-07
 20029,St. Andrews,,49.58,48.5,4,2026-10-31
+20027,Kauno Žalgiris II,,49.58,47.7,5,2026-11-07
 20024,Arys,,49.51,49.1,2,2026-10-22
-20033,Institute,,49.07,49.1,4,2026-10-31
-20027,Kauno Žalgiris II,,49.02,47.7,4,2026-10-30
+20033,Institute,,49.07,49.1,5,2026-11-07
 20029,Attard,,49.01,49.1,4,2026-10-31
-20033,Newington Youth,,48.97,49.6,3,2026-10-23
-20028,Gorno Lisiče,,48.61,47.7,1,2026-10-31
+20036,Academica,,48.93,44.3,4,2026-11-07
+20027,Transinvest 2,,48.8,48.7,5,2026-11-07
+20029,Gudja United,,48.72,48.5,5,2026-11-07
+20028,Gorno Lisiče,,48.64,47.7,2,2026-11-07
+20027,Hegelmann II,,48.59,46.1,5,2026-11-07
 20029,Vittoriosa Stars,,48.56,47.9,4,2026-10-30
-20029,Gudja United,,48.55,48.5,4,2026-11-01
-20027,Transinvest 2,,48.53,48.7,4,2026-11-01
+20033,Newington Youth,,48.41,49.6,4,2026-11-07
 20014,KuPS Akatemia,,48.37,48.0,3,2026-10-18
 4964,Lynx,,48.35,48.3,1,2026-10-12
-20027,Hegelmann II,,48.34,46.1,4,2026-11-01
-20033,Loughgall,,48.32,47.6,4,2026-10-31
 20012,Viimsi,,48.27,48.8,4,2026-11-01
+20033,Ards,,48.21,46.8,4,2026-11-07
+20033,Loughgall,,48.12,47.6,5,2026-11-07
 20001,Ararat-Armenia II,,48.06,48.0,2,2026-11-03
 20048,Caerau (Ely),,47.98,47.8,2,2026-10-23
-20048,Brickfield Rangers,,47.83,47.9,3,2026-10-31
 20026,JFK Ventspils,,47.82,45.1,3,2026-10-31
 20001,Mika,,47.72,47.6,2,2026-10-12
+20027,FA Šiauliai II,,47.61,47.0,5,2026-11-07
 20001,Shirak II,,47.6,47.6,1,2026-11-03
 4964,Glacis United,,47.55,47.8,2,2026-11-01
-20027,FA Šiauliai II,,47.53,47.0,4,2026-11-01
-20026,Skanste,,47.5,47.3,4,2026-10-31
+20048,Brickfield Rangers,,47.54,47.9,4,2026-11-07
 20048,Bala Town,,47.42,47.1,4,2026-11-06
-20036,Academica,,47.38,44.3,3,2026-11-01
-20026,Riga FC II,,47.33,47.7,2,2026-10-31
-20033,Ards,,47.28,46.8,3,2026-10-31
+20026,Riga FC II,,47.34,47.7,3,2026-11-07
+20026,Skanste,,47.29,47.3,5,2026-11-07
+20048,Aberystwyth Town,,47.11,46.6,4,2026-11-07
+20026,Rīgas FS II,,47.05,47.1,1,2026-11-07
+20027,Ekranas,,46.99,45.5,5,2026-11-07
+20026,Smiltene,,46.99,42.9,5,2026-11-07
 20048,Mold Alexandra,,46.88,47.3,4,2026-11-06
 20048,Caersws,,46.81,45.4,3,2026-11-06
 20001,Sardarapat 2,,46.75,46.8,2,2026-10-21
-20027,Ekranas,,46.74,45.5,4,2026-10-30
-20048,Aberystwyth Town,,46.71,46.6,3,2026-10-31
 4667,Folgore,Folgore Falciano,46.63,47.1,2,2026-11-01
 20026,Mārupe,,46.47,46.0,3,2026-10-31
 20013,B36 II,,46.21,46.0,1,2026-10-17
@@ -1374,36 +1381,35 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20013,TB,,45.79,48.2,1,2026-10-10
 20029,Zebbug Rangers,,45.73,45.1,4,2026-10-30
 20033,Newry City AFC,Newry City,45.52,44.3,3,2026-10-31
+20048,Porthmadog,,45.28,44.0,4,2026-11-07
 20012,Tallinna Kalev,,45.25,43.8,4,2026-11-01
 20033,Warrenpoint Town,,45.19,45.1,2,2026-10-17
-20048,Carmarthen Town,,45.17,45.3,1,2026-10-10
 20012,FCI Levadia II,,45.11,44.6,5,2026-11-01
 20048,Pontypridd Town,,45.07,44.7,3,2026-10-30
+20048,Carmarthen Town,,45.03,45.3,2,2026-11-07
 4964,Europa Point,,44.91,44.6,2,2026-11-01
-20048,Porthmadog,,44.85,44.0,3,2026-10-31
 20033,Ballinamallard United,,44.75,44.8,3,2026-10-31
-20026,Smiltene,,44.44,42.9,4,2026-10-31
 20048,Newport City,,44.27,44.1,2,2026-10-31
 20048,Rhyl,,44.25,43.6,3,2026-10-31
-20026,Super Nova 2,,44.12,44.5,3,2026-10-22
+20026,Super Nova 2,,44.24,44.5,4,2026-11-07
+20033,Dundela,,44.08,43.6,3,2026-11-07
 4667,Cosmos,AC Cosmos,43.98,45.8,3,2026-11-01
 20013,NSÍ II,,43.87,43.8,1,2026-10-17
-20033,Dundela,,43.83,43.6,2,2026-10-24
+20026,Tukums II,,43.77,42.4,5,2026-11-07
 20048,Denbigh Town,,43.72,42.7,4,2026-11-06
-20026,Tukums II,,43.57,42.4,4,2026-10-31
+20048,Buckley Town,,43.63,42.5,3,2026-11-07
 20033,Moyola Park,,43.51,42.7,3,2026-10-31
+20048,Trethomas Bluebirds,,43.36,42.9,3,2026-11-07
 20033,Strabane Athletic,,43.33,43.1,4,2026-11-06
-20048,Buckley Town,,43.18,42.5,2,2026-10-31
 20012,Nõmme United II,,43.16,41.6,4,2026-11-01
-20048,Trethomas Bluebirds,,43.09,42.9,2,2026-10-31
 20048,Ynyshir Albions,,43.06,42.3,2,2026-11-06
 20048,Cardiff Draconians,,43.02,42.7,3,2026-10-31
 20013,Hoyvík,,42.73,42.5,1,2026-10-17
-20048,Llantwit Major,,42.32,42.2,2,2026-10-31
+20048,Llantwit Major,,42.3,42.2,3,2026-11-07
 4667,Domagnano,SS Domagnano,42.25,42.2,2,2026-10-24
 20048,Afan Lido,,42.25,41.3,2,2026-10-31
 20048,Baglan Dragons,,42.08,41.6,3,2026-11-06
-20048,Llanuwchllyn,,42.04,41.5,3,2026-10-31
+20048,Llanuwchllyn,,41.92,41.5,4,2026-11-07
 4964,College 1975,,41.69,41.5,1,2026-10-28
 20012,FC Tallinn,,41.63,40.3,5,2026-11-01
 20048,Ruthin Town,,41.07,39.7,4,2026-11-06
@@ -1411,9 +1417,9 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20048,llanelli AFC,,39.92,40.6,3,2026-10-30
 20048,Penrhyncoch,,39.87,39.3,3,2026-11-06
 4667,Fiorentino,AC Fiorentino,39.81,40.7,3,2026-11-01
+20033,Armagh City,,39.2,38.2,3,2026-11-07
 4667,Juvenes / Dogana,Juvenes/Dogana,39.1,39.0,3,2026-10-30
 20012,Nõmme Kalju II,,38.88,37.8,3,2026-10-24
-20033,Armagh City,,38.82,38.2,2,2026-10-31
 4667,San Giovanni,SS San Giovanni,38.1,38.9,3,2026-11-01
 4667,Libertas,SS Libertas,36.88,37.7,1,2026-10-09
 4667,Pennarossa,AC Pennarossa,35.3,34.0,2,2026-10-23
