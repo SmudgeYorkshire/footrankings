@@ -53,6 +53,28 @@ def test_nation_coefficients_no_duplicate_keys():
     assert not dupes, f"duplicate NATION_COEFFICIENTS keys: {dupes}"
 
 
+def test_club_baseline_no_duplicate_keys():
+    keys = _literal_dict_keys_from_source("club_coefficients_baseline.py", "CLUB_BASELINE")
+    dupes = {k for k in keys if keys.count(k) > 1}
+    assert not dupes, f"duplicate CLUB_BASELINE keys (last one silently wins): {dupes}"
+
+
+def test_club_baseline_aliases_no_duplicate_keys():
+    keys = _literal_dict_keys_from_source("club_coefficients_baseline.py", "CLUB_BASELINE_ALIASES")
+    dupes = {k for k in keys if keys.count(k) > 1}
+    assert not dupes, f"duplicate CLUB_BASELINE_ALIASES keys (last one silently wins): {dupes}"
+
+
+def test_club_baseline_alias_targets_exist():
+    """Every CLUB_BASELINE_ALIASES value must actually be a CLUB_BASELINE
+    key -- an alias pointing nowhere would silently resolve to {} (treated
+    as "no history"), the same as a genuinely new club, rather than ever
+    raising anything."""
+    import club_coefficients_baseline as cb
+    missing = {v for v in cb.CLUB_BASELINE_ALIASES.values() if v not in cb.CLUB_BASELINE}
+    assert not missing, f"CLUB_BASELINE_ALIASES values not found in CLUB_BASELINE: {missing}"
+
+
 def test_league_ids_are_unique():
     ids = [cfg["id"] for cfg in LEAGUES.values()]
     dupes = {i for i in ids if ids.count(i) > 1}

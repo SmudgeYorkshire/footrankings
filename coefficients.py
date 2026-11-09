@@ -509,12 +509,12 @@ with tab_eps_pred:
 # ---------------------------------------------------------------------------
 with tab_club_pred:
     st.caption(
-        "Current coefficient points each club has already earned this season, plus a "
-        "Monte Carlo projection of the rest of the way (remaining Play-off legs, then League "
-        "Phase and Knockout stage for whichever clubs reach it) — the same shared simulation "
-        "as the two prediction tabs above, broken down per club instead of aggregated by "
-        "country. A club with no fixtures left (e.g. already eliminated) simply shows no "
-        "predicted addition, not a guess."
+        "Each club's real UEFA 5-year standing right now (22/23-25/26, frozen from kassiesa.net, "
+        "plus this season's own points already earned), alongside a Monte Carlo projection of the "
+        "rest of 2026/27 (remaining Play-off legs, then League Phase and Knockout stage for "
+        "whichever clubs reach it) — the same shared simulation as the two prediction tabs above, "
+        "broken down per club instead of aggregated by country. A club with no fixtures left "
+        "(e.g. already eliminated) simply shows no predicted addition, not a guess."
     )
     with st.spinner("Building per-club projections…"):
         _club_pred_df, _club_pred_warnings = predicted_club_coefficients()
@@ -524,36 +524,50 @@ with tab_club_pred:
     _club_rows = []
     for _, _r in _club_pred_df.iterrows():
         _club_rows.append({
+            "5-Year Ranking": _r["five_yr_rank"],
             "Flag": _flag_url(_r["country"]) if _r["country"] else "",
             "Club": _r["club"],
             "Country": _r["country"],
-            "Current points": _r["current_points"],
-            "Predicted additional": _r["predicted_additional"],
-            "Predicted total": _r["predicted_total"],
+            "Current Points (5-year)": _r["five_yr_current"],
+            "Current Points 26/27": _r["current_points"],
+            "Predicted Points 26/27": _r["predicted_total"],
+            "Predicted Total Points (5-year)": _r["five_yr_predicted"],
         })
     _club_pred_display = pd.DataFrame(_club_rows)
-    _club_pred_display.insert(0, "Rank", range(1, len(_club_pred_display) + 1))
     st.dataframe(
         _club_pred_display,
         column_config={
-            "Rank": st.column_config.NumberColumn("Rank", width="small"),
+            "5-Year Ranking": st.column_config.NumberColumn(
+                "5-Year Ranking", width="small",
+                help="Rank by Current Points (5-year) -- matches kassiesa.net's own 5-Year Club Ranking ordering.",
+            ),
             "Flag": st.column_config.ImageColumn("", width="small"),
             "Club": st.column_config.TextColumn("Club", width="medium"),
             "Country": st.column_config.TextColumn("Country", width="medium"),
-            "Current points": st.column_config.NumberColumn("Current points", format="%.3f", width="small"),
-            "Predicted additional": st.column_config.NumberColumn(
-                "Predicted additional", format="%.3f", width="small",
-                help="Mean projected points from here to the end of the season, across every simulation run.",
+            "Current Points (5-year)": st.column_config.NumberColumn(
+                "Current Points (5-year)", format="%.3f", width="small",
+                help="22/23-25/26 (frozen, kassiesa.net) + this season's points already earned.",
             ),
-            "Predicted total": st.column_config.NumberColumn("Predicted total", format="%.3f", width="small"),
+            "Current Points 26/27": st.column_config.NumberColumn(
+                "Current Points 26/27", format="%.3f", width="small",
+                help="This season (2026/27) alone, real points already earned.",
+            ),
+            "Predicted Points 26/27": st.column_config.NumberColumn(
+                "Predicted Points 26/27", format="%.3f", width="small",
+                help="This season (2026/27) alone, projected to the end of the season.",
+            ),
+            "Predicted Total Points (5-year)": st.column_config.NumberColumn(
+                "Predicted Total Points (5-year)", format="%.3f", width="small",
+                help="22/23-25/26 (frozen) + Predicted Points 26/27 -- the projected 5-year standing once this season finishes.",
+            ),
         },
         width="content", hide_index=True, height=min(len(_club_pred_display), 20) * 35 + 38,
     )
     st.caption(
         "These are raw club points, not yet divided by a country's clubs entered — not "
-        "directly comparable to the country-level coefficient figures above. Sort by "
-        "\"Predicted total\" (click the column header) to see the clubs on track for the "
-        "biggest season."
+        "directly comparable to the country-level coefficient figures above. Sort by any "
+        "column header to reorder; sorted by \"Current Points (5-year)\" by default, matching "
+        "kassiesa.net's own 5-Year Club Ranking."
     )
 
 # ---------------------------------------------------------------------------

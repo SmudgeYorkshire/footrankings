@@ -12,6 +12,8 @@ methodology this implements.
 
 import math
 import os
+import re
+import unicodedata
 
 import streamlit as st
 import pandas as pd
@@ -22,6 +24,8 @@ from api_football_fetcher import ApiFootballClient
 from coefficients_baseline import (
     COUNTRY_BASELINE, COUNTRY_NAME_FIXUP, CLUB_COUNTRY_OVERRIDE,
 )
+from club_coefficients_baseline import CLUB_BASELINE, CLUB_BASELINE_ALIASES
+from club_coefficients import CLUB_ALIASES
 from qualifying_bracket import CONFIRMED_LEAGUE_PHASE
 
 # D.5(b) floor — the worst possible league-phase-ranking bonus (rank 36),
@@ -544,43 +548,150 @@ def eps_bonus_recipients(n: int = 2) -> list[str]:
     return eligible.sort_values("mean_season_coeff", ascending=False).index[:n].tolist()
 
 
+# club_coefficients.CLUB_ALIASES (built for a smaller, different purpose --
+# cup-tiebreaker lookups) doesn't cover every club this site has ever seen
+# in a European fixture; club_coefficients_baseline.CLUB_BASELINE_ALIASES
+# fills in the ones it misses where the difference is a genuine spelling/
+# translation variant (e.g. "FK Crvena Zvezda" vs "Red Star Belgrade").
+# Anything neither dict covers falls through to a normalized match here --
+# diacritics and common club-name tokens (FC/SC/NK/etc., and the Nordic
+# ø/æ/å letters NFKD doesn't decompose on its own) stripped, then compared
+# as a sorted token set so word reordering doesn't matter either. Confirmed
+# live 2026-11-09 against every club with a real current-season fixture:
+# 224/225 resolved this way, the one miss (Rīgas FS) genuinely has no
+# 22/23-25/26 European history to find.
+_BASELINE_SUFFIX_TOKENS = {
+    "fc", "cf", "afc", "sc", "ac", "cd", "ud", "sd", "ca", "sk", "fk", "bk", "if", "aif", "ik", "se",
+    "nk", "hnk", "ks", "ss", "us", "as", "rc", "ff", "vsc", "kv", "fa", "fs", "ta", "1907", "1999",
+    "03", "1923", "1948", "il", "osc", "agf", "msk", "dac",
+}
+_BASELINE_EXTRA_CHARS = {"ø": "o", "Ø": "o", "æ": "ae", "Æ": "ae", "å": "a", "Å": "a", "ı": "i", "ğ": "g", "ş": "s"}
+
+
+def _normalize_for_baseline(name: str) -> str:
+    name = "".join(_BASELINE_EXTRA_CHARS.get(c, c) for c in name)
+    name = unicodedata.normalize("NFKD", name)
+    name = "".join(c for c in name if not unicodedata.combining(c))
+    name = name.lower()
+    name = re.sub(r"[^a-z0-9]+", " ", name)
+    tokens = [t for t in name.split() if t not in _BASELINE_SUFFIX_TOKENS]
+    return " ".join(sorted(tokens))
+
+
+_NORMALIZED_BASELINE_INDEX: dict[str, list[str]] = {}
+for _name in CLUB_BASELINE:
+    _NORMALIZED_BASELINE_INDEX.setdefault(_normalize_for_baseline(_name), []).append(_name)
+
+
+def _canonical_club_name(club: str) -> str:
+    """Resolves `club` to its CLUB_BASELINE key, or returns it unchanged if
+    no match is found anywhere (a club genuinely new to Europe this season
+    has no prior history to resolve against). Tiered resolution, cheapest/
+    most-certain first; see the module-level comment above
+    _normalize_for_baseline for why a single shared normalizer still isn't
+    enough on its own.
+
+    Also doubles as this module's own club-name DEDUP key: _compute_live_
+    club_points and predicted_country_ranking's simulation pull team names
+    from different underlying sources that don't always agree on a given
+    club's exact spelling (confirmed live 2026-11-09: "Bayern Munich" vs
+    "Bayern München" split one real club's points across two separate
+    rows, silently undercounting both -- a pre-existing bug, not
+    introduced here, just made obvious by this function's own 5-year
+    context making the split rows' mismatched totals impossible to miss).
+    predicted_club_coefficients() below canonicalizes every club name
+    through this same function before merging, so the exact spelling a
+    club happened to arrive under no longer matters."""
+    if club in CLUB_BASELINE:
+        return club
+    alias = CLUB_BASELINE_ALIASES.get(club) or CLUB_ALIASES.get(club)
+    if alias and alias in CLUB_BASELINE:
+        return alias
+    low = club.lower()
+    for k in CLUB_BASELINE:
+        if k.lower() == low:
+            return k
+    for ak, av in CLUB_ALIASES.items():
+        if ak.lower() == low and av in CLUB_BASELINE:
+            return av
+    candidates = _NORMALIZED_BASELINE_INDEX.get(_normalize_for_baseline(club))
+    if candidates and len(candidates) == 1:
+        return candidates[0]
+    return club
+
+
 @st.cache_data(ttl=3_600, show_spinner=False)
 def predicted_club_coefficients() -> tuple[pd.DataFrame, list[str]]:
     """(table, warnings) -- per-club current + predicted season coefficient
     points, built from the exact same cached simulation predicted_country_
     ranking() already runs (a cache hit here, not a second expensive
-    simulation) plus _compute_live_club_points() for the real/current side.
+    simulation) plus _compute_live_club_points() for the real/current side,
+    plus club_coefficients_baseline.CLUB_BASELINE for the frozen 22/23-25/26
+    5-year history (resolved per club via _canonical_club_name above).
 
-    Columns: country, current_points (real, already earned),
-    predicted_additional (mean over n_sim of simulated remaining points --
-    0.0 for a club with no further fixtures, e.g. already eliminated, since
-    such a club simply never appears in any of the simulated per-club point
-    arrays), predicted_total (current + predicted_additional). Sorted
-    descending by predicted_total.
+    Columns: country, five_yr_rank (rank by five_yr_current, ties broken by
+    club name), current_points (this season, 26/27, real/already earned),
+    five_yr_current (22/23-25/26 baseline + current_points -- the club's
+    real UEFA 5-year standing as of right now), predicted_additional (mean
+    over n_sim of simulated remaining 26/27 points -- 0.0 for a club with
+    no further fixtures, e.g. already eliminated, since such a club simply
+    never appears in any of the simulated per-club point arrays),
+    predicted_total (current_points + predicted_additional, i.e. the full
+    projected 26/27 season alone), five_yr_predicted (22/23-25/26 baseline
+    + predicted_total -- the projected 5-year standing once this season
+    finishes). Sorted by five_yr_current descending, matching kassiesa.net's
+    own "5-Year Club Ranking" ordering rather than this season alone.
 
     warnings is passed straight through from predicted_country_ranking --
     same meaning (a competition whose League Phase field isn't fully known
     yet, so clubs still in that competition's qualifying rounds show
     predicted_additional=0.0 rather than a fabricated number)."""
     _pred_table, warnings, simulated_club_points, club_country = predicted_country_ranking()
-    current = _compute_live_club_points(_API_KEY)
+    current_raw = _compute_live_club_points(_API_KEY)
 
-    predicted_additional: dict[str, float] = {}
+    predicted_raw: dict[str, float] = {}
     for comp_points in simulated_club_points:
         for club, arr in comp_points.items():
-            predicted_additional[club] = predicted_additional.get(club, 0.0) + float(arr.mean())
+            predicted_raw[club] = predicted_raw.get(club, 0.0) + float(arr.mean())
+
+    # Canonicalize every raw club name BEFORE merging -- current_raw and
+    # predicted_raw pull team names from different underlying sources that
+    # don't always agree on a given club's exact spelling (see
+    # _canonical_club_name's own docstring). Without this, the same real
+    # club's points silently split across two rows instead of summing.
+    current: dict[str, float] = {}
+    country_by_canonical: dict[str, str] = {}
+    for club, pts in current_raw.items():
+        canon = _canonical_club_name(club)
+        current[canon] = current.get(canon, 0.0) + pts
+        if club_country.get(club):
+            country_by_canonical.setdefault(canon, club_country[club])
+    predicted_additional: dict[str, float] = {}
+    for club, pts in predicted_raw.items():
+        canon = _canonical_club_name(club)
+        predicted_additional[canon] = predicted_additional.get(canon, 0.0) + pts
+        if club_country.get(club):
+            country_by_canonical.setdefault(canon, club_country[club])
 
     clubs = set(current) | set(predicted_additional)
     rows = []
     for club in clubs:
         cur = current.get(club, 0.0)
         pred_add = predicted_additional.get(club, 0.0)
+        pred_total = cur + pred_add
+        baseline = CLUB_BASELINE.get(club, {})
+        baseline_sum = sum(baseline.get(s, 0.0) for s in ("22/23", "23/24", "24/25", "25/26"))
         rows.append({
             "club": club,
-            "country": club_country.get(club, ""),
+            "country": country_by_canonical.get(club, ""),
             "current_points": round(cur, 3),
+            "five_yr_current": round(baseline_sum + cur, 3),
             "predicted_additional": round(pred_add, 3),
-            "predicted_total": round(cur + pred_add, 3),
+            "predicted_total": round(pred_total, 3),
+            "five_yr_predicted": round(baseline_sum + pred_total, 3),
         })
-    table = pd.DataFrame(rows).sort_values("predicted_total", ascending=False).reset_index(drop=True)
+    table = pd.DataFrame(rows).sort_values(
+        ["five_yr_current", "club"], ascending=[False, True],
+    ).reset_index(drop=True)
+    table.insert(0, "five_yr_rank", table.index + 1)
     return table, warnings
