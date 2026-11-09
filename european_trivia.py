@@ -80,6 +80,23 @@ def _sweep_all_leagues(api_key: str) -> tuple[list[dict], list[str], str]:
         try:
             roster = client.get_standings(cfg["id"], cfg["af_season"])
             played, remaining = client.get_fixtures(cfg["id"], cfg["af_season"])
+            # A club suspended/expelled from the league mid-season (e.g.
+            # Lithuania's FK Trakai, confirmed 2026-11-02 -- see config.py's
+            # own comment on league_excluded_teams) has its entire record
+            # voided by the league, not merely its remaining fixtures
+            # cancelled. football_rankings.py's own fetch_all() already
+            # strips these before computing standings; this sweep built its
+            # own standings independently and missed the same step, so a
+            # suspended club with voided results (e.g. losses on file before
+            # the league voided them) could still surface here as "winless"
+            # -- confirmed live 2026-11-09 for Trakai. Same fix, same place.
+            _league_excluded = cfg.get("league_excluded_teams", {})
+            if _league_excluded:
+                played = [f for f in played
+                          if f.get("strHomeTeam") not in _league_excluded and f.get("strAwayTeam") not in _league_excluded]
+                remaining = [f for f in remaining
+                             if f.get("strHomeTeam") not in _league_excluded and f.get("strAwayTeam") not in _league_excluded]
+                roster = [r for r in roster if r.get("strTeam") not in _league_excluded]
             roster = ensure_full_roster(roster, played + remaining)
             standings = compute_full_standings(roster, played, tiebreakers=cfg.get("tiebreakers"))
         except Exception:
