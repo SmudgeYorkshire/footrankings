@@ -533,24 +533,33 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         },
     },
 
-    # ── Serbian Super Liga ── 16 teams · split Rd 30 (15×2) · top 8 → Champ · pts ×0.5
+    # ── Serbian Super Liga ── 16 teams · split Rd 30 (15×2) · top 6 → Champ · pts ×0.5
+    # Corrected 2026-11-09: this table was stale at "top 8 -> Champ" (config.py's
+    # own n_champ=6 -- the value the actual split computation uses -- already
+    # had the right number; only this static display table was out of date,
+    # confirmed live by a 16-team regular-season table wrongly showing 8 rows
+    # as "Championship Group" while the real Predicted Championship Group only
+    # ever had 6). The "relg" sub-positions below shift with it: the
+    # relegation group grows from 8 to 10 teams (overall 7th-16th instead of
+    # 9th-16th), so the SAME real overall positions (13th/14th get the PO,
+    # 15th/16th go straight down) now sit 2 places later within that group.
     "Serbian Super Liga": {
         "regular": {
             1: "Championship Group", 2: "Championship Group", 3: "Championship Group",
             4: "Championship Group", 5: "Championship Group", 6: "Championship Group",
-            7: "Championship Group", 8: "Championship Group",
-            9: "Relegation Group", 10: "Relegation Group", 11: "Relegation Group",
-            12: "Relegation Group", 13: "Relegation Group", 14: "Relegation Group",
-            15: "Relegation Group", 16: "Relegation Group",
+            7: "Relegation Group", 8: "Relegation Group", 9: "Relegation Group",
+            10: "Relegation Group", 11: "Relegation Group", 12: "Relegation Group",
+            13: "Relegation Group", 14: "Relegation Group", 15: "Relegation Group",
+            16: "Relegation Group",
         },
-        "champ": {  # 8 teams · pts ×0.5
+        "champ": {  # 6 teams · pts ×0.5
             1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2",
         },
-        "relg": {  # 8 teams (pos 9-16 overall) · pts ×0.5 · 13th–14th (5th–6th) = PO · 15th–16th (7th–8th) relegated
-            5: "Relegation - PO",
-            6: "Relegation - PO",
-            7: "Relegation",
-            8: "Relegation",
+        "relg": {  # 10 teams (pos 7-16 overall) · pts ×0.5 · 13th-14th (7th-8th) = PO · 15th-16th (9th-10th) relegated
+            7: "Relegation - PO",
+            8: "Relegation - PO",
+            9: "Relegation",
+            10: "Relegation",
         },
     },
 
