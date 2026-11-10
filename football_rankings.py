@@ -24,6 +24,7 @@ from cup_predictions import (
     _load_strength_ranking, _strength_score,
 )
 from cup_cascade import resolve_live_overrides
+from access_list_permutations_2027_28 import cup_winner_status
 from european_trivia import render_european_trivia
 from prob_table import render_prob_table, _green_col
 
@@ -907,6 +908,64 @@ def _render_predicted_winner(cup_id: int, season: int, ratings_df: pd.DataFrame,
         )
 
 
+def render_winner_bracket_status(cfg: dict, key: str) -> None:
+    """For a cup_only league (today: only Liechtenstein -- its domestic cup
+    is its SOLE route into Europe, config.py's own comment on that entry),
+    render_cup_details above shows the live predicted winner but nothing
+    about what that actually translates to in Europe -- unlike a normal
+    league, there's no Projections tab/Status column anywhere on this page
+    to show it. Added 2026-11-10 per explicit request (Liechtenstein's
+    predicted winner, Vaduz, needs its resulting status visible so it's
+    clear what feeds the 2027/28 European Competitions entrant pipeline).
+
+    Resolves the SAME two things separately and puts them side by side:
+    the live predicted winner (resolve_predicted_cup_winner -- the exact
+    engine render_cup_details above already uses) and that country's
+    cup-winner status (access_list_permutations_2027_28.cup_winner_status
+    -- the exact resolver european_2027_28.py's own entrant pipeline
+    already uses). Both already agree today (Vaduz, UECL - QR1) -- this
+    doesn't change either one, just makes the second one visible here
+    too, since nothing on this page showed it before."""
+    country = cfg.get("country")
+    status = cup_winner_status(country) if country else None
+    if not status:
+        return
+    cup_id = cfg.get("cup_id")
+    if not cup_id:
+        return
+    season = cfg.get("af_season") or int(str(get_current_season(cfg["season_type"]))[:4])
+    try:
+        played, remaining = fetch_cup_fixtures(cup_id, season, key)
+        ratings_df = load_ratings(cfg.get("tsdb_id", cfg["id"]), [])
+        pred_row, _pred_status, _skipped = resolve_predicted_cup_winner(
+            ratings_df, played, remaining, home_advantage=cfg.get("home_advantage", 1.0),
+        )
+    except Exception:
+        return
+    if pred_row is None:
+        return
+    pred_name = _display_team_name(pred_row)
+
+    st.markdown("### 🏆 Winner Bracket")
+    st.markdown(
+        "<table style='width:100%;border-collapse:collapse;font-family:sans-serif'>"
+        "<thead><tr style='border-bottom:1px solid #444'>"
+        "<th style='padding:6px 10px;text-align:left'>Team</th>"
+        "<th style='padding:6px 10px;text-align:left;color:#888;font-size:12px'>Route</th>"
+        "<th style='padding:6px 10px;text-align:left;color:#888'>Status</th>"
+        "</tr></thead><tbody>"
+        f"<tr><td style='padding:6px 10px'><b>{pred_name}</b></td>"
+        "<td style='padding:6px 10px;color:#aaa;font-size:12px'>Predicted cup winner</td>"
+        f"<td style='padding:6px 10px;color:#1a73e8;font-weight:bold'>{status}</td></tr>"
+        "</tbody></table>",
+        unsafe_allow_html=True,
+    )
+    st.caption(
+        f"{country}'s only route into Europe (no domestic league) -- this status is what "
+        "feeds the 2027/28 European Competitions entrant pipeline directly."
+    )
+
+
 def _render_one_cup(cup_id: int, season: int, ratings_df: pd.DataFrame, key: str, home_advantage: float = 1.0,
                      neutral_final: bool = False, excluded_teams: dict[str, str] | None = None):
     try:
@@ -1073,6 +1132,7 @@ def main_content():
         # Current Table/Predictions/etc. Skip straight to the one thing
         # that's actually real here.
         render_cup_details(cfg, _API_KEY)
+        render_winner_bracket_status(cfg, _API_KEY)
         return
     with st.spinner("Loading…"):
         try:
