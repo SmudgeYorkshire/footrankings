@@ -168,8 +168,20 @@ LEAGUES = {
                                          "away_conf": "relg",
                                          "away_pos": 1,
                                          "away_label": "1st (Relegation Round / 7th overall)",
-                                         "winner_spot": "UECL - QR3",
-                                         "caption": "4th-placed team (Championship Round) hosts a one-legged tie against the 1st-placed team of the Relegation Round (7th overall). Winner qualifies for UECL – QR3.",
+                                         "winner_spot": "UECL - QR2",  # corrected 2026-11-10: was
+                                         # "UECL - QR3", confirmed wrong -- both 4th (Championship
+                                         # Round) and 5th are UECL - QR2 for this league, same as 3rd.
+                                         "caption": "4th-placed team (Championship Round) hosts a one-legged tie against the 1st-placed team of the Relegation Round (7th overall). Winner qualifies for UECL – QR2.",
+                                         # Unlike Bulgaria/Wales's own champ_mid_playoff-style spots
+                                         # (a single contested slot a cup-winner cascade must stop
+                                         # at, not double up past), Denmark genuinely has TWO separate
+                                         # UECL - QR2 entitlements at this tier -- 3rd's own direct
+                                         # spot, and this play-off's own, independently-allocated one.
+                                         # If 3rd's own spot gets vacated by a cup winner's redundant
+                                         # prize, the next real candidate is 5th (not already
+                                         # accounted for by this play-off), not nobody -- see
+                                         # cup_cascade.py's own "independent_slot" handling.
+                                         "independent_slot": True,
                                      },
 
 },

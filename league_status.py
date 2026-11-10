@@ -367,6 +367,15 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
         },
         "champ": {  # 6 teams
             1: "UCL - PO", 2: "UCL - QR2 (LP)", 3: "UECL - QR2", 4: "UECL - QR2",
+            # 5th deliberately NOT given a static entry here -- unlike
+            # Bulgaria/Wales's own contested positions (shown as a fixed
+            # "most-likely-outcome" placeholder because nothing else ever
+            # changes there), 5th here is a genuine live reserve: it only
+            # becomes UECL - QR2 when a cup winner's redundant prize vacates
+            # 3rd's own direct spot, which config.py's champ_mid_playoff
+            # ("independent_slot": True) + cup_cascade.py's live resolver
+            # now handle dynamically -- not fixed to UECL - QR2, only
+            # whatever today's cup-winner prediction actually implies.
         },
         "relg": {  # 6 teams · 1st plays 4th from Champ (one-legged) · 11th/12th relegated
             5: "Relegation",

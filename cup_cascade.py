@@ -145,7 +145,8 @@ def _set_override(overrides: dict[int, str], pos: int, label: str) -> None:
 def _cascade_insert(ranked_teams: list[str], zones: dict[int, str],
                      overrides: dict[int, str], claimed: set[int],
                      label: str, tier: tuple[int, int],
-                     exclude_pos: frozenset[int] = frozenset()) -> bool:
+                     exclude_pos: frozenset[int] = frozenset(),
+                     pass_through: frozenset[int] = frozenset()) -> bool:
     """Places `label` (of `tier`) at the first POSITION whose EFFECTIVE zone
     -- an earlier cup's own override this round if it has one, else its
     plain natural zone from `zones` -- is lower-tier than `label` (or has
@@ -176,9 +177,25 @@ def _cascade_insert(ranked_teams: list[str], zones: dict[int, str],
     A position genuinely reserved by a play-off mechanism
     (_playoff_claimed_positions, already in `claimed` with no override of
     its own) is skipped outright -- a different kind of reservation this
-    chain doesn't touch, not a signal to stop or to carry anything into."""
+    chain doesn't touch, not a signal to stop or to carry anything into.
+
+    `pass_through`: playoff-seeded positions (see resolve_live_overrides'
+    own _playoff_seed_sources) explicitly marked, per-league, as their OWN
+    independent entitlement rather than a duplicate of whatever tier
+    they're shown at -- scanned past rather than treated as a hard stop,
+    even though they carry a real seeded label. Confirmed needed live
+    2026-11-10 (Denmark): 3rd's own direct UECL - QR2 and 4th's separate
+    play-off-contested UECL - QR2 are two genuinely different slots, so a
+    cup winner vacating 3rd's spot needs to reach 5th (the next team not
+    already accounted for by either), not stop dead at 4th the way
+    Bulgaria/Wales's own single, non-independent contested slot correctly
+    still does by default (see this module's own docstring for those two
+    bugs) -- this is an explicit per-league opt-in, not a behavior change
+    for anyone who doesn't set it."""
     for pos, _team in enumerate(ranked_teams, 1):
         if pos in exclude_pos:
+            continue
+        if pos in pass_through:
             continue
         cascaded_label = overrides.get(pos)
         effective_label = cascaded_label if cascaded_label is not None else zones.get(pos)
@@ -198,7 +215,7 @@ def _cascade_insert(ranked_teams: list[str], zones: dict[int, str],
             # mistake it for an EARLIER cup's cascade, stopping right here
             # instead of continuing the chain.
             _cascade_insert(ranked_teams, zones, overrides, claimed, effective_label, effective_tier,
-                             exclude_pos=exclude_pos | {pos})
+                             exclude_pos=exclude_pos | {pos}, pass_through=pass_through)
         return True
     return False
 
@@ -206,7 +223,7 @@ def _cascade_insert(ranked_teams: list[str], zones: dict[int, str],
 def _resolve_one_cup(cup_id, cw_status: str, cfg: dict, ratings_df: pd.DataFrame,
                       ranked_teams: list[str], zones: dict[int, str],
                       overrides: dict[int, str], claimed: set[int],
-                      api_key: str) -> None:
+                      api_key: str, pass_through: frozenset[int] = frozenset()) -> None:
     """Cascade logic for ONE domestic cup. Mutates `overrides` (keyed by
     POSITION, not team -- see _cascade_insert's own docstring for why) and
     `claimed` in place -- so a second cup resolved right after this one sees
@@ -256,7 +273,7 @@ def _resolve_one_cup(cup_id, cw_status: str, cfg: dict, ratings_df: pd.DataFrame
         # cup-winner slot -- it's a redundant, vacant prize: insert it at
         # the first position it would improve on, carrying whatever real
         # zone that position already had further down in turn.
-        _cascade_insert(ranked_teams, zones, overrides, claimed, cw_status, cw_tier)
+        _cascade_insert(ranked_teams, zones, overrides, claimed, cw_status, cw_tier, pass_through=pass_through)
     else:
         # Cup-winner slot beats their natural zone -- upgrade them
         # directly, and their vacated natural zone cascades down the same
@@ -264,7 +281,7 @@ def _resolve_one_cup(cup_id, cw_status: str, cfg: dict, ratings_df: pd.DataFrame
         _set_override(overrides, cw_pos, cw_status)
         claimed.add(cw_pos)
         if natural_label is not None:
-            _cascade_insert(ranked_teams, zones, overrides, claimed, natural_label, natural_tier,
+            _cascade_insert(ranked_teams, zones, overrides, claimed, natural_label, natural_tier, pass_through=pass_through,
                              exclude_pos=frozenset({cw_pos}))
 
 
@@ -390,7 +407,14 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
     # Bulgaria: a cup winner's vacated UECL - QR1 cascaded past 4th's own
     # simplified UECL - QR1 and landed a second copy on 5th instead of
     # stopping at 4th; confirmed again 2026-10-20, Wales: the same thing
-    # landed on 6th instead of 3rd).
+    # landed on 6th instead of 3rd) -- UNLESS that position's own config
+    # sets "independent_slot": True (see pass_through below), for a league
+    # where the playoff position's own tier is a genuinely separate
+    # entitlement rather than a duplicate of whatever's cascading through
+    # (confirmed needed live 2026-11-10, Denmark: 3rd's own direct
+    # UECL - QR2 and 4th's own separate play-off-contested UECL - QR2 are
+    # two different slots, so a cup winner vacating 3rd's needs to reach
+    # 5th, not stop dead at 4th).
     _playoff_seed_sources = (
         ("champ_pos", cfg.get("champ_mid_playoff")),
         ("bye_home_rank", cfg.get("uecl_3team_playoff")),
@@ -398,14 +422,29 @@ def resolve_live_overrides(league_name: str, cfg: dict, standings: list[dict],
         ("final_host_rank", cfg.get("uecl_5team_playoff")),
         ("simplified_pos", cfg.get("uecl_8team_playoff")),
     )
+    # A playoff position explicitly marked "independent_slot": True (per-
+    # league opt-in, default off) is still seeded into `overrides` the same
+    # way -- it still displays its own "most likely outcome" label -- but
+    # is ALSO exempted from being treated as a cascade-stopping wall, for a
+    # league where that position's own tier is a genuinely separate
+    # entitlement from whatever else might be the same tier elsewhere in
+    # the table, not a duplicate of it. See _cascade_insert's own
+    # docstring for why this needs to be explicit per-league rather than a
+    # blanket behavior change (would reintroduce the Bulgaria/Wales bugs
+    # the strict default exists for).
+    pass_through: set[int] = set()
     for _pos_key, _src in _playoff_seed_sources:
         _pos = _src.get(_pos_key) if _src else None
         if isinstance(_pos, int):
             _label = zones.get(_pos)
             if _label:
                 overrides[_pos] = _label
+            if _src.get("independent_slot"):
+                pass_through.add(_pos)
+    pass_through = frozenset(pass_through)
 
     for cup_id, cw_status in cups:
-        _resolve_one_cup(cup_id, cw_status, cfg, ratings_df, ranked_teams, zones, overrides, claimed, api_key)
+        _resolve_one_cup(cup_id, cw_status, cfg, ratings_df, ranked_teams, zones, overrides, claimed, api_key,
+                          pass_through=pass_through)
 
     return overrides
