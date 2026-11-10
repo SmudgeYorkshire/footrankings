@@ -830,7 +830,19 @@ for league_tab, league_name in zip(league_tabs, league_names):
                         value = float(detail_probs.loc[t, col]) * 100
                         row[col] = _cert_value(value, cert.get(col))
                     detail_rows.append(row)
-                detail_rows.sort(key=lambda r: tuple(r[c] for c in detail_cert_cols), reverse=True)
+                # Reversed column order -- rightmost (worst-outcome) column
+                # is the real primary sort key here, each column before it a
+                # tiebreaker for the one after. st.dataframe's own in-browser
+                # column-header click does a stable sort on just that one
+                # column, so whatever relative order ties were already in
+                # here is what the viewer sees them keep -- confirmed live
+                # 2026-11-10: sorting by the rightmost column left Belgium
+                # (0.1% in the column before it) ranked above Denmark (2.8%)
+                # among same-rightmost-column ties, because the OLD
+                # left-to-right tuple order broke those ties by the
+                # LEFTMOST column instead of the one actually adjacent to
+                # what the viewer clicked.
+                detail_rows.sort(key=lambda r: tuple(r[c] for c in reversed(detail_cert_cols)), reverse=True)
                 detail_df = pd.DataFrame(detail_rows)
                 detail_styled = detail_df.style.format(_cert_cell_format, subset=detail_cert_cols)
                 detail_col_cfg = {
