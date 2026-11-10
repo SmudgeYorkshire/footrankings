@@ -2113,18 +2113,26 @@ def main_content():
 
     # ── Projections ──────────────────────────────────────────────────────────
     with tab_proj:
-        if not remaining_fixtures and not split_info:
-            st.info("The season is complete — no remaining fixtures to simulate.")
-        elif split_info:
+        if split_info:
+            # The round-robin fallback below is only for "the provider
+            # hasn't published this group's post-split fixtures yet" --
+            # guarded on the LEAGUE's overall remaining_fixtures (not just
+            # this one group's own slice of it) being non-empty, so it
+            # doesn't also fire once the season has genuinely finished.
+            # Confirmed live 2026-11-10 (Finnish Veikkausliiga, season
+            # complete, 0 remaining fixtures anywhere): without this guard,
+            # a fully-decided Championship Round got a FAKE full round-robin
+            # generated and "simulated" as if still to be played, showing
+            # fabricated percentages instead of the real, already-known
+            # 100%-certain result.
             champ_fix = conference_fixtures(remaining_fixtures, split_info["champ_teams"])
-            if not champ_fix:
-                # API hasn't loaded post-split fixtures yet — generate full round-robin
+            if not champ_fix and remaining_fixtures:
                 champ_fix = _roundrobin_fixtures(sorted(split_info["champ_teams"]))
             mid_fix = conference_fixtures(remaining_fixtures, split_info.get("mid_teams") or set())
-            if not mid_fix and split_info.get("mid_teams"):
+            if not mid_fix and split_info.get("mid_teams") and remaining_fixtures:
                 mid_fix = _roundrobin_fixtures(sorted(split_info["mid_teams"]))
             relg_fix = conference_fixtures(remaining_fixtures, split_info["relg_teams"])
-            if not relg_fix and split_info.get("relg_teams"):
+            if not relg_fix and split_info.get("relg_teams") and remaining_fixtures:
                 relg_fix = _roundrobin_fixtures(sorted(split_info["relg_teams"]))
             sim_key = (league_id, season, n_sim, home_advantage, len(champ_fix), len(mid_fix), len(relg_fix), _ratings_fingerprint)
             if st.session_state.get("sim_key") != sim_key:
