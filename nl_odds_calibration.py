@@ -80,26 +80,26 @@ OBSERVATIONS: list[dict] = [
     # hand-typing a handful of matches here would just double-apply a
     # correction on top of odds that are already-fitted and current.
     #
-    # 2026-10-05 08:00 BST, bettingodds.com's League A outright winner
-    # market (fractional -> decimal): Spain still clear favourite after
-    # France/England tightened up since the last check; no Serbia line
-    # currently posted (dropped the stale 2026-10-01 251.0 guess rather
-    # than carry a figure with no current market backing it).
-    {"type": "outright", "team": "Spain", "decimal_odds": 3.25},
-    {"type": "outright", "team": "France", "decimal_odds": 4.00},
-    {"type": "outright", "team": "England", "decimal_odds": 6.00},
-    {"type": "outright", "team": "Portugal", "decimal_odds": 7.00},
-    {"type": "outright", "team": "Germany", "decimal_odds": 10.00},
+    # 2026-11-10, user-provided screenshot of a bookmaker's League A outright
+    # winner market (decimal odds) -- replaces the stale 2026-10-05 list
+    # above, which was still feeding the model a month-old market view (the
+    # trigger: Spain/France were showing as overstated favourites in live
+    # predictions, confirmed against this refresh). Only the teams actually
+    # visible in that screenshot are listed -- same principle the previous
+    # refresh used for Serbia: drop a team rather than carry a figure with
+    # no current market backing it, rather than guess at the cut-off part
+    # of the list. Denmark/Croatia/Wales/Türkiye/Czechia dropped for this
+    # reason (not reconfirmed in the new screenshot).
+    {"type": "outright", "team": "Spain", "decimal_odds": 3.00},
+    {"type": "outright", "team": "France", "decimal_odds": 3.75},
+    {"type": "outright", "team": "England", "decimal_odds": 5.50},
+    {"type": "outright", "team": "Portugal", "decimal_odds": 6.00},
+    {"type": "outright", "team": "Germany", "decimal_odds": 11.00},
     {"type": "outright", "team": "Netherlands", "decimal_odds": 13.00},
-    {"type": "outright", "team": "Belgium", "decimal_odds": 17.00},
-    {"type": "outright", "team": "Greece", "decimal_odds": 21.00},
-    {"type": "outright", "team": "Italy", "decimal_odds": 34.00},
-    {"type": "outright", "team": "Norway", "decimal_odds": 34.00},
-    {"type": "outright", "team": "Denmark", "decimal_odds": 67.00},
-    {"type": "outright", "team": "Croatia", "decimal_odds": 101.00},
-    {"type": "outright", "team": "Wales", "decimal_odds": 151.00},
-    {"type": "outright", "team": "Türkiye", "decimal_odds": 501.00},
-    {"type": "outright", "team": "Czechia", "decimal_odds": 1001.00},
+    {"type": "outright", "team": "Italy", "decimal_odds": 21.00},
+    {"type": "outright", "team": "Greece", "decimal_odds": 26.00},
+    {"type": "outright", "team": "Belgium", "decimal_odds": 34.00},
+    {"type": "outright", "team": "Norway", "decimal_odds": 51.00},
 ]
 
 
