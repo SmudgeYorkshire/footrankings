@@ -1144,6 +1144,20 @@ def main_content():
 
     split_info = get_split_info(standings, split_round, n_champ=n_champ, n_mid=cfg.get("n_mid", 0), pts_factor=pts_factor, presplit=_presplit_snapshot) if split_round else None
 
+    # Default to empty -- the Projections tab reads these unconditionally
+    # whenever split_info is truthy (position_bounds's own played/
+    # tiebreakers args), but the block below that actually populates them
+    # only runs when _presplit_snapshot is available too. Confirmed live
+    # 2026-11-10 (Finnish Veikkausliiga, season fully complete):
+    # _presplit_snapshot can be falsy even with a real split_info, leaving
+    # these undefined -- UnboundLocalError at the .get() calls below.
+    # .get() on an empty dict returns None, the SAME already-handled value
+    # position_bounds's own docstring describes for "a conference whose
+    # standings took the h2h-points-reset shortcut" -- a safe, intentional
+    # fallback, not a new code path.
+    _conf_played_by_key: dict[str, list[dict]] = {}
+    _conf_tiebreakers_by_key: dict[str, list[str] | None] = {}
+
     # Providers' own split-league standings tables lag actual results.
     # Always recompute all conference standings from the presplit snapshot +
     # played post-split fixtures so Current Table and Projections are accurate.
@@ -1200,8 +1214,8 @@ def main_content():
         # real match points, so the tiebreak-tightening's own points-based
         # boundary check doesn't carry the same guarantee; safer to leave
         # that one conference at today's points-only behaviour.
-        _conf_played_by_key: dict[str, list[dict]] = {}
-        _conf_tiebreakers_by_key: dict[str, list[str] | None] = {}
+        # (_conf_played_by_key/_conf_tiebreakers_by_key themselves are
+        # initialized above this whole `if`, not here -- see that comment.)
         for _conf_key, _teams_key in [
             ("champ_current", "champ_teams"),
             ("mid_current",   "mid_teams"),
