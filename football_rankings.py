@@ -1420,6 +1420,17 @@ def main_content():
     _champ_spot_zones = {pos: lbl for pos, lbl in (_champ_zones or {}).items()
                          if any(kw in lbl.lower() for kw in _SPOT_KW)
                          and not any(lbl.lower().endswith(s) for s in _GROUP_SUFFIX)}
+    # A Final Four league's own real per-position prizes (e.g. Albania:
+    # {1: "UCL - QR1", 2-4: "UECL - QR1"}) live in league_status.py's own
+    # "final_four" phase, separate from "regular" -- "regular" only has the
+    # generic "Final Four" group-assignment placeholder for positions 1-4
+    # (same reason _main_zones itself never has real spot labels for a
+    # split league's own pre-split positions), so _spot_zones above never
+    # sees them at all.
+    _ff_zones = _ls.get("final_four", {})
+    _ff_spot_zones = {pos: lbl for pos, lbl in (_ff_zones or {}).items()
+                      if any(kw in lbl.lower() for kw in _SPOT_KW)
+                      and not any(lbl.lower().endswith(s) for s in _GROUP_SUFFIX)}
     _EURO_KW = ("ucl", "uel", "uecl")
 
     # team_status_overrides — resolved live (which team is predicted to win
@@ -1431,7 +1442,22 @@ def main_content():
     # (if still present on a league) is kept only as a fallback for when the
     # live resolution can't produce anything (API hiccup, no cup data yet).
     _has_euro_zone = lambda d: any(kw in lbl.lower() for lbl in d.values() for kw in _EURO_KW)
-    _cascade_zones = _spot_zones if _has_euro_zone(_spot_zones) else _champ_spot_zones
+    # _ff_spot_zones checked first: without it, a Final Four league's own
+    # domestic-cup winner cascade saw an EMPTY zones dict (neither
+    # _spot_zones nor _champ_spot_zones has anything for a Final Four
+    # league -- its real per-position prizes live only in _ff_spot_zones)
+    # and treated every one of the 4 Final Four positions as having no
+    # natural zone at all, so the predicted cup winner's own (lower-tier)
+    # cup prize got assigned directly to whichever position they currently
+    # sit at -- confirmed live 2026-11-10 (Albania): 1st place's real
+    # UCL - QR1 (the Final Four's own top prize) got clobbered by the
+    # domestic cup winner's UECL - QR1 the moment that same club also
+    # topped the table.
+    _cascade_zones = (
+        _ff_spot_zones if _has_euro_zone(_ff_spot_zones)
+        else _spot_zones if _has_euro_zone(_spot_zones)
+        else _champ_spot_zones
+    )
 
     # For a non-split league, the Predictions tab's own full-table simulation
     # (below, "main" cache key) already ranks every team -- reuse that EXACT
