@@ -842,7 +842,6 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20009,Opava,,68.41,67.3,5,2026-11-06
 20006,Spartak Pleven,,68.39,75.0,4,2026-11-08
 20034,Moss,,68.38,67.0,6,2026-11-08
-20037,Metalul Buzău,,68.37,66.1,4,2026-10-31
 4642,Breiðablik,Breidablik,68.31,68.0,4,2026-10-24
 4692,Brinje Grosuplje,Brinje-Grosuplje,68.29,68.1,5,2026-11-08
 4354,Livyi Bereh,,68.29,67.7,7,2026-11-06
@@ -873,6 +872,7 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 4354,Veres Rivne,,67.96,67.7,11,2026-11-06
 4638,Rustavi,FC Rustavi,67.95,68.1,5,2026-11-07
 4635,HB,HB Torshavn,67.94,68.3,4,2026-10-31
+20037,Metalul Buzău,,67.89,66.1,5,2026-11-10
 20007,Segesta Sisak,,67.88,65.7,5,2026-11-07
 20046,Sivasspor,,67.86,67.5,6,2026-11-07
 4622,Torpedo Belaz,Torpedo Zhodino,67.85,69.4,10,2026-11-07
@@ -1055,6 +1055,7 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20037,FC Politehnica Timisoara,,63.98,60.4,5,2026-11-09
 20008,Enosis,,63.96,62.3,3,2026-10-31
 20032,MVV,,63.87,63.4,5,2026-11-08
+20037,CSA Steaua Bucureşti,,63.83,63.5,4,2026-11-10
 20022,Maccabi Kiryat Gat,,63.78,63.6,4,2026-10-30
 4656,Otrant-Olympic,,63.78,64.0,6,2026-11-07
 4656,Petrovac,FK Petrovac,63.78,63.7,6,2026-11-08
@@ -1066,7 +1067,6 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 4659,Glentoran,,63.53,64.8,6,2026-11-07
 4472,Connah's Quay,GAP Connah S Quay FC,63.52,64.4,5,2026-11-06
 20006,Fratria,,63.52,61.3,5,2026-11-09
-20037,CSA Steaua Bucureşti,,63.5,63.5,3,2026-10-25
 20008,APEA,,63.49,61.1,5,2026-11-08
 20037,CS Afumati,,63.47,62.4,5,2026-11-07
 20037,CSM Ramnicu Valcea,,63.37,61.3,5,2026-11-09
