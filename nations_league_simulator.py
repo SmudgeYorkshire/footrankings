@@ -27,7 +27,7 @@ import streamlit as st
 from config import DEFAULT_HOME_ADVANTAGE
 from simulator import (
     _opta_to_attack_defense, simulate_season, fixture_odds, two_leg_advance_odds, _sort_cascade,
-    _build_rat_lookup, DEFAULT_BASE_GOALS, OVERDISPERSION,
+    _build_rat_lookup, DEFAULT_BASE_GOALS, OVERDISPERSION, _rank_group,
 )
 from nations_league_data import NL_GROUPS, ALL_NL_TEAMS, NEUTRAL_VENUE_NATIONS, NEUTRAL_VENUE_FIXTURES, NL_TIEBREAKERS
 
@@ -173,11 +173,24 @@ def _expected_points(
     ratings_df: pd.DataFrame,
     home_advantage: float,
     base_points: dict[str, float] | None = None,
+    teams: list[str] | None = None,
 ) -> dict[str, float]:
     """Projected total points: base_points (0 for every team if not given,
     e.g. a team's real points-so-far otherwise) + 3*P(win) + 1*P(draw)
-    summed across every one of `fixtures` the team plays, home or away."""
-    teams = sorted({t for f in fixtures for t in (f["strHomeTeam"], f["strAwayTeam"])})
+    summed across every one of `fixtures` the team plays, home or away.
+
+    teams: the group's full roster, explicitly -- deriving it from
+    `fixtures` alone (the old behavior, still the default when omitted)
+    silently drops any team with zero remaining fixtures (one that's
+    already finished its group schedule) from the result entirely, which
+    callers then default to 0.0 projected points instead of its real
+    final points. Confirmed a real latent bug 2026-11-12 while building
+    the Interim Rankings tab: not yet live (no NL group has finished
+    every team's schedule today), but guaranteed to misfire the moment
+    one does."""
+    teams = sorted(teams) if teams is not None else sorted(
+        {t for f in fixtures for t in (f["strHomeTeam"], f["strAwayTeam"])}
+    )
     overrides = _home_advantage_overrides(teams, home_advantage)
     odds = fixture_odds(fixtures, ratings_df, home_advantage=home_advantage, home_advantage_overrides=overrides)
     pts = {t: float((base_points or {}).get(t, 0.0)) for t in teams}
@@ -220,7 +233,7 @@ def group_expected_points(
     fixtures = remaining_fixtures if remaining_fixtures is not None else _round_robin_fixtures(teams)
     base_standings = standings if standings is not None else _blank_standings(teams)
     base_points = {row["strTeam"]: row.get("intPoints", 0) for row in base_standings}
-    return _expected_points(fixtures, group_ratings, home_advantage, base_points)
+    return _expected_points(fixtures, group_ratings, home_advantage, base_points, teams=teams)
 
 
 def simulate_group(
@@ -696,21 +709,27 @@ def _ordinal(n: int) -> str:
     return f"{n}{suffix}"
 
 
-def league_interim_order(
+def league_interim_rankings(
     group_probs: dict[str, pd.DataFrame],
     group_standings: dict[str, list[dict]] | None,
     group_remaining: dict[str, list[dict]] | None,
     ratings_df: pd.DataFrame,
-) -> list[str]:
+) -> list[dict]:
     """All of a league's teams in UEFA's "Criteria for league ranking"
-    order (see the Rules tab / Wikipedia): primarily by group position --
-    every group's 1st-place team ranks above every group's 2nd-place
-    team, and so on -- then by each team's own projected final points as
-    the tiebreaker within a position tier. GD/GF/away-goals/wins/
-    discipline/access-list (UEFA's criteria 3-9) aren't modeled here,
-    same simplification the Rules tab already documents for criteria
-    10-11 elsewhere on this page -- points alone already decides the
-    overwhelming majority of real tiebreaks.
+    order (see the Rules tab / Wikipedia), as full row detail (team,
+    group, position within group, projected points) rather than just the
+    final order -- for display (e.g. the Interim Rankings tab), which
+    needs to show WHY each team ranks where it does, not just the order
+    itself. league_interim_order is a thin wrapper over this for callers
+    that only need the plain team list.
+
+    Ranks primarily by group position -- every group's 1st-place team
+    ranks above every group's 2nd-place team, and so on -- then by each
+    team's own projected final points as the tiebreaker within a
+    position tier. GD/GF/away-goals/wins/discipline/access-list (UEFA's
+    criteria 3-9) aren't modeled here, same simplification the Rules tab
+    already documents for criteria 10-11 elsewhere on this page -- points
+    alone already decides the overwhelming majority of real tiebreaks.
 
     group_standings/group_remaining: that league's real current data
     (nations_league.py's per-league all_group_standings/all_group_
@@ -727,9 +746,20 @@ def league_interim_order(
             remaining_fixtures=(group_remaining or {}).get(gname),
         )
         for pos, team in enumerate(order, start=1):
-            rows.append((team, pos, exp_pts.get(team, 0.0)))
-    rows.sort(key=lambda r: (r[1], -r[2]))
-    return [r[0] for r in rows]
+            rows.append({"team": team, "group": gname, "position": pos, "exp_pts": exp_pts.get(team, 0.0)})
+    rows.sort(key=lambda r: (r["position"], -r["exp_pts"]))
+    return rows
+
+
+def league_interim_order(
+    group_probs: dict[str, pd.DataFrame],
+    group_standings: dict[str, list[dict]] | None,
+    group_remaining: dict[str, list[dict]] | None,
+    ratings_df: pd.DataFrame,
+) -> list[str]:
+    """Plain team order from league_interim_rankings -- see its own
+    docstring for the ranking rule."""
+    return [r["team"] for r in league_interim_rankings(group_probs, group_standings, group_remaining, ratings_df)]
 
 
 def project_league_a_finals(
@@ -1077,13 +1107,55 @@ def simulate_league_outcomes(
     p_nb = 1.0 / (1.0 + phi)
     default = (DEFAULT_BASE_GOALS, DEFAULT_BASE_GOALS)
 
+    # Within-group tiebreaking (see the per-replicate ranking loop below)
+    # needs real head-to-head results, not just aggregate points/GD/GF --
+    # accumulated here per group exactly like simulate_season's own
+    # base_h2h_*/sim_h2h_* arrays, just scoped to one small group instead
+    # of a whole league table. Confirmed a real bug live 2026-11-12 (League
+    # C Group C2): without this, two teams tied on points after the
+    # remaining fixtures were simulated were ranked by overall GD/GF alone,
+    # so a team already mathematically guaranteed to lose the real H2H
+    # tiebreaker (Armenia, behind Cyprus on both points-if-tied and H2H)
+    # still showed a double-digit percent chance of finishing above them.
+    group_h2h: dict[str, tuple[dict[str, int], np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = {}
+
     for gname, state in group_states.items():
         teams = state["teams"]
+        team_idx = {t: i for i, t in enumerate(teams)}
+        n = len(teams)
         for t in teams:
             base = state["base_stats"].get(t, {})
             pts[t][:] = base.get("pts", 0)
             gd[t][:] = base.get("gd", 0)
             gf[t][:] = base.get("gf", 0)
+
+        base_h2h_pts = np.zeros((n, n), dtype=np.int64)
+        base_h2h_gd  = np.zeros((n, n), dtype=np.int64)
+        base_h2h_gf  = np.zeros((n, n), dtype=np.int64)
+        base_h2h_agf = np.zeros((n, n), dtype=np.int64)
+        for f in state.get("played", []):
+            h, a = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
+            if h not in team_idx or a not in team_idx:
+                continue
+            hi, ai = team_idx[h], team_idx[a]
+            hg, ag = int(f.get("intHomeScore") or 0), int(f.get("intAwayScore") or 0)
+            base_h2h_gd[hi, ai] += hg - ag
+            base_h2h_gd[ai, hi] += ag - hg
+            base_h2h_gf[hi, ai] += hg
+            base_h2h_gf[ai, hi] += ag
+            base_h2h_agf[ai, hi] += ag  # away team's own goals, in an away fixture
+            if hg > ag:
+                base_h2h_pts[hi, ai] += 3
+            elif hg < ag:
+                base_h2h_pts[ai, hi] += 3
+            else:
+                base_h2h_pts[hi, ai] += 1
+                base_h2h_pts[ai, hi] += 1
+
+        sim_h2h_pts = np.zeros((n, n, n_sim), dtype=np.int64)
+        sim_h2h_gd  = np.zeros((n, n, n_sim), dtype=np.int64)
+        sim_h2h_gf  = np.zeros((n, n, n_sim), dtype=np.int64)
+        sim_h2h_agf = np.zeros((n, n, n_sim), dtype=np.int64)
 
         group_ratings = _scoped_attack_defense(teams, ratings_df)
         rat_lookup, league_avg = _build_rat_lookup(group_ratings, DEFAULT_BASE_GOALS)
@@ -1104,6 +1176,30 @@ def simulate_league_outcomes(
             gd[a] += ga - gh
             gf[h] += gh
             gf[a] += ga
+
+            if h in team_idx and a in team_idx:
+                hi, ai = team_idx[h], team_idx[a]
+                home_pts = np.where(gh > ga, 3, np.where(gh == ga, 1, 0))
+                away_pts = np.where(ga > gh, 3, np.where(ga == gh, 1, 0))
+                sim_h2h_pts[hi, ai] += home_pts
+                sim_h2h_pts[ai, hi] += away_pts
+                sim_h2h_gd[hi, ai] += gh - ga
+                sim_h2h_gd[ai, hi] += ga - gh
+                sim_h2h_gf[hi, ai] += gh
+                sim_h2h_gf[ai, hi] += ga
+                sim_h2h_agf[ai, hi] += ga
+
+        # base_h2h_* is (n, n); sim_h2h_* is (n, n, n_sim) -- broadcast the
+        # base over the trailing n_sim axis rather than along the last
+        # existing axis (what a bare "+" would do, since numpy aligns
+        # shapes from the right).
+        group_h2h[gname] = (
+            team_idx,
+            base_h2h_pts[:, :, None] + sim_h2h_pts,
+            base_h2h_gd[:, :, None] + sim_h2h_gd,
+            base_h2h_gf[:, :, None] + sim_h2h_gf,
+            base_h2h_agf[:, :, None] + sim_h2h_agf,
+        )
 
     # Preserve each rule's own order of first appearance (rather than
     # alphabetical) so a league's Predictions columns read as a natural
@@ -1144,16 +1240,52 @@ def simulate_league_outcomes(
                 tie_odds[(t1, t2)] = adv["team1_adv"]
                 tie_odds[(t2, t1)] = adv["team2_adv"]
 
+    def _rank_one_group(gname: str, i: int) -> list[str]:
+        """This replicate's final order for one group: tier by points,
+        then resolve any points-tied tier with _rank_group (NL_TIEBREAKERS,
+        h2h first) instead of a flat GD/GF sort -- see group_h2h's own
+        comment for the bug this closes. "wins"/"away_wins" (the last two
+        NL_TIEBREAKERS rules) aren't implemented by _rank_group itself
+        (same pre-existing gap simulate_season's own general path has);
+        team-wide "away_gf" similarly has no real data available here
+        (group_states never carried it) and is passed as zeros -- none of
+        these three are likely to ever be reached, since h2h_pts alone
+        resolves the overwhelming majority of real ties."""
+        teams = group_states[gname]["teams"]
+        team_idx, h2h_pts, h2h_gd, h2h_gf, h2h_agf = group_h2h[gname]
+        n = len(teams)
+        gd_by_idx = np.zeros(n)
+        gf_by_idx = np.zeros(n)
+        zero_away_gf = np.zeros(n)
+        for t in teams:
+            gd_by_idx[team_idx[t]] = gd[t][i]
+            gf_by_idx[team_idx[t]] = gf[t][i]
+
+        by_points: dict[float, list[str]] = {}
+        for t in teams:
+            by_points.setdefault(pts[t][i], []).append(t)
+        idx_to_team = {v: k for k, v in team_idx.items()}
+        order: list[str] = []
+        for p in sorted(by_points, reverse=True):
+            tier = by_points[p]
+            if len(tier) == 1:
+                order.extend(tier)
+                continue
+            ranked_idx = _rank_group(
+                [team_idx[t] for t in tier], NL_TIEBREAKERS,
+                gd_by_idx, gf_by_idx, zero_away_gf,
+                h2h_pts[:, :, i], h2h_gd[:, :, i], h2h_gf[:, :, i], h2h_agf[:, :, i],
+            )
+            order.extend(idx_to_team[idx] for idx in ranked_idx)
+        return order
+
     # n_sim is only ever a few thousand and each group has just 3-4 teams,
     # so a plain per-replicate Python loop for the ranking step (goal
     # simulation above is the only part that actually needs vectorizing)
     # is simplest and still runs in a fraction of a second.
     group_items = list(group_states.items())
     for i in range(n_sim):
-        order_by_group = {
-            gname: sorted(state["teams"], key=lambda t: (-pts[t][i], -gd[t][i], -gf[t][i]))
-            for gname, state in group_items
-        }
+        order_by_group = {gname: _rank_one_group(gname, i) for gname, _state in group_items}
         for order in order_by_group.values():
             for idx, t in enumerate(order):
                 pos_counts[t][idx + 1] = pos_counts[t].get(idx + 1, 0) + 1

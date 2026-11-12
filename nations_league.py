@@ -27,7 +27,7 @@ from nations_league_simulator import (
     cross_group_ranking, group_fixture_odds, group_expected_points, project_qf_entries,
     project_playoff_entries, project_2028_composition, league_a_relegation_pool_split,
     most_likely_group_order, group_position_bounds, league_label_certainty,
-    apply_cross_league_playoff_correction,
+    apply_cross_league_playoff_correction, league_interim_rankings,
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
@@ -484,7 +484,14 @@ def _render_ranking_table(reps: list[dict], rule: tuple, pts_key: str = "Pts", b
 
 
 def _group_states_from(groups: dict[str, list[str]], standings_by_group: dict[str, list[dict]],
-                        remaining_by_group: dict[str, list[dict]]) -> dict[str, dict]:
+                        remaining_by_group: dict[str, list[dict]],
+                        played_by_group: dict[str, list[dict]] | None = None) -> dict[str, dict]:
+    """played_by_group: this group's real played fixtures, needed by
+    simulate_league_outcomes' own within-group H2H tiebreak (see that
+    function's own comment on group_h2h) -- optional only so an existing
+    call site that genuinely has no played-fixture data handy (none do
+    today) degrades to "no base H2H" rather than a hard KeyError."""
+    played_by_group = played_by_group or {}
     return {
         gname: {
             "teams": teams,
@@ -493,6 +500,7 @@ def _group_states_from(groups: dict[str, list[str]], standings_by_group: dict[st
                 for r in standings_by_group[gname]
             },
             "remaining": remaining_by_group[gname],
+            "played": played_by_group.get(gname, []),
         }
         for gname, teams in groups.items()
     }
@@ -610,11 +618,15 @@ def _manual_predictions_tab(group_key: str, teams: list[str], roster: list[dict]
 
 league_names = list(NL_GROUPS.keys())
 top_tabs = st.tabs(
-    league_names + ["🔀 Promotion & Relegation", "🏆 Knockouts", "📜 Rules", "🔮 2028/29 Projections"]
+    league_names + [
+        "🔀 Promotion & Relegation", "🏆 Knockouts", "📊 Interim Rankings", "📜 Rules",
+        "🔮 2028/29 Projections",
+    ]
 )
 league_tabs = top_tabs[:len(league_names)]
-promo_releg_tab = top_tabs[-4]
-knockout_chances_tab = top_tabs[-3]
+promo_releg_tab = top_tabs[-5]
+knockout_chances_tab = top_tabs[-4]
+interim_rankings_tab = top_tabs[-3]
 rules_tab = top_tabs[-2]
 projections_2028_tab = top_tabs[-1]
 
@@ -669,7 +681,9 @@ with st.spinner("Simulating every league's group stage…"):
         all_group_played[league_name] = league_group_played
         all_group_roster[league_name] = league_group_roster
 
-        league_group_states = _group_states_from(groups, league_group_standings, league_group_remaining)
+        league_group_states = _group_states_from(
+            groups, league_group_standings, league_group_remaining, league_group_played,
+        )
         all_group_states[league_name] = league_group_states
         outcome_probs, group_position_probs = simulate_league_outcomes(
             league_group_states, rules, ratings_df, n_sim=10_000, seed=league_seed,
@@ -817,7 +831,9 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     detail_rules.append(("ranked", position, n_top, top_text, n_bottom, bottom_text))
                 with st.spinner("Simulating…"):
                     detail_probs, _ = simulate_league_outcomes(
-                        _group_states_from(groups, league_group_standings, league_group_remaining),
+                        _group_states_from(
+                            groups, league_group_standings, league_group_remaining, league_group_played,
+                        ),
                         detail_rules, ratings_df, n_sim=10_000, seed=league_seed,
                     )
                 detail_certainty = league_label_certainty(league_group_states, detail_rules)
@@ -1087,6 +1103,52 @@ with promo_releg_tab:
                   {t: c.get("Relegation Play-offs") for t, c in b_cert.items()})
     _role_chances("League C runner-up", c_teams, c_promo_pool_chance,
                   {t: c.get("Promotion Play-offs") for t, c in c_cert.items()})
+
+with interim_rankings_tab:
+    st.markdown("#### Interim Rankings")
+    st.caption(
+        "UEFA's own interim overall ranking after the group stage (see Article 19 on the Rules tab) "
+        "ranks each league's teams purely within that league, by group result -- League A's teams "
+        "fill ranks 1-16, League B 17-32, League C 33-48, League D 49-54. This projects each team's "
+        "single most-likely group finish and projected points right now, the same point-estimate "
+        "approach as the 2028/29 Projections tab (not a probability -- contrast the Knockouts/"
+        "Promotion & Relegation tabs' own \"chance to prevail\" figures). Group position decides the "
+        "ranking first; projected points (current points plus each remaining fixture's expected "
+        "value) break ties within a position -- UEFA's own goal-difference/goals-scored/away-goals/"
+        "wins/discipline/access-list criteria aren't modeled, same simplification the Rules tab "
+        "documents for the within-group tiebreak."
+    )
+    rank_offset = 1
+    for league_name in league_names:
+        rows = league_interim_rankings(
+            all_group_probs[league_name], all_group_standings[league_name],
+            all_group_remaining[league_name], ratings_df,
+        )
+        df = pd.DataFrame([
+            {
+                "Rank": rank_offset + i,
+                "Flag": _flag(r["team"]),
+                "Team": r["team"],
+                "Group": r["group"],
+                "Pos": _ordinal(r["position"]),
+                "xPTS": round(r["exp_pts"], 1),
+            }
+            for i, r in enumerate(rows)
+        ])
+        st.markdown(f"##### {league_name} ({len(df)} teams)")
+        st.dataframe(
+            df,
+            column_config={
+                "Rank": st.column_config.NumberColumn("Rank", width="small"),
+                "Flag": st.column_config.ImageColumn("", width="small"),
+                "Team": st.column_config.TextColumn("Team", width="medium"),
+                "Group": st.column_config.TextColumn("Group", width="small"),
+                "Pos": st.column_config.TextColumn("Group Pos", width="small"),
+                "xPTS": st.column_config.NumberColumn("Projected Pts", width="small"),
+            },
+            width="content", hide_index=True, height=len(df) * 35 + 38,
+        )
+        rank_offset += len(df)
 
 with rules_tab:
     st.markdown("#### Tiebreaking Rules")
