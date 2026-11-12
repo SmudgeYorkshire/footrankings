@@ -26,11 +26,18 @@ _SEASON = 2026
 
 # API-Football's own spelling, where it differs from this site's (see
 # NL_GROUPS in nations_league_data.py) -- resolve_to_team's fuzzy match
-# already handles everything else.
+# already handles everything else. Confirmed live 2026-11-12: "Czech
+# Republic" (API-Football's own name) doesn't fuzzy-match "Czechia" (this
+# site's canonical name) at all -- not a diacritic/suffix variant, a
+# genuinely different word -- so every one of Czechia's real Group A3
+# fixtures was silently filtered out of group_fixtures() below (neither
+# side of the match ever matched the group's own team_set), showing them
+# at 0 played despite having actually played their full schedule.
 _NAME_ALIASES = {
     "Bosnia & Herzegovina": "Bosnia and Herzegovina",
     "FYR Macedonia": "North Macedonia",
     "Rep. Of Ireland": "Republic of Ireland",
+    "Czech Republic": "Czechia",
 }
 
 
