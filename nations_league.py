@@ -349,7 +349,20 @@ def _render_outcome_predictions(
         if show_stay:
             leave_prob = sum(v for c, v in raw.items() if c in leave_labels)
             value = max(0.0, 1.0 - leave_prob) * 100
-            stay_cert = True if all(cert.get(c) is False for c in leave_labels) else None
+            # Certainly NOT staying as soon as any one way to leave is
+            # already clinched (e.g. Montenegro: "Promotion to League B"
+            # shown as a clinched "✓" elsewhere in this same row) -- not
+            # just when every way to leave is still open and unproven, the
+            # old condition's only branch. Confirmed missing live
+            # 2026-11-13: Montenegro showed "0.0%" instead of "X" here
+            # despite the other table on the same page already showing its
+            # promotion as clinched.
+            if any(cert.get(c) is True for c in leave_labels):
+                stay_cert = False
+            elif all(cert.get(c) is False for c in leave_labels):
+                stay_cert = True
+            else:
+                stay_cert = None
             row[stay_label] = _cert_value(value, stay_cert)
         if extra_alias:
             value = raw[extra_alias[1]] * 100
