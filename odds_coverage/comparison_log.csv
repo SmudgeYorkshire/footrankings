@@ -7297,3 +7297,146 @@ date,source,league,tracked,n_fixtures,avg_bookmakers
 2026-11-12,api_football,A-League Women,False,1,9.0
 2026-11-12,api_football,Second Division,False,1,1.0
 2026-11-12,api_football,Copa Colombia,False,1,4.0
+2026-11-13,api_football,UEFA Nations League,False,35,7.0
+2026-11-13,api_football,Africa Cup of Nations - Qualification,False,15,9.5
+2026-11-13,api_football,Primera A,False,8,10.0
+2026-11-13,api_football,Serbia - Prva Liga,True,7,3.6
+2026-11-13,api_football,Montenegrin First League,True,1,9.0
+2026-11-13,api_football,Slovenia - 2. SNL,True,8,5.4
+2026-11-13,api_football,II Liga - East,False,8,8.6
+2026-11-13,api_football,Northern Irish Premiership,True,6,10.0
+2026-11-13,api_football,3. liga - CFL A,False,7,6.0
+2026-11-13,api_football,Northern Ireland - Championship,True,4,5.8
+2026-11-13,api_football,1. Liga U19,False,4,6.8
+2026-11-13,api_football,3. liga - West,False,2,5.0
+2026-11-13,api_football,Oberliga - Hamburg,False,1,1.0
+2026-11-13,api_football,III Liga - Group 4,False,6,5.2
+2026-11-13,api_football,III Liga - Group 3,False,6,5.5
+2026-11-13,api_football,Spain - Segunda División,True,10,9.2
+2026-11-13,api_football,Primera División RFEF - Group 1,False,10,8.2
+2026-11-13,api_football,Primera División RFEF - Group 2,False,10,8.2
+2026-11-13,api_football,Frauenliga,False,1,9.0
+2026-11-13,api_football,2. Division,False,6,8.5
+2026-11-13,api_football,3. Division,False,6,6.3
+2026-11-13,api_football,3. liga - MSFL,False,12,6.2
+2026-11-13,api_football,4. liga - Divizie D,False,1,4.0
+2026-11-13,api_football,Tweede Divisie,False,9,6.2
+2026-11-13,api_football,Wales - FAW Championship,True,4,7.0
+2026-11-13,api_football,Ukraine - Persha Liga,True,3,5.0
+2026-11-13,api_football,Feminine Division 1,False,5,9.0
+2026-11-13,api_football,Druha Liga,False,4,1.0
+2026-11-13,api_football,Frauen Bundesliga,False,7,8.0
+2026-11-13,api_football,Second League,False,5,8.4
+2026-11-13,api_football,Serie C - Girone A,False,11,8.5
+2026-11-13,api_football,Serie C - Girone B,False,11,8.4
+2026-11-13,api_football,Ligue 1,False,1,10.0
+2026-11-13,api_football,Reserve Pro League,False,2,6.0
+2026-11-13,api_football,Premier League Cup,False,2,8.0
+2026-11-13,api_football,NPFL,False,1,6.0
+2026-11-13,api_football,Liga Premier Serie A,False,1,6.0
+2026-11-13,api_football,U20 Elite League,False,2,8.0
+2026-11-13,api_football,Liga III - Serie 3,False,1,7.0
+2026-11-13,api_football,Liga III - Serie 6,False,1,6.0
+2026-11-13,api_football,Division 2,False,3,6.0
+2026-11-13,api_football,CONCACAF Nations League,False,9,9.7
+2026-11-13,api_football,Friendlies,False,22,7.7
+2026-11-13,api_football,Australian Championship,False,5,9.4
+2026-11-13,api_football,Copa del Rey,False,6,3.3
+2026-11-13,api_football,UEFA U21 Championship - Qualification,False,3,8.7
+2026-11-13,api_football,Friendlies Clubs,False,21,3.2
+2026-11-13,api_football,Welsh Cup,False,4,6.0
+2026-11-13,api_football,Premier League,False,2,6.5
+2026-11-13,api_football,Segunda División,False,2,5.5
+2026-11-13,api_football,Coupe de France,False,5,8.6
+2026-11-13,api_football,Paulista - U20,False,1,7.0
+2026-11-13,api_football,Paraense U20,False,1,3.0
+2026-11-13,api_football,Primera División,False,15,8.4
+2026-11-13,api_football,Liga de Expansión MX,False,2,9.0
+2026-11-13,api_football,Serie A,False,10,9.6
+2026-11-13,api_football,Elitettan,False,4,4.2
+2026-11-13,api_football,Serie B,False,7,9.9
+2026-11-13,api_football,Supreme Division Women,False,5,3.4
+2026-11-13,api_football,Liga MX,False,1,10.0
+2026-11-13,api_football,Netherlands - Eerste Divisie,True,8,10.0
+2026-11-13,api_football,J3 League,False,10,6.8
+2026-11-13,api_football,Scotland - Championship,True,4,10.0
+2026-11-13,api_football,League One,False,17,8.1
+2026-11-13,api_football,Super League Women,False,3,6.0
+2026-11-13,api_football,League Two,False,17,9.3
+2026-11-13,api_football,Liga Nacional,False,1,7.0
+2026-11-13,api_football,Czech Republic - FNL,True,1,8.0
+2026-11-13,api_football,Slovakia - 2. liga,True,8,7.8
+2026-11-13,api_football,3. liga - CFL B,False,8,5.8
+2026-11-13,api_football,Oberliga - Bayern Nord,False,1,1.0
+2026-11-13,api_football,Oberliga - Bayern Süd,False,1,1.0
+2026-11-13,api_football,III Liga - Group 2,False,5,4.6
+2026-11-13,api_football,III Liga - Group 1,False,6,5.0
+2026-11-13,api_football,Bulgaria - Second League,True,9,6.1
+2026-11-13,api_football,Segunda División RFEF - Group 1,False,8,8.0
+2026-11-13,api_football,Segunda División RFEF - Group 2,False,9,8.0
+2026-11-13,api_football,Segunda División RFEF - Group 4,False,8,7.6
+2026-11-13,api_football,Regionalliga - West,False,2,6.0
+2026-11-13,api_football,Russia - First League,True,4,5.0
+2026-11-13,api_football,First Amateur Division,False,14,8.3
+2026-11-13,api_football,Liga Panameña de Fútbol,False,4,7.5
+2026-11-13,api_football,National League,False,10,9.4
+2026-11-13,api_football,Copa De La Liga,False,1,2.0
+2026-11-13,api_football,Non League Premier - Isthmian,False,5,5.0
+2026-11-13,api_football,Non League Premier - Northern,False,11,4.6
+2026-11-13,api_football,Non League Premier - Southern Central,False,8,4.5
+2026-11-13,api_football,Central Youth League,False,2,5.0
+2026-11-13,api_football,Serie A Women,False,6,8.3
+2026-11-13,api_football,1. Liga Classic - Group 1,False,1,5.0
+2026-11-13,api_football,J2 League,False,7,9.9
+2026-11-13,api_football,FA WSL,False,7,9.0
+2026-11-13,api_football,Serie C - Girone C,False,8,8.2
+2026-11-13,api_football,Bosnia - 1st League - RS,True,2,4.0
+2026-11-13,api_football,Tercera División RFEF - Group 3,False,2,4.0
+2026-11-13,api_football,Tercera División RFEF - Group 5,False,3,4.7
+2026-11-13,api_football,Tercera División RFEF - Group 6,False,5,5.0
+2026-11-13,api_football,Tercera División RFEF - Group 8,False,1,5.0
+2026-11-13,api_football,Tercera División RFEF - Group 11,False,4,4.5
+2026-11-13,api_football,Tercera División RFEF - Group 13,False,2,5.0
+2026-11-13,api_football,Derde Divisie,False,5,3.2
+2026-11-13,api_football,FKF Premier League,False,5,2.6
+2026-11-13,api_football,Primera Premier,False,1,6.0
+2026-11-13,api_football,Greece - Super League 2,True,8,6.0
+2026-11-13,api_football,Copa Argentina,False,1,10.0
+2026-11-13,api_football,Division di Honor,False,1,6.0
+2026-11-13,api_football,FA Trophy,False,37,6.2
+2026-11-13,api_football,Primera C,False,3,6.7
+2026-11-13,api_football,Primera Nacional,False,8,8.0
+2026-11-13,api_football,Primera B Metropolitana,False,3,5.0
+2026-11-13,api_football,NWSL Women,False,2,8.5
+2026-11-13,api_football,USL Championship,False,2,8.0
+2026-11-13,api_football,Latvian Higher League,True,1,4.0
+2026-11-13,api_football,Damallsvenskan,False,7,4.6
+2026-11-13,api_football,Georgian Erovnuli Liga,True,1,2.0
+2026-11-13,api_football,USL Super League,False,1,3.0
+2026-11-13,api_football,Segunda División RFEF - Group 3,False,9,8.0
+2026-11-13,api_football,Segunda División RFEF - Group 5,False,9,7.6
+2026-11-13,api_football,Eredivisie Women,False,1,8.0
+2026-11-13,api_football,Portugal - Segunda Liga,True,5,10.0
+2026-11-13,api_football,Second Amateur Division - ACFF,False,5,4.0
+2026-11-13,api_football,Oberliga - Rheinland-Pfalz / Saar,False,1,1.0
+2026-11-13,api_football,Tercera División RFEF - Group 1,False,3,5.0
+2026-11-13,api_football,Tercera División RFEF - Group 2,False,4,5.0
+2026-11-13,api_football,Tercera División RFEF - Group 4,False,2,5.0
+2026-11-13,api_football,Tercera División RFEF - Group 7,False,3,5.0
+2026-11-13,api_football,Tercera División RFEF - Group 9,False,1,5.0
+2026-11-13,api_football,Serie D - Girone A,False,9,3.0
+2026-11-13,api_football,Serie D - Girone B,False,8,3.0
+2026-11-13,api_football,Serie D - Girone C,False,7,3.0
+2026-11-13,api_football,Serie D - Girone I,False,7,3.0
+2026-11-13,api_football,Serie D - Girone D,False,7,3.0
+2026-11-13,api_football,Serie D - Girone E,False,6,3.0
+2026-11-13,api_football,Serie D - Girone H,False,7,3.0
+2026-11-13,api_football,Serie D - Girone F,False,8,3.0
+2026-11-13,api_football,Serie D - Girone G,False,7,3.0
+2026-11-13,api_football,A-League Women,False,1,10.0
+2026-11-13,api_football,Torneo Federal A,False,3,6.0
+2026-11-13,api_football,Copa Colombia,False,2,3.5
+2026-11-13,api_football,Second Division,False,1,1.0
+2026-11-13,api_football,Denmark - 1. Division,True,1,7.0
+2026-11-13,api_football,Ligue 3,False,1,6.0
+2026-11-13,api_football,Pro League,False,2,5.0
