@@ -1,13 +1,18 @@
 name: Update Nations League Elo Ratings
 
 on:
-  schedule:
-    - cron: '0 7 * * *'   # 07:00 UTC daily -- matches the club Opta ratings'
-                           # cadence, so ratings from a midweek international
-                           # window show up the next morning instead of
-                           # lagging up to a week behind on the old
-                           # Monday-only schedule.
-  workflow_dispatch:       # allow manual "Run workflow" trigger too
+  # No schedule trigger -- disabled 2026-11-13 at the user's request. The
+  # daily auto-run's match-level L2 shrinkage was silently decaying manual
+  # outright-odds corrections with nothing to re-anchor them (API-Football
+  # has no NL outright market), which quietly undid a real fix (France's
+  # win% drifting from ~19% back down to ~11% over 9 days with nothing in
+  # the market actually having changed -- see nl_odds_calibration.py's own
+  # OBSERVATIONS comment for the full incident). The user now runs this
+  # manually each morning instead (Elo + odds + fresh outright-odds
+  # screenshots), so the correction never gets silently overwritten
+  # between visits. workflow_dispatch below still allows a manual "Run
+  # workflow" trigger from the GitHub UI if ever needed.
+  workflow_dispatch:
 
 permissions:
   contents: write
