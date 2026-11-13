@@ -1354,12 +1354,39 @@ def simulate_league_outcomes(
     return outcomes, position_probs
 
 
+def _real_h2h_pts(played: list[dict], t: str, o: str) -> tuple[int, int]:
+    """(t's points, o's points) from only the already-played fixture(s)
+    directly between t and o -- NL_TIEBREAKERS' first (and strongest)
+    tiebreaker, "h2h_pts"."""
+    pts_t = pts_o = 0
+    for f in played:
+        h, a = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
+        if {h, a} != {t, o}:
+            continue
+        hg, ag = int(f.get("intHomeScore") or 0), int(f.get("intAwayScore") or 0)
+        if hg == ag:
+            pts_t += 1
+            pts_o += 1
+        elif (h == t) == (hg > ag):
+            pts_t += 3
+        else:
+            pts_o += 3
+    return pts_t, pts_o
+
+
+def _remaining_h2h_count(remaining: list[dict], t: str, o: str) -> int:
+    return sum(1 for f in remaining if {f.get("strHomeTeam"), f.get("strAwayTeam")} == {t, o})
+
+
 def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int, int]]:
     """{team: (best_reachable, worst_reachable)} -- the best (smallest
     number) and worst (largest number) final position still
     mathematically possible for every team across every group in
     group_states, from guaranteed points (current) vs. maximum
-    achievable points (current + 3 x remaining games) alone.
+    achievable points (current + 3 x remaining games), PLUS one narrow
+    head-to-head refinement at the exact points-ceiling/floor boundary
+    (see below) -- everything else about GD/GF is still deliberately
+    ignored.
 
     This is always sound -- never wrongly asserts a position is pinned
     down -- because UEFA's own tiebreak order ranks by points first; GD/
@@ -1372,26 +1399,85 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
 
     best_reachable[t] = 1 + however many rivals are GUARANTEED to finish
     strictly above t even in t's own best case (their current points
-    alone already exceed t's ceiling). worst_reachable[t] = n minus
-    however many rivals can NEVER catch t even in their own best case
-    (their ceiling is still below t's current points) -- t cannot
-    possibly finish worse than that. A team is pinned to an exact final
-    position only when best == worst.
+    alone already exceed t's ceiling) -- OR tie t's ceiling exactly AND
+    already beat t on real head-to-head points even in that single
+    tied-points scenario (t winning every remaining fixture, including
+    any one left against this rival, is the only way t reaches its own
+    ceiling -- so that rival's remaining h2h fixture(s) against t are
+    necessarily losses for the rival in this exact case, making the h2h
+    totals in this one scenario fully determined, not a guess). Confirmed
+    missing live 2026-11-13 (Group C1): Finland's ceiling (10, one
+    remaining win) exactly ties Belarus's current points (10, who can
+    reach it by simply losing their own last game), and Belarus already
+    leads 4-1 on real head-to-head points -- provably eliminating Finland
+    from 2nd even though plain points alone can't (10 is not > 10).
+    worst_reachable[t] mirrors this symmetrically for rivals that can
+    never catch t. A team is pinned to an exact final position only when
+    best == worst.
+
+    If real h2h points are tied too (or a would-be remaining h2h fixture
+    makes the scenario's outcome genuinely ambiguous), this stays silent
+    on that rival -- same "don't guess" principle as the GD case, since
+    resolving an h2h_pts tie needs h2h_gd/h2h_gf, themselves a form of
+    goal-difference this function won't fabricate.
     """
     bounds: dict[str, tuple[int, int]] = {}
     for state in group_states.values():
         teams = state["teams"]
         current = {t: int(state["base_stats"].get(t, {}).get("pts", 0)) for t in teams}
+        remaining = state["remaining"]
+        played = state.get("played", [])
         remaining_count = {t: 0 for t in teams}
-        for f in state["remaining"]:
+        for f in remaining:
             for side in ("strHomeTeam", "strAwayTeam"):
                 t = f.get(side)
                 if t in remaining_count:
                     remaining_count[t] += 1
         ceiling = {t: current[t] + 3 * remaining_count[t] for t in teams}
+
+        def _tied_h2h_pts(maximizer: str, minimizer: str) -> tuple[int, int]:
+            """(maximizer's, minimizer's) h2h points in the one scenario
+            where their final points tie exactly -- `maximizer` reaching
+            its own points ceiling means it must win EVERY remaining
+            fixture (including any one left against `minimizer`), and
+            `minimizer` staying at its current points means it must lose
+            every remaining fixture (including that same one) -- the same
+            single event viewed from both sides, so `maximizer` gets the
+            head-to-head win bonus, never `minimizer`."""
+            pts_max, pts_min = _real_h2h_pts(played, maximizer, minimizer)
+            pts_max += 3 * _remaining_h2h_count(remaining, maximizer, minimizer)
+            return pts_max, pts_min
+
         for t in teams:
-            above = sum(1 for o in teams if o != t and current[o] > ceiling[t])
-            below = sum(1 for o in teams if o != t and ceiling[o] < current[t])
+            above = below = 0
+            for o in teams:
+                if o == t:
+                    continue
+                # o guaranteed above t: either o's current points already
+                # beat t's ceiling outright, or they tie exactly at that
+                # ceiling and o still strictly outscores t on real head-to-
+                # head points in that one scenario (t is the maximizer
+                # being tested here). A head-to-head points TIE there stays
+                # unresolved -- not counted either way -- since breaking it
+                # needs h2h_gd/h2h_gf, a form of goal-difference this
+                # function won't fabricate.
+                if current[o] > ceiling[t]:
+                    above += 1
+                elif current[o] == ceiling[t]:
+                    pts_t, pts_o = _tied_h2h_pts(t, o)
+                    if pts_o > pts_t:
+                        above += 1
+                # o guaranteed below t: either o's ceiling already falls
+                # short of t's current points outright, or they tie exactly
+                # at that ceiling and t still strictly outscores o on real
+                # head-to-head points in that one scenario (o is the
+                # maximizer being tested here).
+                if ceiling[o] < current[t]:
+                    below += 1
+                elif ceiling[o] == current[t]:
+                    pts_o, pts_t = _tied_h2h_pts(o, t)
+                    if pts_t > pts_o:
+                        below += 1
             bounds[t] = (1 + above, len(teams) - below)
     return bounds
 

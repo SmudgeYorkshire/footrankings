@@ -152,3 +152,96 @@ def test_never_asserts_certainty_in_a_fully_open_scenario():
     states = _group_states({"A": 3, "B": 3, "C": 3, "D": 3}, {"A": 6, "B": 6, "C": 6, "D": 6})
     cert = league_label_certainty(states, rules)
     assert cert == {}
+
+
+# ---------------------------------------------------------------------------
+# Head-to-head boundary refinement -- plain points alone can't prove a team
+# is eliminated from a position when a rival's current points exactly TIE
+# that team's own ceiling (current[o] == ceiling[t] is not current[o] >
+# ceiling[t]), even though the real head-to-head record can still make it
+# certain. Missed live 2026-11-13 (Group C1): Finland's ceiling (10, one
+# remaining win) exactly tied Belarus's current points (10, reachable just
+# by losing their own last game) -- Belarus already led 4-1 on real head-to-
+# head points, so Finland could never actually finish above them, but the
+# old points-only bounds still showed Finland as "possibly 2nd".
+# ---------------------------------------------------------------------------
+
+def _h2h_group_state(
+    teams: list[str], pts: dict[str, int], played: list[dict], remaining: list[dict],
+) -> dict[str, dict]:
+    return {"G1": {
+        "teams": teams,
+        "base_stats": {t: {"pts": p} for t, p in pts.items()},
+        "remaining": remaining,
+        "played": played,
+    }}
+
+
+def test_real_group_c1_finland_pinned_to_3rd_by_head_to_head():
+    teams = ["Albania", "Belarus", "Finland", "San Marino"]
+    pts = {"Albania": 12, "Belarus": 10, "Finland": 7, "San Marino": 0}
+    played = [
+        {"strHomeTeam": "Finland", "strAwayTeam": "Belarus", "intHomeScore": 0, "intAwayScore": 0},
+        {"strHomeTeam": "Belarus", "strAwayTeam": "Finland", "intHomeScore": 1, "intAwayScore": 0},
+    ]
+    remaining = [
+        {"strHomeTeam": "Finland", "strAwayTeam": "San Marino"},
+        {"strHomeTeam": "Belarus", "strAwayTeam": "Albania"},
+    ]
+    states = _h2h_group_state(teams, pts, played, remaining)
+
+    bounds = group_position_bounds(states)
+
+    # Finland's ceiling (7 + 3 = 10) exactly ties Belarus's current points
+    # (10) -- indistinguishable from "still open" on points alone -- but
+    # Belarus already leads the real head-to-head 4-1 (a draw + a win, with
+    # no remaining fixture left between them to change that), so Finland
+    # can never actually finish above Belarus. Pinned to exactly 3rd.
+    assert bounds["Finland"] == (3, 3)
+
+
+def test_head_to_head_refinement_stays_silent_on_an_exact_tie():
+    # Same points-ceiling tie as above, but this time the two teams' real
+    # head-to-head record is a dead heat (one win each) -- nothing here can
+    # resolve it without guessing at goal difference, so bounds must NOT
+    # assert elimination either way. Trailer's one remaining fixture is
+    # against a third team, not Leader, so the head-to-head record stays
+    # exactly what's already been played (a clean win each).
+    teams = ["Leader", "Trailer", "Filler"]
+    pts = {"Leader": 10, "Trailer": 7, "Filler": 0}
+    played = [
+        {"strHomeTeam": "Trailer", "strAwayTeam": "Leader", "intHomeScore": 1, "intAwayScore": 0},
+        {"strHomeTeam": "Leader", "strAwayTeam": "Trailer", "intHomeScore": 1, "intAwayScore": 0},
+    ]
+    remaining = [{"strHomeTeam": "Trailer", "strAwayTeam": "Filler"}]
+    states = _h2h_group_state(teams, pts, played, remaining)
+
+    bounds = group_position_bounds(states)
+
+    # Trailer's ceiling (7 + 3 = 10) ties Leader's current points (10), and
+    # their head-to-head is a dead heat (3 pts each) -- genuinely
+    # unresolved, so Trailer must NOT be shown as provably behind Leader.
+    assert bounds["Trailer"] == (1, 2)
+
+
+def test_head_to_head_bonus_goes_to_the_maximizer_not_whichever_team_is_tested_first():
+    # Directional check for the fix itself: when t's ceiling ties o's
+    # current points, it's t who must win every remaining fixture
+    # (including any one left against o) to reach that ceiling -- so if a
+    # fixture between t and o is STILL remaining, t (not o) gets credited
+    # with winning it in this exact boundary scenario. Here, Leader's
+    # current points (10) tie Trailer's ceiling (7 + one remaining win = 10)
+    # -- Trailer must beat Leader in their still-to-play fixture to reach
+    # that ceiling, which would flip their head-to-head record from
+    # Leader's real 3-0 lead to a 3-3 tie, NOT extend Leader's lead. Trailer
+    # must therefore stay open at 2nd, not be wrongly eliminated by
+    # crediting that remaining fixture to the wrong side.
+    teams = ["Leader", "Trailer"]
+    pts = {"Leader": 10, "Trailer": 7}
+    played = [{"strHomeTeam": "Leader", "strAwayTeam": "Trailer", "intHomeScore": 1, "intAwayScore": 0}]
+    remaining = [{"strHomeTeam": "Trailer", "strAwayTeam": "Leader"}]
+    states = _h2h_group_state(teams, pts, played, remaining)
+
+    bounds = group_position_bounds(states)
+
+    assert bounds["Trailer"] == (1, 2)
