@@ -80,26 +80,35 @@ OBSERVATIONS: list[dict] = [
     # hand-typing a handful of matches here would just double-apply a
     # correction on top of odds that are already-fitted and current.
     #
-    # 2026-11-10, user-provided screenshot of a bookmaker's League A outright
-    # winner market (decimal odds) -- replaces the stale 2026-10-05 list
-    # above, which was still feeding the model a month-old market view (the
-    # trigger: Spain/France were showing as overstated favourites in live
-    # predictions, confirmed against this refresh). Only the teams actually
-    # visible in that screenshot are listed -- same principle the previous
-    # refresh used for Serbia: drop a team rather than carry a figure with
-    # no current market backing it, rather than guess at the cut-off part
-    # of the list. Denmark/Croatia/Wales/Türkiye/Czechia dropped for this
-    # reason (not reconfirmed in the new screenshot).
+    # 2026-11-13, user-provided screenshot of a bookmaker's League A outright
+    # winner market (decimal odds) -- replaces the stale 2026-11-10 list
+    # above. Trigger: the user flagged France's live win% dropping from
+    # ~19% to ~10.8% and asked for it to be checked against the current
+    # market. Root cause (not a modeling bug): this file's OWN outright
+    # nudge is a one-shot manual correction layered on top of the daily-
+    # decaying match-fit adjustment (fit_match_adjustments' own L2
+    # shrinkage, applied every day by nl_odds_calibration_auto.py) -- with
+    # no outright market on API-Football to re-anchor it daily (see that
+    # script's docstring), France's +60.0 outright-derived boost from the
+    # 2026-11-04 refresh had decayed all the way to -0.5 by today purely
+    # from ~9 days of unopposed daily shrinkage, even though nothing in the
+    # market actually contradicted it. Only the teams actually visible in
+    # the new screenshot are listed, same principle the previous refresh
+    # used -- drop a team rather than carry a figure with no current market
+    # backing it. Croatia/Türkiye/Serbia/Czechia aren't live outright
+    # markets at all (already eliminated from QF contention).
     {"type": "outright", "team": "Spain", "decimal_odds": 3.00},
-    {"type": "outright", "team": "France", "decimal_odds": 3.75},
-    {"type": "outright", "team": "England", "decimal_odds": 5.50},
+    {"type": "outright", "team": "France", "decimal_odds": 4.50},
     {"type": "outright", "team": "Portugal", "decimal_odds": 6.00},
+    {"type": "outright", "team": "England", "decimal_odds": 6.00},
     {"type": "outright", "team": "Germany", "decimal_odds": 11.00},
-    {"type": "outright", "team": "Netherlands", "decimal_odds": 13.00},
-    {"type": "outright", "team": "Italy", "decimal_odds": 21.00},
+    {"type": "outright", "team": "Netherlands", "decimal_odds": 12.00},
+    {"type": "outright", "team": "Italy", "decimal_odds": 15.00},
+    {"type": "outright", "team": "Belgium", "decimal_odds": 21.00},
     {"type": "outright", "team": "Greece", "decimal_odds": 26.00},
-    {"type": "outright", "team": "Belgium", "decimal_odds": 34.00},
+    {"type": "outright", "team": "Denmark", "decimal_odds": 41.00},
     {"type": "outright", "team": "Norway", "decimal_odds": 51.00},
+    {"type": "outright", "team": "Wales", "decimal_odds": 401.00},
 ]
 
 
