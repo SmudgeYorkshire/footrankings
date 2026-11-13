@@ -289,6 +289,7 @@ _RAW_POOL_LABEL = {
 def _render_outcome_predictions(
     teams: list[str], probs_df: pd.DataFrame, league_name: str,
     certainty: dict[str, dict[str, bool]] | None = None,
+    interim_rank: dict[str, int] | None = None,
 ) -> None:
     """One column per outcome-bucket label in probs_df (Quarterfinals,
     Promotion, Winner/Loser in Play-offs, ...) plus a "Stay in {league}"
@@ -358,8 +359,14 @@ def _render_outcome_predictions(
     # outcome (Quarterfinals/Promotion) -- clinched teams first, real
     # chances descending, eliminated last (see _cert_value's sentinels).
     # Ties cascade through the rest of the row's own columns, left to
-    # right, instead of leaving tied teams in arbitrary order.
-    rows.sort(key=lambda r: tuple(r[c] for c in cols), reverse=True)
+    # right, instead of leaving tied teams in arbitrary order. Teams tied
+    # across every single column (e.g. all clinched, or all eliminated)
+    # fall back to interim ranking as the final tiebreak, when the caller
+    # has it available.
+    rows.sort(
+        key=lambda r: tuple(r[c] for c in cols) + (-(interim_rank or {}).get(r["Team"], 0),),
+        reverse=True,
+    )
     df = pd.DataFrame(rows)[["Flag", "Team"] + cols]
     styled = df.style.format(_cert_cell_format, subset=cols)
 
@@ -725,6 +732,16 @@ for league_tab, league_name in zip(league_tabs, league_names):
         group_position_probs = all_group_position_probs[league_name]
         league_bounds = all_league_bounds[league_name]
         league_certainty = all_league_certainty[league_name]
+        # Shared by every table in this league that can show several teams
+        # tied on an identical set of X/checkmark cells (the 3rd/4th detail
+        # table and the Group Stage Outcome Predictions table below) --
+        # breaks those ties by interim ranking instead of leaving them in
+        # whatever incidental order the simulation happened to produce.
+        league_interim_rank = {
+            team: i for i, team in enumerate(league_interim_order(
+                group_position_probs, league_group_standings, league_group_remaining, ratings_df,
+            ))
+        }
 
         tab_labels = (
             list(groups.keys())
@@ -771,7 +788,9 @@ for league_tab, league_name in zip(league_tabs, league_names):
                     league_group_exp_pts[group_name] = exp_pts
                     _render_predictions(teams, probs, exp_pts, league_bounds)
                     st.markdown("#### Group stage outcome chances")
-                    _render_outcome_predictions(teams, outcome_probs, league_name, league_certainty)
+                    _render_outcome_predictions(
+                        teams, outcome_probs, league_name, league_certainty, league_interim_rank,
+                    )
 
                 with sub_manual:
                     _manual_predictions_tab(f"{league_name}_{group_name}", teams, roster, played, remaining, league_name)
@@ -864,14 +883,9 @@ for league_tab, league_name in zip(league_tabs, league_names):
                 # that whole tuple ties too -- broken here by interim
                 # ranking (best-ranked first), same fix as the Knockouts
                 # tab's own all-X tiebreak.
-                interim_rank = {
-                    team: i for i, team in enumerate(league_interim_order(
-                        league_group_probs, league_group_standings, league_group_remaining, ratings_df,
-                    ))
-                }
                 detail_rows.sort(
                     key=lambda r: tuple(r[c] for c in reversed(detail_cert_cols))
-                    + (-interim_rank.get(r["Team"], 0),),
+                    + (-league_interim_rank.get(r["Team"], 0),),
                     reverse=True,
                 )
                 detail_df = pd.DataFrame(detail_rows)
@@ -894,7 +908,9 @@ for league_tab, league_name in zip(league_tabs, league_names):
                 "simulating all groups together so a cross-group-ranked outcome is correctly correlated "
                 "rather than computed from independent per-group marginals."
             )
-            _render_outcome_predictions(all_league_teams, outcome_probs, league_name, league_certainty)
+            _render_outcome_predictions(
+                all_league_teams, outcome_probs, league_name, league_certainty, league_interim_rank,
+            )
 
 with knockout_chances_tab:
     st.markdown("#### Knockouts")
