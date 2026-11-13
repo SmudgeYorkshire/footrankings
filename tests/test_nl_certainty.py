@@ -245,3 +245,99 @@ def test_head_to_head_bonus_goes_to_the_maximizer_not_whichever_team_is_tested_f
     bounds = group_position_bounds(states)
 
     assert bounds["Trailer"] == (1, 2)
+
+
+# ---------------------------------------------------------------------------
+# Cross-group ranked-position certainty -- league_label_certainty only ever
+# ELIMINATED a team from a "ranked" label when the rule's source position
+# fell entirely outside group_position_bounds' reachable range (e.g. "can't
+# possibly finish 3rd at all"); it never resolved WHICH HALF of a cross-
+# group split (e.g. "best two 3rd-place" vs "worst two 3rd-place") a team
+# that CAN reach the position would land in, even when every other group's
+# own position-3 finisher is mathematically guaranteed to have too few
+# points to ever outrank it. Missed live 2026-11-13 (real League A data):
+# Italy/France/Belgium (Group A1) all still showed a real percentage for
+# "worst two 3rd-place" despite none of League A's other three groups'
+# 3rd-place finishers ever being able to out-point them.
+# ---------------------------------------------------------------------------
+
+def _multi_group_states(
+    group_pts: dict[str, dict[str, int]], group_remaining: dict[str, list[tuple[str, str]]],
+) -> dict[str, dict]:
+    return {
+        gname: {
+            "teams": list(pts.keys()),
+            "base_stats": {t: {"pts": p} for t, p in pts.items()},
+            "remaining": [{"strHomeTeam": h, "strAwayTeam": a} for h, a in group_remaining.get(gname, [])],
+        }
+        for gname, pts in group_pts.items()
+    }
+
+
+# Mirrors real League A data from 2026-11-13 exactly (team names kept the
+# same as the live bug report, so this is a faithful regression test, not
+# just a structurally-similar synthetic one).
+_LEAGUE_A_RULES = [
+    ("direct", 1, "Quarterfinals"),
+    ("direct", 2, "Quarterfinals"),
+    ("ranked", 3, 2, "3rd as Top 2 nations", 2, "Relegation Play-offs"),
+    ("ranked", 4, 2, "Relegation Play-offs", 2, "Relegation to League B"),
+]
+_LEAGUE_A_PTS = {
+    "A1": {"Italy": 10, "France": 10, "Belgium": 9, "Turkiye": 0},
+    "A2": {"Netherlands": 8, "Greece": 8, "Germany": 5, "Serbia": 0},
+    "A3": {"Spain": 15, "England": 12, "Croatia": 3, "Czechia": 0},
+    "A4": {"Portugal": 12, "Denmark": 6, "Norway": 3, "Wales": 3},
+}
+_LEAGUE_A_REMAINING = {
+    "A1": [("Belgium", "Italy"), ("France", "Turkiye")],
+    "A2": [("Serbia", "Germany"), ("Netherlands", "Greece"), ("Germany", "Netherlands"), ("Greece", "Serbia")],
+    "A3": [("Croatia", "Czechia"), ("Spain", "England")],
+    "A4": [("Norway", "Wales"), ("Portugal", "Denmark"), ("Denmark", "Norway"), ("Wales", "Portugal")],
+}
+
+
+def test_cross_group_ranked_elimination_from_worst_two_third_place():
+    states = _multi_group_states(_LEAGUE_A_PTS, _LEAGUE_A_REMAINING)
+    cert = league_label_certainty(states, _LEAGUE_A_RULES)
+
+    # Italy/France (floor 10 pts) and Belgium (floor 9, but still strictly
+    # ahead of every other group's own 3rd-place ceiling) can never land in
+    # the worst two of the four 3rd-place finishers -- Group A3's 3rd-place
+    # finisher can never exceed 6 points (Spain/England are both pinned
+    # ahead of Croatia/Czechia), and Group A4's can never exceed 9
+    # (Portugal's pinned 1st/2nd, leaving Denmark/Norway/Wales to fight for
+    # 3rd with a shared ceiling that tight) -- only Group A2 (11, Germany's
+    # own ceiling once Netherlands/Greece's higher ceilings are capped by
+    # needing a 2nd rival to also clear that bar) can ever threaten them,
+    # and one potential rival is never enough to push a team out of the
+    # top two of four.
+    for team in ("Italy", "France", "Belgium"):
+        assert cert[team]["Relegation Play-offs"] is False
+
+
+def test_cross_group_ranked_elimination_stays_open_when_genuinely_contested():
+    states = _multi_group_states(_LEAGUE_A_PTS, _LEAGUE_A_REMAINING)
+    cert = league_label_certainty(states, _LEAGUE_A_RULES)
+
+    # Germany's own floor (5) is low enough that every other group's own
+    # 3rd-place ceiling (12 in A1, 6 in A3, 9 in A4) can still clear it --
+    # genuinely open, must NOT be asserted either way.
+    assert "Relegation Play-offs" not in cert.get("Germany", {})
+    assert "3rd as Top 2 nations" not in cert.get("Germany", {})
+
+
+def test_cross_group_ranked_certainty_stays_silent_with_mismatched_group_count():
+    # Only one group present for a rule whose split sizes imply 4 groups
+    # (2 + 2) -- the whole "how many OTHER groups could beat it" premise
+    # doesn't hold with just one group, so this must stay silent rather
+    # than draw a conclusion (a team alone with no real rivals from other
+    # groups would otherwise look trivially "safe"). C is pinned to
+    # exactly 3rd (reachable, not already eliminated by the plain
+    # disjoint-range check), so this specifically exercises the new
+    # cross-group refinement's own guard, not the older, unrelated check.
+    states = _multi_group_states(
+        {"G1": {"A": 10, "B": 9, "C": 3, "D": 0}}, {"G1": [("B", "A")]},
+    )
+    cert = league_label_certainty(states, _LEAGUE_A_RULES)
+    assert "Relegation Play-offs" not in cert.get("C", {})

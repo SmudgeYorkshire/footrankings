@@ -1378,6 +1378,22 @@ def _remaining_h2h_count(remaining: list[dict], t: str, o: str) -> int:
     return sum(1 for f in remaining if {f.get("strHomeTeam"), f.get("strAwayTeam")} == {t, o})
 
 
+def _group_current_ceiling(state: dict) -> tuple[dict[str, int], dict[str, int]]:
+    """(current points, max achievable points) per team in one group --
+    shared by group_position_bounds and league_label_certainty's own
+    cross-group ranked-position bound."""
+    teams = state["teams"]
+    current = {t: int(state["base_stats"].get(t, {}).get("pts", 0)) for t in teams}
+    remaining_count = {t: 0 for t in teams}
+    for f in state["remaining"]:
+        for side in ("strHomeTeam", "strAwayTeam"):
+            t = f.get(side)
+            if t in remaining_count:
+                remaining_count[t] += 1
+    ceiling = {t: current[t] + 3 * remaining_count[t] for t in teams}
+    return current, ceiling
+
+
 def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int, int]]:
     """{team: (best_reachable, worst_reachable)} -- the best (smallest
     number) and worst (largest number) final position still
@@ -1424,16 +1440,9 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
     bounds: dict[str, tuple[int, int]] = {}
     for state in group_states.values():
         teams = state["teams"]
-        current = {t: int(state["base_stats"].get(t, {}).get("pts", 0)) for t in teams}
+        current, ceiling = _group_current_ceiling(state)
         remaining = state["remaining"]
         played = state.get("played", [])
-        remaining_count = {t: 0 for t in teams}
-        for f in remaining:
-            for side in ("strHomeTeam", "strAwayTeam"):
-                t = f.get(side)
-                if t in remaining_count:
-                    remaining_count[t] += 1
-        ceiling = {t: current[t] + 3 * remaining_count[t] for t in teams}
 
         def _tied_h2h_pts(maximizer: str, minimizer: str) -> tuple[int, int]:
             """(maximizer's, minimizer's) h2h points in the one scenario
@@ -1572,4 +1581,121 @@ def league_label_certainty(
                 # team pinned INSIDE a rule's source position can't be
                 # asserted to clinch the label itself from this group's
                 # own data alone.
+
+    # A team that CAN reach a ranked rule's source position isn't
+    # automatically still open on which half of the cross-group split it
+    # lands in -- e.g. Group A3's Croatia, whose group_position_bounds
+    # 3rd-place ceiling (6, since Spain/England are both pinned ahead of
+    # it) is still well below Italy's own 3rd-place floor (10, Group A1)
+    # -- so Italy can be provably eliminated from "worst two 3rd-place"
+    # even though plain group_position_bounds alone only proves Italy
+    # COULD reach 3rd, not which half it'd land in. Confirmed missing
+    # live 2026-11-13: Italy/France both showed "0.0%" instead of "X"
+    # for the worst-two bucket despite it being mathematically closed.
+    #
+    # group_current[t]/group_ceiling[t]: t's own real floor/ceiling (t's
+    # points can never be below the former or above the latter, in ANY
+    # scenario, including one where t ends up at this rule's position).
+    #
+    # pos_ceiling[(g, position)]/pos_floor[(g, position)]: the tightest
+    # sound bound on "whoever ends up at `position` in group g" -- NOT
+    # every team's own raw ceiling/floor (that would wrongly let e.g.
+    # Spain's huge ceiling inflate "whoever's 3rd in A3", when
+    # group_position_bounds already proves Spain can never actually be
+    # the team at 3rd) -- restricted to just the teams already proven
+    # able to reach that exact position.
+    group_current: dict[str, dict[str, int]] = {}
+    group_ceiling: dict[str, dict[str, int]] = {}
+    for gname, state in group_states.items():
+        cur, ceil_ = _group_current_ceiling(state)
+        group_current[gname] = cur
+        group_ceiling[gname] = ceil_
+
+    team_group = {t: gname for gname, state in group_states.items() for t in state["teams"]}
+
+    pos_ceiling: dict[tuple[str, int], float] = {}
+    pos_floor: dict[tuple[str, int], float] = {}
+    for gname, state in group_states.items():
+        teams = state["teams"]
+        for position in range(1, len(teams) + 1):
+            candidates = [t for t in teams if bounds[t][0] <= position <= bounds[t][1]]
+            # A candidate's own raw ceiling alone isn't a tight enough cap
+            # here -- if t' is really the one AT `position`, there must be
+            # (position - 1) OTHER teams with strictly MORE points than
+            # t' in that same real scenario, and since any team's actual
+            # points can never exceed its own ceiling, t' can't exceed the
+            # (position-1)-th highest ceiling among the rest of the group
+            # either -- a purely logical necessary condition, not a claim
+            # that every one of those other teams jointly hits its ceiling
+            # at once. Confirmed necessary live 2026-11-13: without this,
+            # Group A2's Netherlands/Greece (both still able to reach 3rd,
+            # each with a raw ceiling of 14) inflated "whoever's 3rd in
+            # A2" to 14, when actually at most one other A2 team can ever
+            # be close to its own ceiling while still finishing behind
+            # whoever ends up 3rd -- the true cap is 11, matching Germany's
+            # own ceiling.
+            other_ceilings = {
+                o: sorted((group_ceiling[gname][p] for p in teams if p != o), reverse=True)
+                for o in candidates
+            }
+            pos_ceiling[(gname, position)] = max(
+                (
+                    min(
+                        group_ceiling[gname][t],
+                        other_ceilings[t][position - 2] if position >= 2 else float("inf"),
+                    )
+                    for t in candidates
+                ),
+                default=float("-inf"),
+            )
+            pos_floor[(gname, position)] = min((group_current[gname][t] for t in candidates), default=float("inf"))
+
+    for rule in outcome_rules:
+        if rule[0] != "ranked":
+            continue
+        _, position, n_top, label_top, n_bottom, label_bottom = rule
+        # This bucket's whole premise is exactly one representative per
+        # group, n_top+n_bottom groups total -- if group_states doesn't
+        # actually have that many groups (a mismatched/partial input),
+        # the "how many OTHER groups could beat t" counting below no
+        # longer means what it's supposed to, so stay silent rather than
+        # draw a conclusion from a premise that doesn't hold.
+        if len(group_states) != n_top + n_bottom:
+            continue
+        for t, gname in team_group.items():
+            best, worst = bounds[t]
+            if not (best <= position <= worst):
+                continue  # already eliminated outright above
+            other_groups = [g for g in group_states if g != gname]
+
+            # Guaranteed in the top n_top (eliminated from label_bottom):
+            # even in the single most adverse combination -- t stuck at
+            # its own floor, every OTHER group's rep maxed out at ITS own
+            # position-ceiling -- fewer than n_top rivals can still beat
+            # t. A real scenario can only be kinder to t than this, so the
+            # conclusion holds everywhere, not just this one combination.
+            exceed = sum(
+                1 for g in other_groups if pos_ceiling[(g, position)] > group_current[gname][t]
+            )
+            if label_bottom and exceed <= n_top - 1:
+                set_label(t, label_bottom, False)
+                split = _PLAYOFF_POOLS.get(label_bottom)
+                if split:
+                    set_label(t, split[0], False)
+                    set_label(t, split[1], False)
+
+            # Guaranteed in the bottom n_bottom (eliminated from
+            # label_top): the mirror image -- t maxed out at its own
+            # ceiling, every OTHER group's rep stuck at ITS own position-
+            # floor -- at least n_top rivals still beat t regardless.
+            beats = sum(
+                1 for g in other_groups if pos_floor[(g, position)] > group_ceiling[gname][t]
+            )
+            if label_top and beats >= n_top:
+                set_label(t, label_top, False)
+                split = _PLAYOFF_POOLS.get(label_top)
+                if split:
+                    set_label(t, split[0], False)
+                    set_label(t, split[1], False)
+
     return result
