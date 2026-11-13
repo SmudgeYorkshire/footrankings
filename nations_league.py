@@ -858,7 +858,22 @@ for league_tab, league_name in zip(league_tabs, league_names):
                 # left-to-right tuple order broke those ties by the
                 # LEFTMOST column instead of the one actually adjacent to
                 # what the viewer clicked.
-                detail_rows.sort(key=lambda r: tuple(r[c] for c in reversed(detail_cert_cols)), reverse=True)
+                #
+                # A team eliminated from EVERY one of these columns shares
+                # the exact same ELIMINATED_SENTINEL in all of them, so
+                # that whole tuple ties too -- broken here by interim
+                # ranking (best-ranked first), same fix as the Knockouts
+                # tab's own all-X tiebreak.
+                interim_rank = {
+                    team: i for i, team in enumerate(league_interim_order(
+                        league_group_probs, league_group_standings, league_group_remaining, ratings_df,
+                    ))
+                }
+                detail_rows.sort(
+                    key=lambda r: tuple(r[c] for c in reversed(detail_cert_cols))
+                    + (-interim_rank.get(r["Team"], 0),),
+                    reverse=True,
+                )
                 detail_df = pd.DataFrame(detail_rows)
                 detail_styled = detail_df.style.format(_cert_cell_format, subset=detail_cert_cols)
                 detail_col_cfg = {
