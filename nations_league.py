@@ -27,7 +27,7 @@ from nations_league_simulator import (
     cross_group_ranking, group_fixture_odds, group_expected_points, project_qf_entries,
     project_playoff_entries, project_2028_composition, league_a_relegation_pool_split,
     most_likely_group_order, group_position_bounds, league_label_certainty,
-    apply_cross_league_playoff_correction, league_interim_rankings,
+    apply_cross_league_playoff_correction, league_interim_rankings, league_interim_order,
 )
 from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
@@ -960,7 +960,20 @@ with knockout_chances_tab:
             "Finals": _cert_value(r["reached_final"] * 100, downstream_cert),
             "Winner": _cert_value(r["won_competition"] * 100, downstream_cert),
         })
-    ko_rows.sort(key=lambda r: tuple(r[c] for c in ko_cert_cols), reverse=True)
+    # All-eliminated teams share the exact same ELIMINATED_SENTINEL in
+    # every column, so the sort above is otherwise a tie between them --
+    # broken here by interim ranking (best-ranked first) instead of
+    # falling back to simulate_league_a_knockouts' own incidental row
+    # order, so e.g. Croatia (closer to the Quarterfinals on interim
+    # ranking, even though mathematically out of reach) shows above
+    # Serbia/Czechia/Türkiye rather than an arbitrary order among them.
+    interim_rank = {
+        team: i for i, team in enumerate(league_interim_order(
+            all_group_probs["League A"], all_group_standings["League A"],
+            all_group_remaining["League A"], ratings_df,
+        ))
+    }
+    ko_rows.sort(key=lambda r: tuple(r[c] for c in ko_cert_cols) + (-interim_rank.get(r["Team"], 0),), reverse=True)
     ko_df = pd.DataFrame(ko_rows)
     ko_styled = ko_df.style.format(_cert_cell_format, subset=ko_cert_cols)
     ko_col_cfg = {
