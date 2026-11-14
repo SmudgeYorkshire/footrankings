@@ -301,19 +301,27 @@ def test_cross_group_ranked_elimination_from_worst_two_third_place():
     states = _multi_group_states(_LEAGUE_A_PTS, _LEAGUE_A_REMAINING)
     cert = league_label_certainty(states, _LEAGUE_A_RULES)
 
-    # Italy/France (floor 10 pts) and Belgium (floor 9, but still strictly
-    # ahead of every other group's own 3rd-place ceiling) can never land in
-    # the worst two of the four 3rd-place finishers -- Group A3's 3rd-place
-    # finisher can never exceed 6 points (Spain/England are both pinned
-    # ahead of Croatia/Czechia), and Group A4's can never exceed 9
-    # (Portugal's pinned 1st/2nd, leaving Denmark/Norway/Wales to fight for
-    # 3rd with a shared ceiling that tight) -- only Group A2 (11, Germany's
-    # own ceiling once Netherlands/Greece's higher ceilings are capped by
-    # needing a 2nd rival to also clear that bar) can ever threaten them,
-    # and one potential rival is never enough to push a team out of the
-    # top two of four.
-    for team in ("Italy", "France", "Belgium"):
+    # Italy/France (floor 10 pts) can never land in the worst two of the
+    # four 3rd-place finishers -- Group A3's 3rd-place finisher can never
+    # exceed 6 points (Spain/England are both pinned ahead of Croatia/
+    # Czechia), and Group A4's can never exceed 9 (Portugal's pinned
+    # 1st/2nd, leaving Denmark/Norway/Wales to fight for 3rd with a shared
+    # ceiling that tight) -- only Group A2 (11, Germany's own ceiling once
+    # Netherlands/Greece's higher ceilings are capped by needing a 2nd
+    # rival to also clear that bar) can ever threaten them, and one
+    # potential rival is never enough to push a team out of the top two
+    # of four.
+    for team in ("Italy", "France"):
         assert cert[team]["Relegation Play-offs"] is False
+
+    # Belgium's own floor (9) EXACTLY ties Group A4's 3rd-place ceiling
+    # (9, not strictly below it) -- different groups never play each
+    # other, so a cross-group points tie falls straight to overall GD
+    # with no bound on the eventual scoreline, and ties must count as
+    # "could still beat Belgium" rather than "safe". Confirmed a real bug
+    # this way live 2026-11-14 (Wales/Norway wrongly eliminated from an
+    # exactly-tied bucket) -- Belgium must stay genuinely open here too.
+    assert "Relegation Play-offs" not in cert.get("Belgium", {})
 
 
 def test_cross_group_ranked_elimination_stays_open_when_genuinely_contested():

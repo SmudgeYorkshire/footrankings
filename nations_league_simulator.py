@@ -1436,6 +1436,21 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
     on that rival -- same "don't guess" principle as the GD case, since
     resolving an h2h_pts tie needs h2h_gd/h2h_gf, themselves a form of
     goal-difference this function won't fabricate.
+
+    Also stays silent whenever a THIRD team could plausibly land on that
+    same boundary value too (see _third_team_could_share) -- UEFA's own
+    rule restarts h2h_pts/h2h_gd/h2h_gf across the WHOLE tied subset, not
+    pairwise, so a two-team h2h_pts comparison is the wrong number the
+    moment a third team is also in the mix. Confirmed a real bug this
+    way live 2026-11-14 (Group A2): Netherlands' own pairwise h2h_pts
+    against Greece (4-1) looked decisive and wrongly pinned Netherlands
+    to the top 2, but the real three-way tie among Germany/Netherlands/
+    Greece (all reachable at 11 points) is 5-5-5 on h2h_pts and only
+    resolves on h2h_gd -- which depends on the still-unplayed Germany-
+    Netherlands fixture's own margin and has no bound in principle (an
+    extreme enough scoreline, e.g. a 14+ goal margin, actually flips
+    which of Netherlands/Greece finishes 3rd) -- so no certainty can be
+    asserted there at all, even though it's a statistical near-certainty.
     """
     bounds: dict[str, tuple[int, int]] = {}
     for state in group_states.values():
@@ -1457,6 +1472,30 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
             pts_max += 3 * _remaining_h2h_count(remaining, maximizer, minimizer)
             return pts_max, pts_min
 
+        def _third_team_could_share(value: int, t: str, o: str) -> bool:
+            """True if some team besides t/o could plausibly also end up
+            at exactly `value` points -- the signal that this boundary
+            tie isn't really just between t and o. UEFA's own rule
+            restarts h2h_pts/h2h_gd/h2h_gf across the WHOLE tied subset,
+            not pairwise, so a pairwise h2h_pts comparison (the only thing
+            _tied_h2h_pts computes) is simply the wrong number the moment
+            a third team is in the mix -- confirmed live 2026-11-14
+            (Group A2): Netherlands/Greece's own pairwise h2h_pts (4-1,
+            Netherlands ahead) wrongly looked decisive, but the real
+            three-way restart among Germany/Netherlands/Greece (all
+            reachable at 11 points) ties 5-5-5 on h2h_pts and only
+            resolves on h2h_gd -- which depends on the still-unplayed
+            Germany-Netherlands fixture's own margin, unbounded in
+            principle, so no certainty can be asserted there at all.
+            Deliberately loose (each candidate's own unconstrained
+            current/ceiling range, ignoring any fixture it might share
+            with t or o) -- that can only ever cause MORE bail-outs than
+            strictly necessary, never fewer, which keeps this sound."""
+            return any(
+                p != t and p != o and current[p] <= value <= ceiling[p]
+                for p in teams
+            )
+
         for t in teams:
             above = below = 0
             for o in teams:
@@ -1469,10 +1508,13 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
                 # being tested here). A head-to-head points TIE there stays
                 # unresolved -- not counted either way -- since breaking it
                 # needs h2h_gd/h2h_gf, a form of goal-difference this
-                # function won't fabricate.
+                # function won't fabricate. Likewise if a third team could
+                # also land on that exact boundary value -- see
+                # _third_team_could_share's own docstring for why a
+                # pairwise h2h_pts comparison can't be trusted there.
                 if current[o] > ceiling[t]:
                     above += 1
-                elif current[o] == ceiling[t]:
+                elif current[o] == ceiling[t] and not _third_team_could_share(ceiling[t], t, o):
                     pts_t, pts_o = _tied_h2h_pts(t, o)
                     if pts_o > pts_t:
                         above += 1
@@ -1483,7 +1525,7 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
                 # maximizer being tested here).
                 if ceiling[o] < current[t]:
                     below += 1
-                elif ceiling[o] == current[t]:
+                elif ceiling[o] == current[t] and not _third_team_could_share(current[t], t, o):
                     pts_o, pts_t = _tied_h2h_pts(o, t)
                     if pts_t > pts_o:
                         below += 1
@@ -1674,8 +1716,19 @@ def league_label_certainty(
             # position-ceiling -- fewer than n_top rivals can still beat
             # t. A real scenario can only be kinder to t than this, so the
             # conclusion holds everywhere, not just this one combination.
+            # An EXACT tie counts as "could still beat t" here (>=, not
+            # >) -- different groups never play each other, so a cross-
+            # group tie on points falls straight to overall GD (no H2H
+            # step at all), which depends on fixtures that haven't been
+            # played yet and has no bound on the eventual scoreline;
+            # tied points can't be assumed to resolve in t's favour.
+            # Confirmed live 2026-11-14 (Group A4): Wales/Norway's own
+            # current points (3) exactly tied every other group's own
+            # position-4 ceiling (also 3), and the old strict `>` treated
+            # that as "safe", wrongly eliminating them from the worst-two
+            # bucket when it's still genuinely open.
             exceed = sum(
-                1 for g in other_groups if pos_ceiling[(g, position)] > group_current[gname][t]
+                1 for g in other_groups if pos_ceiling[(g, position)] >= group_current[gname][t]
             )
             if label_bottom and exceed <= n_top - 1:
                 set_label(t, label_bottom, False)
