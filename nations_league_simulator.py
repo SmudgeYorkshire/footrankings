@@ -1718,6 +1718,92 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
     return bounds
 
 
+def _rank_pair_ceiling_at_position(
+    teams: list[str], current: dict[str, int], ceiling: dict[str, int],
+    played: list[dict], remaining: list[dict], bounds: dict[str, tuple[int, int]],
+    t: str, position: int,
+) -> int:
+    """Tightest known ceiling on t's own points GIVEN it ends up ranked
+    at exactly `position` -- one worse than t's own best reachable
+    position -- when there's exactly one other same-group rival o still
+    genuinely competing for that better slot (not already resolved
+    above or below t by raw points, and reachable at t's own best
+    position too) that shares exactly one remaining fixture with t.
+    t being at `position` instead of its own best can then only happen
+    because o specifically ranks above it -- a relationship decided
+    purely by their own two totals and real head-to-head, independent
+    of every other team in the group (which is why "reachable at t's
+    best position too" is required: it rules out a 3rd team, like
+    Portugal here, also being a live contender for that exact slot,
+    where this simple two-team framing would no longer hold).
+
+    Enumerates that one fixture's 3 outcomes, using t's and o's own
+    BEST case everywhere else (every other remaining game won) in
+    each, and keeps a branch's t-value only when o could still plausibly
+    end up ranked above t there (by points, or an unresolved/o-favouring
+    h2h) -- discarding only branches where t provably outranks o
+    instead, since that t-value could then never actually co-occur with
+    t landing at `position`. The max of what survives is the tightened
+    ceiling; falls back to the raw, untightened `ceiling[t]` whenever
+    the single-swing-rival precondition doesn't hold, or every branch
+    survives anyway (nothing to tighten).
+
+    Confirmed missing live 2026-11-14 (Group A4): Norway's raw ceiling
+    (9, from beating Denmark) is not actually achievable while Norway
+    is ranked 3rd -- winning that match makes Norway rank ABOVE Denmark
+    instead (6-0 on real h2h points after that result), so 9 only ever
+    co-occurs with Norway at 2nd, never 3rd. The true ceiling for
+    "Norway, specifically while 3rd" is 7 (a draw, with Denmark's own
+    other game going well enough to still pull clear on raw points) --
+    tight enough that League A's "3rd as Top 2 nations" cross-group
+    check can finally prove Norway's elimination from it, since 2 of
+    the other 3 groups' own 3rd-place floors (9 and 8) both exceed 7
+    outright even though neither exceeds Norway's old, untightened 9."""
+    best, _ = bounds[t]
+    if best != position - 1:
+        return ceiling[t]
+
+    swing = [
+        o for o in teams
+        if o != t
+        and bounds[o][0] <= best <= bounds[o][1]
+        and current[o] <= ceiling[t]
+        and ceiling[o] >= current[t]
+        and _remaining_h2h_count(remaining, t, o) == 1
+    ]
+    if len(swing) != 1:
+        return ceiling[t]
+    o = swing[0]
+
+    t_other_best = ceiling[t] - 3
+    o_other_best = ceiling[o] - 3
+    pts_t_real, pts_o_real = _real_h2h_pts(played, t, o)
+
+    def _o_could_rank_above(t_gain: int, o_gain: int, is_draw: bool) -> bool:
+        t_val, o_val = t_other_best + t_gain, o_other_best + o_gain
+        if o_val != t_val:
+            return o_val > t_val
+        pts_t, pts_o = pts_t_real + t_gain, pts_o_real + o_gain
+        if pts_t != pts_o:
+            return pts_o > pts_t
+        if not is_draw:
+            return True  # a still-unplayed decisive result's own margin is unknowable -- stay open
+        gd_t, gf_t = _real_h2h_margin(played, t, o)
+        gd_o, gf_o = _real_h2h_margin(played, o, t)
+        if gd_t != gd_o:
+            return gd_o > gd_t
+        if gf_t != gf_o:
+            return gf_o > gf_t
+        return True  # tied even on real h2h -- stay open, not provably t-above-o
+
+    candidates = [
+        t_other_best + t_gain
+        for t_gain, o_gain, is_draw in ((1, 1, True), (3, 0, False), (0, 3, False))
+        if _o_could_rank_above(t_gain, o_gain, is_draw)
+    ]
+    return max(candidates) if candidates else ceiling[t]
+
+
 def league_label_certainty(
     group_states: dict[str, dict], outcome_rules: list[tuple],
 ) -> dict[str, dict[str, bool]]:
@@ -1926,8 +2012,18 @@ def league_label_certainty(
             # label_top): the mirror image -- t maxed out at its own
             # ceiling, every OTHER group's rep stuck at ITS own position-
             # floor -- at least n_top rivals still beat t regardless.
+            # t's ceiling here is _rank_pair_ceiling_at_position's
+            # tightened value, not necessarily the raw group_ceiling --
+            # see that function's own docstring for why a team's
+            # ACHIEVABLE points, specifically GIVEN it lands at this
+            # exact position, can be strictly lower than its plain
+            # unconditional ceiling.
+            t_ceiling_here = _rank_pair_ceiling_at_position(
+                group_states[gname]["teams"], group_current[gname], group_ceiling[gname],
+                group_states[gname].get("played", []), group_states[gname]["remaining"], bounds, t, position,
+            )
             beats = sum(
-                1 for g in other_groups if pos_floor[(g, position)] > group_ceiling[gname][t]
+                1 for g in other_groups if pos_floor[(g, position)] > t_ceiling_here
             )
             if label_top and beats >= n_top:
                 set_label(t, label_top, False)

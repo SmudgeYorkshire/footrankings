@@ -7,7 +7,9 @@ false certainty, so the tests lean on concrete worked examples rather
 than just shape checks.
 """
 
-from nations_league_simulator import group_position_bounds, league_label_certainty
+from nations_league_simulator import (
+    group_position_bounds, league_label_certainty, _rank_pair_ceiling_at_position,
+)
 
 
 def _group_states(pts: dict[str, int], remaining_count: dict[str, int]) -> dict[str, dict]:
@@ -520,3 +522,86 @@ def test_real_h2h_gd_breaks_a_plain_two_team_boundary_tie():
     bounds = group_position_bounds(states)
 
     assert bounds["T"] == (2, 2)
+
+
+# ---------------------------------------------------------------------------
+# A team's plain, unconditional ceiling (group_position_bounds' own best/
+# worst) can be strictly higher than what it could ACTUALLY have while
+# ranked at one specific worse-than-best position, when reaching that raw
+# ceiling requires beating the one rival whose own result decides which of
+# them outranks the other -- that same win would rank the team ABOVE that
+# rival instead, never at the worse position being asked about. Missed
+# live 2026-11-14 (real UEFA Nations League Group A4): Norway's raw
+# ceiling (9, from beating Denmark) never actually co-occurs with Norway
+# ranked 3rd -- beating Denmark puts Norway above Denmark instead (6-0 on
+# real h2h points after that result), so the ceiling conditioned on being
+# 3rd is really 7 (a draw, Denmark's other game going well enough to
+# still pull clear on raw points) -- tight enough for 2 filler groups'
+# fixed 3rd-place floors (9 and 8, neither exceeding the untightened 9) to
+# finally prove Norway's elimination from "top two of four 3rd-placers".
+# ---------------------------------------------------------------------------
+
+_RANK_PAIR_RULES = [("ranked", 3, 2, "3rd as Top 2 nations", 2, "Relegation Play-offs")]
+
+
+def test_rank_pair_ceiling_tightens_a_cross_group_elimination():
+    # Mirrors real Group A4 exactly for G1; G2/G3 are simple pinned
+    # groups (no games left at all) whose 3rd-placed team sits at a
+    # fixed 9 and 8 points respectively -- too low to beat Norway's old,
+    # untightened ceiling (9) but enough once it's tightened to 7. G4 is
+    # just there to satisfy the rule's own "exactly 4 groups" premise.
+    group_pts = {
+        "G1": {"Portugal": 12, "Denmark": 6, "Norway": 6, "Wales": 3},
+        "G2": {"G2Top": 20, "G2Second": 15, "G2Third": 9, "G2Bottom": 0},
+        "G3": {"G3Top": 20, "G3Second": 15, "G3Third": 8, "G3Bottom": 0},
+        "G4": {"G4Top": 20, "G4Second": 15, "G4Third": 1, "G4Bottom": 0},
+    }
+    group_remaining = {"G1": [("Portugal", "Denmark"), ("Denmark", "Norway"), ("Wales", "Portugal")]}
+    group_played = {"G1": [("Norway", "Denmark", 3, 2)]}
+    states = _multi_group_states(group_pts, group_remaining, group_played)
+
+    cert = league_label_certainty(states, _RANK_PAIR_RULES)
+
+    assert cert["Norway"]["3rd as Top 2 nations"] is False
+
+
+def test_rank_pair_ceiling_direct_unit_check():
+    # Same G1 shape, checked directly against the helper rather than
+    # through the full cross-group rule -- isolates exactly what's being
+    # tightened and from what.
+    pts = {"Portugal": 12, "Denmark": 6, "Norway": 6, "Wales": 3}
+    remaining = [("Portugal", "Denmark"), ("Denmark", "Norway"), ("Wales", "Portugal")]
+    played = [("Norway", "Denmark", 3, 2)]
+    states = _multi_group_states({"G1": pts}, {"G1": remaining}, {"G1": played})
+    bounds = group_position_bounds(states)
+    state = states["G1"]
+
+    ceiling_at_3 = _rank_pair_ceiling_at_position(
+        state["teams"],
+        {t: p for t, p in pts.items()},
+        {"Portugal": 18, "Denmark": 12, "Norway": 9, "Wales": 6},
+        state["played"], state["remaining"], bounds, "Norway", 3,
+    )
+
+    assert ceiling_at_3 == 7
+
+
+def test_rank_pair_ceiling_falls_back_when_two_rivals_both_contend():
+    # Fully hand-constructed (not derived through group_position_bounds)
+    # to isolate the precondition itself: T has TWO separate rivals, O1
+    # and O2, each individually sharing exactly one remaining fixture
+    # with T and each still a live contender for the slot directly above
+    # T's own best position -- the simple two-team framing ("whichever
+    # of exactly these two outranks the other decides it") no longer
+    # holds with two of them, so this must fall back to the raw,
+    # untightened ceiling rather than guess which one (if either)
+    # actually ends up deciding T's fate.
+    teams = ["T", "O1", "O2"]
+    current = {"T": 6, "O1": 6, "O2": 6}
+    ceiling = {"T": 9, "O1": 9, "O2": 9}
+    bounds = {"T": (1, 2), "O1": (1, 2), "O2": (1, 2)}
+    remaining = [{"strHomeTeam": "T", "strAwayTeam": "O1"}, {"strHomeTeam": "T", "strAwayTeam": "O2"}]
+
+    ceiling_at_2 = _rank_pair_ceiling_at_position(teams, current, ceiling, [], remaining, bounds, "T", 2)
+
+    assert ceiling_at_2 == ceiling["T"]
