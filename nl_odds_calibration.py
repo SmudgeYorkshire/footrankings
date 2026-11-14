@@ -74,11 +74,53 @@ ADJUSTMENT_CAP = 60.0
 # matters and is what's committed).
 # ---------------------------------------------------------------------------
 OBSERVATIONS: list[dict] = [
-    # No fresh "match" sightings this round -- nl_odds_calibration_auto.py's
-    # daily run already covers match-level odds across the full roster (see
-    # its own run log / ratings/nations_league_elo_adjustments.csv), so
-    # hand-typing a handful of matches here would just double-apply a
-    # correction on top of odds that are already-fitted and current.
+    # 2026-11-14: a one-off "match" observation for Group A2's decisive
+    # last-day fixture (Germany home vs Netherlands, 2026-11-16, 16-
+    # bookmaker average: Germany 1.864, Draw 3.925, Netherlands 3.481) was
+    # fitted here and already applied to ratings/nations_league_elo_
+    # adjustments.csv -- removed again immediately rather than left in
+    # place, because leaving a "match" entry in OBSERVATIONS subjects its
+    # two teams to this function's own 400-epoch L2 shrinkage on EVERY
+    # future run, which fought the outright re-anchoring step below call
+    # after call (Germany's adjustment stabilized around +40 instead of
+    # re-converging toward its outright-implied +60 -- confirmed live,
+    # the discovery that led to this comment). Trigger: the user flagged
+    # that Germany should be a touch favoured over Greece for the group's
+    # 2nd QF spot (correctly so -- directly verified the H2H tiebreak
+    # engine ALREADY ranks Germany above Greece in every reachable
+    # 11-11-11 three-way points tie regardless of this match's exact
+    # scoreline, since Greece's own head-to-head GD among the tied trio
+    # is fixed at -6 with no games left to change it). The live gap was
+    # elsewhere: this model's own win probability for this exact fixture
+    # was only ~43.8% Germany before the fit, vs this panel's de-vigged
+    # ~49.5% -- a single mispriced decisive match was quietly understating
+    # Germany's own chances of reaching that tie at all, not a tiebreak
+    # bug. If this fixture's price moves again before 2026-11-16, re-add
+    # a fresh "match" entry for it, then remove it again the same way
+    # once applied.
+    #
+    # That fit alone didn't close the gap enough on its own (Germany's
+    # rating was already at this file's own +60.0 ADJUSTMENT_CAP from the
+    # separate outright signal, so the simple-Elo fit saw little error left
+    # to correct and mostly just applied its own shrinkage -- a genuine
+    # mismatch between this script's simple classic-Elo fitting model and
+    # the real site's group-scoped Poisson simulation, confirmed by testing
+    # both directly against group_fixture_odds for this exact fixture).
+    # At the user's explicit choice, ratings/nations_league_elo_
+    # adjustments.csv's Netherlands row was hand-set to -60.0 (this file's
+    # own cap, not exceeded) on top of the fit above, bypassing this
+    # script entirely -- the cap-respecting ceiling of what's achievable
+    # without breaking it (47.0% Germany win, vs the panel's 49.5%; going
+    # all the way to 49.5% would need -62, past the cap, which the user
+    # declined). Netherlands has zero remaining League A fixtures after
+    # this one, so nothing else should touch its adjustment before the
+    # match is played -- but nl_odds_calibration_auto.py's own daily
+    # match-level fit WILL still touch it if API-Football starts carrying
+    # fresh odds for this exact fixture before 2026-11-16, since that
+    # script has no awareness of this manual override. Check Netherlands'
+    # value hasn't drifted away from -60.0 before that date if re-running
+    # the daily auto script; once the match is played (2026-11-16),
+    # real results settle it and this whole note becomes moot.
     #
     # 2026-11-14, user-provided screenshot of a bookmaker's League A outright
     # winner market (decimal odds) -- replaces the stale 2026-11-13 list
