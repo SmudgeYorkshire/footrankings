@@ -42,6 +42,7 @@ from api_football_fetcher import ApiFootballClient
 from ratings_manager import load_ratings
 from _split_season import compute_full_standings, ensure_full_roster
 from entrants_2027_28 import STAGE_ORDER_2027_28, QUALIFYING_DATES_2027_28
+from entrants_2027_28 import ACCESS_LIST_2027_28 as DEFAULT_ACCESS_LIST_2027_28
 from access_list_permutations_2027_28 import apply_permutations, PERMUTATIONS, ACTIVE_PERMUTATIONS
 
 # The permutation-applied access list -- see access_list_permutations_2027_28.py's
@@ -963,15 +964,84 @@ def _render_extra_cl_spot_race() -> None:
         )
 
 
+_DEFAULT_LIST_COLUMN_CONFIG = {
+    "No.": st.column_config.NumberColumn("No.", width="small"),
+    "Flag": st.column_config.ImageColumn("", width="small"),
+    "Country": st.column_config.TextColumn("Country", width="small"),
+    "League": st.column_config.TextColumn("League", width="medium"),
+    "Route": st.column_config.TextColumn("Route", width="small"),
+    "Label": st.column_config.TextColumn("Label", width="small"),
+    "Round": st.column_config.TextColumn("Round", width="medium"),
+    "Path": st.column_config.TextColumn("Path", width="small"),
+}
+
+
+def _render_default_access_list() -> None:
+    """The literal, untouched baseline (entrants_2027_28.ACCESS_LIST_2027_28)
+    -- deliberately read straight from that module rather than the
+    permutation-applied ACCESS_LIST_2027_28 this file's own top-level code
+    computes, so this tab always shows the pure default underneath,
+    regardless of what's active elsewhere."""
+    st.caption(
+        "The literal, nominal 2027/28 UEFA access list -- circular 54/2026 "
+        "(enclosure 2, 9 September 2026), the same data kassiesa.net mirrors as a "
+        "[PDF](https://kassiesa.net/uefa/files/2027-28-uefa-access-list.pdf). Every "
+        "country's entry here is exactly what the circular shows it, including Russia "
+        "with its own undisturbed nominal slots -- nothing conditional, predicted, or "
+        "suspension-related is baked in. Real-world departures from this (Russia's "
+        "ongoing suspension, a predicted European Performance Spot recipient, etc.) are "
+        "tracked separately as independently toggleable permutations "
+        "(access_list_permutations_2027_28.py), layered on top of a fresh copy of this "
+        "list elsewhere on the site -- this list itself never changes to reflect one "
+        "turning on or off."
+    )
+    if ACTIVE_PERMUTATIONS:
+        active_names = ", ".join(PERMUTATIONS[pid]["name"] for pid in ACTIVE_PERMUTATIONS)
+        st.info(f"Currently active elsewhere on the site: **{active_names}**. This tab still shows the pure default underneath.")
+    else:
+        st.success("No permutations are currently active -- every other tab on the site is showing this exact default list right now too.")
+
+    total = sum(len(v) for v in DEFAULT_ACCESS_LIST_2027_28.values())
+    cols = st.columns(len(DEFAULT_ACCESS_LIST_2027_28))
+    for col, (comp, entries) in zip(cols, DEFAULT_ACCESS_LIST_2027_28.items()):
+        n_direct = sum(1 for e in entries if e["round"] == "League Phase (direct)")
+        col.metric(comp, f"{len(entries)} slots", f"{n_direct} direct to League Phase")
+    st.caption(f"**{total} total slots** across all three competitions.")
+
+    comp_tabs = st.tabs(list(DEFAULT_ACCESS_LIST_2027_28.keys()))
+    for tab, (comp, entries) in zip(comp_tabs, DEFAULT_ACCESS_LIST_2027_28.items()):
+        with tab:
+            rows = [
+                {
+                    "Flag": flag_url(_country_key(e["country"])),
+                    "Country": e["country"],
+                    "League": e["league"] or "—",
+                    "Route": e["route"],
+                    "Label": e["label"],
+                    "Round": e["round"],
+                    "Path": e["path"],
+                }
+                for e in entries
+            ]
+            df = pd.DataFrame(_number_rows(rows))
+            st.dataframe(
+                df, column_config=_DEFAULT_LIST_COLUMN_CONFIG, width="content",
+                hide_index=True, height=min(len(df) * 35 + 38, 800),
+            )
+
+
 def _render_permutation_info() -> None:
     st.caption(
         "Knock-on permutations the main Projected Entries/Predicted Qualifiers tabs don't "
         "cover on their own -- who replaces a 2026/27 titleholder that doesn't requalify "
-        "through its own domestic route, and the European Performance Spot race."
+        "through its own domestic route, and the European Performance Spot race -- plus "
+        "the pure default access list both are layered on top of."
     )
-    titleholders_tab, race_tab = st.tabs(
-        ["🏆 Titleholder Replacements", "🥈 Race for an Extra Champions League Spot"]
+    default_tab, titleholders_tab, race_tab = st.tabs(
+        ["📜 Default Access List", "🏆 Titleholder Replacements", "🥈 Race for an Extra Champions League Spot"]
     )
+    with default_tab:
+        _render_default_access_list()
     with titleholders_tab:
         st.caption(
             "If a 2026/27 titleholder -- the UCL or UEL champion, or the UECL champion once it "
