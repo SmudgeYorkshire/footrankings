@@ -1496,8 +1496,44 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
                 for p in teams
             )
 
+        def _pair_guarantees_one_above(o1: str, o2: str, t_ceiling: int) -> bool:
+            """True if, no matter how o1-vs-o2's own still-to-play
+            fixture turns out, at least one of them ends up strictly
+            above t_ceiling -- checked by enumerating that one fixture's
+            3 possible results and, in EACH, using o1's and o2's WORST
+            case everywhere else (losing every other remaining game).
+            If even that floor clears t_ceiling in every one of the 3
+            branches, it clears it in every real scenario too (their
+            other games can only ever add more, never less).
+
+            Exactly one shared remaining fixture only -- two teams with
+            both legs still to play multiplies this to 9 branches, which
+            this deliberately doesn't attempt (stays silent instead, same
+            "don't overreach" principle as elsewhere in this function).
+
+            This is what proves a team like Israel (Group B3, confirmed
+            live 2026-11-14) can never reach 2nd: Kosovo and Republic of
+            Ireland play each other in the final round, so it's not two
+            INDEPENDENT rivals each merely "possibly" above Israel --
+            whichever of them loses that fixture stays low, but the one
+            that wins (or both, on a draw) is then guaranteed clear of
+            Israel's own ceiling. Plain per-rival ceiling/floor bounds
+            (what the rest of this function uses) can't see this at all,
+            since neither Kosovo's nor Ireland's OWN worst case alone
+            clears Israel -- only the fact that they can't BOTH be weak
+            at once does."""
+            if _remaining_h2h_count(remaining, o1, o2) != 1:
+                return False
+            o1_base, o2_base = current[o1], current[o2]
+            for o1_gain, o2_gain in ((1, 1), (3, 0), (0, 3)):  # draw, o1 win, o2 win
+                if max(o1_base + o1_gain, o2_base + o2_gain) <= t_ceiling:
+                    return False
+            return True
+
         for t in teams:
-            above = below = 0
+            above_from: set[str] = set()
+            below = 0
+            undetermined: list[str] = []
             for o in teams:
                 if o == t:
                     continue
@@ -1513,11 +1549,13 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
                 # _third_team_could_share's own docstring for why a
                 # pairwise h2h_pts comparison can't be trusted there.
                 if current[o] > ceiling[t]:
-                    above += 1
+                    above_from.add(o)
                 elif current[o] == ceiling[t] and not _third_team_could_share(ceiling[t], t, o):
                     pts_t, pts_o = _tied_h2h_pts(t, o)
                     if pts_o > pts_t:
-                        above += 1
+                        above_from.add(o)
+                if o not in above_from:
+                    undetermined.append(o)
                 # o guaranteed below t: either o's ceiling already falls
                 # short of t's current points outright, or they tie exactly
                 # at that ceiling and t still strictly outscores o on real
@@ -1529,7 +1567,26 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
                     pts_o, pts_t = _tied_h2h_pts(o, t)
                     if pts_t > pts_o:
                         below += 1
-            bounds[t] = (1 + above, len(teams) - below)
+
+            # Pairs of still-undetermined rivals connected by their own
+            # remaining fixture against EACH OTHER -- see
+            # _pair_guarantees_one_above's own docstring. Greedily claims
+            # at most one pair per rival so the same team never gets
+            # counted twice.
+            claimed: set[str] = set()
+            for i, o1 in enumerate(undetermined):
+                if o1 in claimed:
+                    continue
+                for o2 in undetermined[i + 1:]:
+                    if o2 in claimed:
+                        continue
+                    if _pair_guarantees_one_above(o1, o2, ceiling[t]):
+                        above_from.add(o1)
+                        claimed.add(o1)
+                        claimed.add(o2)
+                        break
+
+            bounds[t] = (1 + len(above_from), len(teams) - below)
     return bounds
 
 

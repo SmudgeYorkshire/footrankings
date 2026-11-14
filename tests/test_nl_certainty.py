@@ -349,3 +349,71 @@ def test_cross_group_ranked_certainty_stays_silent_with_mismatched_group_count()
     )
     cert = league_label_certainty(states, _LEAGUE_A_RULES)
     assert "Relegation Play-offs" not in cert.get("C", {})
+
+
+# ---------------------------------------------------------------------------
+# Shared-fixture pairs -- two OTHER rivals who still have to play EACH OTHER
+# constrain each other jointly: whichever one of them loses stays low, but
+# the other (or both, on a draw) necessarily jumps clear. Plain per-rival
+# ceiling/floor bounds can't see this at all, since neither rival's own
+# worst case alone need clear the team being tested -- only the fact that
+# they can't BOTH be weak simultaneously does. Missed live 2026-11-14
+# (real UEFA Nations League Group B3): Israel's own 2nd-place ceiling
+# (6, from beating Austria) exactly tied Kosovo's own floor (6, from
+# losing to Ireland) -- but Kosovo losing to Ireland means Ireland just
+# won that match, so Ireland is ALSO guaranteed clear of Israel in that
+# exact scenario (and clear anyway if Kosovo doesn't lose it) -- Israel
+# can never actually have two rivals below it, in any outcome.
+# ---------------------------------------------------------------------------
+
+def test_shared_remaining_fixture_between_two_rivals_bounds_a_third_team():
+    # Mirrors real Group B3 (Austria/Republic of Ireland/Kosovo/Israel,
+    # 2026-11-14) exactly: Austria's own floor (8) already clears
+    # Israel's ceiling (6) outright, and Kosovo/Ireland's own remaining
+    # fixture against EACH OTHER means at least one of them always does
+    # too -- so Israel can never reach 2nd, only ever 3rd or 4th.
+    pts = {"Austria": 8, "Ireland": 5, "Kosovo": 6, "Israel": 3}
+    remaining = [
+        ("Austria", "Ireland"), ("Ireland", "Kosovo"), ("Israel", "Austria"),
+    ]
+    states = _multi_group_states({"G1": pts}, {"G1": remaining})
+
+    bounds = group_position_bounds(states)
+
+    assert bounds["Israel"] == (3, 4)
+
+
+def test_shared_remaining_fixture_stays_silent_when_the_pair_could_both_stay_low():
+    # Same shape, but Ireland's floor is pulled down further (0 instead
+    # of 5) so the "Kosovo loses to Ireland" branch no longer forces
+    # Ireland above the team being tested (t)'s ceiling -- that branch's
+    # max(Kosovo=6, Ireland=0+3=3) = 6, exactly tying rather than
+    # clearing t's ceiling, so this specific pair can no longer be
+    # asserted to guarantee one of them above. A deliberately adjacent
+    # negative case to the real one above, to catch a too-eager version
+    # of the fix.
+    pts = {"Austria": 8, "Ireland": 0, "Kosovo": 6, "Israel": 3}
+    remaining = [
+        ("Austria", "Ireland"), ("Ireland", "Kosovo"), ("Israel", "Austria"),
+    ]
+    states = _multi_group_states({"G1": pts}, {"G1": remaining})
+
+    bounds = group_position_bounds(states)
+
+    assert bounds["Israel"] == (2, 4)
+
+
+def test_shared_remaining_fixture_mechanism_ignores_two_legs_still_to_play():
+    # Both legs between the pair still remain (not just one) -- this
+    # mechanism deliberately doesn't attempt the resulting 9-branch
+    # combinatorics, so it must stay silent rather than guess.
+    pts = {"Leader": 20, "RivalA": 5, "RivalB": 6, "Trailer": 3}
+    remaining = [("RivalA", "RivalB"), ("RivalB", "RivalA"), ("Trailer", "Leader")]
+    states = _multi_group_states({"G1": pts}, {"G1": remaining})
+
+    bounds = group_position_bounds(states)
+
+    # Leader is pinned 1st outright (current already beats every rival's
+    # ceiling); Trailer's own bound must NOT additionally tighten from
+    # the two-legs-remaining RivalA/RivalB pair.
+    assert bounds["Trailer"][0] == 2
