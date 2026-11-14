@@ -1,16 +1,23 @@
 """
 UEFA 5-year Club Ranking 2027 (used for 2027/28 seeding).
 
-Source: https://kassiesa.net/uefa/data/method5/trank2027.html
-Pulled: 2026-10-11 (kassiesa.net now blocks automated fetches behind a
-JS bot-check; this snapshot was pasted in directly -- see this project's
-memory notes for the workaround if a future re-pull is needed)
-
 This is the LIVE, still-accumulating 5-year window (2022/23-2026/27)
-that determines 2027/28 draw seeding once the 2026/27 season ends --
-a different table from club_coefficients.py's trank2026.html snapshot,
-which is frozen for THIS (2026/27) season's own draws. Re-pull this file
-periodically as the real 2026/27 season adds points to it.
+that determines 2027/28 draw seeding once the 2026/27 season ends.
+
+get_coeff_2027 used to resolve against a frozen, hand-pasted kassiesa.net
+snapshot (pulled 2026-10-11) with its own narrow alias chain -- replaced
+2026-11-14 after a live audit found 64+ real clubs (including Barcelona,
+PSG, Club Brugge) silently falling back to their country's floor instead
+of their own real coefficient, purely because that snapshot's resolver
+didn't know the live feed's exact spelling for them. It now resolves
+every club through coefficients_live._canonical_club_name (the same
+broader, diacritics/suffix-aware resolver already validated for the
+Coefficients page's own Club Ranking/Predicted Club Coefficients tabs)
+against club_coefficients_baseline.CLUB_BASELINE + this season's own
+live points -- always current, never re-pasted by hand again. Only
+_CLUB_COUNTRY_2027 below (the name-collision guard, e.g. Belarus's own
+"Arsenal" vs. Arsenal FC London) still needs its data kept in this file,
+since CLUB_BASELINE has no per-club country field of its own.
 
 Usage:
     from club_coefficients_2027 import get_coeff_2027
@@ -18,428 +25,11 @@ Usage:
     coeff = get_coeff_2027("Unknown Club", "Albania") # -> Albania's country floor
 """
 
-from club_coefficients import CLUB_ALIASES
+import os
 
-# Club coefficients -- keyed by exact name as on kassiesa.net (same spelling
-# convention as club_coefficients.CLUB_COEFFICIENTS; CLUB_ALIASES is reused
-# since it's the same clubs/same spelling quirks, independent of which year's
-# ranking table they come from).
-CLUB_COEFFICIENTS_2027: dict[str, float] = {
-    "Bayern München": 129.500,
-    "Arsenal": 127.000,
-    "Real Madrid": 122.500,
-    "Paris Saint-Germain": 121.000,
-    "Internazionale": 115.000,
-    "Manchester City": 106.500,
-    "FC Barcelona": 106.250,
-    "Liverpool": 105.000,
-    "Borussia Dortmund": 98.750,
-    "Bayer Leverkusen": 94.000,
-    "Atlético Madrid": 91.750,
-    "Aston Villa": 91.000,
-    "AS Roma": 81.750,
-    "Tottenham Hotspur": 77.000,
-    "FC Porto": 76.750,
-    "Fiorentina": 76.250,
-    "Sporting CP Lisbon": 76.000,
-    "Club Brugge": 74.250,
-    "Chelsea": 74.250,
-    "Benfica": 73.000,
-    "Real Betis": 71.500,
-    "Atalanta": 70.500,
-    "PSV Eindhoven": 68.250,
-    "Manchester United": 66.500,
-    "AC Milan": 62.000,
-    "Napoli": 60.000,
-    "Fenerbahçe": 59.750,
-    "SC Freiburg": 59.000,
-    "Lille OSC": 57.750,
-    "Shakhtar Donetsk": 57.250,
-    "Olympiakos Piraeus": 57.250,
-    "Juventus": 55.250,
-    "Bodø/Glimt": 55.000,
-    "Eintracht Frankfurt": 55.000,
-    "Feyenoord": 53.000,
-    "AZ Alkmaar": 52.875,
-    "Ferencváros": 51.250,
-    "Viktoria Plzen": 51.000,
-    "Union Saint-Gilloise": 51.000,
-    "Real Sociedad": 51.000,
-    "Sporting Braga": 50.250,
-    "RB Leipzig": 50.000,
-    "Lazio": 50.000,
-    "West Ham United": 48.000,
-    "Olympique Lyon": 47.750,
-    "Galatasaray": 44.500,
-    "FC København": 43.875,
-    "FC Midtjylland": 43.750,
-    "AS Monaco": 43.500,
-    "Glasgow Rangers": 42.750,
-    "Villarreal": 41.000,
-    "Olympique Marseille": 41.000,
-    "Celtic": 41.000,
-    "Dinamo Zagreb": 40.500,
-    "Slavia Praha": 40.000,
-    "Ajax": 38.750,
-    "Athletic Bilbao": 38.750,
-    "PAOK Thessaloniki": 37.750,
-    "Sparta Praha": 36.250,
-    "Qarabag FK": 36.250,
-    "Slovan Bratislava": 36.000,
-    "VfB Stuttgart": 35.500,
-    "Red Star Belgrade": 34.000,
-    "Djurgårdens IF": 32.000,
-    "Panathinaikos": 31.750,
-    "Anderlecht": 31.250,
-    "FC Salzburg": 31.000,
-    "Bologna": 30.750,
-    "AEK Athens": 30.500,
-    "AA Gent": 30.500,
-    "Lech Poznan": 30.250,
-    "Newcastle United": 29.750,
-    "Legia Warsaw": 28.500,
-    "Rapid Wien": 28.250,
-    "Sturm Graz": 28.000,
-    "Ludogorets Razgrad": 27.250,
-    "Sevilla": 27.000,
-    "Pafos FC": 26.625,
-    "NK Celje": 26.000,
-    "Maccabi Tel-Aviv": 26.000,
-    "FCSB": 25.500,
-    "Jagiellonia Bialystok": 25.000,
-    "Racing Genk": 25.000,
-    "Crystal Palace": 24.875,
-    "Stade Rennais": 24.000,
-    "FC Lugano": 23.750,
-    "Nottingham Forest": 23.000,
-    "FC Basel": 22.500,
-    "Raków Czestochowa": 22.250,
-    "Rayo Vallecano": 22.000,
-    "AEK Larnaca": 21.750,
-    "RC Strasbourg": 21.500,
-    "Young Boys": 21.500,
-    "Istanbul Basaksehir": 21.000,
-    "AFC Bournemouth": 3.000,
-    "Sunderland AFC": 3.000,
-    "Brighton & Hove Albion": 18.500,
-    "RC Lens": 20.500,
-    "Omonia Nicosia": 20.250,
-    "OGC Nice": 20.000,
-    "Molde FK": 19.750,
-    "Shamrock Rovers": 19.375,
-    "Celta de Vigo": 19.250,
-    "Vitória Guimarães": 18.750,
-    "NK Rijeka": 18.625,
-    "Union Berlin": 18.000,
-    "Como 1907": 8.000,
-    "Partizan Belgrade": 17.500,
-    "FSV Mainz 05": 17.500,
-    "Stade Brestois": 16.750,
-    "Getafe": 2.500,
-    "Girona FC": 8.000,
-    "Osasuna": 2.500,
-    "CFR Cluj": 16.500,
-    "Olimpija Ljubljana": 16.375,
-    "1899 Hoffenheim": 10.000,
-    "1.FC Heidenheim": 8.120,
-    "1.FC Köln": 6.000,
-    "FC Twente Enschede": 16.000,
-    "SK Brann Bergen": 14.750,
-    "Zrinjski Mostar": 14.750,
-    "APOEL Nicosia": 14.750,
-    "FC Drita": 14.625,
-    "Besiktas": 14.500,
-    "Hapoel Beer-Sheva": 14.500,
-    "Dynamo Kyiv": 14.500,
-    "Maccabi Haifa": 14.500,
-    "Vikingur Reykjavik": 14.250,
-    "Borac Banja Luka": 14.125,
-    "KuPS Kuopio": 14.000,
-    "Hearts FC": 14.000,
-    "Toulouse FC": 10.000,
-    "FC Nantes": 8.000,
-    "Lincoln Red Imps": 13.500,
-    "União Torreense": 3.000,
-    "CD Santa Clara": 2.500,
-    "FC Arouca": 2.000,
-    "Gil Vicente": 2.500,
-    "Sheriff Tiraspol": 13.000,
-    "Cercle Brugge": 12.750,
-    "RFS Riga": 12.500,
-    "Sabah FK": 12.000,
-    "LASK": 12.000,
-    "KI Klaksvik": 12.000,
-    "HJK Helsinki": 12.000,
-    "SC Dnipro-1": 12.000,
-    "Sint-Truiden": 2.500,
-    "Charleroi": 1.500,
-    "Royal Antwerp": 8.500,
-    "FC Noah": 11.750,
-    "Universitatea Craiova": 11.500,
-    "Zalgiris Vilnius": 11.500,
-    "FC Ballkani": 11.500,
-    "Pyunik Yerevan": 11.500,
-    "FK Astana": 11.500,
-    "Shkendija Tetovo": 11.375,
-    "Samsunspor": 11.125,
-    "Kairat Almaty": 11.000,
-    "Hajduk Split": 11.000,
-    "Trabzonspor": 11.000,
-    "Servette FC Genève": 11.000,
-    "NEC Nijmegen": 3.000,
-    "Go Ahead Eagles": 6.500,
-    "FC Utrecht": 3.000,
-    "Viking Stavanger": 10.500,
-    "Riga FC": 10.500,
-    "Austria Wien": 10.500,
-    "Adana Demirspor": 2.500,
-    "Sivasspor": 10.000,
-    "Konyaspor": 2.000,
-    "Levski Sofia": 10.000,
-    "Ararat-Armenia": 10.000,
-    "Spartak Trnava": 10.000,
-    "Lausanne Sports": 10.000,
-    "Breidablik": 10.000,
-    "Malmö FF": 10.000,
-    "Larne FC": 9.500,
-    "FC Nordsjælland": 9.500,
-    "Hamrun Spartans": 9.500,
-    "FK Jablonec": 2.500,
-    "Górnik Zabrze": 2.500,
-    "Hradec Kralove": 2.500,
-    "GKS Katowice": 2.000,
-    "Sigma Olomouc": 6.620,
-    "Baník Ostrava": 4.500,
-    "Mladá Boleslav": 4.000,
-    "Wisla Kraków": 2.500,
-    "Slask Wroclaw": 2.000,
-    "Pogon Szczecin": 3.500,
-    "Bohemians Praha": 1.500,
-    "1.FC Slovácko": 4.000,
-    "Lechia Gdansk": 1.500,
-    "OFI Heraklion": 3.000,
-    "Aris Thessaloniki": 5.500,
-    "FC Vaduz": 9.000,
-    "Petrocub Hîncesti": 9.000,
-    "Inter Club d'Escaldes": 8.500,
-    "Dinamo Minsk": 8.500,
-    "Paide Linnameeskond": 8.500,
-    "The New Saints": 8.500,
-    "Linfield Belfast": 8.500,
-    "BK Häcken": 8.500,
-    "NK Maribor": 8.500,
-    "IF Elfsborg": 8.500,
-    "TSC Backa Topola": 8.125,
-    "Flora Tallinn": 8.000,
-    "Tobol Kustanai": 8.000,
-    "Silkeborg IF": 8.000,
-    "Lillestrøm SK": 5.000,
-    "Tromsø IL": 4.500,
-    "Rosenborg BK": 4.500,
-    "Fredrikstad FK": 2.500,
-    "AGF Aarhus": 4.000,
-    "Brøndby IF": 6.500,
-    "Viborg FF": 2.500,
-    "Hibernian": 7.500,
-    "Iberia 1999": 7.500,
-    "Levadia Tallinn": 7.500,
-    "Differdange 03": 7.500,
-    "Aberdeen": 7.500,
-    "St. Patrick's Athletic": 7.500,
-    "Egnatia Rrogozhinë": 7.000,
-    "Kauno Zalgiris": 7.000,
-    "Apollon Limassol": 7.000,
-    "Zira FK": 7.000,
-    "Milsami Orhei": 7.000,
-    "Víkingur": 7.000,
-    "Zorya Luhansk": 7.000,
-    "Aris Limassol": 6.500,
-    "FC Sankt Gallen": 6.500,
-    "CSKA Sofia": 6.500,
-    "FK Auda": 6.500,
-    "DAC Dunajska Streda": 6.500,
-    "HB Torshavn": 6.500,
-    "Atlètic Club d'Escaldes": 6.500,
-    "FK Panevezys": 6.500,
-    "F91 Dudelange": 6.500,
-    "FC Sion": 2.500,
-    "FC Thun": 2.500,
-    "FC Zürich": 5.000,
-    "FC Luzern": 2.000,
-    "Shelbourne": 6.000,
-    "Paksi FC": 6.000,
-    "Zimbru Chisinau": 6.000,
-    "Dila Gori": 6.000,
-    "Sutjeska Niksic": 6.000,
-    "Vllaznia Shkodër": 6.000,
-    "La Fiorita": 6.000,
-    "Neman Grodno": 6.000,
-    "Buducnost Podgorica": 6.000,
-    "Partizani Tirana": 6.000,
-    "Wolfsberger AC": 5.000,
-    "ETO Györ": 4.500,
-    "DVSC Debrecen": 4.000,
-    "Puskás Akadémia": 5.500,
-    "FC Fehérvár": 4.500,
-    "Kecskeméti TE": 1.500,
-    "Zalaegerszegi TE": 1.500,
-    "Kisvárda FC": 2.000,
-    "Hammarby IF": 5.500,
-    "Beitar Jerusalem": 5.500,
-    "Ilves Tampere": 5.500,
-    "CSKA 1948 Sofia": 5.500,
-    "Polissya Zhytomyr": 5.500,
-    "Floriana": 5.500,
-    "Derry City": 5.500,
-    "BATE Borisov": 5.500,
-    "Neftchi Baku": 5.500,
-    "Decic Tuzi": 5.500,
-    "Torpedo Kutaisi": 5.500,
-    "NK Osijek": 5.500,
-    "Motherwell": 4.000,
-    "Dundee United": 4.000,
-    "Kilmarnock": 2.500,
-    "St. Mirren": 2.000,
-    "NK Varazdin": 3.000,
-    "Mjällby AIF": 2.500,
-    "IFK Göteborg": 2.000,
-    "GAIS Göteborg": 1.500,
-    "AIK Stockholm": 4.500,
-    "Kalmar FF": 1.500,
-    "Dinamo Tirana": 5.000,
-    "Valur Reykjavik": 5.000,
-    "FC Santa Coloma": 5.000,
-    "Vojvodina Novi Sad": 5.000,
-    "Dinamo Tbilisi": 5.000,
-    "AC Virtus": 5.000,
-    "FK Sarajevo": 5.000,
-    "St Joseph's FC": 5.000,
-    "B36 Torshavn": 5.000,
-    "Universitatea Cluj": 3.000,
-    "Corvinul Hunedoara": 2.000,
-    "Sepsi OSK": 4.500,
-    "Farul Constanta": 2.500,
-    "LNZ Cherkasy": 1.500,
-    "FC Oleksandriya": 1.500,
-    "Kryvbas Kryviy Rih": 2.500,
-    "Vorskla Poltava": 3.000,
-    "Hapoel Tel-Aviv": 2.500,
-    "Maccabi Petah-Tikva": 2.000,
-    "Maccabi Netanya": 1.500,
-    "Araz Nakhchivan": 2.000,
-    "Sumgayit FK": 1.500,
-    "Gabala FK": 3.000,
-    "NK Koper": 4.500,
-    "NK Bravo": 3.000,
-    "NK Aluminij": 1.500,
-    "NK Domzale": 1.000,
-    "Mura Murska Sobota": 1.500,
-    "Tre Fiori": 4.500,
-    "MSK Zilina": 4.500,
-    "FK Aktobe": 4.500,
-    "Ordabasy Shymkent": 4.500,
-    "FCB Magpies": 4.500,
-    "Cukaricki Belgrade": 4.500,
-    "FC Kosice": 1.500,
-    "MFK Ruzomberok": 4.000,
-    "Arda Kardzhali": 2.500,
-    "Cherno More Varna": 3.000,
-    "Botev Plovdiv": 3.500,
-    "UNA Strassen": 4.000,
-    "Velez Mostar": 4.000,
-    "FK Liepaja": 4.000,
-    "Alashkert FC": 4.000,
-    "Torpedo Zhodino": 4.000,
-    "Urartu FC": 4.000,
-    "FC Struga": 4.000,
-    "Dinamo Batumi": 4.000,
-    "KF Tirana": 4.000,
-    "Crusaders Belfast": 4.000,
-    "Gzira United": 4.000,
-    "FK Shkupi": 4.000,
-    "Zeleznicar Pancevo": 1.500,
-    "Radnicki 1923": 3.000,
-    "Novi Pazar": 1.500,
-    "Radnicki Nis": 1.500,
-    "Inter Turku": 3.500,
-    "KF Malisheva": 3.500,
-    "KA Akureyri": 3.500,
-    "Hibernians FC": 3.500,
-    "Cliftonville": 3.500,
-    "UE Santa Coloma": 3.500,
-    "Tre Penne": 3.500,
-    "Valmieras FK": 3.500,
-    "Stjarnan FC": 3.000,
-    "IF Vestri": 1.500,
-    "KR Reykjavik": 1.000,
-    "Bohemians Dublin": 2.000,
-    "Dundalk": 1.500,
-    "Sligo Rovers": 2.000,
-    "Ararat Yerevan": 1.000,
-    "NSI Runavik": 3.000,
-    "Vardar Skopje": 3.000,
-    "Kalju Nomme": 3.000,
-    "KF Dukagjini": 3.000,
-    "FC Hegelmann": 3.000,
-    "Penybont": 3.000,
-    "Mornar Bar": 3.000,
-    "Connah's Quay": 3.000,
-    "Europa FC": 3.000,
-    "Progrès Niederkorn": 3.000,
-    "FC Prishtina": 1.500,
-    "KF Llapi": 2.500,
-    "SC Gjilani": 2.000,
-    "Zeljeznicar Sarajevo": 2.500,
-    "Tuzla City": 1.500,
-    "BFC Daugavpils": 1.000,
-    "SJK Seinäjoki": 2.500,
-    "VPS Vaasa": 1.000,
-    "Haka Valkeakoski": 1.000,
-    "Honka Espoo": 1.000,
-    "Caernarfon Town": 2.500,
-    "Haverfordwest County": 2.500,
-    "Racing Union Luxembourg": 2.500,
-    "Makedonija GjP": 2.500,
-    "FK Yelimay": 1.000,
-    "FK Kyzylzhar": 2.000,
-    "Sfântul Gheorghe": 1.000,
-    "ML Vitebsk": 2.000,
-    "Sileks Kratovo": 2.000,
-    "Marsaxlokk": 2.000,
-    "Glentoran": 2.000,
-    "Birkirkara": 2.000,
-    "Bala Town": 2.000,
-    "Swift Hesperange": 2.000,
-    "Shakhtior Saligorsk": 2.000,
-    "AF Elbasani": 1.000,
-    "KF Laçi": 1.500,
-    "Rabotnicki Skopje": 1.000,
-    "Tikves Kavadarci": 1.000,
-    "Akademija Pandev": 1.000,
-    "Dynamo Brest": 1.000,
-    "Isloch Minsk Raion": 1.000,
-    "FC Gomel": 1.500,
-    "Banga Gargzdai": 1.500,
-    "Transinvest Vilnius": 1.500,
-    "FA Siauliai": 1.000,
-    "Suduva Marijampole": 1.500,
-    "Valletta FC": 1.500,
-    "Sliema Wanderers": 1.500,
-    "Balzan FC": 1.500,
-    "Coleraine": 1.500,
-    "Atert Bissen": 1.500,
-    "Dungannon Swifts": 1.500,
-    "Spaeri Tbilisi": 1.500,
-    "Newtown": 1.500,
-    "Kalev Tallinn": 1.000,
-    "Trans Narva": 1.000,
-    "US Mondorf-les-Bains": 1.000,
-    "CS Fola Esch": 1.000,
-    "OFK Petrovac": 1.000,
-    "Arsenal Tivat": 1.000,
-    "Iskra Danilovgrad": 1.000,
-    "Cosmos": 1.000,
-}
+from coefficients_live import _canonical_club_name, club_five_year_current_points, country_floor_2027
+
+_API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
 # Each club's own kassiesa.net country -- used ONLY to disambiguate
 # get_coeff_2027(club, country) when a club name collides across two
@@ -871,83 +461,12 @@ _CLUB_COUNTRY_2027: dict[str, str] = {
 }
 
 
-# Country floor (20% of the country's own 5-year ranking) -- the minimum
-# any club from that country can be assigned, per UEFA's Method 5. Every
-# UEFA member has one of these regardless of whether any of its clubs has
-# played in Europe recently, so this also IS the fallback for a club with
-# no row in CLUB_COEFFICIENTS_2027 at all. Keyed under every spelling this
-# site's own entrants_2027_28.py uses for that country (kassiesa's own name
-# first, then this site's abbreviated form where it differs).
-COUNTRY_FLOOR_2027: dict[str, float] = {
-    "England": 20.759,
-    "Italy": 17.717,
-    "Spain": 16.648,
-    "Germany": 16.309,
-    "France": 13.830,
-    "Portugal": 13.150,
-    "Belgium": 11.890,
-    "Netherlands": 10.512,
-    "Türkiye": 10.055,
-    "Turkey": 10.055,
-    "Czechia": 9.025,
-    "Czech Rep.": 9.025,
-    "Czech Republic": 9.025,
-    "Poland": 9.025,
-    "Greece": 9.002,
-    "Norway": 7.722,
-    "Denmark": 7.661,
-    "Cyprus": 6.938,
-    "Switzerland": 6.040,
-    "Austria": 5.650,
-    "Hungary": 5.562,
-    "Scotland": 5.250,
-    "Croatia": 5.181,
-    "Sweden": 5.150,
-    "Romania": 4.975,
-    "Ukraine": 4.867,
-    "Israel": 4.825,
-    "Azerbaijan": 4.737,
-    "Slovenia": 4.568,
-    "Slovakia": 4.475,
-    "Bulgaria": 4.112,
-    "Serbia": 3.650,
-    "Russia": 3.466,
-    "Iceland": 3.404,
-    "Ireland": 3.268,
-    "Armenia": 3.162,
-    "Kosovo": 2.806,
-    "Bosnia-Herzegovina": 2.793,
-    "Bosnia": 2.793,
-    "Bosnia-Herz.": 2.793,
-    "Latvia": 2.775,
-    "Finland": 2.725,
-    "Kazakhstan": 2.475,
-    "Liechtenstein": 2.200,
-    "Moldova": 2.050,
-    "Faroe Islands": 1.975,
-    "Faroe Isl.": 1.975,
-    "Albania": 1.800,
-    "North Macedonia": 1.793,
-    "N. Macedonia": 1.793,
-    "Belarus": 1.741,
-    "Lithuania": 1.625,
-    "Andorra": 1.566,
-    "Malta": 1.525,
-    "Gibraltar": 1.441,
-    "Estonia": 1.408,
-    "Northern Ireland": 1.325,
-    "N. Ireland": 1.325,
-    "Georgia": 1.300,
-    "Luxembourg": 1.250,
-    "Montenegro": 1.166,
-    "Wales": 0.899,
-    "San Marino": 0.599,
-}
-
-
-# Same handful of alt spellings COUNTRY_FLOOR_2027 dual-keys -- needed here
-# too so a caller passing "Czech Rep." still matches _CLUB_COUNTRY_2027's
-# own kassiesa-spelled "Czechia" when disambiguating a name collision.
+# A few alt country spellings this site's own entrants_2027_28.py uses,
+# normalized to _CLUB_COUNTRY_2027's own kassiesa-style spelling -- needed
+# so a caller passing e.g. "Czech Rep." still matches correctly when
+# disambiguating a name collision, and so it maps onto the live
+# country_floor_2027()/predicted_country_ranking() country-name convention
+# the same way.
 _COUNTRY_NORM_2027 = {
     "Turkey": "Türkiye",
     "Czech Rep.": "Czechia", "Czech Republic": "Czechia",
@@ -964,46 +483,30 @@ def _norm_country_2027(country: str | None) -> str | None:
     return _COUNTRY_NORM_2027.get(country, country)
 
 
-def _resolve_canonical_2027(club: str | None, country: str | None = None) -> str | None:
-    """Return the canonical kassiesa.net club name via exact/alias/case-
-    insensitive match. When `country` is given, a candidate is only
-    accepted if _CLUB_COUNTRY_2027 either agrees or has no entry for it --
-    without this, a club name that collides across two countries (an
-    obscure Belarusian "Arsenal" vs. Arsenal FC London; a Cypriot club
-    nicknamed "Olympiakos" vs. Olympiakos Piraeus) would silently inherit
-    the WRONG club's coefficient (confirmed as a real bug via a live
-    Titleholders-table smoke test -- see _CLUB_COUNTRY_2027's own note)."""
-    if not club:
-        return None
-    norm_country = _norm_country_2027(country)
-
-    def _country_ok(name: str) -> bool:
-        if norm_country is None:
-            return True
-        known = _CLUB_COUNTRY_2027.get(name)
-        return known is None or _norm_country_2027(known) == norm_country
-
-    if club in CLUB_COEFFICIENTS_2027 and _country_ok(club):
-        return club
-    canonical = CLUB_ALIASES.get(club)
-    if canonical and canonical in CLUB_COEFFICIENTS_2027 and _country_ok(canonical):
-        return canonical
-    club_lower = club.lower()
-    for k in CLUB_COEFFICIENTS_2027:
-        if club_lower == k.lower() and _country_ok(k):
-            return k
-    return None
-
-
 def get_coeff_2027(club: str | None, country: str) -> float:
     """Return the UEFA 5-year club coefficient that will determine 2027/28
     seeding, as currently accumulated. Always returns
     max(club_coefficient, country_floor) -- a club with no individual
     European history inherits its country's floor value, same as UEFA's
     own Method 5 rule (see this module's docstring).
-    """
-    floor = COUNTRY_FLOOR_2027.get(country, 0.0)
-    canonical = _resolve_canonical_2027(club, country)
-    if canonical and canonical in CLUB_COEFFICIENTS_2027:
-        return max(CLUB_COEFFICIENTS_2027[canonical], floor)
+
+    Resolves club through coefficients_live._canonical_club_name (exact /
+    alias / case-insensitive / diacritics-and-suffix-normalized match
+    against club_coefficients_baseline.CLUB_BASELINE), then verifies the
+    match against _CLUB_COUNTRY_2027 -- without that check, a club name
+    that collides across two countries (an obscure Belarusian "Arsenal"
+    vs. Arsenal FC London; a Cypriot club nicknamed "Olympiakos" vs.
+    Olympiakos Piraeus) would silently inherit the WRONG club's
+    coefficient."""
+    norm_country = _norm_country_2027(country)
+    floor = country_floor_2027().get(norm_country, 0.0)
+    if not club:
+        return floor
+    canon = _canonical_club_name(club)
+    known_country = _CLUB_COUNTRY_2027.get(canon)
+    if known_country is not None and _norm_country_2027(known_country) != norm_country:
+        return floor
+    live_points = club_five_year_current_points(_API_KEY)
+    if canon in live_points:
+        return max(live_points[canon], floor)
     return floor

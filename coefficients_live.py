@@ -333,6 +333,28 @@ def _compute_live_club_points(key: str) -> dict[str, float]:
 
 
 @st.cache_data(ttl=60, show_spinner=False)
+def club_five_year_current_points(key: str) -> dict[str, float]:
+    """{canonical CLUB_BASELINE club name: real 5-year total RIGHT NOW} --
+    22/23-25/26 (frozen baseline) + this season's own points already
+    earned, with every live club name canonicalized first (see
+    _canonical_club_name) so a club's real total isn't silently split
+    across two mismatched spellings. The lighter-weight half of what
+    predicted_club_coefficients() below computes -- no Monte Carlo
+    projection, just the real standing, for callers that don't need
+    the simulated rest-of-season part (e.g. club_coefficients_2027.
+    get_coeff_2027, 2027/28 seeding)."""
+    current_raw = _compute_live_club_points(key)
+    current: dict[str, float] = {}
+    for club, pts in current_raw.items():
+        canon = _canonical_club_name(club)
+        current[canon] = current.get(canon, 0.0) + pts
+    return {
+        club: sum(CLUB_BASELINE.get(club, {}).values()) + current.get(club, 0.0)
+        for club in set(CLUB_BASELINE) | set(current)
+    }
+
+
+@st.cache_data(ttl=60, show_spinner=False)
 def _compute_live_raw_points(key: str) -> dict[str, float]:
     """Total points earned by each country's clubs this season — match
     points plus both bonus types — NOT yet divided by clubs entered.
@@ -480,6 +502,19 @@ def _build_ranking_df(live_override: dict[str, float] | None = None) -> pd.DataF
     df = pd.DataFrame(rows).sort_values("_sort", ascending=False).drop(columns=["_sort"]).reset_index(drop=True)
     df.insert(0, "Rank", df.index + 1)
     return df
+
+
+@st.cache_data(ttl=3_600, show_spinner=False)
+def country_floor_2027() -> dict[str, float]:
+    """{country: 20% of its live 5-year total} -- Method 5's own floor
+    rule (a club with no individual history, or whose own total falls
+    below this, inherits this value instead). Derived straight from
+    _build_ranking_df's own "5-Year Total" column, so it's never stale
+    the way a frozen snapshot would be -- confirmed exact-match against
+    kassiesa.net's own displayed country-floor column, 2026-11-14
+    (England 21.537, Hungary 5.862, both to the decimal)."""
+    df = _build_ranking_df()
+    return {row["Country"]: round(row["5-Year Total"] * 0.20, 3) for _, row in df.iterrows()}
 
 
 @st.cache_data(ttl=3_600, show_spinner=False)
