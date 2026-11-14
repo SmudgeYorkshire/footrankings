@@ -86,7 +86,7 @@ def _apply_russia_suspension(access_list: dict) -> None:
                 old_label = e["label"]
                 e["label"] = new_label
                 e["round"] = _round_for_label(new_label)
-                e["note"] = f"Promoted {old_label} -> {new_label}: Russia ban vacates a slot above it"
+                e["note"] = f"Promoted {old_label} -> {new_label}"
 
 
 PERMUTATIONS: dict[str, dict] = {
