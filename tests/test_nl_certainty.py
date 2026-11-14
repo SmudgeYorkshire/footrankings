@@ -263,12 +263,18 @@ def test_head_to_head_bonus_goes_to_the_maximizer_not_whichever_team_is_tested_f
 
 def _multi_group_states(
     group_pts: dict[str, dict[str, int]], group_remaining: dict[str, list[tuple[str, str]]],
+    group_played: dict[str, list[tuple[str, str, int, int]]] | None = None,
 ) -> dict[str, dict]:
+    group_played = group_played or {}
     return {
         gname: {
             "teams": list(pts.keys()),
             "base_stats": {t: {"pts": p} for t, p in pts.items()},
             "remaining": [{"strHomeTeam": h, "strAwayTeam": a} for h, a in group_remaining.get(gname, [])],
+            "played": [
+                {"strHomeTeam": h, "strAwayTeam": a, "intHomeScore": hg, "intAwayScore": ag}
+                for h, a, hg, ag in group_played.get(gname, [])
+            ],
         }
         for gname, pts in group_pts.items()
     }
@@ -417,3 +423,100 @@ def test_shared_remaining_fixture_mechanism_ignores_two_legs_still_to_play():
     # ceiling); Trailer's own bound must NOT additionally tighten from
     # the two-legs-remaining RivalA/RivalB pair.
     assert bounds["Trailer"][0] == 2
+
+
+# ---------------------------------------------------------------------------
+# Real head-to-head GD/GF can break a boundary tie that h2h_pts alone can't
+# -- but ONLY from already-decided results (never a still-unplayed
+# fixture's unknown margin). Missed live 2026-11-14 (real UEFA Nations
+# League Group A4): Wales' ceiling (6, from beating Portugal) was exactly
+# tied by BOTH Denmark's and Norway's own floor (6 each, only by losing
+# their shared Denmark-Norway fixture) -- the plain single-rival check
+# bails on each individually (the other could share that same value, see
+# _third_team_could_share), and even _pair_guarantees_one_above only
+# proves "at least one" clears, leaving a false "could still reach 3rd".
+# The real UEFA tiebreak order resolves it: Wales already lost both legs
+# to Denmark outright (6-0 on real h2h points), and while Wales/Norway
+# split 1-1 on real h2h points, Norway's real h2h GD against Wales is +1
+# (Wales') own 2-1 win is outweighed by Norway's 3-1 win) -- so whichever
+# of Denmark/Norway stays at 6, it's already proven above Wales on real
+# results alone, in every possible result of their own shared fixture.
+# ---------------------------------------------------------------------------
+
+def test_shared_remaining_fixture_tie_resolved_by_real_h2h_gd_both_sides():
+    # Mirrors real Group A4 (Portugal/Denmark/Norway/Wales, 2026-11-14)
+    # exactly in shape: Wales' ceiling (6) is tied by both Denmark's and
+    # Norway's own floor, but both are already provably above Wales on
+    # real head-to-head results (Denmark outright on h2h points, Norway
+    # on h2h GD after a 1-1 h2h-points split) -- so Wales is pinned to
+    # 4th no matter how the Denmark-Norway fixture itself goes.
+    pts = {"Portugal": 12, "Denmark": 6, "Norway": 6, "Wales": 3}
+    remaining = [("Portugal", "Denmark"), ("Denmark", "Norway"), ("Wales", "Portugal")]
+    played = [
+        ("Denmark", "Wales", 2, 0), ("Wales", "Denmark", 0, 1),  # Denmark 6-0 on h2h points
+        ("Wales", "Norway", 2, 1), ("Norway", "Wales", 3, 1),  # 1-1 on h2h points, Norway +1 h2h GD
+    ]
+    states = _multi_group_states({"G1": pts}, {"G1": remaining}, {"G1": played})
+
+    bounds = group_position_bounds(states)
+
+    assert bounds["Wales"] == (4, 4)
+
+
+def test_shared_remaining_fixture_tie_stays_open_when_real_h2h_also_ties():
+    # Same shape, but Norway's two meetings against Wales are now an exact
+    # mirror of each other (2-1 and 1-2) -- h2h points AND h2h GD AND h2h
+    # GF all tie too, so the real tiebreak chain is exhausted without a
+    # winner (would fall through to overall GD/GF, which this module
+    # won't guess at). The pair can no longer be proven to BOTH clear
+    # Wales, only that at least one of them still does (the weaker,
+    # already-existing guarantee) -- a deliberately adjacent negative
+    # case to the real one above, to catch a too-eager version of the fix.
+    pts = {"Portugal": 12, "Denmark": 6, "Norway": 6, "Wales": 3}
+    remaining = [("Portugal", "Denmark"), ("Denmark", "Norway"), ("Wales", "Portugal")]
+    played = [
+        ("Denmark", "Wales", 2, 0), ("Wales", "Denmark", 0, 1),
+        ("Wales", "Norway", 2, 1), ("Norway", "Wales", 1, 2),  # now an exact mirror -- fully tied h2h
+    ]
+    states = _multi_group_states({"G1": pts}, {"G1": remaining}, {"G1": played})
+
+    bounds = group_position_bounds(states)
+
+    assert bounds["Wales"] == (3, 4)
+
+
+def test_real_h2h_gd_ignored_when_a_fixture_remains_between_them():
+    # Direct test of _fully_decided_h2h_winner's own guard (the simpler,
+    # plain 2-team boundary case, not the 3-team shared-fixture one above):
+    # T and O still have one leg left between them, so real h2h GD can't
+    # be trusted as final while that match's own margin is still unknown.
+    # O already leads 3-0 on real h2h points from leg 1, but T reaching
+    # its own ceiling (3) requires winning the remaining leg, which would
+    # tie h2h points 3-3 with the actual margin genuinely unresolved (a
+    # real, not just synthetic, "no certainty" case) -- must stay silent
+    # rather than guess at the still-unplayed leg's own GD.
+    pts = {"T": 0, "O": 3}
+    remaining = [("T", "O")]
+    played = [("O", "T", 3, 0)]
+    states = _multi_group_states({"G1": pts}, {"G1": remaining}, {"G1": played})
+
+    bounds = group_position_bounds(states)
+
+    assert bounds["T"] == (1, 2)
+
+
+def test_real_h2h_gd_breaks_a_plain_two_team_boundary_tie():
+    # Exercises the simpler, non-shared-fixture upgrade directly: T's
+    # ceiling (8, one remaining win) is tied exactly by O's current (8,
+    # already done for the season) -- h2h points between them are tied
+    # 3-3 (one win each, already fully played, nothing left between
+    # them), but O's real h2h GD (+1) beats T's (-1), so O is already
+    # provably above T regardless of anything else left to play.
+    pts = {"T": 5, "O": 8, "Filler": 0}
+    remaining = [("T", "Filler")]
+    played = [("T", "O", 1, 0), ("O", "T", 2, 0)]
+    states = _multi_group_states({"G1": pts}, {"G1": remaining}, {"G1": played})
+
+    bounds = group_position_bounds(states)
+
+    assert bounds["T"] == (2, 2)

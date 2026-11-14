@@ -1378,6 +1378,51 @@ def _remaining_h2h_count(remaining: list[dict], t: str, o: str) -> int:
     return sum(1 for f in remaining if {f.get("strHomeTeam"), f.get("strAwayTeam")} == {t, o})
 
 
+def _real_h2h_margin(played: list[dict], t: str, o: str) -> tuple[int, int]:
+    """(t's GD, t's GF) from already-played head-to-head fixtures between
+    t and o only -- h2h_gd/h2h_gf, NL_TIEBREAKERS' 2nd/3rd criteria.
+    Unlike overall GD/GF (which this module deliberately never
+    projects, since future scorelines are unknowable), this only ever
+    reads REAL, already-decided results -- safe to use whenever t and o
+    have no fixture left to play against each other."""
+    gd = gf = 0
+    for f in played:
+        h, a = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
+        if {h, a} != {t, o}:
+            continue
+        hg, ag = int(f.get("intHomeScore") or 0), int(f.get("intAwayScore") or 0)
+        if h == t:
+            gd += hg - ag
+            gf += hg
+        else:
+            gd += ag - hg
+            gf += ag
+    return gd, gf
+
+
+def _fully_decided_h2h_winner(played: list[dict], remaining: list[dict], t: str, o: str) -> str | None:
+    """Which of t/o already wins their head-to-head tiebreak outright --
+    h2h_pts, then h2h_gd, then h2h_gf (NL_TIEBREAKERS' own first 3
+    criteria) -- using ONLY real, already-played results between them.
+    Valid ONLY when t and o have no fixture left against each other (so
+    nothing about this comparison can still change); returns None if a
+    fixture between them remains, or if even all 3 real h2h criteria
+    tie (the real rule would then fall through to overall GD/GF, which
+    depends on still-unplayed games this module won't guess at)."""
+    if _remaining_h2h_count(remaining, t, o):
+        return None
+    pts_t, pts_o = _real_h2h_pts(played, t, o)
+    if pts_t != pts_o:
+        return t if pts_t > pts_o else o
+    gd_t, gf_t = _real_h2h_margin(played, t, o)
+    gd_o, gf_o = _real_h2h_margin(played, o, t)
+    if gd_t != gd_o:
+        return t if gd_t > gd_o else o
+    if gf_t != gf_o:
+        return t if gf_t > gf_o else o
+    return None
+
+
 def _group_current_ceiling(state: dict) -> tuple[dict[str, int], dict[str, int]]:
     """(current points, max achievable points) per team in one group --
     shared by group_position_bounds and league_label_certainty's own
@@ -1451,6 +1496,28 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
     extreme enough scoreline, e.g. a 14+ goal margin, actually flips
     which of Netherlands/Greece finishes 3rd) -- so no certainty can be
     asserted there at all, even though it's a statistical near-certainty.
+
+    Two further refinements layer on top of the plain per-rival ceiling/
+    floor comparison above, for cases it alone can't resolve:
+
+    - When t and a rival o tie exactly at the boundary on real h2h
+      points too, h2h_gd/h2h_gf (NL_TIEBREAKERS' own next 2 criteria)
+      can still resolve it -- but ONLY from real, already-played
+      results, and ONLY when t and o have no fixture left against each
+      other (an unplayed meeting's own margin is unknowable). See
+      _fully_decided_h2h_winner.
+
+    - When TWO other rivals (not t) share a remaining fixture against
+      EACH OTHER, they can't both stay weak at once: see
+      _pair_guarantees_one_above ("at least one ends up above t") and
+      the stronger _pair_guarantees_both_above ("both do", using the
+      h2h refinement above for whichever one lands exactly on t's
+      boundary in a given branch). Confirmed missing live 2026-11-14
+      (Group A4): Wales' ceiling (6) is exactly tied by BOTH Denmark's
+      and Norway's own floor, each reachable only by losing their
+      shared fixture against each other -- so whichever one does is
+      still provably above Wales on real h2h, in every possible result
+      of that fixture. Wales can never reach better than 4th.
     """
     bounds: dict[str, tuple[int, int]] = {}
     for state in group_states.values():
@@ -1530,6 +1597,49 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
                     return False
             return True
 
+        def _pair_guarantees_both_above(o1: str, o2: str, t: str, t_ceiling: int) -> bool:
+            """Stronger sibling of _pair_guarantees_one_above: True if, in
+            EVERY one of the 3 possible results of o1-vs-o2's own shared
+            remaining fixture, BOTH o1 and o2 end up ranked above t -- not
+            just at least one. Needed when the weaker "at least one"
+            version still leaves one of them tied exactly at t's own
+            ceiling in some branch: that's only safe to also count as
+            "above" when the one left at that exact value has ALREADY
+            fully played its own head-to-head against t (nothing left
+            that could still change it) and wins that real tiebreak
+            outright -- reusing _fully_decided_h2h_winner, same real-
+            results-only logic as the plain single-rival boundary case
+            above, just applied inside each branch.
+
+            Confirmed missing live 2026-11-14 (Group A4): Wales' ceiling
+            (6) is exactly tied by BOTH Denmark's and Norway's own floor
+            (6, each reachable by simply losing their shared Denmark-
+            Norway fixture) -- so neither single-rival check above can
+            resolve either one alone (each bails out since the OTHER
+            could also share that same value, see
+            _third_team_could_share). But Denmark and Norway can't both
+            actually stay at 6: whichever of them loses that fixture
+            stays there, the other clears to 9 -- and the one that stays
+            at 6 has ALREADY fully played its own head-to-head against
+            Wales (Denmark 6-0 on points; Norway 3-3 on points but +1 on
+            h2h GD), so it ranks above Wales regardless of which way that
+            fixture goes. Hence Wales can never reach better than 4th."""
+            if _remaining_h2h_count(remaining, o1, o2) != 1:
+                return False
+
+            def _clears(o: str, o_val: int) -> bool:
+                if o_val != t_ceiling:
+                    return o_val > t_ceiling
+                if any(p not in (t, o1, o2) and current[p] <= t_ceiling <= ceiling[p] for p in teams):
+                    return False
+                return _fully_decided_h2h_winner(played, remaining, t, o) == o
+
+            o1_base, o2_base = current[o1], current[o2]
+            for o1_gain, o2_gain in ((1, 1), (3, 0), (0, 3)):  # draw, o1 win, o2 win
+                if not (_clears(o1, o1_base + o1_gain) and _clears(o2, o2_base + o2_gain)):
+                    return False
+            return True
+
         for t in teams:
             above_from: set[str] = set()
             below = 0
@@ -1541,18 +1651,22 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
                 # beat t's ceiling outright, or they tie exactly at that
                 # ceiling and o still strictly outscores t on real head-to-
                 # head points in that one scenario (t is the maximizer
-                # being tested here). A head-to-head points TIE there stays
-                # unresolved -- not counted either way -- since breaking it
-                # needs h2h_gd/h2h_gf, a form of goal-difference this
-                # function won't fabricate. Likewise if a third team could
-                # also land on that exact boundary value -- see
-                # _third_team_could_share's own docstring for why a
-                # pairwise h2h_pts comparison can't be trusted there.
+                # being tested here). A head-to-head points TIE there falls
+                # back to real h2h_gd/h2h_gf -- but ONLY when t and o have
+                # no fixture left against each other (nothing about a
+                # still-to-play meeting's own GD is knowable, so that case
+                # stays unresolved, same "won't fabricate GD" principle).
+                # Likewise if a third team could also land on that exact
+                # boundary value -- see _third_team_could_share's own
+                # docstring for why a pairwise h2h_pts comparison can't be
+                # trusted there.
                 if current[o] > ceiling[t]:
                     above_from.add(o)
                 elif current[o] == ceiling[t] and not _third_team_could_share(ceiling[t], t, o):
                     pts_t, pts_o = _tied_h2h_pts(t, o)
                     if pts_o > pts_t:
+                        above_from.add(o)
+                    elif pts_o == pts_t and _fully_decided_h2h_winner(played, remaining, t, o) == o:
                         above_from.add(o)
                 if o not in above_from:
                     undetermined.append(o)
@@ -1560,19 +1674,27 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
                 # short of t's current points outright, or they tie exactly
                 # at that ceiling and t still strictly outscores o on real
                 # head-to-head points in that one scenario (o is the
-                # maximizer being tested here).
+                # maximizer being tested here) -- same real-h2h_gd/h2h_gf
+                # fallback as the "above" case when points alone tie and
+                # nothing's left to play between them.
                 if ceiling[o] < current[t]:
                     below += 1
                 elif ceiling[o] == current[t] and not _third_team_could_share(current[t], t, o):
                     pts_o, pts_t = _tied_h2h_pts(o, t)
                     if pts_t > pts_o:
                         below += 1
+                    elif pts_t == pts_o and _fully_decided_h2h_winner(played, remaining, t, o) == t:
+                        below += 1
 
             # Pairs of still-undetermined rivals connected by their own
             # remaining fixture against EACH OTHER -- see
-            # _pair_guarantees_one_above's own docstring. Greedily claims
-            # at most one pair per rival so the same team never gets
-            # counted twice.
+            # _pair_guarantees_one_above's/_pair_guarantees_both_above's
+            # own docstrings. Tries the stronger "both" claim first (adds
+            # 2 to above_from) before falling back to "at least one" (adds
+            # 1, crediting o1 as a placeholder name for "whichever one" --
+            # only the COUNT in above_from is ever read below, never which
+            # specific team is in it). Greedily claims at most one pair
+            # per rival so the same team never gets counted twice.
             claimed: set[str] = set()
             for i, o1 in enumerate(undetermined):
                 if o1 in claimed:
@@ -1580,6 +1702,12 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
                 for o2 in undetermined[i + 1:]:
                     if o2 in claimed:
                         continue
+                    if _pair_guarantees_both_above(o1, o2, t, ceiling[t]):
+                        above_from.add(o1)
+                        above_from.add(o2)
+                        claimed.add(o1)
+                        claimed.add(o2)
+                        break
                     if _pair_guarantees_one_above(o1, o2, ceiling[t]):
                         above_from.add(o1)
                         claimed.add(o1)
