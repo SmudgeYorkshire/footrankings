@@ -13,9 +13,8 @@ Per explicit instruction (2026-10-12): this file is the single
 "default access list" every downstream consumer (european_2027_28.py,
 league_status.py via build_league_status.py, cup_cascade.py) should be
 able to fall back to at any time. Real-world departures from it --
-Russia's ongoing suspension redistributing its slots, a predicted
-European Performance Spot recipient, a confirmed titleholder-replacement
-cascade, etc. -- are tracked as separate, independently toggleable
+Russia's ongoing suspension redistributing its slots, a confirmed
+titleholder-replacement cascade, etc. -- are tracked as separate, independently toggleable
 PERMUTATIONS in access_list_permutations_2027_28.py, layered on top of a
 fresh copy of this file rather than hand-edited into it. That way this
 file never needs to be edited to reflect a permutation turning on, off,

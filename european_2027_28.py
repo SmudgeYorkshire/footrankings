@@ -43,7 +43,10 @@ from ratings_manager import load_ratings
 from _split_season import compute_full_standings, ensure_full_roster
 from entrants_2027_28 import STAGE_ORDER_2027_28, QUALIFYING_DATES_2027_28
 from entrants_2027_28 import ACCESS_LIST_2027_28 as DEFAULT_ACCESS_LIST_2027_28
-from access_list_permutations_2027_28 import apply_permutations, PERMUTATIONS, ACTIVE_PERMUTATIONS
+from access_list_permutations_2027_28 import (
+    apply_permutations, PERMUTATIONS, ACTIVE_PERMUTATIONS,
+    russia_suspension_movements, russia_vacated_slots,
+)
 
 # The permutation-applied access list -- see access_list_permutations_2027_28.py's
 # own docstring. Every existing reference to ACCESS_LIST_2027_28 below keeps
@@ -989,8 +992,8 @@ def _render_default_access_list() -> None:
         "country's entry here is exactly what the circular shows it, including Russia "
         "with its own undisturbed nominal slots -- nothing conditional, predicted, or "
         "suspension-related is baked in. Real-world departures from this (Russia's "
-        "ongoing suspension, a predicted European Performance Spot recipient, etc.) are "
-        "tracked separately as independently toggleable permutations "
+        "ongoing suspension, and others as they come up) are tracked separately as "
+        "independently toggleable permutations "
         "(access_list_permutations_2027_28.py), layered on top of a fresh copy of this "
         "list elsewhere on the site -- this list itself never changes to reflect one "
         "turning on or off."
@@ -1030,6 +1033,91 @@ def _render_default_access_list() -> None:
             )
 
 
+_MOVEMENT_COLUMN_CONFIG = {
+    "No.": st.column_config.NumberColumn("No.", width="small"),
+    "Flag": st.column_config.ImageColumn("", width="small"),
+    "Country": st.column_config.TextColumn("Country", width="small"),
+    "Route": st.column_config.TextColumn("Route", width="small"),
+    "Was": st.column_config.TextColumn("Was", width="small"),
+    "Now": st.column_config.TextColumn("Now", width="small"),
+    "Predicted club": st.column_config.TextColumn("Predicted club", width="medium"),
+    "Note": st.column_config.TextColumn("Note", width="large"),
+}
+
+
+def _render_active_permutations() -> None:
+    """Every real-world departure from the pure default access list
+    (previous tab), each independently toggleable in
+    access_list_permutations_2027_28.ACTIVE_PERMUTATIONS -- turn one off
+    there to see the site as if it hadn't happened (or hadn't been
+    predicted yet). A permutation currently OFF still shows its full
+    description here (so it's visible, just marked inactive), not hidden
+    entirely."""
+    st.caption(
+        "Real-world departures from the pure default access list (previous tab), layered "
+        "on top of a fresh copy of it rather than hand-edited in -- so turning one off "
+        "below is always a clean revert, never a hand-undo. 🟢/🔴 shows whether it's "
+        "currently shaping the rest of this site (Projected Entries, domestic Status "
+        "columns, cup cascades) right now."
+    )
+    status_rows = [
+        {
+            "Status": "🟢 Active" if pid in ACTIVE_PERMUTATIONS else "🔴 Inactive",
+            "Permutation": perm["name"],
+            "Description": perm["description"],
+        }
+        for pid, perm in PERMUTATIONS.items()
+    ]
+    status_df = pd.DataFrame(status_rows)
+    st.dataframe(
+        status_df,
+        column_config={
+            "Status": st.column_config.TextColumn("Status", width="small"),
+            "Permutation": st.column_config.TextColumn("Permutation", width="medium"),
+            "Description": st.column_config.TextColumn("Description", width="large"),
+        },
+        width="content", hide_index=True, height=len(status_df) * 35 + 38,
+    )
+
+    st.divider()
+    russia_active = "russia_suspension" in ACTIVE_PERMUTATIONS
+    st.markdown(f"#### {'🟢 Active' if russia_active else '🔴 Inactive'} — Russia's UEFA suspension")
+    st.caption(PERMUTATIONS["russia_suspension"]["description"])
+
+    vacated_rows = [
+        {
+            "Competition": r["competition"], "Code": r["code"], "Route": r["route"], "Label": r["label"],
+            "Note": "Suspended -- no Russian club will occupy this slot",
+        }
+        for r in russia_vacated_slots()
+    ]
+    st.markdown("**Russia's own 4 vacated slots**")
+    vacated_df = pd.DataFrame(vacated_rows)
+    st.dataframe(vacated_df, width="content", hide_index=True, height=len(vacated_df) * 35 + 38)
+
+    st.markdown(
+        "**Slots promoted up one round to absorb the vacancy** -- resolved below against "
+        "each country's own live predicted standing, exactly like the Projected Entries tab:"
+    )
+    move_rows = []
+    for r in russia_suspension_movements():
+        occ, note = _resolve_country_slots(r["country"]).get((r["competition"], r["code"]), ("—", "not yet determined"))
+        move_rows.append({
+            "Flag": flag_url(_country_key(r["country"])),
+            "Country": r["country"],
+            "Route": r["route"],
+            "Was": r["old_label"],
+            "Now": r["new_label"],
+            "Predicted club": occ,
+            "Note": note,
+        })
+    move_df = pd.DataFrame(_number_rows(move_rows))
+    st.dataframe(
+        move_df, column_config=_MOVEMENT_COLUMN_CONFIG, width="content",
+        hide_index=True, height=len(move_df) * 35 + 38,
+    )
+
+
 def _render_permutation_info() -> None:
     st.caption(
         "Knock-on permutations the main Projected Entries/Predicted Qualifiers tabs don't "
@@ -1037,11 +1125,14 @@ def _render_permutation_info() -> None:
         "through its own domestic route, and the European Performance Spot race -- plus "
         "the pure default access list both are layered on top of."
     )
-    default_tab, titleholders_tab, race_tab = st.tabs(
-        ["📜 Default Access List", "🏆 Titleholder Replacements", "🥈 Race for an Extra Champions League Spot"]
+    default_tab, permutations_tab, titleholders_tab, race_tab = st.tabs(
+        ["📜 Default Access List", "🔀 Active Permutations", "🏆 Titleholder Replacements",
+         "🥈 Race for an Extra Champions League Spot"]
     )
     with default_tab:
         _render_default_access_list()
+    with permutations_tab:
+        _render_active_permutations()
     with titleholders_tab:
         st.caption(
             "If a 2026/27 titleholder -- the UCL or UEL champion, or the UECL champion once it "
@@ -1200,11 +1291,9 @@ with entries_tab:
     st.caption(
         "Not shown: UCL/UEL defending-titleholder byes, and the Conference League "
         "titleholder's promotion into the Europa League (all three depend on who wins "
-        "the 2026/27 finals). England and Germany's 5th Champions League slot above "
-        "assumes they again receive 2027/28's 2 \"European Performance Spot\" bonus "
-        "places -- predicted, not yet confirmed by UEFA (awarded after 2026/27 ends, by "
-        "aggregate club coefficient) -- see entrants_2027_28.py's own docstring for the "
-        "full picture, including how Russia's ongoing suspension is handled."
+        "the 2026/27 finals). Russia's ongoing suspension is reflected above via the "
+        "\"russia_suspension\" permutation -- see the Permutation Info tab's own "
+        "\"Active Permutations\" section for the full picture and which others are live."
     )
 
 

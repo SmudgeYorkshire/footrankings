@@ -25,10 +25,13 @@ european_status_zones / cup_winner_status), not entrants_2027_28's own,
 so turning a permutation on/off here automatically propagates everywhere
 the access list is used.
 
-Per explicit instruction (2026-10-12): start with ACTIVE_PERMUTATIONS
+Per explicit instruction (2026-10-12): started with ACTIVE_PERMUTATIONS
 empty (the pure default, Russia included normally) until the resulting
-Status column has been checked across every league; only then re-enable
-"russia_suspension" (and any others that should be live) below.
+Status column had been checked across every league. That check passed
+clean 2026-11-14 (only the 5 already-documented contested-play-off
+exceptions in league_status.py differed, none of them new) -- per
+explicit instruction the same day, "russia_suspension" is now ACTIVE
+below.
 """
 
 import copy
@@ -86,32 +89,6 @@ def _apply_russia_suspension(access_list: dict) -> None:
                 e["note"] = f"Promoted {old_label} -> {new_label}: Russia ban vacates a slot above it"
 
 
-# ---------------------------------------------------------------------------
-# Permutation: predicted European Performance Spot recipients. Awarded
-# AFTER 2026/27 ends to whichever 2 associations have the best aggregate
-# CLUB coefficient that season -- not fixed in the access-list circular
-# itself, so this is a live, speculative best guess. Manually curated for
-# now (see entrants_2027_28.py's own note on titleholder confirmations --
-# same "keep it manual until it's worth automating" approach); the
-# Coefficients page's own "Race for an extra Champions League spot" and
-# "Predicted Race..." tables (also surfaced in european_2027_28.py's
-# Permutation Info tab) are the live data to check before editing this.
-# ---------------------------------------------------------------------------
-_EPS_PREDICTED_RECIPIENTS: list[tuple[str, str]] = [
-    ("England", "English Premier League"),
-    ("Germany", "German Bundesliga"),
-]
-
-
-def _apply_eps_prediction(access_list: dict) -> None:
-    for country, league in _EPS_PREDICTED_RECIPIENTS:
-        access_list["Champions League"].append({
-            "country": country, "league": league, "code": "N5", "route": "League 5th",
-            "label": "CL-LS", "path": "Direct", "round": "League Phase (direct)",
-            "note": "Predicted EPS recipient, not yet confirmed by UEFA -- this slot only exists if that holds",
-        })
-
-
 PERMUTATIONS: dict[str, dict] = {
     "russia_suspension": {
         "name": "Russia's UEFA suspension",
@@ -124,24 +101,15 @@ PERMUTATIONS: dict[str, dict] = {
         ),
         "apply": _apply_russia_suspension,
     },
-    "eps_prediction": {
-        "name": "Predicted European Performance Spot recipients",
-        "description": (
-            "England and Germany are predicted (not yet confirmed by UEFA) to "
-            "receive 2027/28's 2 European Performance Spot bonus places, awarded "
-            "after 2026/27 ends to whichever 2 associations have the best "
-            "aggregate club coefficient that season. Modelled as a 5th direct "
-            "League Phase slot for each."
-        ),
-        "apply": _apply_eps_prediction,
-    },
 }
 
-# Per explicit instruction (2026-10-12): start empty (the pure default
-# access list, Russia included normally) until the Status column has been
-# checked across every league -- then re-enable "russia_suspension" here
-# (and "eps_prediction", if still accurate) once confirmed.
-ACTIVE_PERMUTATIONS: list[str] = []
+# "russia_suspension" went live 2026-11-14 (see module docstring) --
+# Russia remains suspended from UEFA competitions with no resolution in
+# sight, so its slots are redistributed everywhere on the site. Further
+# permutations get added to PERMUTATIONS (and here) one at a time, each
+# deliberately confirmed before going active -- see this module's own
+# docstring for the full process.
+ACTIVE_PERMUTATIONS: list[str] = ["russia_suspension"]
 
 
 def apply_permutations(active: list[str] | None = None) -> dict:
@@ -186,3 +154,32 @@ def cup_winner_status(country: str, active: list[str] | None = None) -> str | No
     against the permutation-applied list instead of the raw default."""
     label = _access_by_country(active).get(country, {}).get("CW")
     return label_to_status(label) if label else None
+
+
+def russia_suspension_movements() -> list[dict]:
+    """One row per real-world slot movement russia_suspension causes (NOT
+    Russia's own 4 vacated slots -- see russia_vacated_slots for those):
+    competition, country, code, route, and the label it moves from/to,
+    read straight off the untouched default list. Used by
+    european_2027_28.py's Permutation Info tab to show exactly which
+    countries' slots shift, each resolved there against its own live
+    predicted occupant (this module has no live-prediction access of its
+    own)."""
+    rows = []
+    for (comp, country, code), new_label in _RUSSIA_PROMOTIONS.items():
+        entry = next(e for e in ACCESS_LIST_2027_28[comp] if e["country"] == country and e["code"] == code)
+        rows.append({
+            "competition": comp, "country": country, "code": code, "route": entry["route"],
+            "old_label": entry["label"], "new_label": new_label,
+        })
+    return rows
+
+
+def russia_vacated_slots() -> list[dict]:
+    """Russia's own 4 entries in the default list -- what russia_suspension
+    removes (no club will ever actually occupy these, see _RUSSIA_NOTE)."""
+    return [
+        {"competition": comp, "code": e["code"], "route": e["route"], "label": e["label"]}
+        for comp, entries in ACCESS_LIST_2027_28.items()
+        for e in entries if e["country"] == "Russia"
+    ]

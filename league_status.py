@@ -246,7 +246,10 @@ LEAGUE_STATUS: dict[str, dict[str, dict[int, str]]] = {
     }},
 
     "Ukrainian Premier League": {"regular": {
-        1: "UCL - QR1", 2: "UECL - QR2", 3: "UECL - QR2",
+        # 1st promoted UCL-QR1 -> UCL-QR2 by the "russia_suspension" access-list
+        # permutation (ACTIVE as of 2026-11-14) -- see
+        # access_list_permutations_2027_28.py.
+        1: "UCL - QR2", 2: "UECL - QR2", 3: "UECL - QR2",
         13: "Relegation - PO", 14: "Relegation - PO",
         15: "Relegation", 16: "Relegation",
     }},
