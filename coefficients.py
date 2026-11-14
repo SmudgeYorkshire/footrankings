@@ -38,6 +38,7 @@ import pandas as pd
 
 from config import EUROPEAN_COMPETITIONS
 from coefficients_baseline import COUNTRY_BASELINE
+from club_coefficients_baseline import CLUB_BASELINE
 from flags import flag_url as _flag_url
 from prob_table import render_prob_table
 from coefficients_live import (
@@ -204,12 +205,13 @@ Sources: [UEFA — Club coefficient rules](https://www.uefa.com/nationalassociat
 
 st.divider()
 
-tab_country, tab_country_pred, tab_eps, tab_eps_pred, tab_club_pred, tab_week = st.tabs([
+tab_country, tab_country_pred, tab_eps, tab_eps_pred, tab_club, tab_club_pred, tab_week = st.tabs([
     "🌍 Country Ranking",
     "🔮 Country Ranking Predictions",
     "🏆 Race for an extra Champions League spot",
     "🔮 Race for an extra Champions League spot Predictions",
-    "⚽ Predicted Club Coefficients",
+    "⚽ Club Ranking",
+    "🔮 Predicted Club Coefficients",
     "📅 Coefficients Changes This Week",
 ])
 
@@ -505,6 +507,70 @@ with tab_eps_pred:
         )
 
 # ---------------------------------------------------------------------------
+# Shared data -- the real current standing per club, needed by both Club
+# Ranking and Predicted Club Coefficients below (one call, not two).
+# ---------------------------------------------------------------------------
+with st.spinner("Building per-club projections…"):
+    _club_pred_df, _club_pred_warnings = predicted_club_coefficients()
+
+# ---------------------------------------------------------------------------
+# Tab: Club Ranking
+# ---------------------------------------------------------------------------
+with tab_club:
+    st.caption(
+        "Every club's real UEFA 5-year standing right now, matching kassiesa.net's own 5-Year "
+        "Club Ranking layout -- 22/23-25/26 (frozen snapshot) plus 26/27, this season's own "
+        "points already earned (computed live by this site from every played match, per UEFA's "
+        "official rules, same engine as the Country Ranking tab above). No projection here -- "
+        "see Predicted Club Coefficients for the rest-of-season Monte Carlo view."
+    )
+    for _w in _club_pred_warnings:
+        st.caption(f"⚠️ {_w}")
+
+    _club_ranking_rows = []
+    for _, _r in _club_pred_df.iterrows():
+        _season_pts = CLUB_BASELINE.get(_r["club"], {})
+        _club_ranking_rows.append({
+            "Rank": _r["five_yr_rank"],
+            "Flag": _flag_url(_r["country"]) if _r["country"] else "",
+            "Club": _r["club"],
+            "Country": _r["country"],
+            "22/23": _season_pts.get("22/23", 0.0),
+            "23/24": _season_pts.get("23/24", 0.0),
+            "24/25": _season_pts.get("24/25", 0.0),
+            "25/26": _season_pts.get("25/26", 0.0),
+            "26/27": _r["current_points"],
+            "5-Year Total": _r["five_yr_current"],
+        })
+    _club_ranking_df = pd.DataFrame(_club_ranking_rows)
+    st.dataframe(
+        _club_ranking_df,
+        column_config={
+            "Rank": st.column_config.NumberColumn("Rank", width="small"),
+            "Flag": st.column_config.ImageColumn("", width="small"),
+            "Club": st.column_config.TextColumn("Club", width="medium"),
+            "Country": st.column_config.TextColumn("Country", width="medium"),
+            "22/23": st.column_config.NumberColumn("22/23", format="%.3f", width="small"),
+            "23/24": st.column_config.NumberColumn("23/24", format="%.3f", width="small"),
+            "24/25": st.column_config.NumberColumn("24/25", format="%.3f", width="small"),
+            "25/26": st.column_config.NumberColumn("25/26", format="%.3f", width="small"),
+            "26/27": st.column_config.NumberColumn(
+                "26/27", format="%.3f", width="small", help="This season, real points already earned.",
+            ),
+            "5-Year Total": st.column_config.NumberColumn(
+                "5-Year Total", format="%.3f", width="small",
+                help="22/23-25/26 (frozen) + 26/27 -- the club's real 5-year standing right now.",
+            ),
+        },
+        width="content", hide_index=True, height=min(len(_club_ranking_df), 20) * 35 + 38,
+    )
+    st.caption(
+        "Raw club points, not yet divided by a country's clubs entered -- not directly "
+        "comparable to the country-level figures above. Sorted by 5-Year Total by default, "
+        "matching kassiesa.net's own ordering; click any column header to reorder."
+    )
+
+# ---------------------------------------------------------------------------
 # Tab: Predicted Club Coefficients
 # ---------------------------------------------------------------------------
 with tab_club_pred:
@@ -516,8 +582,6 @@ with tab_club_pred:
         "broken down per club instead of aggregated by country. A club with no fixtures left "
         "(e.g. already eliminated) simply shows no predicted addition, not a guess."
     )
-    with st.spinner("Building per-club projections…"):
-        _club_pred_df, _club_pred_warnings = predicted_club_coefficients()
     for _w in _club_pred_warnings:
         st.caption(f"⚠️ {_w}")
 
