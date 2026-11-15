@@ -122,10 +122,12 @@ OBSERVATIONS: list[dict] = [
     # the daily auto script; once the match is played (2026-11-16),
     # real results settle it and this whole note becomes moot.
     #
-    # 2026-11-14, user-provided screenshot of a bookmaker's League A outright
-    # winner market (decimal odds) -- replaces the stale 2026-11-13 list
-    # above. The daily automation that used to decay this signal away is
-    # now disabled entirely (see nl_odds_calibration_auto.py's own
+    # 2026-11-15, user-provided screenshot of a bookmaker's League A outright
+    # winner market (decimal odds) -- replaces the stale 2026-11-14 list
+    # above. Main move since then: Denmark shortened a lot (51.00 -> 29.00,
+    # now ahead of Greece in the market); Portugal drifted out slightly
+    # (6.50 -> 7.50). The daily automation that used to decay this signal
+    # away is now disabled entirely (see nl_odds_calibration_auto.py's own
     # docstring / project memory) -- the only remaining reason this needs
     # re-running daily is that nl_odds_calibration_auto.py's own MATCH-
     # level fit (run manually each morning per the user's new workflow)
@@ -140,13 +142,13 @@ OBSERVATIONS: list[dict] = [
     {"type": "outright", "team": "Spain", "decimal_odds": 3.00},
     {"type": "outright", "team": "France", "decimal_odds": 4.00},
     {"type": "outright", "team": "England", "decimal_odds": 5.00},
-    {"type": "outright", "team": "Portugal", "decimal_odds": 6.50},
+    {"type": "outright", "team": "Portugal", "decimal_odds": 7.50},
     {"type": "outright", "team": "Germany", "decimal_odds": 10.00},
     {"type": "outright", "team": "Netherlands", "decimal_odds": 11.00},
     {"type": "outright", "team": "Italy", "decimal_odds": 15.00},
     {"type": "outright", "team": "Belgium", "decimal_odds": 26.00},
+    {"type": "outright", "team": "Denmark", "decimal_odds": 29.00},
     {"type": "outright", "team": "Greece", "decimal_odds": 41.00},
-    {"type": "outright", "team": "Denmark", "decimal_odds": 51.00},
     {"type": "outright", "team": "Norway", "decimal_odds": 51.00},
     {"type": "outright", "team": "Wales", "decimal_odds": 401.00},
 ]
