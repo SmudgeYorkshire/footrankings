@@ -95,6 +95,18 @@ jobs:
         if: steps.check.outputs.skip != 'true'
         run: python build_club_power_rankings.py
 
+      - name: Refresh the global national-team Elo scrape (eloratings.net)
+        if: steps.check.outputs.skip != 'true'
+        run: python scrape_nation_elo_ratings.py
+
+      - name: Update the persistent, full-history odds-implied nation rating
+        if: steps.check.outputs.skip != 'true'
+        run: python nation_odds_ratings.py
+
+      - name: Rebuild the Nation Power Ranking (Elo/Odds/Combined Rating)
+        if: steps.check.outputs.skip != 'true'
+        run: python build_nation_power_rankings.py
+
       - name: Sanity-check the ratings pipeline (report-only, never fails the run)
         if: steps.check.outputs.skip != 'true'
         run: python ratings_sanity_check.py
@@ -104,7 +116,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add odds_coverage/ ratings/club_rating_adjustments.csv ratings/club_odds_implied_ratings.csv ratings/club_odds_processed_fixtures.csv club_power_rankings_1000.csv
+          git add odds_coverage/ ratings/club_rating_adjustments.csv ratings/club_odds_implied_ratings.csv ratings/club_odds_processed_fixtures.csv club_power_rankings_1000.csv ratings/nation_elo_global.csv ratings/nation_odds_implied_ratings.csv ratings/nation_odds_processed_fixtures.csv nation_power_rankings.csv
           git diff --staged --quiet && exit 0
           git commit -m "Daily odds pull and club ratings $(date -u +%Y-%m-%d)"
           # main can move between this job's checkout and this push (another

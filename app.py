@@ -94,6 +94,7 @@ pages = [
     st.Page("euro_2028_qualifying_draw.py", title="2028 EURO Qualifying Draw", icon="🎲"),
     st.Page("opta_rankings.py",     title="Opta Rankings",          icon="⭐"),
     st.Page("club_power_rankings.py", title="Club Strength Rankings",  icon="🏆"),
+    st.Page("nation_power_rankings.py", title="Nation Strength Rankings", icon="🌍"),
     st.Page("coefficients.py",      title="Coefficients",           icon="📈"),
     st.Page("live.py",              title="Live",                   icon="🔴"),
 ]
