@@ -47,6 +47,20 @@ def match_probabilities(home_rating: float, away_rating: float) -> tuple[float, 
     return p_home, p_draw, p_away
 
 
+def neutral_match_probabilities(rating_a: float, rating_b: float) -> tuple[float, float, float]:
+    """(p_a, p_draw, p_b) -- same model as match_probabilities but with
+    no home-advantage boost for either side. Used for knockout-stage
+    matches, which (beyond the group stage's own pre-selected venues)
+    have no natural home team -- unlike group matches, a "Winner Group A"
+    vs "Runner-up Group C" style fixture label is just UEFA's schedule
+    convention, not a real home designation."""
+    e_a = _elo_expectancy(rating_a - rating_b)
+    p_draw = DRAW_PEAK * (1 - abs(2 * e_a - 1))
+    p_a = e_a - p_draw / 2
+    p_b = 1 - p_a - p_draw
+    return p_a, p_draw, p_b
+
+
 def round_robin_fixtures(teams: list[str]) -> list[tuple[str, str]]:
     """Home-and-away -- every team plays every other team twice."""
     return [(home, away) for home in teams for away in teams if home != away]
