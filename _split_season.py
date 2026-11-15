@@ -470,3 +470,66 @@ def compute_full_standings(
         zeroed, played_fixtures, pts_factor=1.0, pts_round="down", tiebreakers=tiebreakers,
         points_adjustments=points_adjustments,
     )
+
+
+def compute_expected_pts(
+    standings: list[dict], remaining_fixtures: list[dict], ratings_df, home_advantage: float,
+) -> dict[str, float]:
+    """{team: expected_final_points} from current points + Poisson fixture
+    odds over `remaining_fixtures` -- moved here from football_rankings.py
+    (still used there) so a BEFORE-the-real-split projection (e.g.
+    european_2027_28.py's own predicted-final-table resolution) can reuse
+    the exact same seeding logic without importing a Streamlit page
+    module. Used by playoff_standings below to seed a projected play-off
+    group from each team's PROJECTED points at the split, not today's raw
+    current points (see that function's own docstring for why the
+    difference matters -- a team with games in hand looks weaker than it
+    really is if seeded from today's incomplete table)."""
+    from simulator import fixture_odds  # local import -- simulator.py itself imports from this module
+
+    current = {row["strTeam"]: int(row.get("intPoints", 0)) for row in standings}
+    odds_list = fixture_odds(remaining_fixtures, ratings_df, home_advantage)
+    exp = dict(current)
+    for f, odds in zip(remaining_fixtures, odds_list):
+        h, a = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
+        if h in exp:
+            exp[h] += 3 * odds["home_win"] + odds["draw"]
+        if a in exp:
+            exp[a] += 3 * odds["away_win"] + odds["draw"]
+    return exp
+
+
+def playoff_standings(
+    teams: list, standings_lookup: dict, pts_factor: float,
+    exp_pts: dict[str, float] | None = None,
+) -> list:
+    """Mock standings for a play-off group: points adjusted by pts_factor,
+    goals zeroed. Moved here from football_rankings.py (still used there)
+    for the same reason compute_expected_pts above was -- see that
+    function's own docstring for why exp_pts (projected points at the
+    split), not today's raw current points, is the right seed. Falls back
+    to today's raw points if a team is missing from exp_pts (shouldn't
+    happen in practice)."""
+    rows = []
+    for i, team in enumerate(teams, 1):
+        orig = standings_lookup.get(team, {})
+        pts = (exp_pts or {}).get(team, int(orig.get("intPoints", 0) or 0))
+        rows.append({
+            "strTeam": team,
+            "intPoints": round(pts * pts_factor),
+            "intPlayed": 0, "intWin": 0, "intDraw": 0, "intLoss": 0,
+            "intGoalsFor": 0, "intGoalsAgainst": 0, "intGoalDifference": 0,
+            "intRank": i,
+            "strBadge": orig.get("strBadge", ""),
+        })
+    return rows
+
+
+def roundrobin_fixtures(teams: list) -> list:
+    """Generate home+away round-robin fixtures for a list of teams. Moved
+    here from football_rankings.py (still used there), same reason as
+    compute_expected_pts/playoff_standings above."""
+    return [
+        {"strHomeTeam": h, "strAwayTeam": a}
+        for h in teams for a in teams if h != a
+    ]

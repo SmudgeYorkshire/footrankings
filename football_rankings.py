@@ -16,7 +16,7 @@ from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_c
 from api_football_fetcher import ApiFootballClient
 from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff, position_bounds, seed_from_key, build_live_odds_lambda_overrides
 from ratings_manager import load_ratings, check_coverage
-from _split_season import get_split_info, conference_fixtures, recompute_conference_standings, compute_full_standings, ensure_full_roster
+from _split_season import get_split_info, conference_fixtures, recompute_conference_standings, compute_full_standings, ensure_full_roster, compute_expected_pts, playoff_standings, roundrobin_fixtures
 from league_status import LEAGUE_STATUS
 from historical import fetch_historical_season
 from cup_predictions import (
@@ -458,20 +458,6 @@ def render_zone_table(probs: pd.DataFrame, standings: list[dict] = None, zone_ov
                  height=len(zone_df) * 35 + 42)
 
 
-def _compute_expected_pts(standings, remaining_fixtures, ratings_df, home_advantage):
-    """Return {team: expected_final_points} from current points + Poisson fixture odds."""
-    current = {row["strTeam"]: int(row.get("intPoints", 0)) for row in standings}
-    odds_list = fixture_odds(remaining_fixtures, ratings_df, home_advantage)
-    exp = dict(current)
-    for f, odds in zip(remaining_fixtures, odds_list):
-        h, a = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
-        if h in exp:
-            exp[h] += 3 * odds["home_win"] + odds["draw"]
-        if a in exp:
-            exp[a] += 3 * odds["away_win"] + odds["draw"]
-    return exp
-
-
 def _apply_predictions(standings: list[dict], pred_fixtures: list[dict]) -> list[dict]:
     """Apply predicted results on top of standings. Returns updated standings list."""
     int_fields = ["intPlayed", "intWin", "intDraw", "intLoss",
@@ -506,53 +492,6 @@ def _apply_predictions(standings: list[dict], pred_fixtures: list[dict]) -> list
     for i, t in enumerate(ranked):
         t["intRank"] = i + 1
     return list(updated.values())
-
-
-def _playoff_standings(teams: list, standings_lookup: dict, pts_factor: float,
-                        exp_pts: dict[str, float] | None = None) -> list:
-    """Mock standings for a play-off group: points adjusted by pts_factor,
-    goals zeroed. Seeded from each team's PROJECTED points at the real
-    split round (exp_pts, from _compute_expected_pts over the same
-    pre-split remaining fixtures the main simulation already uses) rather
-    than today's raw current points -- the split round is typically weeks
-    or months away for a true-split league, and teams rarely have played
-    an equal number of games by then. Seeding from raw current points
-    understates a team with games in hand and can flip who looks like the
-    play-off favourite: confirmed as a real bug 2026-10-11 (Northern Irish
-    Premiership -- Larne, with 4 fewer games played, projects to lead at
-    the split on games in hand alone, but the old code seeded the
-    play-off from today's incomplete table, where Coleraine's then-current
-    9-point lead doesn't yet reflect Larne's unplayed matches, handing
-    Coleraine a misleading play-off-favourite status against Larne's own
-    much higher chance of topping the pre-split table). Falls back to
-    today's raw points if a team is missing from exp_pts (shouldn't happen
-    in practice)."""
-    rows = []
-    for i, team in enumerate(teams, 1):
-        orig = standings_lookup.get(team, {})
-        pts  = (exp_pts or {}).get(team, int(orig.get("intPoints", 0) or 0))
-        rows.append({
-            "strTeam":           team,
-            "intPoints":         round(pts * pts_factor),
-            "intPlayed":         0,
-            "intWin":            0,
-            "intDraw":           0,
-            "intLoss":           0,
-            "intGoalsFor":       0,
-            "intGoalsAgainst":   0,
-            "intGoalDifference": 0,
-            "intRank":           i,
-            "strBadge":          orig.get("strBadge", ""),
-        })
-    return rows
-
-
-def _roundrobin_fixtures(teams: list) -> list:
-    """Generate home+away round-robin fixtures for a list of teams."""
-    return [
-        {"strHomeTeam": h, "strAwayTeam": a}
-        for h in teams for a in teams if h != a
-    ]
 
 
 def _top_up_remaining_fixtures(roster: list[dict], played: list[dict], remaining: list[dict],
@@ -1489,13 +1428,13 @@ def main_content():
         # of the whole table.
         _champ_fix_early = conference_fixtures(remaining_fixtures, split_info["champ_teams"])
         if not _champ_fix_early:
-            _champ_fix_early = _roundrobin_fixtures(sorted(split_info["champ_teams"]))
+            _champ_fix_early = roundrobin_fixtures(sorted(split_info["champ_teams"]))
         _mid_fix_early = conference_fixtures(remaining_fixtures, split_info.get("mid_teams") or set())
         if not _mid_fix_early and split_info.get("mid_teams"):
-            _mid_fix_early = _roundrobin_fixtures(sorted(split_info["mid_teams"]))
+            _mid_fix_early = roundrobin_fixtures(sorted(split_info["mid_teams"]))
         _relg_fix_early = conference_fixtures(remaining_fixtures, split_info["relg_teams"])
         if not _relg_fix_early and split_info.get("relg_teams"):
-            _relg_fix_early = _roundrobin_fixtures(sorted(split_info["relg_teams"]))
+            _relg_fix_early = roundrobin_fixtures(sorted(split_info["relg_teams"]))
         _champ_sim_key = (league_id, season, n_sim, home_advantage,
                           len(_champ_fix_early), len(_mid_fix_early), len(_relg_fix_early),
                           _ratings_fingerprint) + ("champ",)
@@ -2213,13 +2152,13 @@ def main_content():
             # 100%-certain result.
             champ_fix = conference_fixtures(remaining_fixtures, split_info["champ_teams"])
             if not champ_fix and remaining_fixtures:
-                champ_fix = _roundrobin_fixtures(sorted(split_info["champ_teams"]))
+                champ_fix = roundrobin_fixtures(sorted(split_info["champ_teams"]))
             mid_fix = conference_fixtures(remaining_fixtures, split_info.get("mid_teams") or set())
             if not mid_fix and split_info.get("mid_teams") and remaining_fixtures:
-                mid_fix = _roundrobin_fixtures(sorted(split_info["mid_teams"]))
+                mid_fix = roundrobin_fixtures(sorted(split_info["mid_teams"]))
             relg_fix = conference_fixtures(remaining_fixtures, split_info["relg_teams"])
             if not relg_fix and split_info.get("relg_teams") and remaining_fixtures:
-                relg_fix = _roundrobin_fixtures(sorted(split_info["relg_teams"]))
+                relg_fix = roundrobin_fixtures(sorted(split_info["relg_teams"]))
             sim_key = (league_id, season, n_sim, home_advantage, len(champ_fix), len(mid_fix), len(relg_fix), _ratings_fingerprint)
             if st.session_state.get("sim_key") != sim_key:
                 with st.spinner(f"Running {n_sim:,} simulations…"):
@@ -2253,10 +2192,10 @@ def main_content():
 
             if "sim_results" in st.session_state:
                 probs_champ, probs_mid, probs_relg = st.session_state["sim_results"]
-                champ_exp_pts = _compute_expected_pts(split_info["champ_current"], champ_fix, ratings_df, home_advantage)
-                mid_exp_pts   = (_compute_expected_pts(split_info["mid_current"], mid_fix, ratings_df, home_advantage)
+                champ_exp_pts = compute_expected_pts(split_info["champ_current"], champ_fix, ratings_df, home_advantage)
+                mid_exp_pts   = (compute_expected_pts(split_info["mid_current"], mid_fix, ratings_df, home_advantage)
                                  if split_info.get("mid_teams") else None)
-                relg_exp_pts  = (_compute_expected_pts(split_info["relg_current"], relg_fix, ratings_df, home_advantage)
+                relg_exp_pts  = (compute_expected_pts(split_info["relg_current"], relg_fix, ratings_df, home_advantage)
                                  if split_info.get("relg_current") else None)
                 # Use pre-computed zones (same source as Current Table)
                 st.markdown("### 🏆 Championship Round")
@@ -2406,7 +2345,7 @@ def main_content():
                 st.session_state["sim_key"] = sim_key
 
             if "sim_results" in st.session_state and not st.session_state["sim_results"].empty:
-                exp_pts = _compute_expected_pts(standings, remaining_fixtures, ratings_df, home_advantage)
+                exp_pts = compute_expected_pts(standings, remaining_fixtures, ratings_df, home_advantage)
                 # For a true split league, full-table position 1 isn't the real title
                 # race (that's decided within the Championship Play-off after the
                 # split) -- shown below that section instead, where the probabilities
@@ -2526,8 +2465,8 @@ def main_content():
                                 with st.spinner("Simulating championship play-off…"):
                                     _po_probs = _cached_simulate_season(
                                         _po_sim_key + ("champ_po",) + _po_c,
-                                        _playoff_standings(top_champ, _st_lookup, _pf, exp_pts=exp_pts),
-                                        _roundrobin_fixtures(top_champ), ratings_df,
+                                        playoff_standings(top_champ, _st_lookup, _pf, exp_pts=exp_pts),
+                                        roundrobin_fixtures(top_champ), ratings_df,
                                         n_sim, home_advantage, cfg.get("tiebreakers"),
                                     )
                                 st.session_state["po_sims"][_po_c] = _po_probs
@@ -2576,8 +2515,8 @@ def main_content():
                                     with st.spinner("Simulating middle group…"):
                                         _po_probs = _cached_simulate_season(
                                             _po_sim_key + ("mid_po",) + _po_m,
-                                            _playoff_standings(top_mid, _st_lookup, _pf, exp_pts=exp_pts),
-                                            _roundrobin_fixtures(top_mid), ratings_df,
+                                            playoff_standings(top_mid, _st_lookup, _pf, exp_pts=exp_pts),
+                                            roundrobin_fixtures(top_mid), ratings_df,
                                             n_sim, home_advantage, cfg.get("tiebreakers"),
                                         )
                                     st.session_state["po_sims"][_po_m] = _po_probs
@@ -2620,8 +2559,8 @@ def main_content():
                                 with st.spinner("Simulating relegation play-out…"):
                                     _po_probs = _cached_simulate_season(
                                         _po_sim_key + ("relg_po",) + _po_r,
-                                        _playoff_standings(top_relg, _st_lookup, _pf, exp_pts=exp_pts),
-                                        _roundrobin_fixtures(top_relg), ratings_df,
+                                        playoff_standings(top_relg, _st_lookup, _pf, exp_pts=exp_pts),
+                                        roundrobin_fixtures(top_relg), ratings_df,
                                         n_sim, home_advantage, cfg.get("tiebreakers"),
                                     )
                                 st.session_state["po_sims"][_po_r] = _po_probs
@@ -3011,7 +2950,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                 if cached_c["fingerprint"] != pred_fp_c:
                     st.warning("⚠ Predictions changed since last run — press ▶ to update.")
                 if not cached_c["probs"].empty:
-                    manual_exp_c = _compute_expected_pts(
+                    manual_exp_c = compute_expected_pts(
                         updated_st_c, unpredicted_fix_c, ratings_df, home_advantage)
                     render_prob_table(cached_c["probs"], badge_lookup, manual_exp_c,
                                       status_map=conf_zones,
@@ -3295,7 +3234,7 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             # ── Play-off Predictions (manual) ───────────────────────────────
             # Simulated finish probabilities WITHIN each projected group
             # above, seeded from the user's own predicted points (the same
-            # _playoff_standings helper the live, non-manual Predictions tab
+            # playoff_standings helper the live, non-manual Predictions tab
             # uses for this exact projected-pre-split scenario -- see its
             # own docstring). Deliberately no position_bounds/✓/X here: this
             # group's own membership is itself still just a projection from
@@ -3322,8 +3261,8 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                              key=f"po_run_btn_{key_suffix}_{league_id}_{season}"):
                     with st.spinner(f"Running {n_sim:,} simulations…"):
                         po_probs = simulate_season(
-                            standings=_playoff_standings(group_teams, _st_lookup_manual, _pf_manual),
-                            remaining_fixtures=_roundrobin_fixtures(group_teams),
+                            standings=playoff_standings(group_teams, _st_lookup_manual, _pf_manual),
+                            remaining_fixtures=roundrobin_fixtures(group_teams),
                             ratings=ratings_df, n_sim=n_sim,
                             home_advantage=home_advantage,
                             tiebreakers=cfg.get("tiebreakers"),

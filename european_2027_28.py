@@ -40,7 +40,7 @@ from config import LEAGUES, DEFAULT_HOME_ADVANTAGE
 from flags import flag_url
 from api_football_fetcher import ApiFootballClient
 from ratings_manager import load_ratings
-from _split_season import compute_full_standings, ensure_full_roster
+from _split_season import compute_full_standings, ensure_full_roster, compute_expected_pts, playoff_standings, roundrobin_fixtures
 from entrants_2027_28 import STAGE_ORDER_2027_28, QUALIFYING_DATES_2027_28
 from entrants_2027_28 import ACCESS_LIST_2027_28 as DEFAULT_ACCESS_LIST_2027_28
 from access_list_permutations_2027_28 import (
@@ -102,7 +102,25 @@ def _predicted_standings(league_id: int, season: int, league_name: str):
     tab only ever runs one league at a time.
 
     Original standings rows (badges, etc.) are kept, just reordered and
-    re-ranked (intRank) to the predicted finish."""
+    re-ranked (intRank) to the predicted finish.
+
+    For a true split league (cfg["n_champ"] set, not a Final Four), the raw
+    regular-season order above is NOT the real European-slot decider --
+    football_rankings.py's own "Projected Play-offs / Play-outs" ->
+    "Championship Play-off" sub-simulation is (same mini round-robin among
+    the n_champ teams most likely to reach it, seeded from each team's
+    PROJECTED points at the split via compute_expected_pts, not today's raw
+    points -- see that function's own docstring). Confirmed as a real bug
+    2026-11-15 (Greek Super League 1): Panathinaikos led the raw
+    regular-season simulation, but Olympiacos was the actual Championship
+    Play-off favourite shown on football_rankings.py's own page -- this
+    function was resolving every European-slot entry (Status, Projected
+    Entries) off the former instead of the latter. Only positions 1..n_champ
+    are ever resolved against this re-ranked order; positions beyond
+    n_champ keep the regular-season order (confirmed live: every split-
+    league country's access-list entries only ever reach as deep as its own
+    n_champ, never into the Mid/Relegation groups), so those groups don't
+    need their own sub-simulation here."""
     client = ApiFootballClient(api_key=_API_KEY)
     roster = client.get_standings(league_id, season)
     played, remaining = client.get_fixtures(league_id, season)
@@ -126,6 +144,24 @@ def _predicted_standings(league_id: int, season: int, league_name: str):
     if probs.empty:
         return standings
     order = most_likely_group_order(probs)
+
+    n_champ = cfg.get("n_champ")
+    if n_champ and not cfg.get("final_four"):
+        champ_pos = [str(i) for i in range(1, n_champ + 1) if str(i) in probs.columns]
+        p_champ = probs[champ_pos].sum(axis=1) if champ_pos else None
+        if p_champ is not None and len(p_champ):
+            top_champ = list(p_champ.sort_values(ascending=False).index[:n_champ])
+            st_lookup = {row["strTeam"]: row for row in standings}
+            exp_pts = compute_expected_pts(standings, remaining, ratings_df, _home_advantage)
+            champ_probs = simulate_season(
+                playoff_standings(top_champ, st_lookup, cfg.get("pts_factor", 1.0), exp_pts=exp_pts),
+                roundrobin_fixtures(top_champ), ratings_df, n_sim=_PREDICTION_N_SIM,
+                home_advantage=_home_advantage, tiebreakers=tiebreakers,
+            )
+            if not champ_probs.empty:
+                champ_order = most_likely_group_order(champ_probs)
+                order = champ_order + [t for t in order if t not in top_champ]
+
     by_team = {row["strTeam"]: row for row in standings}
     return [{**by_team[t], "intRank": i} for i, t in enumerate(order, start=1) if t in by_team]
 
