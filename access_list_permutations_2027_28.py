@@ -311,6 +311,132 @@ def uel_titleholder_bye_movements() -> list[dict]:
     return rows
 
 
+# ---------------------------------------------------------------------------
+# Permutation: Conference League Titleholder bye. Confirmed by the user
+# from their own primary source, 2026-11-16, as a THIRD SEPARATE,
+# independently-triggered real-world event (the 2026/27 Conference
+# League champion not requalifying -- a different titleholder from both
+# permutations above). Two parts:
+#
+# 1. A dynamic Europa League cascade: the single highest-coefficient
+#    club across EVERY Europa League qualifying entry (EL-Q1/Q2/Q3/PO,
+#    every position code, not just CW/CH) promotes directly to EL-LS --
+#    confirmed live: Turkey's own EL-Q2 entry can outrank its own
+#    higher-round EL-PO entry, so this is a genuine open comparison
+#    across all 4 rounds, not "whoever's already in PO". The vacancy is
+#    backfilled by the single highest-REMAINING candidate one round
+#    below (EL-Q1 < EL-Q2 < EL-Q3 < EL-PO) -- NOT a two-legged pair like
+#    Champions League's own QR1 step, Europa League's qualifying rounds
+#    aren't paired that way. Resolved daily by
+#    build_european_2027_28_predictions.py's _build_uecl_titleholder_bye
+#    against the FULLY cascaded list (russia_suspension +
+#    ucl_titleholder_bye + uel_titleholder_bye already layered on, via
+#    that function's own _apply_movements_locally -- see its docstring
+#    for why apply_permutations() itself can't be reused mid-run here).
+# 2. One FIXED (non-coefficient) and CROSS-COMPETITION promotion:
+#    Moldova's Conference League cup-winner entry (CO-Q2) moves into
+#    Europa League's own EL-Q1, filling the vacancy the dynamic step
+#    above leaves there. Unlike every other fixed promotion so far, this
+#    one actually MOVES the entry's dict from the Conference League list
+#    to the Europa League list (not just a relabel in place) -- its
+#    "label"/"round" change to EL's own convention, everything else
+#    (route, code) stays as-is.
+# ---------------------------------------------------------------------------
+_UECL_TITLEHOLDER_BYE_CSV = "european_2027_28_uecl_titleholder_bye.csv"
+
+_UECL_FIXED_PROMOTIONS: dict[tuple[str, str, str], tuple[str, str]] = {
+    ("Conference League", "Moldova", "CW"): ("Europa League", "EL-Q1"),
+}
+
+
+def _load_uecl_titleholder_bye_movements() -> dict[tuple[str, str, str], dict]:
+    """{(competition, country, code): {new_label, club, coefficient}} --
+    the dynamic Europa League side only (part 1 above) -- from
+    build_european_2027_28_predictions.py's own daily output. Returns {}
+    if that file doesn't exist yet, same bootstrapping tolerance as
+    _load_titleholder_bye_movements."""
+    if not os.path.exists(_UECL_TITLEHOLDER_BYE_CSV):
+        return {}
+    movements: dict[tuple[str, str, str], dict] = {}
+    with open(_UECL_TITLEHOLDER_BYE_CSV, encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            key = (row["competition"], row["country"], row["code"])
+            movements[key] = {
+                "new_label": row["new_label"], "club": row["club"],
+                "coefficient": float(row["coefficient"]),
+            }
+    return movements
+
+
+_UECL_TITLEHOLDER_BYE_MOVEMENTS = _load_uecl_titleholder_bye_movements()
+
+
+def _apply_uecl_titleholder_bye(access_list: dict) -> None:
+    for comp, entries in access_list.items():
+        for e in entries:
+            move = _UECL_TITLEHOLDER_BYE_MOVEMENTS.get((comp, e["country"], e["code"]))
+            if not move:
+                continue
+            old_label = e["label"]
+            e["label"] = move["new_label"]
+            e["round"] = _round_for_label(move["new_label"])
+            e["note"] = (
+                f"Conference League Titleholder bye: highest Europa League qualifying "
+                f"coefficient ({move['club']}, {move['coefficient']:.3f}) -- "
+                f"promoted {old_label} -> {move['new_label']}"
+            )
+
+    for (comp_from, country, code), (comp_to, new_label) in _UECL_FIXED_PROMOTIONS.items():
+        entries_from = access_list.get(comp_from, [])
+        for i, e in enumerate(entries_from):
+            if e["country"] == country and e["code"] == code:
+                old_label = e["label"]
+                e["label"] = new_label
+                e["round"] = _round_for_label(new_label)
+                e["note"] = (
+                    f"Conference League Titleholder bye: promoted {comp_from} {old_label} "
+                    f"-> {comp_to} {new_label}"
+                )
+                entries_from.pop(i)
+                access_list.setdefault(comp_to, []).append(e)
+                break
+
+
+def uecl_titleholder_bye_movements() -> list[dict]:
+    """One row per real-world slot movement uecl_titleholder_bye causes --
+    both the dynamic Europa League side and Moldova's fixed cross-
+    competition promotion -- competition (the DESTINATION competition for
+    the cross-competition row, matching what _resolve_country_slots will
+    have it keyed under once applied), country, code, route, old/new
+    label, and (for the dynamic row only) the resolved club + coefficient.
+    Used by european_2027_28.py's Permutation Info tab, same contract as
+    the other titleholder-bye movements functions."""
+    rows = []
+    for (comp, country, code), move in _UECL_TITLEHOLDER_BYE_MOVEMENTS.items():
+        entry = next(
+            (e for e in ACCESS_LIST_2027_28[comp] if e["country"] == country and e["code"] == code), None,
+        )
+        if entry is None:
+            continue
+        rows.append({
+            "competition": comp, "country": country, "code": code, "route": entry["route"],
+            "old_label": entry["label"], "new_label": move["new_label"],
+            "club": move["club"], "coefficient": move["coefficient"],
+        })
+    for (comp_from, country, code), (comp_to, new_label) in _UECL_FIXED_PROMOTIONS.items():
+        entry = next(
+            (e for e in ACCESS_LIST_2027_28[comp_from] if e["country"] == country and e["code"] == code), None,
+        )
+        if entry is None:
+            continue
+        rows.append({
+            "competition": comp_to, "country": country, "code": code, "route": entry["route"],
+            "old_label": entry["label"], "new_label": new_label,
+            "club": None, "coefficient": None,
+        })
+    return rows
+
+
 PERMUTATIONS: dict[str, dict] = {
     "russia_suspension": {
         "name": "Russia's UEFA suspension",
@@ -362,6 +488,24 @@ PERMUTATIONS: dict[str, dict] = {
         ),
         "apply": _apply_uel_titleholder_bye,
     },
+    "uecl_titleholder_bye": {
+        "name": "Conference League Titleholder bye",
+        "description": (
+            "If the 2026/27 Conference League titleholder doesn't requalify for 2027/28 "
+            "through its own domestic route, a THIRD separate event from the two "
+            "Champions League titleholders above: the single highest-coefficient club "
+            "across EVERY Europa League qualifying entry (QR1/QR2/QR3/PO, any position "
+            "code) is promoted directly to the Europa League's League Phase. The vacancy "
+            "is backfilled by the single highest-remaining club one round below (NOT a "
+            "two-legged pair) -- resolved dynamically each day against the fully "
+            "cascaded list (both Champions League titleholder permutations already "
+            "applied first). Separately, one FIXED (non-coefficient) and CROSS-"
+            "COMPETITION promotion: Moldova's cup winner moves from the Conference "
+            "League's own Second qualifying round into the Europa League's First "
+            "qualifying round, filling the vacancy the dynamic step above leaves there."
+        ),
+        "apply": _apply_uecl_titleholder_bye,
+    },
 }
 
 # "russia_suspension" went live 2026-11-14 (see module docstring) --
@@ -373,11 +517,15 @@ PERMUTATIONS: dict[str, dict] = {
 # file rather than live data, and is a harmless no-op (moves nothing)
 # until that file's first real run. "uel_titleholder_bye" went live the
 # same day, a separate confirmed rule covering a different titleholder --
-# see its own comment block above. Further permutations get added to
-# PERMUTATIONS (and here) one at a time, each deliberately confirmed
-# before going active -- see this module's own docstring for the full
-# process.
-ACTIVE_PERMUTATIONS: list[str] = ["russia_suspension", "ucl_titleholder_bye", "uel_titleholder_bye"]
+# see its own comment block above. "uecl_titleholder_bye" went live
+# 2026-11-16, a third separate confirmed rule -- see its own comment
+# block above, including the one cross-competition promotion unique to
+# it. Further permutations get added to PERMUTATIONS (and here) one at a
+# time, each deliberately confirmed before going active -- see this
+# module's own docstring for the full process.
+ACTIVE_PERMUTATIONS: list[str] = [
+    "russia_suspension", "ucl_titleholder_bye", "uel_titleholder_bye", "uecl_titleholder_bye",
+]
 
 
 def apply_permutations(active: list[str] | None = None) -> dict:

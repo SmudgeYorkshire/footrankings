@@ -43,7 +43,7 @@ from entrants_2027_28 import ACCESS_LIST_2027_28 as DEFAULT_ACCESS_LIST_2027_28
 from access_list_permutations_2027_28 import (
     apply_permutations, PERMUTATIONS, ACTIVE_PERMUTATIONS,
     russia_suspension_movements, russia_vacated_slots,
-    ucl_titleholder_bye_movements, uel_titleholder_bye_movements,
+    ucl_titleholder_bye_movements, uel_titleholder_bye_movements, uecl_titleholder_bye_movements,
 )
 
 # The permutation-applied access list -- see access_list_permutations_2027_28.py's
@@ -1198,6 +1198,50 @@ def _render_active_permutations() -> None:
                 "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
             },
             width="content", hide_index=True, height=len(uel_bye_df) * 35 + 38,
+        )
+
+    st.divider()
+    uecl_bye_active = "uecl_titleholder_bye" in ACTIVE_PERMUTATIONS
+    st.markdown(f"#### {'🟢 Active' if uecl_bye_active else '🔴 Inactive'} — Conference League Titleholder bye")
+    st.caption(PERMUTATIONS["uecl_titleholder_bye"]["description"])
+
+    uecl_bye_movements = uecl_titleholder_bye_movements()
+    if not uecl_bye_movements:
+        st.caption(
+            "No movements resolved yet -- build_european_2027_28_predictions.py hasn't run "
+            "yet, or found no live coefficient/predicted-champion data to rank."
+        )
+    else:
+        st.markdown(
+            "**Slots promoted (the Europa League side resolved daily from live predicted "
+            "champions + live UEFA club coefficients, against the fully cascaded list -- "
+            "both Champions League titleholder permutations already applied; Moldova's row "
+            "is fixed and cross-competition -- see the permutation's own description "
+            "above):**"
+        )
+        uecl_bye_rows = []
+        for r in uecl_bye_movements:
+            occ, note = _resolve_country_slots(r["country"]).get((r["competition"], r["code"]), ("—", "not yet determined"))
+            uecl_bye_rows.append({
+                "Flag": flag_url(_country_key(r["country"])),
+                "Country": r["country"],
+                "Route": r["route"],
+                "Was": r["old_label"],
+                "Now": r["new_label"],
+                "Club": r["club"] or "—",
+                "Coefficient": r["coefficient"],
+                "Predicted club": occ,
+                "Note": note,
+            })
+        uecl_bye_df = pd.DataFrame(_number_rows(uecl_bye_rows))
+        st.dataframe(
+            uecl_bye_df,
+            column_config={
+                **_MOVEMENT_COLUMN_CONFIG,
+                "Club": st.column_config.TextColumn("Club", width="medium"),
+                "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
+            },
+            width="content", hide_index=True, height=len(uecl_bye_df) * 35 + 38,
         )
 
 
