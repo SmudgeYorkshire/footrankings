@@ -42,7 +42,8 @@ from entrants_2027_28 import STAGE_ORDER_2027_28, QUALIFYING_DATES_2027_28
 from entrants_2027_28 import ACCESS_LIST_2027_28 as DEFAULT_ACCESS_LIST_2027_28
 from access_list_permutations_2027_28 import (
     apply_permutations, PERMUTATIONS, ACTIVE_PERMUTATIONS,
-    russia_suspension_movements, russia_vacated_slots, ucl_titleholder_bye_movements,
+    russia_suspension_movements, russia_vacated_slots,
+    ucl_titleholder_bye_movements, uel_titleholder_bye_movements,
 )
 
 # The permutation-applied access list -- see access_list_permutations_2027_28.py's
@@ -1154,6 +1155,49 @@ def _render_active_permutations() -> None:
                 "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
             },
             width="content", hide_index=True, height=len(bye_df) * 35 + 38,
+        )
+
+    st.divider()
+    uel_bye_active = "uel_titleholder_bye" in ACTIVE_PERMUTATIONS
+    st.markdown(f"#### {'🟢 Active' if uel_bye_active else '🔴 Inactive'} — Europa League Titleholder bye")
+    st.caption(PERMUTATIONS["uel_titleholder_bye"]["description"])
+
+    uel_bye_movements = uel_titleholder_bye_movements()
+    if not uel_bye_movements:
+        st.caption(
+            "No movements resolved yet -- build_european_2027_28_predictions.py hasn't run "
+            "yet, or found no live coefficient/predicted-champion data to rank."
+        )
+    else:
+        st.markdown(
+            "**Slots promoted (the Champions League side resolved daily from live predicted "
+            "champions + live UEFA club coefficients, excluding whichever club UCL "
+            "Titleholder bye already claimed; the 4 Europa League rows are fixed, not "
+            "coefficient-based -- see the permutation's own description above):**"
+        )
+        uel_bye_rows = []
+        for r in uel_bye_movements:
+            occ, note = _resolve_country_slots(r["country"]).get((r["competition"], r["code"]), ("—", "not yet determined"))
+            uel_bye_rows.append({
+                "Flag": flag_url(_country_key(r["country"])),
+                "Country": r["country"],
+                "Route": r["route"],
+                "Was": r["old_label"],
+                "Now": r["new_label"],
+                "Club": r["club"] or "—",
+                "Coefficient": r["coefficient"],
+                "Predicted club": occ,
+                "Note": note,
+            })
+        uel_bye_df = pd.DataFrame(_number_rows(uel_bye_rows))
+        st.dataframe(
+            uel_bye_df,
+            column_config={
+                **_MOVEMENT_COLUMN_CONFIG,
+                "Club": st.column_config.TextColumn("Club", width="medium"),
+                "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
+            },
+            width="content", hide_index=True, height=len(uel_bye_df) * 35 + 38,
         )
 
 

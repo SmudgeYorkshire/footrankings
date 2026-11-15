@@ -21,6 +21,7 @@ Writes:
   european_2027_28_position_probs.csv        -- league_name, strTeam, position, probability
   european_2027_28_predicted_cup_winners.csv -- league_name, team, note
   european_2027_28_ucl_titleholder_bye.csv   -- see _build_titleholder_bye's own docstring
+  european_2027_28_uel_titleholder_bye.csv   -- see _build_uel_titleholder_bye's own docstring
 
 Usage: py build_european_2027_28_predictions.py
 """
@@ -42,12 +43,27 @@ STANDINGS_OUT = "european_2027_28_predicted_standings.csv"
 PROBS_OUT = "european_2027_28_position_probs.csv"
 CUP_WINNERS_OUT = "european_2027_28_predicted_cup_winners.csv"
 TITLEHOLDER_BYE_OUT = "european_2027_28_ucl_titleholder_bye.csv"
+UEL_TITLEHOLDER_BYE_OUT = "european_2027_28_uel_titleholder_bye.csv"
 
 # One CH entry per round currently sits in each of these Champions-Path
 # labels (see _build_titleholder_bye) -- QR1 moves as a PAIR since UEFA's
 # qualifying rounds are two-legged ties, so two QR1 clubs always advance
 # together to fill one QR2 vacancy.
 _CASCADE_TOP_N = {"CL-PO": 1, "CL-Q2": 1, "CL-Q1": 2}
+
+# Every Champions League qualifying ("fresh entry") label, Champions Path
+# and League Path alike -- see _build_uel_titleholder_bye's own docstring
+# for why the Europa League Titleholder bye's own "high CH Q" comparison
+# spans both, unlike ucl_titleholder_bye's Champions-Path-only pool.
+_CL_QUALIFYING_PATH = {
+    "CL-PO": "Champions Path", "CL-Q2": "Champions Path", "CL-Q1": "Champions Path",
+    "CL-Q3nc": "League Path", "CL-Q2nc": "League Path",
+}
+_CL_PROMOTE_TO = {
+    "CL-PO": "CL-LS", "CL-Q2": "CL-PO", "CL-Q1": "CL-Q2",
+    "CL-Q3nc": "CL-LS", "CL-Q2nc": "CL-Q3nc",
+}
+_POSITION_OF_CODE = {"CH": 1, "N2": 2, "N3": 3, "N4": 4, "N5": 5, "N6": 6, "N7": 7}
 
 
 def _all_tracked_leagues() -> list[str]:
@@ -94,7 +110,10 @@ def _build_titleholder_bye(standings_by_league: dict[str, list[dict]]) -> None:
     never as a specific club assignment.
 
     Writes TITLEHOLDER_BYE_OUT: one row per club that moves (competition,
-    country, code, old_label, new_label, club, coefficient)."""
+    country, code, old_label, new_label, club, coefficient). Also returns
+    that same list of movements, so _build_uel_titleholder_bye (a
+    separate, independently-triggered titleholder event) can exclude
+    whichever countries this one already claimed from its own pool."""
     access_list = apply_permutations(active=["russia_suspension"])
     pool: dict[str, list[dict]] = {label: [] for label in _CASCADE_TOP_N}
     for e in access_list["Champions League"]:
@@ -138,6 +157,111 @@ def _build_titleholder_bye(standings_by_league: dict[str, list[dict]]) -> None:
     print(f"Wrote {len(movements)} UCL Titleholder bye movements to {TITLEHOLDER_BYE_OUT}")
     for m in movements:
         print(f"  {m['country']} ({m['club']}, coeff {m['coefficient']:.3f}): {m['old_label']} -> {m['new_label']}")
+    return movements
+
+
+def _build_uel_titleholder_bye(standings_by_league: dict[str, list[dict]], claimed_countries: set[str]) -> None:
+    """Resolve the Champions League side of the "Europa League Titleholder
+    bye" cascade (the fixed, non-coefficient Europa League QR1 -> QR2
+    moves are hardcoded directly in access_list_permutations_2027_28.py
+    instead -- they don't need live data).
+
+    Confirmed by the user from their own primary source as a SEPARATE,
+    independently-triggered real-world event from ucl_titleholder_bye
+    (a different titleholder -- the 2026/27 Europa League champion --
+    not requalifying, not the Champions League one), drawing from a
+    WIDER candidate pool: the single highest-coefficient club across
+    EVERY Champions League qualifying entry, Champions Path AND League
+    Path alike (unlike ucl_titleholder_bye's Champions-Path-only pool) --
+    confirmed live, 2026-11-15: Portugal's League Path N3 entry (Sporting
+    CP) outranks every Champions Path entry on live coefficients, despite
+    sitting at only CL-Q3nc, not even that path's own top round.
+    claimed_countries (ucl_titleholder_bye's own already-resolved
+    countries, passed in from the same run) are excluded here -- a club
+    that event already promoted can't also be promoted by this one.
+
+    That overall-highest club promotes one level toward the League Phase
+    within its OWN path's chain (League Path: QR2nc -> QR3nc -> LS;
+    Champions Path promotions are ucl_titleholder_bye's own exclusive
+    domain, so if the overall highest (after exclusion) is still a
+    Champions Path club, this step is skipped entirely -- rather than
+    inventing a second, untested Champions-Path cascade under the wrong
+    permutation's name). When the promoted club comes specifically from
+    League Path's CL-Q3nc, the vacancy is backfilled by the top-2
+    REMAINING League Path CL-Q2nc entries (confirmed by the user's own
+    real example: Czech Rep./Denmark's N2 entries, Sparta Praha and
+    Midtjylland) -- League Path has no lower rung after CL-Q2nc, so a
+    club promoted FROM CL-Q2nc itself needs no further backfill.
+
+    A SEPARATE, already-automatic consequence (fewer Europa League QR1
+    losers cascading to Conference League QR2, more QR2 losers cascading
+    to QR3, once the 4 fixed EL-Q1 -> EL-Q2 moves shrink/grow those pools)
+    needs no special handling here -- european_2027_28.py's own
+    _simulate_full_bracket already re-derives that cascade purely from
+    each entry's (now-changed) label, exactly as russia_suspension's own
+    promotions already do.
+
+    Writes UEL_TITLEHOLDER_BYE_OUT: one row per Champions League club
+    that moves (competition, country, code, old_label, new_label, club,
+    coefficient) -- empty if the overall highest (after exclusion) is a
+    Champions Path club, so there's nothing for this permutation to do
+    this run."""
+    access_list = apply_permutations(active=["russia_suspension"])
+    pool = []
+    for e in access_list["Champions League"]:
+        if e["label"] not in _CL_QUALIFYING_PATH or e["country"] in ("Russia", *claimed_countries):
+            continue
+        standings = standings_by_league.get(e["league"] or "")
+        if not standings:
+            continue
+        pos = _POSITION_OF_CODE.get(e["code"])
+        if pos is None or pos > len(standings):
+            continue
+        club = standings[pos - 1].get("strTeam", "")
+        if not club:
+            continue
+        try:
+            coeff = get_coeff_2027(club, e["country"])
+        except Exception as exc:
+            print(f"  coefficient lookup failed for {club} ({e['country']}): {exc}", file=sys.stderr)
+            continue
+        pool.append({
+            "country": e["country"], "code": e["code"], "route": e["route"], "label": e["label"],
+            "path": _CL_QUALIFYING_PATH[e["label"]], "club": club, "coefficient": coeff,
+        })
+
+    movements = []
+    if pool:
+        pool.sort(key=lambda c: -(c["coefficient"] or 0))
+        top = pool[0]
+        if top["path"] == "League Path":
+            movements.append({
+                "competition": "Champions League", "country": top["country"], "code": top["code"],
+                "old_label": top["label"], "new_label": _CL_PROMOTE_TO[top["label"]],
+                "club": top["club"], "coefficient": top["coefficient"],
+            })
+            if top["label"] == "CL-Q3nc":
+                remaining = [c for c in pool if c["label"] == "CL-Q2nc" and c["country"] != top["country"]]
+                remaining.sort(key=lambda c: -(c["coefficient"] or 0))
+                for c in remaining[:2]:
+                    movements.append({
+                        "competition": "Champions League", "country": c["country"], "code": c["code"],
+                        "old_label": c["label"], "new_label": _CL_PROMOTE_TO[c["label"]],
+                        "club": c["club"], "coefficient": c["coefficient"],
+                    })
+        else:
+            print(
+                f"  Europa League Titleholder bye: overall-highest unclaimed CL qualifying "
+                f"coefficient ({top['club']}, {top['country']}) is a Champions Path club -- "
+                f"skipping (that path's cascade belongs to ucl_titleholder_bye only).",
+                file=sys.stderr,
+            )
+
+    pd.DataFrame(movements).to_csv(UEL_TITLEHOLDER_BYE_OUT, index=False)
+    print(f"Wrote {len(movements)} Europa League Titleholder bye (CL side) movements to {UEL_TITLEHOLDER_BYE_OUT}")
+    for m in movements:
+        print(f"  {m['country']} ({m['club']}, coeff {m['coefficient']:.3f}): {m['old_label']} -> {m['new_label']}")
+    return movements
 
 
 def main() -> None:
@@ -187,8 +311,10 @@ def main() -> None:
     print(f"Wrote {len(probs_rows)} position-probability rows to {PROBS_OUT}")
     print(f"Wrote {len(cup_rows)} predicted cup winners to {CUP_WINNERS_OUT}")
 
+    ucl_bye_claimed: set[str] = set()
     try:
-        _build_titleholder_bye(standings_by_league)
+        ucl_bye_movements = _build_titleholder_bye(standings_by_league)
+        ucl_bye_claimed = {m["country"] for m in ucl_bye_movements}
     except Exception as exc:
         # Never let a flaky live coefficient/fixture fetch (a DIFFERENT,
         # unrelated API-Football endpoint from the league standings above)
@@ -196,6 +322,11 @@ def main() -> None:
         # successfully above -- same "report, don't fail the whole daily
         # run" resilience as ratings_sanity_check.py.
         print(f"UCL Titleholder bye cascade FAILED ({exc}) -- standings/probs/cup files above are still valid.", file=sys.stderr)
+
+    try:
+        _build_uel_titleholder_bye(standings_by_league, ucl_bye_claimed)
+    except Exception as exc:
+        print(f"Europa League Titleholder bye cascade FAILED ({exc}) -- other files above are still valid.", file=sys.stderr)
 
 
 if __name__ == "__main__":
