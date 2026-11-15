@@ -44,6 +44,7 @@ from access_list_permutations_2027_28 import (
     apply_permutations, PERMUTATIONS, ACTIVE_PERMUTATIONS,
     russia_suspension_movements, russia_vacated_slots,
     ucl_titleholder_bye_movements, uel_titleholder_bye_movements, uecl_titleholder_bye_movements,
+    extra_ucl_spot_movements,
 )
 
 # The permutation-applied access list -- see access_list_permutations_2027_28.py's
@@ -1242,6 +1243,43 @@ def _render_active_permutations() -> None:
                 "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
             },
             width="content", hide_index=True, height=len(uecl_bye_df) * 35 + 38,
+        )
+
+    st.divider()
+    eps_active = "extra_ucl_spot" in ACTIVE_PERMUTATIONS
+    st.markdown(f"#### {'🟢 Active' if eps_active else '🔴 Inactive'} — Extra Champions League spot")
+    st.caption(PERMUTATIONS["extra_ucl_spot"]["description"])
+
+    eps_movements = extra_ucl_spot_movements()
+    if not eps_movements:
+        st.caption(
+            "No movements resolved yet -- build_european_2027_28_predictions.py hasn't run "
+            "yet, or found no live predicted-ranking data to resolve the 2 winning "
+            "associations."
+        )
+    else:
+        st.markdown(
+            "**Slots promoted, resolved daily from this site's own predicted country "
+            "ranking (coefficients_live.eps_bonus_recipients) -- \"—\" in Was means a "
+            "brand new entry, this country previously had no access-list slot at that "
+            "position at all:**"
+        )
+        eps_rows = []
+        for r in eps_movements:
+            occ, note = _resolve_country_slots(r["country"]).get((r["competition"], r["code"]), ("—", "not yet determined"))
+            eps_rows.append({
+                "Flag": flag_url(_country_key(r["country"])),
+                "Country": r["country"],
+                "Route": r["route"],
+                "Was": r["old_label"],
+                "Now": r["new_label"],
+                "Predicted club": occ,
+                "Note": note,
+            })
+        eps_df = pd.DataFrame(_number_rows(eps_rows))
+        st.dataframe(
+            eps_df, column_config=_MOVEMENT_COLUMN_CONFIG, width="content",
+            hide_index=True, height=len(eps_df) * 35 + 38,
         )
 
 

@@ -23,6 +23,7 @@ Writes:
   european_2027_28_ucl_titleholder_bye.csv   -- see _build_titleholder_bye's own docstring
   european_2027_28_uel_titleholder_bye.csv   -- see _build_uel_titleholder_bye's own docstring
   european_2027_28_uecl_titleholder_bye.csv  -- see _build_uecl_titleholder_bye's own docstring
+  european_2027_28_extra_ucl_spot.csv        -- see _build_extra_ucl_spot's own docstring
 
 Usage: py build_european_2027_28_predictions.py
 """
@@ -34,7 +35,7 @@ import pandas as pd
 
 from config import LEAGUES
 from entrants_2027_28 import ACCESS_LIST_2027_28 as DEFAULT_ACCESS_LIST_2027_28
-from access_list_permutations_2027_28 import apply_permutations, _UEL_FIXED_PROMOTIONS
+from access_list_permutations_2027_28 import apply_permutations, _UEL_FIXED_PROMOTIONS, _UECL_FIXED_PROMOTIONS
 from club_coefficients_2027 import get_coeff_2027
 from european_predictions_core import predicted_standings_and_probs, predict_cup_winner
 
@@ -46,6 +47,7 @@ CUP_WINNERS_OUT = "european_2027_28_predicted_cup_winners.csv"
 TITLEHOLDER_BYE_OUT = "european_2027_28_ucl_titleholder_bye.csv"
 UEL_TITLEHOLDER_BYE_OUT = "european_2027_28_uel_titleholder_bye.csv"
 UECL_TITLEHOLDER_BYE_OUT = "european_2027_28_uecl_titleholder_bye.csv"
+EXTRA_UCL_SPOT_OUT = "european_2027_28_extra_ucl_spot.csv"
 
 # One CH entry per round currently sits in each of these Champions-Path
 # labels (see _build_titleholder_bye) -- QR1 moves as a PAIR since UEFA's
@@ -70,6 +72,8 @@ _POSITION_OF_CODE = {"CH": 1, "N2": 2, "N3": 3, "N4": 4, "N5": 5, "N6": 6, "N7":
 # Europa League's own qualifying ("fresh entry") rounds, ordered low->high
 # -- see _build_uecl_titleholder_bye's own docstring.
 _EL_QUALIFYING_ORDER = ["EL-Q1", "EL-Q2", "EL-Q3", "EL-PO"]
+
+_POSITION_CODE_BY_NUM = {v: k for k, v in _POSITION_OF_CODE.items()}
 
 
 def _all_tracked_leagues() -> list[str]:
@@ -417,6 +421,132 @@ def _build_uecl_titleholder_bye(
     return movements
 
 
+def _build_extra_ucl_spot(
+    ucl_bye_movements: list[dict], uel_bye_movements: list[dict], uecl_bye_movements: list[dict],
+) -> list[dict]:
+    """Resolve the "Extra Champions League spot" permutation (the
+    European Performance Spot rule): the 2 associations with the best
+    CURRENT-SEASON coefficient alone earn an extra Champions League
+    place the following season -- confirmed by the user as a standing
+    UEFA rule, applied last (2026-11-16), AFTER all three titleholder-
+    bye permutations above (per the user's own explicit instruction that
+    permutations apply in the order they were added).
+
+    WHO wins is resolved via coefficients_live.eps_bonus_recipients(2) --
+    already the exact live number this site's own "Predicted Race for an
+    Extra Champions League Spot" table shows, and (per that function's
+    own docstring) already written with this exact permutation in mind:
+    "that belongs in access_list_permutations_2027_28.py as an explicit
+    permutation instead, same as any other access-list change."
+
+    HOW the extra slot is seated, confirmed by the user's own England/
+    Germany example: for each winning country, find its own first
+    position-coded entry (CH, N2..N7 -- cup-winner/CW entries are a
+    separate route, untouched) that ISN'T already "CL-LS" -- that one
+    promotes straight to CL-LS. Every entry below it then shifts DOWN
+    into the slot the entry immediately above it USED to hold, and if
+    the country currently has no entry one position past its existing
+    max, a BRAND NEW one is created there holding whatever label the
+    cascade leaves for it (confirmed live: England/Germany's own 5th
+    entry, EL-LS, becomes the extra CL-LS slot; the cup winner's own
+    EL-LS entry is untouched -- a separate route, not part of this
+    position cascade; the 6th entry, CO-PO, shifts up into EL-LS; and a
+    brand new 7th entry is created at CO-PO, since neither country
+    currently sends a 7th-placed club to Europe at all). Resolved purely
+    from each winning country's own domestic league positions -- no live
+    coefficient lookup needed here, unlike the three titleholder-bye
+    permutations above.
+
+    Resolved against the FULLY cascaded list (every permutation above
+    already applied) even though no realistic EPS winner (always a top
+    5/6 European league, by definition of leading the coefficient race)
+    would ever actually overlap with what those three touch -- their own
+    candidate pools are exclusively qualifying-round entries, which a
+    top league's own CH/N2-N4 entries never are. Still resolved this way
+    per the user's own explicit ordering instruction, and for
+    correctness if that ever stops being true.
+
+    Returns the list of movements (country, code, old_label, new_label,
+    route, league) -- old_label is None for a brand-new entry; no club/
+    coefficient columns, since this cascade works on domestic league
+    positions directly, not individual clubs."""
+    from coefficients_live import eps_bonus_recipients
+
+    try:
+        winners = eps_bonus_recipients(2)
+    except Exception as exc:
+        print(f"  Extra UCL spot: could not resolve EPS race winners ({exc})", file=sys.stderr)
+        pd.DataFrame([]).to_csv(EXTRA_UCL_SPOT_OUT, index=False)
+        return []
+
+    access_list = apply_permutations(active=["russia_suspension"])
+    _apply_movements_locally(access_list, ucl_bye_movements)
+    _apply_movements_locally(access_list, uel_bye_movements)
+    _apply_movements_locally(access_list, uecl_bye_movements)
+    for (comp, country, code), new_label in _UEL_FIXED_PROMOTIONS.items():
+        for e in access_list.get(comp, []):
+            if e["country"] == country and e["code"] == code:
+                e["label"] = new_label
+    for (comp_from, country, code), (_comp_to, new_label) in _UECL_FIXED_PROMOTIONS.items():
+        for e in access_list.get(comp_from, []):
+            if e["country"] == country and e["code"] == code:
+                e["label"] = new_label
+
+    movements = []
+    for country in winners:
+        own_entries: dict[int, dict] = {}
+        country_league = None
+        for entries in access_list.values():
+            for e in entries:
+                if e["country"] != country or e["code"] == "CW":
+                    continue
+                pos = _POSITION_OF_CODE.get(e["code"])
+                if pos is None:
+                    continue
+                own_entries[pos] = e
+                country_league = country_league or e.get("league")
+        if not own_entries:
+            print(f"  Extra UCL spot: {country} has no tracked position-coded entries -- skipping.", file=sys.stderr)
+            continue
+
+        max_pos = max(own_entries)
+        bump_pos = next((p for p in range(1, max_pos + 1) if own_entries[p]["label"] != "CL-LS"), None)
+        if bump_pos is None:
+            print(f"  Extra UCL spot: {country} already sends every tracked position directly to the Champions League -- nothing to bump.", file=sys.stderr)
+            continue
+
+        old_label_at = {p: own_entries[p]["label"] for p in own_entries if p >= bump_pos}
+        e0 = own_entries[bump_pos]
+        movements.append({
+            "country": country, "code": _POSITION_CODE_BY_NUM[bump_pos],
+            "old_label": e0["label"], "new_label": "CL-LS",
+            "route": e0["route"], "league": e0["league"],
+        })
+        for p in range(bump_pos + 1, max_pos + 2):
+            prev_label = old_label_at.get(p - 1)
+            if prev_label is None:
+                continue
+            if p in own_entries:
+                e = own_entries[p]
+                movements.append({
+                    "country": country, "code": _POSITION_CODE_BY_NUM[p],
+                    "old_label": e["label"], "new_label": prev_label,
+                    "route": e["route"], "league": e["league"],
+                })
+            else:
+                movements.append({
+                    "country": country, "code": _POSITION_CODE_BY_NUM[p],
+                    "old_label": None, "new_label": prev_label,
+                    "route": f"League {p}th", "league": country_league,
+                })
+
+    pd.DataFrame(movements).to_csv(EXTRA_UCL_SPOT_OUT, index=False)
+    print(f"Wrote {len(movements)} Extra Champions League spot movements to {EXTRA_UCL_SPOT_OUT}")
+    for m in movements:
+        print(f"  {m['country']} ({m['code']}): {m['old_label']} -> {m['new_label']}")
+    return movements
+
+
 def main() -> None:
     if not _API_KEY:
         print("API_FOOTBALL_KEY not set -- nothing to compute.", file=sys.stderr)
@@ -485,10 +615,16 @@ def main() -> None:
     except Exception as exc:
         print(f"Europa League Titleholder bye cascade FAILED ({exc}) -- other files above are still valid.", file=sys.stderr)
 
+    uecl_bye_movements: list[dict] = []
     try:
-        _build_uecl_titleholder_bye(standings_by_league, ucl_bye_movements, uel_bye_movements, cup_winner_by_league)
+        uecl_bye_movements = _build_uecl_titleholder_bye(standings_by_league, ucl_bye_movements, uel_bye_movements, cup_winner_by_league)
     except Exception as exc:
         print(f"Conference League Titleholder bye cascade FAILED ({exc}) -- other files above are still valid.", file=sys.stderr)
+
+    try:
+        _build_extra_ucl_spot(ucl_bye_movements, uel_bye_movements, uecl_bye_movements)
+    except Exception as exc:
+        print(f"Extra Champions League spot permutation FAILED ({exc}) -- other files above are still valid.", file=sys.stderr)
 
 
 if __name__ == "__main__":

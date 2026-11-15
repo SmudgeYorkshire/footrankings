@@ -437,6 +437,112 @@ def uecl_titleholder_bye_movements() -> list[dict]:
     return rows
 
 
+# ---------------------------------------------------------------------------
+# Permutation: Extra Champions League spot (the European Performance Spot
+# rule). Confirmed by the user, 2026-11-16, as a standing UEFA rule: the
+# 2 associations with the best CURRENT-SEASON coefficient alone (not the
+# 5-year total) earn an extra Champions League place the following
+# season. Applied LAST, after all three titleholder-bye permutations
+# above -- the user explicitly confirmed permutations apply in the order
+# they were added, and this is a real dependency for a country whose own
+# entries happen to also be touched by one of those three (not the case
+# for any realistic EPS winner today, but this stays correct if that
+# ever changes).
+#
+# WHO wins is resolved via coefficients_live.eps_bonus_recipients(2) --
+# the exact number already shown in this site's own "Predicted Race for
+# an Extra Champions League Spot" table, and (per that function's own
+# docstring) written with this exact permutation in mind.
+#
+# HOW the extra slot is seated, confirmed by the user's own England/
+# Germany example: each winning country's own first position-coded entry
+# (CH, N2..N7 -- cup-winner/CW entries are a separate, untouched route)
+# that isn't already "CL-LS" promotes straight to CL-LS; every entry
+# below it shifts down into the slot the entry immediately above it USED
+# to hold; if the country has no entry one position past its existing
+# max, a brand new one is created there -- the FIRST permutation that can
+# create a genuinely NEW access-list entry rather than just moving or
+# relabelling an existing one. Resolved daily by
+# build_european_2027_28_predictions.py's _build_extra_ucl_spot (same
+# "precompute once, read fast" split as the three titleholder-bye
+# permutations), purely from each winning country's own domestic league
+# positions -- no live club coefficient needed here.
+# ---------------------------------------------------------------------------
+_EXTRA_UCL_SPOT_CSV = "european_2027_28_extra_ucl_spot.csv"
+
+_COMP_PREFIX_TO_NAME = {"CL": "Champions League", "EL": "Europa League", "CO": "Conference League"}
+
+
+def _comp_for_label(label: str) -> str:
+    return _COMP_PREFIX_TO_NAME[label.split("-", 1)[0]]
+
+
+def _load_extra_ucl_spot_movements() -> list[dict]:
+    """[{country, code, old_label, new_label, route, league}] from
+    build_european_2027_28_predictions.py's own daily output -- old_label
+    is None for a brand-new entry. Returns [] if that file doesn't exist
+    yet, same bootstrapping tolerance as the titleholder-bye loaders."""
+    if not os.path.exists(_EXTRA_UCL_SPOT_CSV):
+        return []
+    movements: list[dict] = []
+    with open(_EXTRA_UCL_SPOT_CSV, encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            movements.append({
+                "country": row["country"], "code": row["code"],
+                "old_label": row["old_label"] or None, "new_label": row["new_label"],
+                "route": row["route"], "league": row["league"],
+            })
+    return movements
+
+
+_EXTRA_UCL_SPOT_MOVEMENTS = _load_extra_ucl_spot_movements()
+
+
+def _apply_extra_ucl_spot(access_list: dict) -> None:
+    for move in _EXTRA_UCL_SPOT_MOVEMENTS:
+        country, code = move["country"], move["code"]
+        comp_to = _comp_for_label(move["new_label"])
+        if move["old_label"]:
+            comp_from = _comp_for_label(move["old_label"])
+            entries_from = access_list.get(comp_from, [])
+            entry = next((e for e in entries_from if e["country"] == country and e["code"] == code), None)
+            if entry is None:
+                continue
+            old_label = entry["label"]
+            entry["label"] = move["new_label"]
+            entry["round"] = _round_for_label(move["new_label"])
+            entry["note"] = (
+                f"Extra Champions League spot: promoted {comp_from} {old_label} -> "
+                f"{comp_to} {move['new_label']}"
+            )
+            if comp_to != comp_from:
+                entries_from.remove(entry)
+                access_list.setdefault(comp_to, []).append(entry)
+        else:
+            access_list.setdefault(comp_to, []).append({
+                "country": country, "league": move["league"], "code": code,
+                "route": move["route"], "label": move["new_label"], "path": "Qualifying",
+                "round": _round_for_label(move["new_label"]),
+                "note": f"Extra Champions League spot: new entry at {move['new_label']}",
+            })
+
+
+def extra_ucl_spot_movements() -> list[dict]:
+    """One row per real-world slot movement extra_ucl_spot causes --
+    competition (the DESTINATION competition, matching what
+    _resolve_country_slots will have it keyed under once applied),
+    country, code, route, old/new label. old_label is "—" for a brand-
+    new entry. Used by european_2027_28.py's Permutation Info tab, same
+    contract as the other movements() functions."""
+    rows = []
+    for move in _EXTRA_UCL_SPOT_MOVEMENTS:
+        rows.append({
+            "competition": _comp_for_label(move["new_label"]), "country": move["country"], "code": move["code"],
+            "route": move["route"], "old_label": move["old_label"] or "—", "new_label": move["new_label"],
+        })
+    return rows
+
+
 PERMUTATIONS: dict[str, dict] = {
     "russia_suspension": {
         "name": "Russia's UEFA suspension",
@@ -506,6 +612,27 @@ PERMUTATIONS: dict[str, dict] = {
         ),
         "apply": _apply_uecl_titleholder_bye,
     },
+    "extra_ucl_spot": {
+        "name": "Extra Champions League spot",
+        "description": (
+            "The European Performance Spot rule: the 2 associations with the best "
+            "coefficient for the CURRENT season alone (not the 5-year total) each earn "
+            "an extra Champions League place the following season -- resolved against "
+            "this site's own predicted final country ranking (coefficients_live."
+            "eps_bonus_recipients), the same number the Coefficients page's own "
+            "'Predicted Race for an Extra Champions League Spot' table shows. For each "
+            "winning country, its own first position not already entering the Champions "
+            "League directly is promoted there; every lower position shifts down into "
+            "the slot immediately above it, with a brand new entry created if needed "
+            "(e.g. a country whose 5th-placed club currently enters the Europa League "
+            "directly instead enters the Champions League directly, its 6th-placed club "
+            "takes the Europa League slot, and a 7th-placed entry is created to take the "
+            "Conference League play-off slot it would otherwise have had no access to at "
+            "all). Applied LAST, after all three titleholder-bye permutations above, per "
+            "explicit instruction that permutations apply in the order they were added."
+        ),
+        "apply": _apply_extra_ucl_spot,
+    },
 }
 
 # "russia_suspension" went live 2026-11-14 (see module docstring) --
@@ -520,11 +647,14 @@ PERMUTATIONS: dict[str, dict] = {
 # see its own comment block above. "uecl_titleholder_bye" went live
 # 2026-11-16, a third separate confirmed rule -- see its own comment
 # block above, including the one cross-competition promotion unique to
-# it. Further permutations get added to PERMUTATIONS (and here) one at a
-# time, each deliberately confirmed before going active -- see this
+# it. "extra_ucl_spot" went live the same day, explicitly LAST in this
+# list per the user's own instruction -- see its own comment block
+# above. Further permutations get added to PERMUTATIONS (and here) one
+# at a time, each deliberately confirmed before going active -- see this
 # module's own docstring for the full process.
 ACTIVE_PERMUTATIONS: list[str] = [
     "russia_suspension", "ucl_titleholder_bye", "uel_titleholder_bye", "uecl_titleholder_bye",
+    "extra_ucl_spot",
 ]
 
 
