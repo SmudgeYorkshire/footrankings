@@ -95,6 +95,12 @@ jobs:
         if: steps.check.outputs.skip != 'true'
         run: python build_club_power_rankings.py
 
+      - name: Precompute European Competitions 2027/28 predictions
+        if: steps.check.outputs.skip != 'true'
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: python build_european_2027_28_predictions.py
+
       - name: Refresh the global national-team Elo scrape (eloratings.net)
         if: steps.check.outputs.skip != 'true'
         run: python scrape_nation_elo_ratings.py
@@ -116,7 +122,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add odds_coverage/ ratings/club_rating_adjustments.csv ratings/club_odds_implied_ratings.csv ratings/club_odds_processed_fixtures.csv club_power_rankings_1000.csv ratings/nation_elo_global.csv ratings/nation_odds_implied_ratings.csv ratings/nation_odds_processed_fixtures.csv nation_power_rankings.csv
+          git add odds_coverage/ ratings/club_rating_adjustments.csv ratings/club_odds_implied_ratings.csv ratings/club_odds_processed_fixtures.csv club_power_rankings_1000.csv european_2027_28_predicted_standings.csv european_2027_28_position_probs.csv european_2027_28_predicted_cup_winners.csv european_2027_28_ucl_titleholder_bye.csv ratings/nation_elo_global.csv ratings/nation_odds_implied_ratings.csv ratings/nation_odds_processed_fixtures.csv nation_power_rankings.csv
           git diff --staged --quiet && exit 0
           git commit -m "Daily odds pull and club ratings $(date -u +%Y-%m-%d)"
           # main can move between this job's checkout and this push (another

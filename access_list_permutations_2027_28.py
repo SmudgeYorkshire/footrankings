@@ -35,6 +35,8 @@ below.
 """
 
 import copy
+import csv
+import os
 
 from entrants_2027_28 import ACCESS_LIST_2027_28, label_to_status, _POSITION_CODE
 
@@ -89,6 +91,101 @@ def _apply_russia_suspension(access_list: dict) -> None:
                 e["note"] = f"Promoted {old_label} -> {new_label}"
 
 
+# ---------------------------------------------------------------------------
+# Permutation: UCL Titleholder bye. Real-world effect (confirmed by the
+# user from their own primary source, 2026-11-15): when the 2026/27 UCL
+# titleholder doesn't requalify for 2027/28 through its own domestic
+# route, UEFA fills its guaranteed League Phase slot from the Champions
+# Path club with the single highest UEFA club coefficient. Unlike
+# russia_suspension (a fixed, hardcoded set of moves -- Russia's
+# suspension never changes which slots it affects), WHICH club benefits
+# at each step is resolved dynamically from live data (each country's own
+# live predicted champion + its live UEFA coefficient), the same way
+# every other occupant on this site is resolved rather than hardcoded.
+#
+# That live resolution needs a full live standings simulation per country
+# (exactly the same expensive per-country computation
+# european_2027_28.py's own Projected Entries tab needs -- see
+# european_predictions_core.py's own docstring for why it's precomputed
+# once a day rather than live on each page load), so it can't run inside
+# this module's own apply_permutations() at european_2027_28.py's import
+# time the way russia_suspension's static dict lookup can. Instead,
+# build_european_2027_28_predictions.py (the same daily job that
+# precomputes european_2027_28.py's standings) resolves this cascade once
+# a day and writes its result to _TITLEHOLDER_BYE_CSV; this module just
+# reads that small, already-resolved file back in -- same
+# "precompute once, read fast" split as every other live number on this
+# site that's too expensive to recompute per request.
+#
+# A SEPARATE confirmed consequence (2 Conference League QR2 Champions
+# Path clubs get a bye to QR3 Champions Path, a structural effect of the
+# shrunken CL-Q1 Champions Path pool once 2 of its clubs move up to
+# CL-Q2) is NOT applied as an access-list mutation here -- which 2
+# specific clubs get it depends on the real UEFA draw, not anything this
+# site's live data can resolve, so it's recorded only as a description
+# note below for the Permutation Info tab, never as a club assignment.
+# ---------------------------------------------------------------------------
+_TITLEHOLDER_BYE_CSV = "european_2027_28_ucl_titleholder_bye.csv"
+
+
+def _load_titleholder_bye_movements() -> dict[tuple[str, str, str], dict]:
+    """{(competition, country, code): {new_label, club, coefficient}} from
+    build_european_2027_28_predictions.py's own daily output. Returns {}
+    (a harmless no-op -- the permutation just doesn't move anything yet)
+    if that file doesn't exist, same bootstrapping-before-first-daily-run
+    tolerance every other precomputed page on this site already has."""
+    if not os.path.exists(_TITLEHOLDER_BYE_CSV):
+        return {}
+    movements: dict[tuple[str, str, str], dict] = {}
+    with open(_TITLEHOLDER_BYE_CSV, encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            key = (row["competition"], row["country"], row["code"])
+            movements[key] = {
+                "new_label": row["new_label"], "club": row["club"],
+                "coefficient": float(row["coefficient"]),
+            }
+    return movements
+
+
+_TITLEHOLDER_BYE_MOVEMENTS = _load_titleholder_bye_movements()
+
+
+def _apply_ucl_titleholder_bye(access_list: dict) -> None:
+    for comp, entries in access_list.items():
+        for e in entries:
+            move = _TITLEHOLDER_BYE_MOVEMENTS.get((comp, e["country"], e["code"]))
+            if not move:
+                continue
+            old_label = e["label"]
+            e["label"] = move["new_label"]
+            e["round"] = _round_for_label(move["new_label"])
+            e["note"] = (
+                f"UCL Titleholder bye: highest Champions Path coefficient in this round "
+                f"({move['club']}, {move['coefficient']:.3f}) -- promoted {old_label} -> {move['new_label']}"
+            )
+
+
+def ucl_titleholder_bye_movements() -> list[dict]:
+    """One row per real-world slot movement ucl_titleholder_bye causes --
+    competition, country, code, route, old/new label, the resolved club,
+    and its coefficient -- read straight off the untouched default list
+    plus the daily-resolved movements file. Used by european_2027_28.py's
+    Permutation Info tab, same contract as russia_suspension_movements()."""
+    rows = []
+    for (comp, country, code), move in _TITLEHOLDER_BYE_MOVEMENTS.items():
+        entry = next(
+            (e for e in ACCESS_LIST_2027_28[comp] if e["country"] == country and e["code"] == code), None,
+        )
+        if entry is None:
+            continue
+        rows.append({
+            "competition": comp, "country": country, "code": code, "route": entry["route"],
+            "old_label": entry["label"], "new_label": move["new_label"],
+            "club": move["club"], "coefficient": move["coefficient"],
+        })
+    return rows
+
+
 PERMUTATIONS: dict[str, dict] = {
     "russia_suspension": {
         "name": "Russia's UEFA suspension",
@@ -101,15 +198,40 @@ PERMUTATIONS: dict[str, dict] = {
         ),
         "apply": _apply_russia_suspension,
     },
+    "ucl_titleholder_bye": {
+        "name": "UCL Titleholder bye",
+        "description": (
+            "If the 2026/27 Champions League titleholder doesn't requalify for 2027/28 "
+            "through its own domestic route, UEFA fills its guaranteed League Phase slot "
+            "from the Champions Path club with the single highest UEFA club coefficient. "
+            "Resolved dynamically each day from live predicted champions + live "
+            "coefficients (build_european_2027_28_predictions.py), not hardcoded: the "
+            "highest-coefficient Champions Path club in the Play-off round moves PO -> "
+            "League Phase (direct); the highest-remaining Champions Path club in the "
+            "Second qualifying round then fills that vacancy, QR2 -> PO; the top-2 "
+            "remaining Champions Path clubs in the First qualifying round (a pair, since "
+            "QR1 ties are two-legged) fill the QR2 vacancy, QR1 -> QR2. Separately, this "
+            "also creates a bye for 2 Conference League Second qualifying round (Champions "
+            "Path) clubs straight to the Third qualifying round -- a structural consequence "
+            "of the shrunken CL-Q1 Champions Path pool, not shown as a specific club move "
+            "here since which 2 clubs get it depends on the real UEFA draw."
+        ),
+        "apply": _apply_ucl_titleholder_bye,
+    },
 }
 
 # "russia_suspension" went live 2026-11-14 (see module docstring) --
 # Russia remains suspended from UEFA competitions with no resolution in
-# sight, so its slots are redistributed everywhere on the site. Further
-# permutations get added to PERMUTATIONS (and here) one at a time, each
-# deliberately confirmed before going active -- see this module's own
-# docstring for the full process.
-ACTIVE_PERMUTATIONS: list[str] = ["russia_suspension"]
+# sight, so its slots are redistributed everywhere on the site.
+# "ucl_titleholder_bye" went live 2026-11-15, confirmed by the user from
+# their own primary source as a fixed UEFA rule -- see that permutation's
+# own comment block above for why it's resolved from a daily-precomputed
+# file rather than live data, and is a harmless no-op (moves nothing)
+# until that file's first real run. Further permutations get added to
+# PERMUTATIONS (and here) one at a time, each deliberately confirmed
+# before going active -- see this module's own docstring for the full
+# process.
+ACTIVE_PERMUTATIONS: list[str] = ["russia_suspension", "ucl_titleholder_bye"]
 
 
 def apply_permutations(active: list[str] | None = None) -> dict:

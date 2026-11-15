@@ -36,16 +36,13 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-from config import LEAGUES, DEFAULT_HOME_ADVANTAGE
+from config import LEAGUES
 from flags import flag_url
-from api_football_fetcher import ApiFootballClient
-from ratings_manager import load_ratings
-from _split_season import compute_full_standings, ensure_full_roster, compute_expected_pts, playoff_standings, roundrobin_fixtures
 from entrants_2027_28 import STAGE_ORDER_2027_28, QUALIFYING_DATES_2027_28
 from entrants_2027_28 import ACCESS_LIST_2027_28 as DEFAULT_ACCESS_LIST_2027_28
 from access_list_permutations_2027_28 import (
     apply_permutations, PERMUTATIONS, ACTIVE_PERMUTATIONS,
-    russia_suspension_movements, russia_vacated_slots,
+    russia_suspension_movements, russia_vacated_slots, ucl_titleholder_bye_movements,
 )
 
 # The permutation-applied access list -- see access_list_permutations_2027_28.py's
@@ -54,12 +51,53 @@ from access_list_permutations_2027_28 import (
 # entirely by that module's ACTIVE_PERMUTATIONS, not anything here.
 ACCESS_LIST_2027_28 = apply_permutations()
 from club_coefficients_2027 import get_coeff_2027
-from cup_predictions import resolve_predicted_cup_winner, fetch_cup_fixtures
-from simulator import two_leg_advance_odds, simulate_season, build_live_odds_lambda_overrides
-from nations_league_simulator import most_likely_group_order
+from simulator import two_leg_advance_odds
 from qualifying_projection import home_advantage_for, _load_combined_ratings
+from european_predictions_core import predicted_standings_and_probs, predict_cup_winner
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
+
+# Daily-precomputed output of build_european_2027_28_predictions.py -- see
+# european_predictions_core.py's own docstring for why this page reads
+# these back instead of re-running the live simulation itself on every
+# page load (confirmed several minutes to load, 2026-11-15).
+_PREDICTED_STANDINGS_CSV = "european_2027_28_predicted_standings.csv"
+_POSITION_PROBS_CSV = "european_2027_28_position_probs.csv"
+_PREDICTED_CUP_WINNERS_CSV = "european_2027_28_predicted_cup_winners.csv"
+
+
+def _load_predicted_standings_csv() -> dict[str, list[dict]]:
+    if not os.path.exists(_PREDICTED_STANDINGS_CSV):
+        return {}
+    df = pd.read_csv(_PREDICTED_STANDINGS_CSV, keep_default_na=False)
+    return {
+        league_name: grp.sort_values("intRank").to_dict("records")
+        for league_name, grp in df.groupby("league_name")
+    }
+
+
+def _load_position_probs_csv() -> dict[str, pd.DataFrame]:
+    if not os.path.exists(_POSITION_PROBS_CSV):
+        return {}
+    df = pd.read_csv(_POSITION_PROBS_CSV, dtype={"position": str})
+    return {
+        league_name: grp.pivot(index="strTeam", columns="position", values="probability")
+        for league_name, grp in df.groupby("league_name")
+    }
+
+
+def _load_predicted_cup_winners_csv() -> dict[str, tuple[str, str]]:
+    if not os.path.exists(_PREDICTED_CUP_WINNERS_CSV):
+        return {}
+    df = pd.read_csv(_PREDICTED_CUP_WINNERS_CSV, keep_default_na=False)
+    return {row["league_name"]: (row["team"], row["note"]) for _, row in df.iterrows()}
+
+
+# Loaded once at import time -- small files, refreshed once a day by the
+# same build script, so there's no benefit to re-reading them per request.
+_PRECOMPUTED_STANDINGS = _load_predicted_standings_csv()
+_PRECOMPUTED_PROBS = _load_position_probs_csv()
+_PRECOMPUTED_CUP_WINNERS = _load_predicted_cup_winners_csv()
 
 # entrants_2027_28.py's country spelling matches config.LEAGUES' own (so a
 # row's "league" field can look standings up directly) -- flags.py alone
@@ -81,9 +119,6 @@ for _comp, _comp_entries in ACCESS_LIST_2027_28.items():
         _ENTRIES_BY_COUNTRY.setdefault(_e["country"], []).append((_comp, _e))
 
 
-_PREDICTION_N_SIM = 1_000  # see _predicted_standings' own docstring
-
-
 @st.cache_data(ttl=60, show_spinner=False)
 def _predicted_standings(league_id: int, season: int, league_name: str):
     """Every slot on this page resolves against the PREDICTED FINAL table,
@@ -91,79 +126,22 @@ def _predicted_standings(league_id: int, season: int, league_name: str):
     of matchweeks in), the current table is noisy (e.g. a promoted side's
     hot start can sit them above clubs who'll finish well clear of them by
     May; confirmed on real data, Leeds showing in a Champions League slot
-    off a small-sample current position). Runs this site's own full-season
-    Monte Carlo (the same simulate_season() the Predictions tab itself
-    uses) and reduces it to the single most-likely finishing order via
-    nations_league_simulator.most_likely_group_order -- the same
-    "most-likely single draw" convention used everywhere else on this
-    page. n_sim is deliberately much lower than the Predictions tab's own
-    DEFAULT_N_SIMULATIONS (10,000): this page needs an ORDER, not precise
-    probabilities, for up to ~50 countries at once, where the Predictions
-    tab only ever runs one league at a time.
+    off a small-sample current position).
 
-    Original standings rows (badges, etc.) are kept, just reordered and
-    re-ranked (intRank) to the predicted finish.
-
-    For a true split league (cfg["n_champ"] set, not a Final Four), the raw
-    regular-season order above is NOT the real European-slot decider --
-    football_rankings.py's own "Projected Play-offs / Play-outs" ->
-    "Championship Play-off" sub-simulation is (same mini round-robin among
-    the n_champ teams most likely to reach it, seeded from each team's
-    PROJECTED points at the split via compute_expected_pts, not today's raw
-    points -- see that function's own docstring). Confirmed as a real bug
-    2026-11-15 (Greek Super League 1): Panathinaikos led the raw
-    regular-season simulation, but Olympiacos was the actual Championship
-    Play-off favourite shown on football_rankings.py's own page -- this
-    function was resolving every European-slot entry (Status, Projected
-    Entries) off the former instead of the latter. Only positions 1..n_champ
-    are ever resolved against this re-ranked order; positions beyond
-    n_champ keep the regular-season order (confirmed live: every split-
-    league country's access-list entries only ever reach as deep as its own
-    n_champ, never into the Mid/Relegation groups), so those groups don't
-    need their own sub-simulation here."""
-    client = ApiFootballClient(api_key=_API_KEY)
-    roster = client.get_standings(league_id, season)
-    played, remaining = client.get_fixtures(league_id, season)
-    roster = ensure_full_roster(roster, played + remaining)
-    cfg = LEAGUES.get(league_name, {})
-    tiebreakers = cfg.get("tiebreakers")
-    standings = compute_full_standings(
-        roster, played, tiebreakers=tiebreakers, points_adjustments=cfg.get("points_deductions"),
-    ) if roster else roster
-    if not standings:
-        return standings
-    ratings_df = load_ratings(cfg.get("tsdb_id", league_id), standings)
-    _home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
-    _live_odds_overrides = build_live_odds_lambda_overrides(remaining, ratings_df, _home_advantage, league_name)
-    probs = simulate_season(
-        standings, remaining, ratings_df, n_sim=_PREDICTION_N_SIM,
-        home_advantage=_home_advantage,
-        tiebreakers=tiebreakers, played_fixtures=played,
-        live_odds_lambda_overrides=_live_odds_overrides,
-    )
-    if probs.empty:
-        return standings
-    order = most_likely_group_order(probs)
-
-    n_champ = cfg.get("n_champ")
-    if n_champ and not cfg.get("final_four"):
-        champ_pos = [str(i) for i in range(1, n_champ + 1) if str(i) in probs.columns]
-        p_champ = probs[champ_pos].sum(axis=1) if champ_pos else None
-        if p_champ is not None and len(p_champ):
-            top_champ = list(p_champ.sort_values(ascending=False).index[:n_champ])
-            st_lookup = {row["strTeam"]: row for row in standings}
-            exp_pts = compute_expected_pts(standings, remaining, ratings_df, _home_advantage)
-            champ_probs = simulate_season(
-                playoff_standings(top_champ, st_lookup, cfg.get("pts_factor", 1.0), exp_pts=exp_pts),
-                roundrobin_fixtures(top_champ), ratings_df, n_sim=_PREDICTION_N_SIM,
-                home_advantage=_home_advantage, tiebreakers=tiebreakers,
-            )
-            if not champ_probs.empty:
-                champ_order = most_likely_group_order(champ_probs)
-                order = champ_order + [t for t in order if t not in top_champ]
-
-    by_team = {row["strTeam"]: row for row in standings}
-    return [{**by_team[t], "intRank": i} for i, t in enumerate(order, start=1) if t in by_team]
+    Reads build_european_2027_28_predictions.py's own daily-precomputed
+    output (european_predictions_core.predicted_standings_and_probs,
+    which this function used to run live, in full, for every one of the
+    ~50 countries in the access list on EVERY page load -- confirmed
+    several minutes to load, 2026-11-15, same root cause already fixed
+    for Club/Nation Strength Rankings via a daily precompute + CSV read)
+    -- falling back to a live run only if that league isn't in the
+    precomputed file yet (e.g. added mid-season, or before the very first
+    daily run)."""
+    precomputed = _PRECOMPUTED_STANDINGS.get(league_name)
+    if precomputed is not None:
+        return precomputed
+    standings, _probs = predicted_standings_and_probs(league_id, season, league_name, _API_KEY)
+    return standings
 
 
 @st.cache_data(ttl=60, show_spinner=False)
@@ -176,10 +154,10 @@ def _badge_lookup_for_country(country: str) -> dict[str, str]:
     if not league_name:
         return {}
     cfg = LEAGUES.get(league_name)
-    if not cfg or not _API_KEY:
+    if not cfg:
         return {}
     try:
-        standings = _predicted_standings(cfg["id"], cfg["af_season"], league_name)
+        standings = _predicted_standings(cfg.get("id"), cfg.get("af_season"), league_name)
     except Exception:
         return {}
     return {row["strTeam"]: row.get("strBadge", "") for row in (standings or []) if row.get("strBadge")}
@@ -209,30 +187,24 @@ def _predict_cup_winner(country: str) -> tuple[str | None, str]:
     """(predicted winner team name, note) for this country's main domestic
     cup -- the same point-estimate engine (resolve_predicted_cup_winner:
     highest-Opta-rated team not yet eliminated from its cup) that powers
-    football_rankings.py's live Cup Details tab."""
+    football_rankings.py's live Cup Details tab.
+
+    Reads build_european_2027_28_predictions.py's own daily-precomputed
+    output (european_predictions_core.predict_cup_winner), falling back
+    to a live run only if that league isn't in the precomputed file yet
+    -- see _predicted_standings' own docstring for why."""
     entries = _ENTRIES_BY_COUNTRY.get(country, [])
     league_name = next((e["league"] for _, e in entries if e["league"]), None)
     if league_name is None:
         return None, "no tracked league"
+    if league_name in _PRECOMPUTED_CUP_WINNERS:
+        return _PRECOMPUTED_CUP_WINNERS[league_name]
+    cfg = LEAGUES.get(league_name)
+    if not cfg or not cfg.get("cup_id"):
+        return None, "no cup data available for this country"
     if not _API_KEY:
         return None, "no API key configured"
-    cfg = LEAGUES.get(league_name)
-    cup_id = cfg.get("cup_id") if cfg else None
-    if not cfg or not cup_id:
-        return None, "no cup data available for this country"
-    try:
-        league_season = cfg.get("af_season") or cfg["af_season"]
-        season = cfg.get("cup_af_seasons", {}).get(cup_id, league_season)
-        played, remaining = fetch_cup_fixtures(cup_id, season, _API_KEY)
-        ratings_df = load_ratings(cfg.get("tsdb_id", cfg["id"]), [])
-        pred_row, _pred_status, _skipped = resolve_predicted_cup_winner(
-            ratings_df, played, remaining, home_advantage=cfg.get("home_advantage", 1.0)
-        )
-    except Exception:
-        return None, "live cup fetch failed"
-    alias = str(pred_row.get("alias", "")).strip()
-    name = alias if alias else pred_row["team"]
-    return name, "predicted cup winner — domestic cup still in progress"
+    return predict_cup_winner(league_name, _API_KEY)
 
 
 @st.cache_data(ttl=60, show_spinner=False)
@@ -696,27 +668,17 @@ def _season_position_probs(league_id: int, season: int, league_name: str) -> pd.
     the same simulate_season() run _predicted_standings() already does,
     just returning the raw matrix instead of collapsing it to one
     most-likely order. Powers the Titleholder Replacements tables' TQ %
-    column."""
-    client = ApiFootballClient(api_key=_API_KEY)
-    roster = client.get_standings(league_id, season)
-    played, remaining = client.get_fixtures(league_id, season)
-    roster = ensure_full_roster(roster, played + remaining)
-    cfg = LEAGUES.get(league_name, {})
-    tiebreakers = cfg.get("tiebreakers")
-    standings = compute_full_standings(
-        roster, played, tiebreakers=tiebreakers, points_adjustments=cfg.get("points_deductions"),
-    ) if roster else roster
-    if not standings:
-        return pd.DataFrame()
-    ratings_df = load_ratings(cfg.get("tsdb_id", league_id), standings)
-    _home_advantage = cfg.get("home_advantage", DEFAULT_HOME_ADVANTAGE)
-    _live_odds_overrides = build_live_odds_lambda_overrides(remaining, ratings_df, _home_advantage, league_name)
-    return simulate_season(
-        standings, remaining, ratings_df, n_sim=_PREDICTION_N_SIM,
-        home_advantage=_home_advantage,
-        tiebreakers=tiebreakers, played_fixtures=played,
-        live_odds_lambda_overrides=_live_odds_overrides,
-    )
+    column.
+
+    Reads build_european_2027_28_predictions.py's own daily-precomputed
+    output, falling back to a live run only if that league isn't in the
+    precomputed file yet -- see _predicted_standings' own docstring for
+    why."""
+    precomputed = _PRECOMPUTED_PROBS.get(league_name)
+    if precomputed is not None:
+        return precomputed
+    _standings, probs = predicted_standings_and_probs(league_id, season, league_name, _API_KEY)
+    return probs
 
 
 def _position_chance(probs: pd.DataFrame, team: str, position: int) -> float | None:
@@ -1152,6 +1114,47 @@ def _render_active_permutations() -> None:
         move_df, column_config=_MOVEMENT_COLUMN_CONFIG, width="content",
         hide_index=True, height=len(move_df) * 35 + 38,
     )
+
+    st.divider()
+    ucl_bye_active = "ucl_titleholder_bye" in ACTIVE_PERMUTATIONS
+    st.markdown(f"#### {'🟢 Active' if ucl_bye_active else '🔴 Inactive'} — UCL Titleholder bye")
+    st.caption(PERMUTATIONS["ucl_titleholder_bye"]["description"])
+
+    bye_movements = ucl_titleholder_bye_movements()
+    if not bye_movements:
+        st.caption(
+            "No movements resolved yet -- build_european_2027_28_predictions.py hasn't run "
+            "yet, or found no live coefficient/predicted-champion data to rank."
+        )
+    else:
+        st.markdown(
+            "**Slots promoted up one round, resolved daily from live predicted champions + "
+            "live UEFA club coefficients (see the permutation's own description above):**"
+        )
+        bye_rows = []
+        for r in bye_movements:
+            occ, note = _resolve_country_slots(r["country"]).get((r["competition"], r["code"]), ("—", "not yet determined"))
+            bye_rows.append({
+                "Flag": flag_url(_country_key(r["country"])),
+                "Country": r["country"],
+                "Route": r["route"],
+                "Was": r["old_label"],
+                "Now": r["new_label"],
+                "Club": r["club"],
+                "Coefficient": r["coefficient"],
+                "Predicted club": occ,
+                "Note": note,
+            })
+        bye_df = pd.DataFrame(_number_rows(bye_rows))
+        st.dataframe(
+            bye_df,
+            column_config={
+                **_MOVEMENT_COLUMN_CONFIG,
+                "Club": st.column_config.TextColumn("Club", width="medium"),
+                "Coefficient": st.column_config.NumberColumn("Coefficient", width="small", format="%.3f"),
+            },
+            width="content", hide_index=True, height=len(bye_df) * 35 + 38,
+        )
 
 
 def _render_permutation_info() -> None:
