@@ -3,6 +3,7 @@ France,60.0
 Germany,60.0
 Scotland,57.3
 Switzerland,-57.3
+Netherlands,-53.3
 Belarus,-50.5
 Albania,50.5
 Ukraine,-46.1
@@ -10,19 +11,19 @@ Georgia,46.1
 Republic of Ireland,-41.5
 Gibraltar,-38.0
 Malta,38.0
-Spain,-37.6
+Spain,-33.7
+Portugal,32.0
 Andorra,30.6
 Denmark,-30.0
 Norway,30.0
 Belgium,-27.7
-Portugal,26.4
 Poland,23.7
 Sweden,-23.7
 Slovakia,-21.4
 Kazakhstan,21.4
 Slovenia,-20.1
-Netherlands,-60.0
 Czechia,18.5
+England,-17.2
 Bosnia and Herzegovina,-17.0
 Romania,17.0
 Italy,16.3
@@ -30,16 +31,15 @@ Faroe Islands,-16.0
 Moldova,16.0
 Latvia,-15.1
 Armenia,15.1
+Greece,13.6
 Wales,-13.5
 Kosovo,-13.1
-Greece,12.5
 Serbia,-12.5
 Azerbaijan,12.4
 Iceland,12.4
 Luxembourg,-12.4
-Croatia,11.9
-England,-11.9
 Hungary,12.0
+Croatia,11.9
 Northern Ireland,11.1
 Austria,10.4
 Israel,-10.4
