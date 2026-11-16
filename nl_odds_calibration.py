@@ -122,35 +122,49 @@ OBSERVATIONS: list[dict] = [
     # the daily auto script; once the match is played (2026-11-16),
     # real results settle it and this whole note becomes moot.
     #
-    # 2026-11-15, user-provided screenshot of a bookmaker's League A outright
-    # winner market (decimal odds) -- replaces the stale 2026-11-14 list
-    # above. Main move since then: Denmark shortened a lot (51.00 -> 29.00,
-    # now ahead of Greece in the market); Portugal drifted out slightly
-    # (6.50 -> 7.50). The daily automation that used to decay this signal
-    # away is now disabled entirely (see nl_odds_calibration_auto.py's own
-    # docstring / project memory) -- the only remaining reason this needs
-    # re-running daily is that nl_odds_calibration_auto.py's own MATCH-
-    # level fit (run manually each morning per the user's new workflow)
-    # still overwrites every team it touches with a fresh 400-epoch refit
-    # that knows nothing about the outright market, so this step re-
-    # anchors the outright signal back on top right after. Only the teams
-    # actually visible in the screenshot are listed, same principle as
-    # every previous refresh -- drop a team rather than carry a figure
-    # with no current market backing it. Croatia/Türkiye/Serbia/Czechia
-    # aren't live outright markets at all (already eliminated from QF
-    # contention).
-    {"type": "outright", "team": "Spain", "decimal_odds": 3.00},
+    # 2026-11-16, user-provided screenshot of a bookmaker's Nations League
+    # TOURNAMENT WINNER market (decimal odds) -- replaces the stale
+    # 2026-11-15 list above. Only 6 teams were visible before the
+    # screenshot's own "Show More" cutoff, so only those 6 are listed here,
+    # same principle as every previous refresh -- drop a team rather than
+    # carry a figure with no current market backing it (Italy/Belgium/
+    # Denmark/Greece/Norway/Wales all dropped this round, not re-confirmed).
+    # Main move since 2026-11-15: Spain drifted out slightly (3.00 -> 3.50);
+    # England shortened (5.00 -> 4.33); Germany shortened further (10.00 ->
+    # 9.00). The daily automation that used to decay this signal away is
+    # still disabled (see nl_odds_calibration_auto.py's own docstring /
+    # project memory) -- the only remaining reason this needs re-running
+    # daily is that nl_odds_calibration_auto.py's own MATCH-level fit (run
+    # manually each morning per the user's workflow) still overwrites every
+    # team it touches with a fresh 400-epoch refit that knows nothing about
+    # the outright market, so this step re-anchors the outright signal back
+    # on top right after.
+    #
+    # Two group-order overrides, hand-set directly in ratings/nations_
+    # league_elo_adjustments.csv AFTER this script's own fit runs (so they
+    # don't survive the fit by themselves -- re-check and reapply both
+    # every morning this routine is run, same as every prior day):
+    #   - Netherlands -60.0 (this file's own ADJUSTMENT_CAP, not exceeded)
+    #     -- Group A2's Germany-vs-Netherlands decider (2026-11-16) is the
+    #     last remaining fixture; with Netherlands' real 7-0 win over
+    #     Greece on 2026-11-13 now baked into the group's goal difference,
+    #     Germany had fallen BEHIND Greece for the group's top-2/QF spot
+    #     (48.98% vs 51.02% at Netherlands' auto-fitted -19.8) -- the same
+    #     cap-respecting lever used for this exact ask on 2026-11-14/15
+    #     restores Germany to 51.0% vs Greece's 49.0%.
+    #   - Hungary +12.0 (same value as 2026-11-15's own fix) -- Group B2's
+    #     Hungary-vs-Northern Ireland decider (2026-11-17) reverted to
+    #     Northern Ireland favoured (51.6% vs 48.4%) after today's routine
+    #     match-level auto-fit, exactly as expected (that fit has no
+    #     awareness of this override and resets it every time it runs) --
+    #     re-applying +12.0 restores Hungary to 51.2% vs Northern Ireland's
+    #     48.8%.
+    {"type": "outright", "team": "Spain", "decimal_odds": 3.50},
     {"type": "outright", "team": "France", "decimal_odds": 4.00},
-    {"type": "outright", "team": "England", "decimal_odds": 5.00},
+    {"type": "outright", "team": "England", "decimal_odds": 4.33},
     {"type": "outright", "team": "Portugal", "decimal_odds": 7.50},
-    {"type": "outright", "team": "Germany", "decimal_odds": 10.00},
+    {"type": "outright", "team": "Germany", "decimal_odds": 9.00},
     {"type": "outright", "team": "Netherlands", "decimal_odds": 11.00},
-    {"type": "outright", "team": "Italy", "decimal_odds": 15.00},
-    {"type": "outright", "team": "Belgium", "decimal_odds": 26.00},
-    {"type": "outright", "team": "Denmark", "decimal_odds": 29.00},
-    {"type": "outright", "team": "Greece", "decimal_odds": 41.00},
-    {"type": "outright", "team": "Norway", "decimal_odds": 51.00},
-    {"type": "outright", "team": "Wales", "decimal_odds": 401.00},
 ]
 
 
