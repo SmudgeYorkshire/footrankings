@@ -1,1 +1,7 @@
-
+country,code,old_label,new_label,route,league
+England,N5,EL-LS,CL-LS,League 5th,English Premier League
+England,N6,CO-PO,EL-LS,League 6th,English Premier League
+England,N7,,CO-PO,League 7th,English Premier League
+Germany,N5,EL-LS,CL-LS,League 5th,German Bundesliga
+Germany,N6,CO-PO,EL-LS,League 6th,German Bundesliga
+Germany,N7,,CO-PO,League 7th,German Bundesliga

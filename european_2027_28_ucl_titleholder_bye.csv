@@ -1,1 +1,5 @@
-
+competition,country,code,old_label,new_label,club,coefficient
+Champions League,Norway,CH,CL-PO,CL-LS,Bodo/Glimt,61.5
+Champions League,Hungary,CH,CL-Q2,CL-PO,Ferencvarosi TC,63.25
+Champions League,Serbia,CH,CL-Q1,CL-Q2,FK Crvena Zvezda,37.5
+Champions League,Ireland,CH,CL-Q1,CL-Q2,Shamrock Rovers,20.380000000000003
