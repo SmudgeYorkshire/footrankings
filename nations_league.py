@@ -1171,9 +1171,9 @@ with interim_rankings_tab:
         "approach as the 2028/29 Projections tab (not a probability -- contrast the Knockouts/"
         "Promotion & Relegation tabs' own \"chance to prevail\" figures). Group position decides the "
         "ranking first; projected points (current points plus each remaining fixture's expected "
-        "value) break ties within a position -- UEFA's own goal-difference/goals-scored/away-goals/"
-        "wins/discipline/access-list criteria aren't modeled, same simplification the Rules tab "
-        "documents for the within-group tiebreak."
+        "value) break ties within a position, then current real goal difference and goals scored -- "
+        "UEFA's own away-goals/wins/discipline/access-list criteria still aren't modeled, same "
+        "simplification the Rules tab documents for the within-group tiebreak."
     )
     rank_offset = 1
     for league_name in league_names:
@@ -1189,6 +1189,8 @@ with interim_rankings_tab:
                 "Group": r["group"],
                 "Pos": _ordinal(r["position"]),
                 "xPTS": round(r["exp_pts"], 1),
+                "GD": r["gd"],
+                "GF": r["gf"],
             }
             for i, r in enumerate(rows)
         ])
@@ -1202,6 +1204,8 @@ with interim_rankings_tab:
                 "Group": st.column_config.TextColumn("Group", width="small"),
                 "Pos": st.column_config.TextColumn("Group Pos", width="small"),
                 "xPTS": st.column_config.NumberColumn("Projected Pts", width="small"),
+                "GD": st.column_config.NumberColumn("GD", width="small"),
+                "GF": st.column_config.NumberColumn("GF", width="small"),
             },
             width="content", hide_index=True, height=len(df) * 35 + 38,
         )

@@ -127,6 +127,50 @@ def test_league_interim_rankings_orders_by_group_position_before_points():
     assert league_interim_order(group_probs, standings, remaining, ratings_df) == ["X1", "Y1", "Y2", "X2"]
 
 
+def test_league_interim_rankings_breaks_points_ties_with_goal_difference_then_goals_scored():
+    # Real bug (2026-11-17): Serbia and Türkiye both finished last in their
+    # own (finished) League A group on 0 points, but Serbia's goal
+    # difference (-8) is clearly better than Türkiye's (-11) -- Serbia
+    # should rank above Türkiye, not fall to whatever arbitrary order the
+    # old points-only tiebreak left them in.
+    group_probs = {
+        "A1": _one_hot_probs(["France", "Türkiye"]),
+        "A2": _one_hot_probs(["Germany", "Serbia"]),
+    }
+    standings = {
+        "A1": [
+            {"strTeam": "France", "intPoints": 13, "intGoalDifference": 4, "intGoalsFor": 10},
+            {"strTeam": "Türkiye", "intPoints": 0, "intGoalDifference": -11, "intGoalsFor": 4},
+        ],
+        "A2": [
+            {"strTeam": "Germany", "intPoints": 11, "intGoalDifference": 8, "intGoalsFor": 11},
+            {"strTeam": "Serbia", "intPoints": 0, "intGoalDifference": -8, "intGoalsFor": 4},
+        ],
+    }
+    remaining = {"A1": [], "A2": []}
+    ratings_df = _ratings(["France", "Türkiye", "Germany", "Serbia"])
+
+    rows = league_interim_rankings(group_probs, standings, remaining, ratings_df)
+    last_place = [r for r in rows if r["position"] == 2]
+
+    assert [r["team"] for r in last_place] == ["Serbia", "Türkiye"]
+    assert league_interim_order(group_probs, standings, remaining, ratings_df)[-2:] == ["Serbia", "Türkiye"]
+
+
+def test_league_interim_rankings_breaks_gd_ties_with_goals_scored():
+    group_probs = {"A1": _one_hot_probs(["X1"]), "A2": _one_hot_probs(["Y1"])}
+    standings = {
+        "A1": [{"strTeam": "X1", "intPoints": 5, "intGoalDifference": 0, "intGoalsFor": 3}],
+        "A2": [{"strTeam": "Y1", "intPoints": 5, "intGoalDifference": 0, "intGoalsFor": 7}],
+    }
+    remaining = {"A1": [], "A2": []}
+    ratings_df = _ratings(["X1", "Y1"])
+
+    rows = league_interim_rankings(group_probs, standings, remaining, ratings_df)
+
+    assert [r["team"] for r in rows] == ["Y1", "X1"]
+
+
 def test_group_expected_points_keeps_a_team_with_zero_remaining_fixtures():
     # A real bug this change caught: deriving the team roster purely from
     # `remaining_fixtures` drops any team that's already finished its

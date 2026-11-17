@@ -725,11 +725,17 @@ def league_interim_rankings(
 
     Ranks primarily by group position -- every group's 1st-place team
     ranks above every group's 2nd-place team, and so on -- then by each
-    team's own projected final points as the tiebreaker within a
-    position tier. GD/GF/away-goals/wins/discipline/access-list (UEFA's
-    criteria 3-9) aren't modeled here, same simplification the Rules tab
-    already documents for criteria 10-11 elsewhere on this page -- points
-    alone already decides the overwhelming majority of real tiebreaks.
+    team's own projected final points, then (criteria 3-4) current real
+    goal difference and goals scored, as tiebreakers within a position
+    tier. Away-goals/wins/discipline/access-list (UEFA's criteria 5-9)
+    still aren't modeled, same simplification the Rules tab documents for
+    criteria 10-11 elsewhere on this page -- points alone already decides
+    most real tiebreaks, but a confirmed real case (Serbia finishing
+    behind Türkiye in League A's interim order despite a clearly better
+    goal difference, -8 vs -11, both on 0 points) showed GD/GF needed to
+    be modeled too, since projected points can tie exactly once a group
+    has actually finished (both teams' exp_pts just equal their real,
+    identical final points, leaving nothing else to break the tie).
 
     group_standings/group_remaining: that league's real current data
     (nations_league.py's per-league all_group_standings/all_group_
@@ -740,14 +746,21 @@ def league_interim_rankings(
     rows = []
     for gname, probs in group_probs.items():
         order = most_likely_group_order(probs)
+        standings_for_group = (group_standings or {}).get(gname) or []
+        gd_by_team = {s["strTeam"]: s.get("intGoalDifference", 0) for s in standings_for_group}
+        gf_by_team = {s["strTeam"]: s.get("intGoalsFor", 0) for s in standings_for_group}
         exp_pts = group_expected_points(
             list(probs.index), ratings_df,
             standings=(group_standings or {}).get(gname),
             remaining_fixtures=(group_remaining or {}).get(gname),
         )
         for pos, team in enumerate(order, start=1):
-            rows.append({"team": team, "group": gname, "position": pos, "exp_pts": exp_pts.get(team, 0.0)})
-    rows.sort(key=lambda r: (r["position"], -r["exp_pts"]))
+            rows.append({
+                "team": team, "group": gname, "position": pos,
+                "exp_pts": exp_pts.get(team, 0.0),
+                "gd": gd_by_team.get(team, 0), "gf": gf_by_team.get(team, 0),
+            })
+    rows.sort(key=lambda r: (r["position"], -r["exp_pts"], -r["gd"], -r["gf"]))
     return rows
 
 
