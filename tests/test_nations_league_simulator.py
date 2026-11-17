@@ -18,7 +18,7 @@ import pandas as pd
 import nations_league_simulator as nls
 from nations_league_simulator import (
     simulate_league_outcomes, league_interim_rankings, league_interim_order, group_expected_points,
-    project_playoff_entries,
+    project_playoff_entries, project_qf_entries,
 )
 
 
@@ -235,3 +235,37 @@ def test_playoff_entries_only_ever_pair_across_the_two_pools(monkeypatch):
     # mislabeled as belonging to the other.
     assert set(entries[entries["pool"] == "League A third place/fourth place"]["team"]) == set(higher_teams)
     assert set(entries[entries["pool"] == "League B runner-up"]["team"]) == set(lower_teams)
+
+
+def test_qf_entries_never_pair_a_group_winner_against_its_own_runner_up(monkeypatch):
+    # Answers a real user question (2026-11-17): does "Projected
+    # Quarterfinals Entries" respect UEFA's own rule that a group's
+    # winner can never be drawn against ITS OWN group's runner-up (only
+    # a different group's)? Confirmed by spying on every
+    # two_leg_advance_odds call project_qf_entries' derangement loop
+    # makes, across all 9 valid 4-group derangements, and asserting none
+    # of them ever pairs a group's winner with its own runner-up.
+    group_probs = {
+        "A1": _one_hot_probs(["France", "Belgium"]),
+        "A2": _one_hot_probs(["Germany", "Netherlands"]),
+        "A3": _one_hot_probs(["England", "Spain"]),
+        "A4": _one_hot_probs(["Portugal", "Denmark"]),
+    }
+    own_runner_up = {"France": "Belgium", "Germany": "Netherlands", "England": "Spain", "Portugal": "Denmark"}
+    seen_pairs = []
+    real_two_leg_advance_odds = nls.two_leg_advance_odds
+
+    def _spy(home, away, *args, **kwargs):
+        seen_pairs.append((home, away))
+        return real_two_leg_advance_odds(home, away, *args, **kwargs)
+
+    monkeypatch.setattr(nls, "two_leg_advance_odds", _spy)
+    ratings = _ratings(["France", "Belgium", "Germany", "Netherlands", "England", "Spain", "Portugal", "Denmark"])
+
+    entries = project_qf_entries(group_probs, ratings)
+
+    assert len(seen_pairs) == 9 * 4  # 9 valid derangements of 4 groups, 4 ties each
+    for home, away in seen_pairs:
+        assert own_runner_up[home] != away
+
+    assert set(entries["team"]) == set(own_runner_up.keys()) | set(own_runner_up.values())
