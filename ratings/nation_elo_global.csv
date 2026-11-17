@@ -6,13 +6,13 @@ France,,2069.0,4
 Portugal,,1996.0,5
 Belgium,,1994.0,6
 Colombia,,1992.0,7
-Netherlands,,1990.0,8
-Brazil,,1982.0,9
-Switzerland,,1967.0,10
-Italy,,1925.0,11
-Denmark,,1920.0,12
-Germany,,1916.0,13
-Japan,,1916.0,13
+Brazil,,1982.0,8
+Switzerland,,1976.0,9
+Netherlands,,1953.0,10
+Germany,,1953.0,10
+Italy,,1925.0,12
+Denmark,,1920.0,13
+Japan,,1916.0,14
 Norway,,1909.0,15
 Morocco,,1898.0,16
 Uruguay,,1869.0,17
@@ -21,24 +21,24 @@ Ecuador,,1852.0,19
 Austria,,1849.0,20
 Paraguay,,1838.0,21
 Mexico,,1837.0,22
-Senegal,,1808.0,23
+Senegal,,1812.0,23
 United States,,1803.0,24
-Australia,,1794.0,25
-Greece,,1788.0,26
+Greece,,1797.0,25
+Australia,,1794.0,26
 Russia,,1787.0,27
 Sweden,,1784.0,28
-Hungary,,1755.0,29
-Canada,,1753.0,30
-Turkey,,1750.0,31
-Iran,,1748.0,32
-Algeria,,1746.0,33
-Venezuela,,1732.0,34
-Ivory Coast,,1728.0,35
-Slovenia,,1726.0,36
-Scotland,,1724.0,37
-Chile,,1721.0,38
-Egypt,,1719.0,39
-South Korea,,1717.0,40
+Canada,,1762.0,29
+Hungary,,1755.0,30
+Slovenia,,1751.0,31
+Turkey,,1750.0,32
+Iran,,1748.0,33
+Algeria,,1746.0,34
+Venezuela,,1732.0,35
+Ivory Coast,,1728.0,36
+Chile,,1721.0,37
+Egypt,,1719.0,38
+South Korea,,1717.0,39
+Scotland,,1715.0,40
 Nigeria,,1714.0,41
 Ukraine,,1707.0,42
 Ireland,,1703.0,43
@@ -48,18 +48,18 @@ Northern Ireland,,1689.0,46
 Peru,,1689.0,46
 Wales,,1673.0,48
 Poland,,1663.0,49
-Serbia,,1662.0,50
-Slovakia,,1662.0,50
 Bosnia and Herzegovina,,1662.0,50
-Panama,,1661.0,53
-Saudi Arabia,,1652.0,54
+Panama,,1661.0,51
+Serbia,,1653.0,52
+Slovakia,,1652.0,53
+Saudi Arabia,,1652.0,53
 Albania,,1650.0,55
 Czechia,,1647.0,56
-Uzbekistan,,1636.0,57
-Mali,,1634.0,58
-Iceland,,1632.0,59
-Israel,,1629.0,60
-Cameroon,,1627.0,61
+Iceland,,1639.0,57
+Cameroon,,1636.0,58
+Uzbekistan,,1636.0,58
+Mali,,1634.0,60
+Israel,,1629.0,61
 Jordan,,1622.0,62
 Bolivia,,1605.0,63
 Georgia,,1598.0,64
@@ -74,95 +74,95 @@ New Zealand,,1563.0,72
 Haiti,,1552.0,73
 Iraq,,1534.0,74
 Burkina Faso,,1529.0,75
-North Macedonia,,1527.0,76
-Montenegro,,1525.0,77
-Honduras,,1520.0,78
-Belarus,,1517.0,79
-Finland,,1515.0,80
-Ghana,,1514.0,81
-Guatemala,,1510.0,82
-Palestine,,1501.0,83
+Montenegro,,1525.0,76
+Honduras,,1520.0,77
+Belarus,,1517.0,78
+Ghana,,1515.0,79
+Finland,,1515.0,79
+North Macedonia,,1502.0,81
+Guatemala,,1501.0,82
+Palestine,,1501.0,82
 Tunisia,,1485.0,84
 Curaçao,,1484.0,85
-Guinea,,1468.0,86
+Guinea,,1479.0,86
 Gambia,,1464.0,87
 Qatar,,1461.0,88
 Suriname,,1459.0,89
 Syria,,1457.0,90
-Benin,,1448.0,91
+Benin,,1455.0,91
 Oman,,1447.0,92
-Libya,,1442.0,93
-Northern Cyprus,,1442.0,93
-Uganda,,1439.0,95
-Estonia,,1430.0,96
+Estonia,,1444.0,93
+Libya,,1442.0,94
+Northern Cyprus,,1442.0,94
+Uganda,,1439.0,96
 Gabon,,1429.0,97
 Kurdistan,,1423.0,98
-Bulgaria,,1415.0,99
-Faroe Islands,,1413.0,100
-Vietnam,,1400.0,101
-Equatorial Guinea,,1391.0,102
-Zimbabwe,,1382.0,103
+Faroe Islands,,1422.0,99
+Zimbabwe,,1408.0,100
+Bulgaria,,1401.0,101
+Vietnam,,1400.0,102
 Rwanda,,1382.0,103
-Zambia,,1381.0,105
-Thailand,,1379.0,106
+Zambia,,1381.0,104
+Thailand,,1379.0,105
+Kazakhstan,,1377.0,106
 North Korea,,1375.0,107
 Madagascar,,1371.0,108
 Niger,,1368.0,109
-Kazakhstan,,1367.0,110
+Equatorial Guinea,,1365.0,110
 Togo,,1364.0,111
 Comoros,,1364.0,111
 Kenya,,1360.0,113
 China,,1359.0,114
-Luxembourg,,1359.0,114
-Guinea-Bissau,,1355.0,116
-Mozambique,,1353.0,117
+Guinea-Bissau,,1355.0,115
+Mozambique,,1353.0,116
+Luxembourg,,1352.0,117
 Armenia,,1348.0,118
 Reunion,,1345.0,119
-Trinidad and Tobago,,1344.0,120
-Sudan,,1337.0,121
+Azerbaijan,,1340.0,120
+Guyana,,1338.0,121
 El Salvador,,1333.0,122
-Bahrain,,1332.0,123
-Azerbaijan,,1331.0,124
-Dominican Republic,,1331.0,124
+Sudan,,1333.0,122
+Bahrain,,1332.0,124
+Dominican Republic,,1331.0,125
 Mauritania,,1329.0,126
 Indonesia,,1328.0,127
-Guyana,,1327.0,128
-Cyprus,,1321.0,129
-Zanzibar,,1321.0,129
-Malaysia,,1316.0,131
-Kyrgyzstan,,1316.0,131
+Malaysia,,1327.0,128
+Trinidad and Tobago,,1326.0,129
+Cyprus,,1321.0,130
+Zanzibar,,1321.0,130
+Kyrgyzstan,,1316.0,132
 Tajikistan,,1312.0,133
 Kuwait,,1311.0,134
-Moldova,,1308.0,135
 Botswana,,1308.0,135
-Sierra Leone,,1303.0,137
-Burundi,,1302.0,138
-Namibia,,1301.0,139
-Martinique,,1299.0,140
-Ethiopia,,1299.0,140
-Lebanon,,1288.0,142
-Lithuania,,1280.0,143
+Sierra Leone,,1303.0,136
+Burundi,,1302.0,137
+Ethiopia,,1299.0,138
+Moldova,,1299.0,138
+Namibia,,1292.0,140
+Lebanon,,1288.0,141
+Martinique,,1283.0,142
+Lithuania,,1282.0,143
 Tanzania,,1273.0,144
 Liberia,,1270.0,145
+Cuba,,1263.0,146
 Nicaragua,,1263.0,146
-Malta,,1258.0,147
-French Guiana,,1258.0,147
-Cuba,,1250.0,149
-Guadeloupe,,1248.0,150
+French Guiana,,1258.0,148
+Guadeloupe,,1256.0,149
+Malta,,1250.0,150
 Latvia,,1241.0,151
 Malawi,,1239.0,152
-Yemen,,1224.0,153
-Congo,,1220.0,154
-Saint Vincent and the Grenadines,,1220.0,154
-Mayotte,,1217.0,156
+Congo,,1220.0,153
+Saint Vincent and the Grenadines,,1220.0,153
+Mayotte,,1217.0,155
+Yemen,,1213.0,156
 Turkmenistan,,1209.0,157
-Eritrea,,1201.0,158
-Central African Republic,,1193.0,159
-New Caledonia,,1186.0,160
+Eritrea,,1190.0,158
+New Caledonia,,1186.0,159
+Central African Republic,,1186.0,159
 Lesotho,,1179.0,161
-Puerto Rico,,1168.0,162
-Tahiti,,1161.0,163
-Vanuatu,,1153.0,164
+Puerto Rico,,1157.0,162
+Vanuatu,,1153.0,163
+Tahiti,,1152.0,164
 Eswatini,,1148.0,165
 Singapore,,1147.0,166
 India,,1146.0,167
@@ -173,34 +173,34 @@ Papua New Guinea,,1112.0,171
 Solomon Islands,,1110.0,172
 Saint Lucia,,1106.0,173
 South Sudan,,1095.0,174
-Andorra,,1076.0,175
-Chad,,1073.0,176
+Chad,,1073.0,175
+Andorra,,1067.0,176
 Mauritius,,1061.0,177
 Saint Kitts and Nevis,,1060.0,178
 Sao Tome and Principe,,1037.0,179
-Grenada,,1023.0,180
+Gibraltar,,1024.0,180
 Saint Martin,,1021.0,181
-Gibraltar,,1016.0,182
-Montserrat,,1016.0,182
+Aruba,,1017.0,182
+Montserrat,,1016.0,183
 Belize,,1015.0,184
 Myanmar,,1014.0,185
-Somaliland,,1005.0,186
-Barbados,,1003.0,187
-Aruba,,1001.0,188
-Bermuda,,1000.0,189
-Western Sahara,,996.0,190
-Somalia,,974.0,191
+Grenada,,1010.0,186
+Somaliland,,1005.0,187
+Barbados,,1003.0,188
+Western Sahara,,996.0,189
+Bermuda,,992.0,190
+Somalia,,973.0,191
 Afghanistan,,961.0,192
 Pakistan,,954.0,193
 Greenland,,945.0,194
 Djibouti,,941.0,195
-Sint Maarten,,922.0,196
-Bangladesh,,919.0,197
-Antigua and Barbuda,,908.0,198
+Antigua and Barbuda,,926.0,196
+Sint Maarten,,922.0,197
+Bangladesh,,919.0,198
 Monaco,,903.0,199
 Nepal,,893.0,200
-Liechtenstein,,882.0,201
 Cambodia,,882.0,201
+Liechtenstein,,880.0,202
 Dominica,,875.0,203
 Sri Lanka,,853.0,204
 Bonaire,,851.0,205
@@ -225,7 +225,7 @@ Saba,,691.0,223
 Turks and Caicos Islands,,687.0,224
 Saint Pierre and Miquelon,,677.0,225
 British Virgin Islands,,661.0,226
-Cook Islands,,638.0,227
+Cook Islands,,647.0,227
 Bahamas,,631.0,228
 Bhutan,,630.0,229
 Tibet,,628.0,230
