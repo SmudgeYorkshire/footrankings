@@ -11,10 +11,14 @@ Cyprus must finish above Armenia. Before the fix, Armenia still showed a
 real (non-zero, ~13%) chance of finishing 2nd.
 """
 
+import itertools
+
 import pandas as pd
 
+import nations_league_simulator as nls
 from nations_league_simulator import (
     simulate_league_outcomes, league_interim_rankings, league_interim_order, group_expected_points,
+    project_playoff_entries,
 )
 
 
@@ -193,3 +197,41 @@ def test_group_expected_points_keeps_a_team_with_zero_remaining_fixtures():
     )
 
     assert exp_pts["Finished"] == 12.0
+
+
+def test_playoff_entries_only_ever_pair_across_the_two_pools(monkeypatch):
+    # Answers a real user question (2026-11-17): does the League A-vs-B
+    # (and B-vs-C) "Chance to prevail" projection respect UEFA's own
+    # rule that a League A third/fourth-place side can only be drawn
+    # against a League B runner-up, never against another League A side
+    # (same for League B fourth place vs League C runner-up)? Confirmed
+    # by spying on every two_leg_advance_odds call _average_pairing_
+    # prevail makes across all 24 permutations: every single tie must
+    # have its home side in higher_teams and its away side in
+    # lower_teams -- never two teams from the same side facing each other.
+    higher_teams = ["Norway", "Croatia", "Wales", "Serbia"]
+    lower_teams = ["Slovenia", "Northern Ireland", "Kosovo", "Bosnia and Herzegovina"]
+    seen_pairs = []
+    real_two_leg_advance_odds = nls.two_leg_advance_odds
+
+    def _spy(home, away, *args, **kwargs):
+        seen_pairs.append((home, away))
+        return real_two_leg_advance_odds(home, away, *args, **kwargs)
+
+    monkeypatch.setattr(nls, "two_leg_advance_odds", _spy)
+    ratings = _ratings(higher_teams + lower_teams)
+
+    entries = project_playoff_entries(
+        higher_teams, "League A third place/fourth place",
+        lower_teams, "League B runner-up", ratings,
+    )
+
+    assert len(seen_pairs) == len(list(itertools.permutations(lower_teams))) * len(higher_teams)
+    for home, away in seen_pairs:
+        assert home in higher_teams
+        assert away in lower_teams
+
+    # Every team from both pools gets a row, and nobody from one pool is
+    # mislabeled as belonging to the other.
+    assert set(entries[entries["pool"] == "League A third place/fourth place"]["team"]) == set(higher_teams)
+    assert set(entries[entries["pool"] == "League B runner-up"]["team"]) == set(lower_teams)
