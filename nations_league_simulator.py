@@ -1459,17 +1459,21 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
     group_states, from guaranteed points (current) vs. maximum
     achievable points (current + 3 x remaining games), PLUS one narrow
     head-to-head refinement at the exact points-ceiling/floor boundary
-    (see below) -- everything else about GD/GF is still deliberately
-    ignored.
+    (see below) -- everything else about GD/GF is deliberately ignored
+    WHILE THE GROUP STILL HAS FIXTURES LEFT TO PLAY (a projected GD isn't
+    knowable in advance). Once a group has none left, every team's real,
+    already-tiebroken rank is used directly instead -- see the "no
+    fixtures left" fast path right at the top of the per-group loop below.
 
     This is always sound -- never wrongly asserts a position is pinned
     down -- because UEFA's own tiebreak order ranks by points first; GD/
     GF/etc. only break ties WITHIN equal points, so a team can never
     finish above a rival with strictly more points. Deliberately ignores
-    GD entirely (ships no team-by-team projected-GD model, and a wrong
-    GD guess here would risk a false "clinched"/"eliminated" badge, which
-    is actively misleading -- better to stay silent a little longer than
-    assert a wrong certainty).
+    GD while projecting forward (ships no team-by-team projected-GD
+    model, and a wrong GD guess here would risk a false "clinched"/
+    "eliminated" badge, which is actively misleading -- better to stay
+    silent a little longer than assert a wrong certainty) -- but once the
+    group is actually finished, using real GD isn't a guess at all.
 
     best_reachable[t] = 1 + however many rivals are GUARANTEED to finish
     strictly above t even in t's own best case (their current points
@@ -1538,6 +1542,29 @@ def group_position_bounds(group_states: dict[str, dict]) -> dict[str, tuple[int,
         current, ceiling = _group_current_ceiling(state)
         remaining = state["remaining"]
         played = state.get("played", [])
+
+        # A group with no fixtures left at all has no hypothetical result
+        # left to bound against -- every team's final position is already
+        # a decided fact, resolved by the full real tiebreak chain
+        # (base_stats' own "rank", from compute_full_standings' own
+        # NL_TIEBREAKERS -- the same authoritative order every real
+        # standings table already shows), not something to re-derive here
+        # from raw points alone. Confirmed missing live 2026-11-17 (Group
+        # A2): Germany/Netherlands/Greece all finished on 11 points, so
+        # the per-rival projection logic below bailed out via
+        # _third_team_could_share (correctly designed for while an
+        # unplayed, GD-swinging fixture remained) even though the real
+        # result had already settled it days earlier with nothing left to
+        # guess -- Germany/Netherlands showed a plain percentage instead
+        # of a clinched "✓", and Greece a percentage instead of an
+        # eliminated "X". Falls through to the normal projection logic
+        # below only if some team's real rank isn't actually available
+        # (e.g. older/synthetic state data), never raising on it.
+        ranks = {t: state["base_stats"].get(t, {}).get("rank") for t in teams}
+        if not remaining and all(r is not None for r in ranks.values()):
+            for t in teams:
+                bounds[t] = (ranks[t], ranks[t])
+            continue
 
         def _tied_h2h_pts(maximizer: str, minimizer: str) -> tuple[int, int]:
             """(maximizer's, minimizer's) h2h points in the one scenario

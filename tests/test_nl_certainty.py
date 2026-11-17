@@ -12,7 +12,9 @@ from nations_league_simulator import (
 )
 
 
-def _group_states(pts: dict[str, int], remaining_count: dict[str, int]) -> dict[str, dict]:
+def _group_states(
+    pts: dict[str, int], remaining_count: dict[str, int], ranks: dict[str, int] | None = None,
+) -> dict[str, dict]:
     teams = list(pts.keys())
     # Build `remaining_count[t]` fixtures each team appears in (paired up
     # arbitrarily -- group_position_bounds only counts appearances).
@@ -23,10 +25,14 @@ def _group_states(pts: dict[str, int], remaining_count: dict[str, int]) -> dict[
     # Pair consecutive entries as home/away fixtures (fine for a count-only test).
     while len(pool) >= 2:
         fixtures.append({"strHomeTeam": pool.pop(), "strAwayTeam": pool.pop()})
+    base_stats = {
+        t: ({"pts": p, "rank": ranks[t]} if ranks else {"pts": p})
+        for t, p in pts.items()
+    }
     return {
         "G1": {
             "teams": teams,
-            "base_stats": {t: {"pts": p} for t, p in pts.items()},
+            "base_stats": base_stats,
             "remaining": fixtures,
         }
     }
@@ -55,6 +61,43 @@ def test_fully_open_group_has_no_pinned_positions():
     for t in ("A", "B", "C", "D"):
         best, worst = bounds[t]
         assert best == 1 and worst == 4
+
+
+def test_finished_group_uses_real_rank_even_on_an_unresolved_three_way_points_tie():
+    # Real bug (2026-11-17, Group A2): Germany/Netherlands/Greece all
+    # finish on 11 points with zero fixtures left -- the normal
+    # projection logic bails out on a 3-way points tie at the boundary
+    # (see _third_team_could_share), which is correct WHILE a fixture
+    # remains (a GD guess would be unsound), but wrong once the group has
+    # actually finished: real GD has already decided it, nothing left to
+    # guess. Each team's own already-fully-tiebroken rank must be used
+    # directly instead of re-running the projection.
+    states = _group_states(
+        {"Germany": 11, "Netherlands": 11, "Greece": 11, "Serbia": 0},
+        {"Germany": 0, "Netherlands": 0, "Greece": 0, "Serbia": 0},
+        ranks={"Germany": 1, "Netherlands": 2, "Greece": 3, "Serbia": 4},
+    )
+    bounds = group_position_bounds(states)
+    assert bounds["Germany"] == (1, 1)
+    assert bounds["Netherlands"] == (2, 2)
+    assert bounds["Greece"] == (3, 3)
+    assert bounds["Serbia"] == (4, 4)
+
+
+def test_finished_group_without_rank_data_falls_back_to_the_normal_projection():
+    # Same shape as above, but no "rank" supplied in base_stats (older/
+    # synthetic state data) -- must not crash, and must fall back to the
+    # ordinary (wider, unresolved) bounds rather than silently assuming a
+    # rank of 0 or raising a KeyError.
+    states = _group_states(
+        {"Germany": 11, "Netherlands": 11, "Greece": 11, "Serbia": 0},
+        {"Germany": 0, "Netherlands": 0, "Greece": 0, "Serbia": 0},
+    )
+    bounds = group_position_bounds(states)
+    assert bounds["Germany"] == (1, 3)
+    assert bounds["Netherlands"] == (1, 3)
+    assert bounds["Greece"] == (1, 3)
+    assert bounds["Serbia"] == (4, 4)
 
 
 def test_league_a_style_rules_eliminate_cross_group_labels_once_top_two_clinched():

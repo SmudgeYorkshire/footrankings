@@ -516,7 +516,10 @@ def _group_states_from(groups: dict[str, list[str]], standings_by_group: dict[st
         gname: {
             "teams": teams,
             "base_stats": {
-                r["strTeam"]: {"pts": r["intPoints"], "gd": r["intGoalDifference"], "gf": r["intGoalsFor"]}
+                r["strTeam"]: {
+                    "pts": r["intPoints"], "gd": r["intGoalDifference"], "gf": r["intGoalsFor"],
+                    "rank": r["intRank"],
+                }
                 for r in standings_by_group[gname]
             },
             "remaining": remaining_by_group[gname],
