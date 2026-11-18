@@ -74,108 +74,39 @@ ADJUSTMENT_CAP = 60.0
 # matters and is what's committed).
 # ---------------------------------------------------------------------------
 OBSERVATIONS: list[dict] = [
-    # 2026-11-14: a one-off "match" observation for Group A2's decisive
-    # last-day fixture (Germany home vs Netherlands, 2026-11-16, 16-
-    # bookmaker average: Germany 1.864, Draw 3.925, Netherlands 3.481) was
-    # fitted here and already applied to ratings/nations_league_elo_
-    # adjustments.csv -- removed again immediately rather than left in
-    # place, because leaving a "match" entry in OBSERVATIONS subjects its
-    # two teams to this function's own 400-epoch L2 shrinkage on EVERY
-    # future run, which fought the outright re-anchoring step below call
-    # after call (Germany's adjustment stabilized around +40 instead of
-    # re-converging toward its outright-implied +60 -- confirmed live,
-    # the discovery that led to this comment). Trigger: the user flagged
-    # that Germany should be a touch favoured over Greece for the group's
-    # 2nd QF spot (correctly so -- directly verified the H2H tiebreak
-    # engine ALREADY ranks Germany above Greece in every reachable
-    # 11-11-11 three-way points tie regardless of this match's exact
-    # scoreline, since Greece's own head-to-head GD among the tied trio
-    # is fixed at -6 with no games left to change it). The live gap was
-    # elsewhere: this model's own win probability for this exact fixture
-    # was only ~43.8% Germany before the fit, vs this panel's de-vigged
-    # ~49.5% -- a single mispriced decisive match was quietly understating
-    # Germany's own chances of reaching that tie at all, not a tiebreak
-    # bug. If this fixture's price moves again before 2026-11-16, re-add
-    # a fresh "match" entry for it, then remove it again the same way
-    # once applied.
+    # History (2026-11-14 through 17, pruned 2026-11-18): Group A2's
+    # Germany-vs-Netherlands-vs-Greece group-order question and Group B2's
+    # Hungary-vs-Northern-Ireland decider both needed a hand-set override
+    # in ratings/nations_league_elo_adjustments.csv for a few days, each
+    # time reapplied after this script's own fit reset it (that fit has no
+    # awareness of a manual override -- a standing gotcha for any future
+    # override of this kind, worth remembering even though neither live
+    # case remains). Both groups are now fully finished for real: Germany
+    # 1st / Netherlands 2nd / Greece 3rd (2026-11-16, Germany 5-0
+    # Netherlands); Northern Ireland 1st / Hungary 2nd (2026-11-17, 1-1
+    # draw -- the real result actually favoured Northern Ireland, the
+    # OPPOSITE of what the override enforced). No overrides remain as of
+    # today -- real results settled both.
     #
-    # That fit alone didn't close the gap enough on its own (Germany's
-    # rating was already at this file's own +60.0 ADJUSTMENT_CAP from the
-    # separate outright signal, so the simple-Elo fit saw little error left
-    # to correct and mostly just applied its own shrinkage -- a genuine
-    # mismatch between this script's simple classic-Elo fitting model and
-    # the real site's group-scoped Poisson simulation, confirmed by testing
-    # both directly against group_fixture_odds for this exact fixture).
-    # At the user's explicit choice, ratings/nations_league_elo_
-    # adjustments.csv's Netherlands row was hand-set to -60.0 (this file's
-    # own cap, not exceeded) on top of the fit above, bypassing this
-    # script entirely -- the cap-respecting ceiling of what's achievable
-    # without breaking it (47.0% Germany win, vs the panel's 49.5%; going
-    # all the way to 49.5% would need -62, past the cap, which the user
-    # declined). Netherlands has zero remaining League A fixtures after
-    # this one, so nothing else should touch its adjustment before the
-    # match is played -- but nl_odds_calibration_auto.py's own daily
-    # match-level fit WILL still touch it if API-Football starts carrying
-    # fresh odds for this exact fixture before 2026-11-16, since that
-    # script has no awareness of this manual override. Check Netherlands'
-    # value hasn't drifted away from -60.0 before that date if re-running
-    # the daily auto script; once the match is played (2026-11-16),
-    # real results settle it and this whole note becomes moot.
-    #
-    # 2026-11-17, user-provided screenshot of a bookmaker's Nations League
+    # 2026-11-18, user-provided screenshot of a bookmaker's Nations League
     # TOURNAMENT WINNER market (decimal odds) -- replaces the stale
-    # 2026-11-16 list above. Belgium/Denmark/Norway are back with fresh
-    # prices this round (no longer dropped). Greece still isn't visible in
-    # this screenshot, but per the explicit 2026-11-16 correction (see
-    # project memory) that's not on its own a reason to drop a team --
-    # kept at its last-confirmed 2026-11-15 price (41.00) until a screenshot
-    # either re-confirms or genuinely shows it gone. Main moves since
-    # 2026-11-16: England/Germany both shortened (Germany 9.00 -> 7.50,
-    # tied with Portugal); Netherlands drifted out (11.00 -> 13.00).
-    #
-    # Group A2 (Germany/Netherlands/Greece/Serbia) finished for real on
-    # 2026-11-16 -- Germany beat Netherlands 5-0, Greece beat Serbia 1-0 --
-    # so the Germany-vs-Greece group-order question from 2026-11-14/15/16
-    # is now settled by actual results, not anything in this file. No
-    # override needed or applied for any of those three teams any more.
-    #
-    # Real consequence, confirmed 2026-11-17: the final standings are a
-    # genuine 3-way 11-point tie (Germany/Netherlands/Greece), resolved by
-    # goal difference -- Germany 1st (+8), Netherlands 2nd (+4), Greece
-    # 3rd (-4). simulate_league_a_knockouts has no cross-group "best
-    # 3rd-placed team" wildcard (only the top 2 of each group reach the
-    # QF), so Greece's reached_qf is now a hard 0.0%, not a probability --
-    # no Elo adjustment can change that, the group is simply over. Greece
-    # is DROPPED from the outright OBSERVATIONS below as of today for
-    # exactly this reason (not the "not visible in a screenshot" reason
-    # from 2026-11-16 -- a genuinely different, valid reason to drop a
-    # team this time): its 41.00 market price is now stale -- the
-    # bookmaker evidently hasn't repriced for the 2026-11-16 result yet --
-    # and fitting against it every morning would just inflate Greece's
-    # adjustment indefinitely chasing a target the real competition has
-    # already made unreachable. Re-add Greece only if its real market
-    # price actually drops toward the ~0% its elimination implies (purely
-    # as a comparison data point by then, not a fittable target).
-    #
-    # One group-order override remains, hand-set directly in ratings/
-    # nations_league_elo_adjustments.csv AFTER this script's own fit runs
-    # (so it doesn't survive the fit by itself -- re-check and reapply
-    # every morning this routine is run until Group B2's decider is
-    # played):
-    #   - Hungary +12.0 (same value used every day since 2026-11-15) --
-    #     Group B2's Hungary-vs-Northern Ireland decider (2026-11-17, not
-    #     yet played as of this run) reverted to Northern Ireland favoured
-    #     after today's routine match-level auto-fit, exactly as expected
-    #     -- re-applying +12.0 restores Hungary to the favoured side.
+    # 2026-11-17 list above, and this time shown with "Show Less" rather
+    # than "Show More", i.e. the full current list, not truncated -- so
+    # Denmark's absence is treated as a real drop (confirmed separately:
+    # Denmark finished 3rd in Group A4, eliminated from League A's QF for
+    # real), not the "hidden, not gone" case from 2026-11-16. Greece
+    # stays dropped (already mathematically eliminated, see the finished-
+    # group note above). Main moves since 2026-11-17: Portugal/Germany
+    # both drifted out slightly (7.50 -> 8.00); Norway newly priced
+    # (34.00, having reached the QF for real).
     {"type": "outright", "team": "Spain", "decimal_odds": 3.50},
     {"type": "outright", "team": "France", "decimal_odds": 4.00},
     {"type": "outright", "team": "England", "decimal_odds": 4.33},
-    {"type": "outright", "team": "Portugal", "decimal_odds": 7.50},
-    {"type": "outright", "team": "Germany", "decimal_odds": 7.50},
+    {"type": "outright", "team": "Portugal", "decimal_odds": 8.00},
+    {"type": "outright", "team": "Germany", "decimal_odds": 8.00},
     {"type": "outright", "team": "Netherlands", "decimal_odds": 13.00},
     {"type": "outright", "team": "Belgium", "decimal_odds": 17.00},
-    {"type": "outright", "team": "Denmark", "decimal_odds": 29.00},
-    {"type": "outright", "team": "Norway", "decimal_odds": 51.00},
+    {"type": "outright", "team": "Norway", "decimal_odds": 34.00},
 ]
 
 
