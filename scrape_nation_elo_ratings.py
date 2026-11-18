@@ -1,26 +1,20 @@
 """
 Fetches current national-team Elo ratings from eloratings.net for EVERY
-national team it rates (244 teams, confirmed live) -- the global analog of
-scrape_elo_ratings.py, which only pulls the 54 UEFA Nations League nations
-for nations_league.py's own simulations.
-
-Same two static TSV files scrape_elo_ratings.py already reads (see that
-module's own docstring for why reading them directly beats driving a
-headless browser): en.teams.tsv (team code -> full English name) and
-World.tsv (one row per national team: local rank, global rank, team code,
-current rating, ...). This script just doesn't filter World.tsv down to
-any one subset -- every team eloratings.net lists comes through.
+national team it rates (244 teams, confirmed live) -- read directly from
+the same two static TSV files that site's own JS-rendered grid is fed by
+(en.teams.tsv: team code -> full English name; World.tsv: one row per
+national team -- local rank, global rank, team code, current rating,
+...), far simpler than driving a headless browser.
 
 Writes ratings/nation_elo_global.csv with columns [team, alias,
 elo_rating, elo_rank] -- the nation-level analog of
 opta_power_rankings.csv (the global CLUB scrape build_club_power_
-rankings.py starts from). Does NOT touch ratings/nations_league_elo.csv
-at all -- that file stays exactly as scrape_elo_ratings.py maintains it,
-fully separate from this one.
+rankings.py starts from).
 
 Feeds build_nation_power_rankings.py / nation_power_rankings.py (Nation
-Strength Rankings) -- a new, display-only page, not yet wired into any
-simulation. See nation_odds_ratings.py for the odds-implied side.
+Strength Rankings), which as of 2026-11-18 also feeds nations_league_
+simulator.py's own live ratings directly. See nation_odds_ratings.py for
+the odds-implied side.
 """
 
 import csv
@@ -32,10 +26,9 @@ TEAMS_URL = "https://eloratings.net/en.teams.tsv"
 WORLD_URL = "https://eloratings.net/World.tsv"
 OUT_PATH = "ratings/nation_elo_global.csv"
 
-# Same sanity-floor principle as scrape_elo_ratings.py's own
-# MIN_EXPECTED_RATINGS -- refuse to overwrite a good file with a near-
-# empty one if eloratings.net ever returns a malformed/empty body without
-# raising an HTTPError.
+# Sanity floor -- refuse to overwrite a good file with a near-empty one if
+# eloratings.net ever returns a malformed/empty body without raising an
+# HTTPError.
 MIN_EXPECTED_RATINGS = 150
 
 

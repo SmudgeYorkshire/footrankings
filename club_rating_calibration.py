@@ -1,6 +1,6 @@
 """
-Automated, daily version of nl_odds_calibration.py's idea -- fit a small
-per-team rating adjustment from real bookmaker odds -- but for the 54
+Automated, daily version of the same idea -- fit a small per-team rating
+adjustment from real bookmaker odds -- but for the 54
 tracked top-flight leagues, LEAGUES_TIER2's ~52 second tiers, AND the
 Champions/Europa/Conference League, sourced automatically from
 fetch_daily_odds.py's output instead of a hand-typed observation list, and
@@ -63,9 +63,7 @@ same-fixture double-counting bug fetch_daily_odds.py's own docstring
 describes being fixed.
 
 Writes ratings/club_rating_adjustments.csv (team, adjustment), which
-ratings_manager.load_ratings() overlays onto every league's raw ratings the
-same way nations_league_simulator.load_nl_ratings() already overlays
-nations_league_elo_adjustments.csv.
+ratings_manager.load_ratings() overlays onto every league's raw ratings.
 
 Usage: py club_rating_calibration.py [--date YYYY-MM-DD] [--window-days 14]
 """

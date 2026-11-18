@@ -3,12 +3,13 @@
 predicted knockout bracket.
 
 Groups are the real UEFA draw (see nations_league_data.py); ratings are
-eloratings.net's current national-team Elo, scraped by
-scrape_elo_ratings.py into ratings/nations_league_elo.csv. Real fixtures/
-results come from API-Football (nations_league_fixtures.py) -- once a
-match is played it locks in and only what's left to play gets simulated,
-the same "real results + simulate the rest" approach used across the
-rest of this site (see european.py's League Stage Predictions).
+the site's own Nation Strength Ranking (nation_power_rankings.csv's
+combined_rating, rebuilt automatically every day -- see
+nations_league_simulator.load_nl_ratings()). Real fixtures/results come
+from API-Football (nations_league_fixtures.py) -- once a match is played
+it locks in and only what's left to play gets simulated, the same "real
+results + simulate the rest" approach used across the rest of this site
+(see european.py's League Stage Predictions).
 """
 
 import random
@@ -72,7 +73,8 @@ def _format_date(date_str: str) -> str:
 ratings_df = load_nl_ratings()
 if ratings_df.empty:
     st.warning(
-        "No Elo ratings found yet — run `scrape_elo_ratings.py` to fetch them from eloratings.net."
+        "No Strength Ranking data found yet — run `build_nation_power_rankings.py` "
+        "(after `scrape_nation_elo_ratings.py` and `nation_odds_ratings.py`) to build it."
     )
     st.stop()
 

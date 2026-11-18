@@ -56,20 +56,20 @@ from pathlib import Path
 import pandas as pd
 
 from flags import flag_url
-from nations_league_data import ALL_NL_TEAMS
-from scrape_elo_ratings import _NAME_ALIASES as _NL_ELO_NAME_ALIASES
+from nations_league_data import ALL_NL_TEAMS, GLOBAL_ELO_NAME_ALIASES
 from nation_odds_ratings import GLOBAL_ELO_PATH, RATINGS_OUT_PATH, N_FULL_CONFIDENCE
 
 OUT_PATH = "nation_power_rankings.csv"
 
 # A handful of ALL_NL_TEAMS' own canonical names ("Republic of Ireland",
 # "Türkiye") differ from eloratings.net's own English name for that same
-# team ("Ireland", "Turkey") -- scrape_elo_ratings.py already tracks
-# exactly this mismatch (reused here, not re-declared, so the two can
-# never drift apart) for its own 54-team pull; this global pull reads
-# eloratings.net's raw name directly with no such translation, so the
-# reverse mapping is needed here to tag tracked_nl correctly.
-_NL_TEAMS_BY_GLOBAL_NAME = {_NL_ELO_NAME_ALIASES.get(t, t) for t in ALL_NL_TEAMS}
+# team ("Ireland", "Turkey") -- nations_league_data.GLOBAL_ELO_NAME_ALIASES
+# already tracks exactly this mismatch (reused here, not re-declared, so
+# the two can never drift apart) for nations_league_simulator.py's own
+# ratings load; this global pull reads eloratings.net's raw name directly
+# with no such translation, so the reverse mapping is needed here to tag
+# tracked_nl correctly.
+_NL_TEAMS_BY_GLOBAL_NAME = {GLOBAL_ELO_NAME_ALIASES.get(t, t) for t in ALL_NL_TEAMS}
 
 
 def main() -> None:

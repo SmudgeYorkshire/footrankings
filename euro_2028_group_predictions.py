@@ -6,8 +6,8 @@ Opta-goal Poisson engine (simulator.py) -- these are plain classic-Elo
 numbers (~1200-2300) with no natural mapping onto that engine's
 attack/defense goal model, so a lightweight classic-Elo win/draw/loss
 model is used instead. Reuses the exact win-expectancy formula and
-home-advantage constant nation_odds_ratings.py/nl_odds_calibration.py
-already use for odds calibration, rather than reinventing either.
+home-advantage constant nation_odds_ratings.py already uses for odds
+calibration, rather than reinventing either.
 """
 
 import random
@@ -15,7 +15,7 @@ import random
 import pandas as pd
 
 from nation_odds_ratings import _elo_expectancy, HOME_ADVANTAGE_ELO_PTS
-from scrape_elo_ratings import _NAME_ALIASES
+from nations_league_data import GLOBAL_ELO_NAME_ALIASES
 
 RANKINGS_CSV = "nation_power_rankings.csv"
 DEFAULT_RATING = 1500.0
@@ -35,7 +35,7 @@ def load_ratings() -> dict[str, float]:
 
 
 def team_rating(team: str, ratings: dict[str, float]) -> float:
-    return ratings.get(_NAME_ALIASES.get(team, team), DEFAULT_RATING)
+    return ratings.get(GLOBAL_ELO_NAME_ALIASES.get(team, team), DEFAULT_RATING)
 
 
 def match_probabilities(home_rating: float, away_rating: float) -> tuple[float, float, float]:

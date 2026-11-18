@@ -27,8 +27,7 @@ CLUB_ADJUSTMENTS_PATH = RATINGS_DIR / "club_rating_adjustments.csv"
 
 def load_club_rating_adjustments() -> dict[str, float]:
     """{team: adjustment} fit daily by club_rating_calibration.py from real
-    odds, refit from scratch each run (never accumulated) -- mirrors
-    nations_league_simulator.load_nl_rating_adjustments()'s exact pattern."""
+    odds, refit from scratch each run (never accumulated)."""
     try:
         df = pd.read_csv(CLUB_ADJUSTMENTS_PATH)
     except FileNotFoundError:

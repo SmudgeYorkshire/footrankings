@@ -21,9 +21,8 @@ rather than on the existing "tracked" flag (that flag means "one of our
 
 Two real differences from club_odds_ratings.py, both simplifications:
   - Fitting math: classic Elo win-expectancy (1/(1+10**(-diff/400)), +100
-    home-advantage points) -- the exact formula nl_odds_calibration.py
-    already uses for Nations League match-level fits -- instead of the
-    club pipeline's Poisson/attack-defense goal model. There's no single
+    home-advantage points) instead of the club pipeline's Poisson/
+    attack-defense goal model. There's no single
     "league scope" to anchor a goal model against here (this pool spans
     World Cup/continental qualifiers and friendlies between arbitrary
     pairs); classic Elo is this codebase's own already-proven approach
@@ -39,14 +38,14 @@ persisted value yet, same "being seeded for the first time right here"
 idea _fit_persistent already uses for clubs (raw Opta there, raw
 eloratings.net Elo here).
 
-This is purely a DISPLAY-feeding pipeline (build_nation_power_rankings.py
-/ nation_power_rankings.py, "Nation Strength Rankings") -- deliberately
-NOT wired into nations_league_simulator.py or any other live prediction,
-same bootstrapping order club_power_rankings.py itself followed (display
-first; live-wiring was a separate, later, explicitly-asked-for phase).
-The existing Nations League Elo/odds workflow (scrape_elo_ratings.py +
-nl_odds_calibration.py, deliberately manual-only since 2026-11-13) is
-untouched by this file.
+This feeds build_nation_power_rankings.py / nation_power_rankings.py
+("Nation Strength Rankings"), same bootstrapping order club_power_
+rankings.py itself followed (display first; live-wiring was a separate,
+later phase). As of 2026-11-18, nations_league_simulator.py's own
+load_nl_ratings() reads that same combined_rating directly -- the old,
+bespoke Nations League Elo/odds pipeline this file's own docstring used
+to describe here (a manual-only scrape + calibration workflow) has been
+retired entirely.
 
 Usage:
     py nation_odds_ratings.py [--date YYYY-MM-DD]
@@ -92,7 +91,7 @@ INTERNATIONAL_COMPETITIONS: set[str] = {
     "Gulf Cup of Nations",
 }
 
-HOME_ADVANTAGE_ELO_PTS = 100.0  # same classic national-team convention nl_odds_calibration.py uses
+HOME_ADVANTAGE_ELO_PTS = 100.0  # classic national-team Elo convention
 
 # Starting points, copied from club_odds_ratings.py's own already-
 # validated values (see that module's own docstring for how they were
@@ -306,8 +305,7 @@ def _fit_persistent(resolved: list[dict], current_ratings: dict[str, float], epo
     """club_odds_ratings._fit_persistent, adapted to classic Elo win-
     expectancy instead of a Poisson goal model -- see module docstring
     for why. Draw is stripped out of each observation's de-vigged 1X2
-    probability first (home_prob/(home_prob+away_prob)), same convention
-    nl_odds_calibration.py's own "match" observations use, since classic
+    probability first (home_prob/(home_prob+away_prob)), since classic
     Elo expectancy has no draw concept to compare against directly.
 
     Returns the final ABSOLUTE rating for every team with >=1 observation

@@ -1,20 +1,17 @@
 """
 Manually-maintained outright "win the competition" odds for the European
 club competitions -- comparison-only against this site's own
-league_phase_simulator "won_competition" probability, same discipline
-nl_odds_calibration.py already uses for its "outright" observations.
+league_phase_simulator "won_competition" probability.
 
 Confirmed 2026-11-04: API-Football's /odds endpoint has no outright/
 futures market at all (checked all 338 bet types in /odds/bets -- every
 one is a per-match market: 1X2, over/under, corners, cards, etc., nothing
-season-long). There is no automatable, ToS-safe feed for this, the same
-situation nl_odds_calibration.py's own module docstring already documents
-for Nations League outright odds -- hence manual entry here too.
+season-long). There is no automatable, ToS-safe feed for this -- hence
+manual entry here.
 
-Deliberately NOT fed into any rating or prediction (unlike
-nl_odds_calibration.py's outright observations, which DO nudge Elo) --
-the user explicitly asked for this to stay a side-by-side comparison
-against the site's own predictions, not an input that changes them.
+Deliberately NOT fed into any rating or prediction -- the user explicitly
+asked for this to stay a side-by-side comparison against the site's own
+predictions, not an input that changes them.
 
 Workflow: whenever asked to refresh this, Claude web-searches each
 competition's CURRENT outright winner odds from ONE live, dated source

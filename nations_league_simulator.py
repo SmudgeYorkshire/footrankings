@@ -7,9 +7,21 @@ country, only the ratings scale fed into it.
 
 Two things ARE specific to international football and handled here:
 
-  - Ratings come from eloratings.net (ratings/nations_league_elo.csv),
-    not Opta, and are scoped per Nations League *group* (4 teams, or 3 in
-    League D) rather than per domestic league -- see load_nl_ratings().
+  - Ratings come from nation_power_rankings.csv's own combined_rating (the
+    site's "Nation Strength Ranking", blending global Elo with an odds-
+    implied signal -- see build_nation_power_rankings.py), scoped per
+    Nations League *group* (4 teams, or 3 in League D) rather than per
+    domestic league -- see load_nl_ratings(). This switched over 2026-11-18
+    from a now fully-retired bespoke pipeline (its own Elo scrape plus
+    manually-fitted odds adjustments) that needed hand-tuning every
+    morning and kept silently decaying real corrections between visits;
+    Strength Ranking is already rebuilt automatically every day with no
+    manual step. The Poisson/
+    Dixon-Coles engine itself (NATIONS_LEAGUE_K/KNOCKOUT_K included) is
+    UNCHANGED by this -- only the input rating numbers moved, confirmed via
+    a side-by-side comparison to shift outputs by single-digit percentage
+    points typically (up to ~10pp on the single most-affected figure),
+    nothing implausible either way.
   - The group stage hasn't kicked off yet (first ball Sep 2026), so every
     group is simulated as a fresh double round-robin from a blank
     standings table, and League A's knockout stage (quarter-finals ->
@@ -29,10 +41,12 @@ from simulator import (
     _opta_to_attack_defense, simulate_season, fixture_odds, two_leg_advance_odds, _sort_cascade,
     _build_rat_lookup, DEFAULT_BASE_GOALS, OVERDISPERSION, _rank_group,
 )
-from nations_league_data import NL_GROUPS, ALL_NL_TEAMS, NEUTRAL_VENUE_NATIONS, NEUTRAL_VENUE_FIXTURES, NL_TIEBREAKERS
+from nations_league_data import (
+    NL_GROUPS, ALL_NL_TEAMS, NEUTRAL_VENUE_NATIONS, NEUTRAL_VENUE_FIXTURES, NL_TIEBREAKERS,
+    GLOBAL_ELO_NAME_ALIASES,
+)
 
-RATINGS_PATH = "ratings/nations_league_elo.csv"
-RATINGS_ADJUSTMENTS_PATH = "ratings/nations_league_elo_adjustments.csv"
+NATION_POWER_RANKINGS_PATH = "nation_power_rankings.csv"
 
 # Exponent for the Elo -> attack/defense power transform (see
 # simulator._opta_to_attack_defense). Kept separate from the club game's
@@ -76,48 +90,42 @@ NATIONS_LEAGUE_K = 3.0
 KNOCKOUT_K = 2.0
 
 
-@st.cache_data(ttl=3_600, show_spinner=False)
-def load_raw_nl_ratings() -> pd.DataFrame:
-    """Raw eloratings.net ratings for all 54 tracked nations, columns
-    [team, alias, opta_rating] (Elo points; see scrape_elo_ratings.py for
-    why the opta_rating name is reused). This is the daily-scraped
-    baseline -- see load_nl_ratings() for the version simulations
-    actually use, which layers nl_odds_calibration.py's adjustments on
-    top."""
+def _load_nl_ratings_uncached() -> pd.DataFrame:
+    """Every tracked Nations League nation's rating, columns [team, alias,
+    opta_rating] (the opta_rating name is kept purely so every downstream
+    function -- _scoped_attack_defense, simulate_group, etc. -- needs no
+    change; the actual numbers come from nation_power_rankings.csv's own
+    combined_rating, not Opta). Reconciles that file's eloratings.net-style
+    team names (e.g. "Turkey", "Ireland") to this site's own Nations
+    League spelling ("Türkiye", "Republic of Ireland") via nations_league_
+    data.GLOBAL_ELO_NAME_ALIASES -- the exact same bridge build_nation_
+    power_rankings.py and euro_2028_group_predictions.py already use for
+    this identical reconciliation, reused rather than duplicated. A team with
+    no Strength Ranking coverage yet, or a missing/not-yet-built file,
+    simply doesn't get a row here -- every caller already treats a team
+    absent from ratings_df as "use the default rating" (see e.g.
+    _build_rat_lookup), so this degrades gracefully rather than crashing
+    the page. Kept separate from load_nl_ratings() (which just adds
+    caching on top) so tests can call this directly without fighting
+    st.cache_data's own cross-call caching."""
     try:
-        df = pd.read_csv(RATINGS_PATH, dtype={"team": str, "alias": str})
+        npr = pd.read_csv(NATION_POWER_RANKINGS_PATH, dtype={"team": str})
     except FileNotFoundError:
         return pd.DataFrame(columns=["team", "alias", "opta_rating"])
-    df["alias"] = df["alias"].fillna("")
-    df["opta_rating"] = pd.to_numeric(df["opta_rating"], errors="coerce")
-    return df.dropna(subset=["opta_rating"])
-
-
-def load_nl_rating_adjustments() -> dict[str, float]:
-    """{team: Elo-point adjustment} from nl_odds_calibration.py's last
-    manual run (see that script's own docstring for why this isn't part
-    of the daily automated Elo scrape), or {} if it's never been run."""
-    try:
-        df = pd.read_csv(RATINGS_ADJUSTMENTS_PATH)
-    except FileNotFoundError:
-        return {}
-    return dict(zip(df["team"], df["adjustment"]))
+    rating_by_global_name = dict(zip(npr["team"], pd.to_numeric(npr["combined_rating"], errors="coerce")))
+    rows = []
+    for team in ALL_NL_TEAMS:
+        rating = rating_by_global_name.get(GLOBAL_ELO_NAME_ALIASES.get(team, team))
+        if rating is not None and not pd.isna(rating):
+            rows.append({"team": team, "alias": "", "opta_rating": rating})
+    return pd.DataFrame(rows, columns=["team", "alias", "opta_rating"])
 
 
 @st.cache_data(ttl=3_600, show_spinner=False)
 def load_nl_ratings() -> pd.DataFrame:
-    """load_raw_nl_ratings() with nl_odds_calibration.py's per-team
-    adjustments added on top -- this is what every group/knockout
-    simulation on the page actually uses, so a fresh calibration run
-    takes effect everywhere the next time this cache expires (1 hour)
-    without touching the raw eloratings.net baseline itself."""
-    df = load_raw_nl_ratings().copy()
-    adjustments = load_nl_rating_adjustments()
-    if adjustments:
-        df["opta_rating"] = df.apply(
-            lambda r: r["opta_rating"] + adjustments.get(r["team"], 0.0), axis=1,
-        )
-    return df
+    """Cached wrapper over _load_nl_ratings_uncached() -- see that
+    function's own docstring for what it actually does."""
+    return _load_nl_ratings_uncached()
 
 
 def _scoped_attack_defense(teams: list[str], ratings_df: pd.DataFrame, k: float = NATIONS_LEAGUE_K) -> pd.DataFrame:

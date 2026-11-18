@@ -17,13 +17,13 @@ to Opta, not a competing signal. This module instead:
   - PERSISTS and ACCUMULATES: each run loads the rating this module wrote
     last time and nudges it further, it does not reset to a baseline+delta
     split. club_rating_calibration.py itself already documents exactly
-    this pattern working well for the Nations League
-    (nl_odds_calibration.py's fit_match_adjustments(), which loads
-    current_adj and carries it forward) -- including a real, non-obvious
-    bug that system already hit and fixed: shrinking the WHOLE persisted
-    dict every run silently erases any team not freshly observed that
-    specific run (400 epochs of 2% shrinkage =~ 99.97% decay in ONE run).
-    The fix there, reused here: every regularizing step only ever touches
+    this pattern working well elsewhere on the site (a persisted
+    adjustments dict, loaded and carried forward each run) -- including a
+    real, non-obvious bug that system already hit and fixed: shrinking the
+    WHOLE persisted dict every run silently erases any team not freshly
+    observed that specific run (400 epochs of 2% shrinkage =~ 99.97% decay
+    in ONE run). The fix there, reused here: every regularizing step only
+    ever touches
     teams THIS run's observations actually mention.
   - Has no tight absolute cap -- the whole point is to let this rating
     diverge from Opta as far as real market evidence supports, not to
@@ -54,7 +54,7 @@ Writes:
   ratings/club_odds_implied_ratings.csv
     (league_id, team, alias, opta_rating, seed_rating, n_updates, last_updated)
     -- reuses the "opta_rating" column name on purpose (same trick
-    scrape_elo_ratings.py already uses for Nations League Elo) so
+    nations_league_simulator.py's own ratings loader uses) so
     simulator.fixture_odds / _opta_to_attack_defense / simulate_season
     etc. can all consume a (league_id, team) slice of this file with zero
     changes, as just another ratings CSV, once a future phase wants to.

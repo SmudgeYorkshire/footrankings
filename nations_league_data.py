@@ -94,6 +94,17 @@ NL_FLAG_ALIASES = {
     "Republic of Ireland": "Ireland",
 }
 
+# eloratings.net's own team names (used by scrape_nation_elo_ratings.py's
+# global scrape, and so nation_power_rankings.csv's own "team" column),
+# only where they differ from this site's own spelling -- bridges that
+# file's names back to this site's various team-name conventions. Reused
+# by nations_league_simulator.py, euro_2028_group_predictions.py and
+# build_nation_power_rankings.py; kept here rather than duplicated in each.
+GLOBAL_ELO_NAME_ALIASES = {
+    "Republic of Ireland": "Ireland",
+    "Türkiye": "Turkey",
+}
+
 ALL_NL_TEAMS: list[str] = [t for league in NL_GROUPS.values() for group in league.values() for t in group]
 
 # Each league's group-stage outcome buckets. League A's shape was

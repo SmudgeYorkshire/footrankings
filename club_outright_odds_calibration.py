@@ -6,17 +6,15 @@ ratings -- against manual_outright_odds.py's real, de-vigged outright
 market odds, and applies a single PERSISTENT nudge per priced club to
 club_odds_ratings.py's own state (ratings/club_odds_implied_ratings.csv).
 
-Same shape nl_odds_calibration.py's own apply_outright_adjustments()
-already uses for Nations League: run the full competition/season
-simulation once (not inside a fitting loop -- a many-thousand-sim Monte
-Carlo is far too slow to re-run every gradient step), read off the
-model's own win probability, compare to the market's, apply one direct
-nudge. Unlike the match-level fit in club_odds_ratings.py's own main(),
-this isn't ledger-tracked or idempotent -- re-running with the SAME
-(unrefreshed) manual_outright_odds.py data applies the same nudge again,
-compounding it. Same accepted limitation nl_odds_calibration.py's own
-OBSERVATIONS-based workflow already has; the intended usage is "refresh
-manual_outright_odds.py, then run this," not blind re-runs.
+Run the full competition/season simulation once (not inside a fitting
+loop -- a many-thousand-sim Monte Carlo is far too slow to re-run every
+gradient step), read off the model's own win probability, compare to the
+market's, apply one direct nudge. Unlike the match-level fit in
+club_odds_ratings.py's own main(), this isn't ledger-tracked or
+idempotent -- re-running with the SAME (unrefreshed) manual_outright_
+odds.py data applies the same nudge again, compounding it; the intended
+usage is "refresh manual_outright_odds.py, then run this," not blind
+re-runs.
 
 Only touches clubs actually priced in manual_outright_odds.OUTRIGHT_ODDS
 -- every other club's persistent rating is completely untouched. The
@@ -80,9 +78,9 @@ from manual_outright_odds import OUTRIGHT_ODDS, devig_outright
 
 _API_KEY = os.getenv("API_FOOTBALL_KEY", "")
 
-# Provisional -- see module docstring. ~20x nl_odds_calibration.py's own
-# match-vs-outright learning-rate ratio (300/15), applied to this site's
-# own match-level LEARNING_RATE=1.2 (club_odds_ratings.py).
+# Provisional -- see module docstring. ~20x a typical match-vs-outright
+# learning-rate ratio, applied to this site's own match-level
+# LEARNING_RATE=1.2 (club_odds_ratings.py).
 OUTRIGHT_LEARNING_RATE = 24.0
 
 # Mirrors european.py's own _LEAGUE_PHASE_POTS -- duplicated rather than

@@ -269,3 +269,37 @@ def test_qf_entries_never_pair_a_group_winner_against_its_own_runner_up(monkeypa
         assert own_runner_up[home] != away
 
     assert set(entries["team"]) == set(own_runner_up.keys()) | set(own_runner_up.values())
+
+
+def test_load_nl_ratings_uses_strength_ranking_with_name_aliases(monkeypatch, tmp_path):
+    # Nations League ratings switched (2026-11-18) from a bespoke
+    # eloratings.net scrape + manual odds adjustments (now fully retired)
+    # to nation_power_rankings.csv's own combined_rating. This confirms
+    # that file's eloratings.net-style names ("Turkey", "Ireland") resolve
+    # to this site's own Nations League spelling ("Türkiye", "Republic of
+    # Ireland") via the same nations_league_data.GLOBAL_ELO_NAME_ALIASES
+    # bridge build_nation_power_rankings.py and euro_2028_group_predictions.py
+    # already use, and that an unaliased name (e.g. "Spain") passes
+    # through unchanged.
+    npr_path = tmp_path / "nation_power_rankings.csv"
+    pd.DataFrame({
+        "team": ["Spain", "Turkey", "Ireland", "SomeIrrelevantCountry"],
+        "combined_rating": [2284.0, 1752.0, 1694.0, 1500.0],
+    }).to_csv(npr_path, index=False)
+    monkeypatch.setattr(nls, "NATION_POWER_RANKINGS_PATH", str(npr_path))
+
+    ratings = nls._load_nl_ratings_uncached()
+    by_team = dict(zip(ratings["team"], ratings["opta_rating"]))
+
+    assert by_team["Spain"] == 2284.0
+    assert by_team["Türkiye"] == 1752.0
+    assert by_team["Republic of Ireland"] == 1694.0
+    assert "SomeIrrelevantCountry" not in by_team
+    assert set(ratings.columns) == {"team", "alias", "opta_rating"}
+
+
+def test_load_nl_ratings_missing_file_degrades_gracefully(monkeypatch):
+    monkeypatch.setattr(nls, "NATION_POWER_RANKINGS_PATH", "this_file_does_not_exist.csv")
+    ratings = nls._load_nl_ratings_uncached()
+    assert list(ratings.columns) == ["team", "alias", "opta_rating"]
+    assert len(ratings) == 0
