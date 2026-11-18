@@ -15,7 +15,12 @@ finals rules.
 
 HOSTS = {"England", "Wales", "Republic of Ireland", "Scotland"}
 NIR = "Northern Ireland"
-QF_TEAMS = {"Spain", "Portugal", "France", "England", "Netherlands", "Greece", "Belgium", "Denmark"}
+# The 8 real, now fully-decided 2026-27 Nations League League A
+# quarter-finalists (confirmed 2026-11-18, all 4 groups finished) --
+# previously a projection (Spain/Portugal/France/England/Netherlands/
+# Greece/Belgium/Denmark); Greece and Denmark actually finished 3rd in
+# their groups, replaced here by the real qualifiers, Germany and Norway.
+QF_TEAMS = {"Spain", "Portugal", "France", "England", "Netherlands", "Belgium", "Germany", "Norway"}
 
 # Euro 2024 qualifying's own named "prohibited clash" pairs (political/security).
 POLITICAL_PAIRS = {

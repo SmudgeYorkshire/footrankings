@@ -1,11 +1,12 @@
 """
-Tests for euro_2028_qualifying_draw.generate_draw -- the randomized
-retry-until-valid draw (same approach as league_phase_simulator.py's own
-pot draws), run repeatedly with different seed keys to make sure every
+Tests for euro_2028_draw.generate_draw -- the randomized retry-until-
+valid draw (same approach as league_phase_simulator.py's own pot
+draws), run repeatedly with different seed keys to make sure every
 hard constraint holds on every draw, not just typically.
 """
 
-import euro_2028_qualifying_draw as d
+import euro_2028_draw as d
+from euro_2028_constants import HOSTS, NIR, QF_TEAMS, POLITICAL_PAIRS, TRAVEL_PAIRS, WINTER_RISK_TEAMS
 
 
 def _all_draws(n=25):
@@ -43,21 +44,21 @@ def test_hosts_always_in_separate_groups():
             team: letter
             for letter, teams in groups.items()
             for team in teams
-            if team in d.HOSTS
+            if team in HOSTS
         }
-        assert len(host_group) == len(d.HOSTS)
-        assert len(set(host_group.values())) == len(d.HOSTS)
+        assert len(host_group) == len(HOSTS)
+        assert len(set(host_group.values())) == len(HOSTS)
 
 
 def test_northern_ireland_never_shares_a_group_with_a_host():
     for groups in _all_draws():
         host_groups = {
             letter for letter, teams in groups.items()
-            for team in teams if team in d.HOSTS
+            for team in teams if team in HOSTS
         }
         nir_group = next(
             letter for letter, teams in groups.items()
-            for team in teams if team == d.NIR
+            for team in teams if team == NIR
         )
         assert nir_group not in host_groups
 
@@ -66,7 +67,7 @@ def test_qf_teams_fill_all_six_four_team_group_slots():
     """8 QF_TEAMS exist (all Pot 1), but only 6 four-team-group Pot-1
     slots do -- the draw should always manage to fill all 6 of them
     from the QF pool (see generate_draw's own docstring)."""
-    assert len(d.QF_TEAMS) == 8
+    assert len(QF_TEAMS) == 8
     team_to_pot = {t: p for p, teams in d.POTS.items() for t in teams}
     for groups in _all_draws():
         pot1_in_af = [
@@ -74,14 +75,14 @@ def test_qf_teams_fill_all_six_four_team_group_slots():
             if team_to_pot[team] == 1
         ]
         assert len(pot1_in_af) == 6
-        assert all(team in d.QF_TEAMS for team in pot1_in_af)
+        assert all(team in QF_TEAMS for team in pot1_in_af)
 
 
 def test_political_pairs_never_share_a_group():
     for groups in _all_draws():
         for teams in groups.values():
             team_set = set(teams)
-            for pair in d.POLITICAL_PAIRS:
+            for pair in POLITICAL_PAIRS:
                 assert not pair <= team_set, (pair, teams)
 
 
@@ -89,14 +90,14 @@ def test_travel_pairs_capped_at_one_per_group():
     for groups in _all_draws():
         for teams in groups.values():
             team_set = set(teams)
-            hits = sum(1 for pair in d.TRAVEL_PAIRS if pair <= team_set)
+            hits = sum(1 for pair in TRAVEL_PAIRS if pair <= team_set)
             assert hits <= 1, (teams, hits)
 
 
 def test_winter_risk_teams_capped_at_two_per_group():
     for groups in _all_draws():
         for teams in groups.values():
-            hits = sum(1 for t in teams if t in d.WINTER_RISK_TEAMS)
+            hits = sum(1 for t in teams if t in WINTER_RISK_TEAMS)
             assert hits <= 2, (teams, hits)
 
 

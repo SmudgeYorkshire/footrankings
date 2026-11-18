@@ -10,7 +10,7 @@ import pandas as pd
 import pytest
 
 import euro_2028_finals_bracket as fb
-import euro_2028_qualifying_draw as d
+from euro_2028_constants import POLITICAL_PAIRS
 
 
 def _qual_df(ordered_teams: list[str], points: list[float]) -> pd.DataFrame:
@@ -222,7 +222,7 @@ def test_draw_finals_groups_never_places_a_political_pair_together():
         groups = fb.draw_finals_groups(pots, head_assignment, seed=seed)
         for teams in groups.values():
             team_set = set(teams)
-            assert not (d.POLITICAL_PAIRS and any(pair <= team_set for pair in d.POLITICAL_PAIRS))
+            assert not (POLITICAL_PAIRS and any(pair <= team_set for pair in POLITICAL_PAIRS))
 
 
 def test_third_place_permutation_table_matches_the_wikipedia_quote():
