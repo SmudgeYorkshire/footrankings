@@ -1,220 +1,220 @@
 rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combined_confidence,flag_url
 1,Spain,True,2258.0,2289.13,5,2283.9,0.8333333333333334,https://flagcdn.com/w40/es.png
 2,England,True,2182.0,2150.29,4,2160.9,0.6666666666666666,https://flagcdn.com/w40/gb-eng.png
-3,Argentina,False,2157.0,2156.46,4,2156.6,0.6666666666666666,https://flagcdn.com/w40/ar.png
+3,Argentina,False,2158.0,2156.38,5,2156.6,0.8333333333333334,https://flagcdn.com/w40/ar.png
 4,France,True,2069.0,2066.82,4,2067.5,0.6666666666666666,https://flagcdn.com/w40/fr.png
-5,Portugal,True,1996.0,1996.85,3,1996.4,0.5,https://flagcdn.com/w40/pt.png
-6,Colombia,False,1992.0,1991.37,3,1991.7,0.5,https://flagcdn.com/w40/co.png
-7,Brazil,False,1982.0,1982.72,2,1982.2,0.3333333333333333,https://flagcdn.com/w40/br.png
+5,Portugal,True,2005.0,1997.0,4,1999.7,0.6666666666666666,https://flagcdn.com/w40/pt.png
+6,Colombia,False,1987.0,1991.03,4,1989.7,0.6666666666666666,https://flagcdn.com/w40/co.png
+7,Brazil,False,1983.0,1982.71,3,1982.9,0.5,https://flagcdn.com/w40/br.png
 8,Belgium,True,1994.0,1970.29,4,1978.2,0.6666666666666666,https://flagcdn.com/w40/be.png
-9,Netherlands,True,1953.0,1989.35,4,1977.2,0.6666666666666666,https://flagcdn.com/w40/nl.png
+9,Netherlands,True,1952.0,1989.35,4,1976.9,0.6666666666666666,https://flagcdn.com/w40/nl.png
 10,Switzerland,True,1976.0,1966.76,4,1969.8,0.6666666666666666,https://flagcdn.com/w40/ch.png
 11,Italy,True,1925.0,1947.59,4,1940.1,0.6666666666666666,https://flagcdn.com/w40/it.png
 12,Germany,True,1953.0,1917.63,4,1929.4,0.6666666666666666,https://flagcdn.com/w40/de.png
-13,Denmark,True,1920.0,1918.99,3,1919.5,0.5,https://flagcdn.com/w40/dk.png
-14,Japan,False,1916.0,1915.25,1,1915.9,0.16666666666666666,https://flagcdn.com/w40/jp.png
-15,Norway,True,1909.0,1909.58,3,1909.3,0.5,https://flagcdn.com/w40/no.png
-16,Morocco,False,1898.0,1897.92,2,1898.0,0.3333333333333333,https://flagcdn.com/w40/ma.png
-17,Uruguay,False,1869.0,1869.44,2,1869.1,0.3333333333333333,https://flagcdn.com/w40/uy.png
-18,Croatia,True,1858.0,1851.91,5,1852.9,0.8333333333333334,https://flagcdn.com/w40/hr.png
-19,Ecuador,False,1852.0,1852.03,1,1852.0,0.16666666666666666,https://flagcdn.com/w40/ec.png
-20,Austria,True,1849.0,1849.26,3,1849.1,0.5,https://flagcdn.com/w40/at.png
-21,Paraguay,False,1838.0,1838.2,2,1838.1,0.3333333333333333,https://flagcdn.com/w40/py.png
-22,Mexico,False,1837.0,1837.93,3,1837.5,0.5,https://flagcdn.com/w40/mx.png
+13,Norway,True,1935.0,1909.97,4,1918.3,0.6666666666666666,https://flagcdn.com/w40/no.png
+14,Denmark,True,1894.0,1918.6,4,1910.4,0.6666666666666666,https://flagcdn.com/w40/dk.png
+15,Japan,False,1898.0,1915.3,2,1903.8,0.3333333333333333,https://flagcdn.com/w40/jp.png
+16,Morocco,False,1899.0,1898.04,3,1898.5,0.5,https://flagcdn.com/w40/ma.png
+17,Uruguay,False,1870.0,1869.35,3,1869.7,0.5,https://flagcdn.com/w40/uy.png
+18,Ecuador,False,1856.0,1852.17,2,1854.7,0.3333333333333333,https://flagcdn.com/w40/ec.png
+19,Croatia,True,1858.0,1851.91,5,1852.9,0.8333333333333334,https://flagcdn.com/w40/hr.png
+20,Paraguay,False,1856.0,1838.15,3,1847.1,0.5,https://flagcdn.com/w40/py.png
+21,Austria,True,1838.0,1849.32,4,1845.5,0.6666666666666666,https://flagcdn.com/w40/at.png
+22,Mexico,False,1841.0,1837.93,3,1839.5,0.5,https://flagcdn.com/w40/mx.png
 23,Senegal,False,1812.0,1807.97,3,1810.0,0.5,https://flagcdn.com/w40/sn.png
-24,United States,False,1803.0,1803.09,3,1803.0,0.5,https://flagcdn.com/w40/us.png
-25,Australia,False,1794.0,1793.43,1,1793.9,0.16666666666666666,https://flagcdn.com/w40/au.png
-26,Greece,True,1797.0,1787.91,4,1790.9,0.6666666666666666,https://flagcdn.com/w40/gr.png
-27,Russia,False,1787.0,1787.33,3,1787.2,0.5,https://flagcdn.com/w40/ru.png
-28,Sweden,True,1784.0,1784.31,3,1784.2,0.5,https://flagcdn.com/w40/se.png
-29,Canada,False,1762.0,1753.57,3,1757.8,0.5,https://flagcdn.com/w40/ca.png
-30,Hungary,True,1755.0,1754.31,3,1754.7,0.5,https://flagcdn.com/w40/hu.png
-31,Turkey,True,1750.0,1753.3,4,1752.2,0.6666666666666666,https://flagcdn.com/w40/tr.png
-32,Iran,False,1748.0,1748.56,1,1748.1,0.16666666666666666,https://flagcdn.com/w40/ir.png
-33,Algeria,False,1746.0,1745.78,3,1745.9,0.5,https://flagcdn.com/w40/dz.png
-34,Slovenia,True,1751.0,1726.3,4,1734.5,0.6666666666666666,https://flagcdn.com/w40/si.png
-35,Venezuela,False,1732.0,1730.98,2,1731.7,0.3333333333333333,https://flagcdn.com/w40/ve.png
-36,Ivory Coast,False,1728.0,1727.95,3,1728.0,0.5,https://flagcdn.com/w40/ci.png
-37,Scotland,True,1715.0,1725.14,4,1721.8,0.6666666666666666,https://flagcdn.com/w40/gb-sct.png
-38,Chile,False,1721.0,1721.21,2,1721.1,0.3333333333333333,https://flagcdn.com/w40/cl.png
-39,Egypt,False,1719.0,1718.72,3,1718.9,0.5,https://flagcdn.com/w40/eg.png
-40,South Korea,False,1717.0,1718.3,3,1717.6,0.5,https://flagcdn.com/w40/kr.png
-41,Nigeria,False,1714.0,1713.77,3,1713.9,0.5,https://flagcdn.com/w40/ng.png
-42,Ukraine,True,1707.0,1707.12,3,1707.1,0.5,https://flagcdn.com/w40/ua.png
-43,Ireland,True,1703.0,1702.48,3,1702.7,0.5,https://flagcdn.com/w40/ie.png
-44,Kosovo,True,1700.0,1700.2,3,1700.1,0.5,https://flagcdn.com/w40/xk.png
-45,DR Congo,False,1691.0,1690.26,5,1690.4,0.8333333333333334,https://flagcdn.com/w40/cd.png
-46,Peru,False,1689.0,1688.98,3,1689.0,0.5,https://flagcdn.com/w40/pe.png
-47,Northern Ireland,True,1689.0,1688.08,3,1688.5,0.5,https://flagcdn.com/w40/gb-nir.png
-48,Wales,True,1673.0,1672.59,3,1672.8,0.5,https://flagcdn.com/w40/gb-wls.png
-49,Poland,True,1663.0,1664.41,3,1663.7,0.5,https://flagcdn.com/w40/pl.png
-50,Bosnia and Herzegovina,True,1662.0,1661.16,3,1661.6,0.5,https://flagcdn.com/w40/ba.png
+24,United States,False,1811.0,1803.09,3,1807.0,0.5,https://flagcdn.com/w40/us.png
+25,Greece,True,1797.0,1787.91,4,1790.9,0.6666666666666666,https://flagcdn.com/w40/gr.png
+26,Russia,False,1796.0,1787.6,4,1790.4,0.6666666666666666,https://flagcdn.com/w40/ru.png
+27,Sweden,True,1783.0,1783.97,4,1783.6,0.6666666666666666,https://flagcdn.com/w40/se.png
+28,Australia,False,1773.0,1793.78,2,1779.9,0.3333333333333333,https://flagcdn.com/w40/au.png
+29,Canada,False,1762.0,1753.71,4,1756.5,0.6666666666666666,https://flagcdn.com/w40/ca.png
+30,Turkey,True,1750.0,1753.3,4,1752.2,0.6666666666666666,https://flagcdn.com/w40/tr.png
+31,Hungary,True,1746.0,1754.17,4,1751.4,0.6666666666666666,https://flagcdn.com/w40/hu.png
+32,Iran,False,1743.0,1748.63,2,1744.9,0.3333333333333333,https://flagcdn.com/w40/ir.png
+33,Slovenia,True,1751.0,1726.3,4,1734.5,0.6666666666666666,https://flagcdn.com/w40/si.png
+34,Venezuela,False,1723.0,1730.71,3,1726.9,0.5,https://flagcdn.com/w40/ve.png
+35,Algeria,False,1688.0,1745.54,4,1726.4,0.6666666666666666,https://flagcdn.com/w40/dz.png
+36,Ivory Coast,False,1719.0,1728.13,4,1725.1,0.6666666666666666,https://flagcdn.com/w40/ci.png
+37,Chile,False,1726.0,1721.55,3,1723.8,0.5,https://flagcdn.com/w40/cl.png
+38,Scotland,True,1715.0,1725.14,4,1721.8,0.6666666666666666,https://flagcdn.com/w40/gb-sct.png
+39,South Korea,False,1723.0,1718.75,4,1720.2,0.6666666666666666,https://flagcdn.com/w40/kr.png
+40,Egypt,False,1703.0,1718.82,4,1713.5,0.6666666666666666,https://flagcdn.com/w40/eg.png
+41,Ukraine,True,1721.0,1706.63,4,1711.4,0.6666666666666666,https://flagcdn.com/w40/ua.png
+42,Ireland,True,1728.0,1702.47,4,1711.0,0.6666666666666666,https://flagcdn.com/w40/ie.png
+43,Nigeria,False,1699.0,1713.7,4,1708.8,0.6666666666666666,https://flagcdn.com/w40/ng.png
+44,Kosovo,True,1675.0,1700.21,4,1691.8,0.6666666666666666,https://flagcdn.com/w40/xk.png
+45,Northern Ireland,True,1698.0,1688.22,4,1691.5,0.6666666666666666,https://flagcdn.com/w40/gb-nir.png
+46,DR Congo,False,1675.0,1690.36,6,1690.4,1.0,https://flagcdn.com/w40/cd.png
+47,Peru,False,1689.0,1688.98,3,1689.0,0.5,https://flagcdn.com/w40/pe.png
+48,Wales,True,1664.0,1672.44,4,1669.6,0.6666666666666666,https://flagcdn.com/w40/gb-wls.png
+49,Bosnia and Herzegovina,True,1672.0,1660.73,4,1664.5,0.6666666666666666,https://flagcdn.com/w40/ba.png
+50,Poland,True,1664.0,1664.75,4,1664.5,0.6666666666666666,https://flagcdn.com/w40/pl.png
 51,Slovakia,True,1652.0,1662.1,4,1658.7,0.6666666666666666,https://flagcdn.com/w40/sk.png
 52,Serbia,True,1653.0,1661.11,4,1658.4,0.6666666666666666,https://flagcdn.com/w40/rs.png
 53,Panama,False,1661.0,1650.3,3,1655.6,0.5,https://flagcdn.com/w40/pa.png
 54,Czechia,True,1647.0,1653.66,6,1653.7,1.0,https://flagcdn.com/w40/cz.png
-55,Saudi Arabia,False,1652.0,1650.25,3,1651.1,0.5,https://flagcdn.com/w40/sa.png
-56,Uzbekistan,False,1636.0,1635.8,3,1635.9,0.5,https://flagcdn.com/w40/uz.png
-57,Albania,True,1650.0,1627.85,4,1635.2,0.6666666666666666,https://flagcdn.com/w40/al.png
-58,Iceland,True,1639.0,1632.16,4,1634.4,0.6666666666666666,https://flagcdn.com/w40/is.png
-59,Mali,False,1634.0,1634.03,2,1634.0,0.3333333333333333,https://flagcdn.com/w40/ml.png
-60,Cameroon,False,1636.0,1627.25,4,1630.2,0.6666666666666666,https://flagcdn.com/w40/cm.png
-61,Israel,True,1629.0,1629.05,3,1629.0,0.5,https://flagcdn.com/w40/il.png
-62,Jordan,False,1622.0,1622.51,2,1622.2,0.3333333333333333,https://flagcdn.com/w40/jo.png
-63,Bolivia,False,1605.0,1605.09,2,1605.0,0.3333333333333333,https://flagcdn.com/w40/bo.png
-64,Georgia,True,1598.0,1599.49,3,1598.7,0.5,https://flagcdn.com/w40/ge.png
-65,Costa Rica,False,1583.0,1582.68,3,1582.8,0.5,https://flagcdn.com/w40/cr.png
-66,South Africa,False,1580.0,1580.37,3,1580.2,0.5,https://flagcdn.com/w40/za.png
-67,Romania,True,1576.0,1575.12,3,1575.6,0.5,https://flagcdn.com/w40/ro.png
-68,Jamaica,False,1574.0,1572.98,3,1573.5,0.5,https://flagcdn.com/w40/jm.png
-69,United Arab Emirates,False,1570.0,1570.26,3,1570.1,0.5,https://flagcdn.com/w40/ae.png
-70,Cape Verde,False,1566.0,1565.98,2,1566.0,0.3333333333333333,https://flagcdn.com/w40/cv.png
-71,Angola,False,1564.0,1563.9,3,1564.0,0.5,https://flagcdn.com/w40/ao.png
-72,New Zealand,False,1563.0,1562.51,3,1562.8,0.5,https://flagcdn.com/w40/nz.png
-73,Haiti,False,1552.0,1552.17,3,1552.1,0.5,https://flagcdn.com/w40/ht.png
-74,Iraq,False,1534.0,,0,1534.0,0.0,https://flagcdn.com/w40/iq.png
-75,Belarus,True,1517.0,1537.8,4,1530.9,0.6666666666666666,https://flagcdn.com/w40/by.png
-76,Burkina Faso,False,1529.0,1528.85,3,1528.9,0.5,https://flagcdn.com/w40/bf.png
-77,Honduras,False,1520.0,1520.85,3,1520.4,0.5,https://flagcdn.com/w40/hn.png
+55,Saudi Arabia,False,1642.0,1649.85,4,1647.2,0.6666666666666666,https://flagcdn.com/w40/sa.png
+56,Mali,False,1652.0,1633.99,3,1643.0,0.5,https://flagcdn.com/w40/ml.png
+57,Uzbekistan,False,1646.0,1636.2,4,1639.5,0.6666666666666666,https://flagcdn.com/w40/uz.png
+58,Albania,True,1650.0,1627.85,4,1635.2,0.6666666666666666,https://flagcdn.com/w40/al.png
+59,Iceland,True,1639.0,1632.16,4,1634.4,0.6666666666666666,https://flagcdn.com/w40/is.png
+60,Jordan,False,1644.0,1622.16,3,1633.1,0.5,https://flagcdn.com/w40/jo.png
+61,Israel,True,1640.0,1628.99,4,1632.7,0.6666666666666666,https://flagcdn.com/w40/il.png
+62,Cameroon,False,1636.0,1627.25,4,1630.2,0.6666666666666666,https://flagcdn.com/w40/cm.png
+63,Bolivia,False,1601.0,1604.95,3,1603.0,0.5,https://flagcdn.com/w40/bo.png
+64,Georgia,True,1584.0,1599.98,4,1594.7,0.6666666666666666,https://flagcdn.com/w40/ge.png
+65,South Africa,False,1593.0,1580.61,4,1584.7,0.6666666666666666,https://flagcdn.com/w40/za.png
+66,Costa Rica,False,1583.0,1582.76,4,1582.8,0.6666666666666666,https://flagcdn.com/w40/cr.png
+67,United Arab Emirates,False,1577.0,1570.56,4,1572.7,0.6666666666666666,https://flagcdn.com/w40/ae.png
+68,Romania,True,1566.0,1575.55,4,1572.4,0.6666666666666666,https://flagcdn.com/w40/ro.png
+69,Jamaica,False,1570.0,1572.98,3,1571.5,0.5,https://flagcdn.com/w40/jm.png
+70,Angola,False,1568.0,1563.97,4,1565.3,0.6666666666666666,https://flagcdn.com/w40/ao.png
+71,New Zealand,False,1563.0,1562.51,3,1562.8,0.5,https://flagcdn.com/w40/nz.png
+72,Haiti,False,1545.0,1552.17,3,1548.6,0.5,https://flagcdn.com/w40/ht.png
+73,Cape Verde,False,1521.0,1565.77,3,1543.4,0.5,https://flagcdn.com/w40/cv.png
+74,Iraq,False,1539.0,1538.93,1,1539.0,0.16666666666666666,https://flagcdn.com/w40/iq.png
+75,Burkina Faso,False,1551.0,1528.52,4,1536.0,0.6666666666666666,https://flagcdn.com/w40/bf.png
+76,Belarus,True,1517.0,1537.8,4,1530.9,0.6666666666666666,https://flagcdn.com/w40/by.png
+77,Honduras,False,1530.0,1520.9,4,1523.9,0.6666666666666666,https://flagcdn.com/w40/hn.png
 78,North Macedonia,True,1502.0,1525.8,4,1517.9,0.6666666666666666,https://flagcdn.com/w40/mk.png
 79,Finland,True,1515.0,1515.1,4,1515.1,0.6666666666666666,https://flagcdn.com/w40/fi.png
 80,Ghana,False,1515.0,1514.01,3,1514.5,0.5,https://flagcdn.com/w40/gh.png
-81,Guatemala,False,1501.0,1509.42,3,1505.2,0.5,https://flagcdn.com/w40/gt.png
+81,Guatemala,False,1501.0,1509.28,4,1506.5,0.6666666666666666,https://flagcdn.com/w40/gt.png
 82,Montenegro,True,1525.0,1494.12,4,1504.4,0.6666666666666666,https://flagcdn.com/w40/me.png
-83,Palestine,False,1501.0,1500.21,2,1500.7,0.3333333333333333,https://flagcdn.com/w40/ps.png
+83,Palestine,False,1493.0,1500.21,2,1495.4,0.3333333333333333,https://flagcdn.com/w40/ps.png
 84,Curaçao,False,1484.0,1495.29,5,1493.4,0.8333333333333334,https://flagcdn.com/w40/cw.png
-85,Tunisia,False,1485.0,1485.75,2,1485.2,0.3333333333333333,https://flagcdn.com/w40/tn.png
+85,Tunisia,False,1488.0,1486.43,3,1487.2,0.5,https://flagcdn.com/w40/tn.png
 86,Guinea,False,1479.0,1468.48,4,1472.0,0.6666666666666666,https://flagcdn.com/w40/gn.png
-87,Gambia,False,1464.0,1463.93,2,1464.0,0.3333333333333333,https://flagcdn.com/w40/gm.png
-88,Qatar,False,1461.0,1461.84,2,1461.3,0.3333333333333333,https://flagcdn.com/w40/qa.png
-89,Syria,False,1457.0,1457.15,3,1457.1,0.5,https://flagcdn.com/w40/sy.png
-90,Suriname,False,1459.0,1452.93,3,1456.0,0.5,https://flagcdn.com/w40/sr.png
+87,Gambia,False,1473.0,1463.75,3,1468.4,0.5,https://flagcdn.com/w40/gm.png
+88,Qatar,False,1455.0,1461.39,3,1458.2,0.5,https://flagcdn.com/w40/qa.png
+89,Suriname,False,1459.0,1452.93,3,1456.0,0.5,https://flagcdn.com/w40/sr.png
+90,Syria,False,1450.0,1456.85,4,1454.6,0.6666666666666666,https://flagcdn.com/w40/sy.png
 91,Benin,False,1455.0,1447.88,4,1450.3,0.6666666666666666,https://flagcdn.com/w40/bj.png
 92,Oman,False,1447.0,1447.05,1,1447.0,0.16666666666666666,https://flagcdn.com/w40/om.png
 93,Northern Cyprus,False,1442.0,,0,1442.0,0.0,
-94,Libya,False,1442.0,1441.25,2,1441.8,0.3333333333333333,https://flagcdn.com/w40/ly.png
-95,Uganda,False,1439.0,1439.68,5,1439.6,0.8333333333333334,https://flagcdn.com/w40/ug.png
+94,Libya,False,1439.0,1440.57,3,1439.8,0.5,https://flagcdn.com/w40/ly.png
+95,Uganda,False,1437.0,1439.22,6,1439.2,1.0,https://flagcdn.com/w40/ug.png
 96,Estonia,True,1444.0,1428.83,4,1433.9,0.6666666666666666,https://flagcdn.com/w40/ee.png
-97,Gabon,False,1429.0,1429.1,2,1429.0,0.3333333333333333,https://flagcdn.com/w40/ga.png
-98,Kurdistan,False,1423.0,,0,1423.0,0.0,
-99,Faroe Islands,True,1422.0,1412.55,4,1415.7,0.6666666666666666,https://flagcdn.com/w40/fo.png
+97,Kurdistan,False,1423.0,,0,1423.0,0.0,
+98,Faroe Islands,True,1422.0,1412.55,4,1415.7,0.6666666666666666,https://flagcdn.com/w40/fo.png
+99,Gabon,False,1397.0,1429.54,3,1413.3,0.5,https://flagcdn.com/w40/ga.png
 100,Bulgaria,True,1401.0,1415.0,4,1410.3,0.6666666666666666,https://flagcdn.com/w40/bg.png
-101,Vietnam,False,1400.0,1400.1,5,1400.1,0.8333333333333334,https://flagcdn.com/w40/vn.png
+101,Vietnam,False,1378.0,1400.13,6,1400.1,1.0,https://flagcdn.com/w40/vn.png
 102,Zimbabwe,False,1408.0,1382.46,3,1395.2,0.5,https://flagcdn.com/w40/zw.png
-103,Rwanda,False,1382.0,1381.97,2,1382.0,0.3333333333333333,https://flagcdn.com/w40/rw.png
-104,Zambia,False,1381.0,1381.16,2,1381.1,0.3333333333333333,https://flagcdn.com/w40/zm.png
-105,Thailand,False,1379.0,1378.11,3,1378.6,0.5,https://flagcdn.com/w40/th.png
+103,Togo,False,1422.0,1364.34,3,1393.2,0.5,https://flagcdn.com/w40/tg.png
+104,Thailand,False,1394.0,1378.11,3,1386.1,0.5,https://flagcdn.com/w40/th.png
+105,Zambia,False,1382.0,1380.88,3,1381.4,0.5,https://flagcdn.com/w40/zm.png
 106,Equatorial Guinea,False,1365.0,1390.54,3,1377.8,0.5,https://flagcdn.com/w40/gq.png
 107,North Korea,False,1375.0,,0,1375.0,0.0,https://flagcdn.com/w40/kp.png
-108,Madagascar,False,1371.0,1370.01,2,1370.7,0.3333333333333333,https://flagcdn.com/w40/mg.png
-109,Kazakhstan,True,1377.0,1367.35,4,1370.6,0.6666666666666666,https://flagcdn.com/w40/kz.png
-110,Niger,False,1368.0,1368.2,3,1368.1,0.5,https://flagcdn.com/w40/ne.png
-111,Togo,False,1364.0,1364.1,2,1364.0,0.3333333333333333,https://flagcdn.com/w40/tg.png
-112,Comoros,False,1364.0,1363.58,2,1363.9,0.3333333333333333,https://flagcdn.com/w40/km.png
-113,Kenya,False,1360.0,1359.81,3,1359.9,0.5,https://flagcdn.com/w40/ke.png
-114,China,False,1359.0,1359.62,3,1359.3,0.5,https://flagcdn.com/w40/cn.png
-115,Luxembourg,True,1352.0,1360.01,4,1357.3,0.6666666666666666,https://flagcdn.com/w40/lu.png
-116,Guinea-Bissau,False,1355.0,1355.99,2,1355.3,0.3333333333333333,https://flagcdn.com/w40/gw.png
-117,Mozambique,False,1353.0,1353.33,2,1353.1,0.3333333333333333,https://flagcdn.com/w40/mz.png
+108,Rwanda,False,1364.0,1382.01,3,1373.0,0.5,https://flagcdn.com/w40/rw.png
+109,Comoros,False,1381.0,1362.89,3,1371.9,0.5,https://flagcdn.com/w40/km.png
+110,Kazakhstan,True,1377.0,1367.35,4,1370.6,0.6666666666666666,https://flagcdn.com/w40/kz.png
+111,Niger,False,1367.0,1368.08,4,1367.7,0.6666666666666666,https://flagcdn.com/w40/ne.png
+112,Guinea-Bissau,False,1378.0,1356.77,3,1367.4,0.5,https://flagcdn.com/w40/gw.png
+113,Mozambique,False,1376.0,1353.54,3,1364.8,0.5,https://flagcdn.com/w40/mz.png
+114,Madagascar,False,1348.0,1369.23,3,1358.6,0.5,https://flagcdn.com/w40/mg.png
+115,China,False,1354.0,1359.66,4,1357.8,0.6666666666666666,https://flagcdn.com/w40/cn.png
+116,Luxembourg,True,1352.0,1360.01,4,1357.3,0.6666666666666666,https://flagcdn.com/w40/lu.png
+117,Kenya,False,1347.0,1359.57,4,1355.4,0.6666666666666666,https://flagcdn.com/w40/ke.png
 118,Armenia,True,1348.0,1348.05,4,1348.0,0.6666666666666666,https://flagcdn.com/w40/am.png
 119,Reunion,False,1345.0,,0,1345.0,0.0,https://flagcdn.com/w40/re.png
 120,Cyprus,True,1321.0,1352.23,4,1341.8,0.6666666666666666,https://flagcdn.com/w40/cy.png
-121,Sudan,False,1333.0,1337.03,3,1335.0,0.5,https://flagcdn.com/w40/sd.png
-122,Trinidad and Tobago,False,1326.0,1343.34,3,1334.7,0.5,https://flagcdn.com/w40/tt.png
-123,Azerbaijan,True,1340.0,1330.66,4,1333.8,0.6666666666666666,https://flagcdn.com/w40/az.png
-124,El Salvador,False,1333.0,1333.94,3,1333.5,0.5,https://flagcdn.com/w40/sv.png
-125,Bahrain,False,1332.0,1332.11,1,1332.0,0.16666666666666666,https://flagcdn.com/w40/bh.png
-126,Dominican Republic,False,1331.0,1331.9,2,1331.3,0.3333333333333333,https://flagcdn.com/w40/do.png
-127,Mauritania,False,1329.0,1329.19,2,1329.1,0.3333333333333333,https://flagcdn.com/w40/mr.png
-128,Indonesia,False,1328.0,1328.46,3,1328.2,0.5,https://flagcdn.com/w40/id.png
-129,Guyana,False,1338.0,1324.91,6,1324.9,1.0,https://flagcdn.com/w40/gy.png
-130,Malaysia,False,1327.0,1315.38,3,1321.2,0.5,https://flagcdn.com/w40/my.png
-131,Zanzibar,False,1321.0,,0,1321.0,0.0,
-132,Kyrgyzstan,False,1316.0,1315.81,4,1315.9,0.6666666666666666,https://flagcdn.com/w40/kg.png
-133,Tajikistan,False,1312.0,1311.91,1,1312.0,0.16666666666666666,https://flagcdn.com/w40/tj.png
-134,Kuwait,False,1311.0,1310.77,2,1310.9,0.3333333333333333,https://flagcdn.com/w40/kw.png
-135,Botswana,False,1308.0,1307.95,2,1308.0,0.3333333333333333,https://flagcdn.com/w40/bw.png
+121,Trinidad and Tobago,False,1326.0,1343.14,4,1337.4,0.6666666666666666,https://flagcdn.com/w40/tt.png
+122,El Salvador,False,1338.0,1333.94,3,1336.0,0.5,https://flagcdn.com/w40/sv.png
+123,Bahrain,False,1337.0,1332.07,2,1335.4,0.3333333333333333,https://flagcdn.com/w40/bh.png
+124,Sudan,False,1333.0,1337.03,3,1335.0,0.5,https://flagcdn.com/w40/sd.png
+125,Azerbaijan,True,1340.0,1330.66,4,1333.8,0.6666666666666666,https://flagcdn.com/w40/az.png
+126,Dominican Republic,False,1330.0,1331.99,3,1331.0,0.5,https://flagcdn.com/w40/do.png
+127,Indonesia,False,1328.0,1328.46,3,1328.2,0.5,https://flagcdn.com/w40/id.png
+128,Guyana,False,1338.0,1324.91,6,1324.9,1.0,https://flagcdn.com/w40/gy.png
+129,Zanzibar,False,1321.0,,0,1321.0,0.0,
+130,Malaysia,False,1327.0,1315.85,4,1319.6,0.6666666666666666,https://flagcdn.com/w40/my.png
+131,Kyrgyzstan,False,1338.0,1315.78,5,1319.5,0.8333333333333334,https://flagcdn.com/w40/kg.png
+132,Mauritania,False,1307.0,1329.52,3,1318.3,0.5,https://flagcdn.com/w40/mr.png
+133,Sierra Leone,False,1319.0,1303.02,3,1311.0,0.5,https://flagcdn.com/w40/sl.png
+134,Botswana,False,1310.0,1308.41,3,1309.2,0.5,https://flagcdn.com/w40/bw.png
+135,Kuwait,False,1301.0,1310.72,3,1305.9,0.5,https://flagcdn.com/w40/kw.png
 136,Moldova,True,1299.0,1308.0,4,1305.0,0.6666666666666666,https://flagcdn.com/w40/md.png
-137,Sierra Leone,False,1303.0,1303.12,2,1303.0,0.3333333333333333,https://flagcdn.com/w40/sl.png
-138,Burundi,False,1302.0,1301.84,2,1301.9,0.3333333333333333,https://flagcdn.com/w40/bi.png
-139,Ethiopia,False,1299.0,1298.67,2,1298.9,0.3333333333333333,https://flagcdn.com/w40/et.png
-140,Namibia,False,1292.0,1300.93,4,1298.0,0.6666666666666666,https://flagcdn.com/w40/na.png
-141,Martinique,False,1283.0,1298.66,3,1290.8,0.5,https://flagcdn.com/w40/mq.png
-142,Lebanon,False,1288.0,1288.18,3,1288.1,0.5,https://flagcdn.com/w40/lb.png
-143,Lithuania,True,1282.0,1280.79,3,1281.4,0.5,https://flagcdn.com/w40/lt.png
-144,Tanzania,False,1273.0,1273.15,2,1273.1,0.3333333333333333,https://flagcdn.com/w40/tz.png
-145,Liberia,False,1270.0,1270.02,2,1270.0,0.3333333333333333,https://flagcdn.com/w40/lr.png
-146,Nicaragua,False,1263.0,1262.26,3,1262.6,0.5,https://flagcdn.com/w40/ni.png
-147,French Guiana,False,1258.0,,0,1258.0,0.0,https://flagcdn.com/w40/gf.png
+137,Burundi,False,1301.0,1302.12,3,1301.6,0.5,https://flagcdn.com/w40/bi.png
+138,Tajikistan,False,1297.0,1311.91,1,1299.5,0.16666666666666666,https://flagcdn.com/w40/tj.png
+139,Namibia,False,1292.0,1300.93,4,1298.0,0.6666666666666666,https://flagcdn.com/w40/na.png
+140,Martinique,False,1283.0,1298.65,4,1293.4,0.6666666666666666,https://flagcdn.com/w40/mq.png
+141,Liberia,False,1315.0,1270.23,3,1292.6,0.5,https://flagcdn.com/w40/lr.png
+142,Lebanon,False,1296.0,1288.18,3,1292.1,0.5,https://flagcdn.com/w40/lb.png
+143,Ethiopia,False,1276.0,1298.46,3,1287.2,0.5,https://flagcdn.com/w40/et.png
+144,French Guiana,False,1282.0,,0,1282.0,0.0,https://flagcdn.com/w40/gf.png
+145,Lithuania,True,1282.0,1280.79,3,1281.4,0.5,https://flagcdn.com/w40/lt.png
+146,Tanzania,False,1288.0,1273.22,3,1280.6,0.5,https://flagcdn.com/w40/tz.png
+147,Nicaragua,False,1270.0,1262.26,3,1266.1,0.5,https://flagcdn.com/w40/ni.png
 148,Malta,True,1250.0,1258.45,4,1255.6,0.6666666666666666,https://flagcdn.com/w40/mt.png
 149,Cuba,False,1263.0,1250.04,4,1254.4,0.6666666666666666,https://flagcdn.com/w40/cu.png
 150,Guadeloupe,False,1256.0,1245.96,4,1249.3,0.6666666666666666,https://flagcdn.com/w40/gp.png
-151,Latvia,True,1241.0,1240.61,4,1240.7,0.6666666666666666,https://flagcdn.com/w40/lv.png
-152,Malawi,False,1239.0,1239.09,3,1239.0,0.5,https://flagcdn.com/w40/mw.png
-153,Congo,False,1220.0,1220.42,2,1220.1,0.3333333333333333,https://flagcdn.com/w40/cg.png
-154,Saint Vincent and the Grenadines,False,1220.0,1219.01,3,1219.5,0.5,https://flagcdn.com/w40/vc.png
-155,Mayotte,False,1217.0,,0,1217.0,0.0,https://flagcdn.com/w40/yt.png
-156,Yemen,False,1213.0,1223.89,1,1214.8,0.16666666666666666,https://flagcdn.com/w40/ye.png
-157,Turkmenistan,False,1209.0,,0,1209.0,0.0,https://flagcdn.com/w40/tm.png
+151,Malawi,False,1255.0,1238.99,4,1244.3,0.6666666666666666,https://flagcdn.com/w40/mw.png
+152,Latvia,True,1241.0,1240.61,4,1240.7,0.6666666666666666,https://flagcdn.com/w40/lv.png
+153,Mayotte,False,1217.0,,0,1217.0,0.0,https://flagcdn.com/w40/yt.png
+154,Yemen,False,1213.0,1223.42,2,1216.5,0.3333333333333333,https://flagcdn.com/w40/ye.png
+155,Congo,False,1203.0,1221.11,3,1212.1,0.5,https://flagcdn.com/w40/cg.png
+156,Turkmenistan,False,1209.0,,0,1209.0,0.0,https://flagcdn.com/w40/tm.png
+157,Saint Vincent and the Grenadines,False,1196.0,1219.01,3,1207.5,0.5,https://flagcdn.com/w40/vc.png
 158,Eritrea,False,1190.0,1200.57,3,1195.3,0.5,https://flagcdn.com/w40/er.png
-159,Central African Republic,False,1186.0,1193.15,3,1189.6,0.5,https://flagcdn.com/w40/cf.png
-160,New Caledonia,False,1186.0,,0,1186.0,0.0,https://flagcdn.com/w40/nc.png
-161,Lesotho,False,1179.0,1178.9,2,1179.0,0.3333333333333333,https://flagcdn.com/w40/ls.png
+159,Lesotho,False,1211.0,1178.46,3,1194.7,0.5,https://flagcdn.com/w40/ls.png
+160,Central African Republic,False,1186.0,1193.15,3,1189.6,0.5,https://flagcdn.com/w40/cf.png
+161,New Caledonia,False,1186.0,,0,1186.0,0.0,https://flagcdn.com/w40/nc.png
 162,Puerto Rico,False,1157.0,1168.88,4,1164.9,0.6666666666666666,https://flagcdn.com/w40/pr.png
 163,Vanuatu,False,1153.0,,0,1153.0,0.0,https://flagcdn.com/w40/vu.png
 164,Tahiti,False,1152.0,,0,1152.0,0.0,https://flagcdn.com/w40/pf.png
 165,Eswatini,False,1148.0,1153.94,1,1149.0,0.16666666666666666,https://flagcdn.com/w40/sz.png
-166,Singapore,False,1147.0,1147.09,2,1147.0,0.3333333333333333,https://flagcdn.com/w40/sg.png
-167,India,False,1146.0,1146.34,6,1146.3,1.0,https://flagcdn.com/w40/in.png
+166,Singapore,False,1146.0,1147.1,3,1146.6,0.5,https://flagcdn.com/w40/sg.png
+167,India,False,1156.0,1145.51,7,1145.5,1.0,https://flagcdn.com/w40/in.png
 168,Fiji,False,1135.0,,0,1135.0,0.0,https://flagcdn.com/w40/fj.png
-169,Philippines,False,1131.0,1131.57,2,1131.2,0.3333333333333333,https://flagcdn.com/w40/ph.png
-170,Hong Kong,False,1114.0,1113.7,1,1114.0,0.16666666666666666,https://flagcdn.com/w40/hk.png
-171,Papua New Guinea,False,1112.0,,0,1112.0,0.0,https://flagcdn.com/w40/pg.png
-172,Solomon Islands,False,1110.0,,0,1110.0,0.0,https://flagcdn.com/w40/sb.png
-173,Saint Lucia,False,1106.0,1108.86,3,1107.4,0.5,https://flagcdn.com/w40/lc.png
-174,South Sudan,False,1095.0,1095.07,2,1095.0,0.3333333333333333,https://flagcdn.com/w40/ss.png
+169,Philippines,False,1130.0,1131.57,2,1130.5,0.3333333333333333,https://flagcdn.com/w40/ph.png
+170,Saint Lucia,False,1127.0,1108.73,4,1114.8,0.6666666666666666,https://flagcdn.com/w40/lc.png
+171,Hong Kong,False,1114.0,1113.7,1,1114.0,0.16666666666666666,https://flagcdn.com/w40/hk.png
+172,Papua New Guinea,False,1112.0,,0,1112.0,0.0,https://flagcdn.com/w40/pg.png
+173,Solomon Islands,False,1110.0,,0,1110.0,0.0,https://flagcdn.com/w40/sb.png
+174,South Sudan,False,1091.0,1095.0,3,1093.0,0.5,https://flagcdn.com/w40/ss.png
 175,Chad,False,1073.0,,0,1073.0,0.0,https://flagcdn.com/w40/td.png
 176,Andorra,True,1067.0,1076.41,3,1071.7,0.5,https://flagcdn.com/w40/ad.png
-177,Mauritius,False,1061.0,1060.6,1,1060.9,0.16666666666666666,https://flagcdn.com/w40/mu.png
-178,Saint Kitts and Nevis,False,1060.0,1061.39,3,1060.7,0.5,https://flagcdn.com/w40/kn.png
+177,Saint Kitts and Nevis,False,1069.0,1060.85,4,1063.6,0.6666666666666666,https://flagcdn.com/w40/kn.png
+178,Mauritius,False,1061.0,1060.6,1,1060.9,0.16666666666666666,https://flagcdn.com/w40/mu.png
 179,Sao Tome and Principe,False,1037.0,,0,1037.0,0.0,https://flagcdn.com/w40/st.png
-180,Saint Martin,False,1021.0,1021.07,3,1021.0,0.5,https://flagcdn.com/w40/mf.png
+180,Saint Martin,False,1016.0,1021.07,3,1018.5,0.5,https://flagcdn.com/w40/mf.png
 181,Grenada,False,1010.0,1022.11,4,1018.1,0.6666666666666666,https://flagcdn.com/w40/gd.png
 182,Gibraltar,True,1024.0,1014.97,4,1018.0,0.6666666666666666,https://flagcdn.com/w40/gi.png
-183,Belize,False,1015.0,1017.18,3,1016.1,0.5,https://flagcdn.com/w40/bz.png
-184,Montserrat,False,1016.0,1015.79,3,1015.9,0.5,https://flagcdn.com/w40/ms.png
-185,Myanmar,False,1014.0,,0,1014.0,0.0,https://flagcdn.com/w40/mm.png
-186,Aruba,False,1017.0,1000.54,3,1008.8,0.5,https://flagcdn.com/w40/aw.png
+183,Myanmar,False,1014.0,,0,1014.0,0.0,https://flagcdn.com/w40/mm.png
+184,Montserrat,False,1009.0,1015.79,3,1012.4,0.5,https://flagcdn.com/w40/ms.png
+185,Belize,False,990.0,1016.86,4,1007.9,0.6666666666666666,https://flagcdn.com/w40/bz.png
+186,Aruba,False,1017.0,1000.55,4,1006.0,0.6666666666666666,https://flagcdn.com/w40/aw.png
 187,Somaliland,False,1005.0,,0,1005.0,0.0,
-188,Barbados,False,1003.0,1005.03,3,1004.0,0.5,https://flagcdn.com/w40/bb.png
+188,Barbados,False,982.0,1005.16,4,997.4,0.6666666666666666,https://flagcdn.com/w40/bb.png
 189,Western Sahara,False,996.0,,0,996.0,0.0,https://flagcdn.com/w40/eh.png
 190,Bermuda,False,992.0,997.15,4,995.4,0.6666666666666666,https://flagcdn.com/w40/bm.png
 191,Somalia,False,973.0,973.99,3,973.5,0.5,https://flagcdn.com/w40/so.png
 192,Afghanistan,False,961.0,,0,961.0,0.0,https://flagcdn.com/w40/af.png
-193,Pakistan,False,954.0,953.76,3,953.9,0.5,https://flagcdn.com/w40/pk.png
+193,Pakistan,False,944.0,954.59,4,951.1,0.6666666666666666,https://flagcdn.com/w40/pk.png
 194,Greenland,False,945.0,,0,945.0,0.0,https://flagcdn.com/w40/gl.png
 195,Djibouti,False,941.0,941.07,1,941.0,0.16666666666666666,https://flagcdn.com/w40/dj.png
-196,Sint Maarten,False,922.0,922.69,3,922.3,0.5,https://flagcdn.com/w40/sx.png
-197,Antigua and Barbuda,False,926.0,908.36,2,920.1,0.3333333333333333,https://flagcdn.com/w40/ag.png
-198,Bangladesh,False,919.0,919.62,3,919.3,0.5,https://flagcdn.com/w40/bd.png
+196,Sint Maarten,False,947.0,923.01,4,931.0,0.6666666666666666,https://flagcdn.com/w40/sx.png
+197,Bangladesh,False,919.0,919.62,3,919.3,0.5,https://flagcdn.com/w40/bd.png
+198,Antigua and Barbuda,False,926.0,908.56,3,917.3,0.5,https://flagcdn.com/w40/ag.png
 199,Monaco,False,903.0,,0,903.0,0.0,https://flagcdn.com/w40/mc.png
 200,Nepal,False,893.0,,0,893.0,0.0,https://flagcdn.com/w40/np.png
-201,Cambodia,False,882.0,882.3,1,882.0,0.16666666666666666,https://flagcdn.com/w40/kh.png
-202,Liechtenstein,True,880.0,882.08,4,881.4,0.6666666666666666,https://flagcdn.com/w40/li.png
-203,Dominica,False,875.0,875.06,3,875.0,0.5,https://flagcdn.com/w40/dm.png
+201,Dominica,False,906.0,875.41,4,885.6,0.6666666666666666,https://flagcdn.com/w40/dm.png
+202,Cambodia,False,882.0,882.3,1,882.0,0.16666666666666666,https://flagcdn.com/w40/kh.png
+203,Liechtenstein,True,880.0,882.08,4,881.4,0.6666666666666666,https://flagcdn.com/w40/li.png
 204,Sri Lanka,False,853.0,853.34,2,853.1,0.3333333333333333,https://flagcdn.com/w40/lk.png
-205,Bonaire,False,851.0,850.46,3,850.7,0.5,https://flagcdn.com/w40/bq.png
+205,Bonaire,False,842.0,851.0,4,848.0,0.6666666666666666,https://flagcdn.com/w40/bq.png
 206,San Marino,True,817.0,818.25,4,817.8,0.6666666666666666,https://flagcdn.com/w40/sm.png
 207,Taiwan,False,817.0,817.17,2,817.1,0.3333333333333333,https://flagcdn.com/w40/tw.png
 208,Seychelles,False,812.0,,0,812.0,0.0,https://flagcdn.com/w40/sc.png
-209,Cayman Islands,False,796.0,795.31,3,795.7,0.5,https://flagcdn.com/w40/ky.png
+209,Cayman Islands,False,765.0,794.96,4,785.0,0.6666666666666666,https://flagcdn.com/w40/ky.png
 210,Chagos Islands,False,782.0,,0,782.0,0.0,
 211,Maldives,False,765.0,764.81,1,765.0,0.16666666666666666,https://flagcdn.com/w40/mv.png
 212,Tuvalu,False,756.0,,0,756.0,0.0,https://flagcdn.com/w40/tv.png
 213,Sint Eustatius,False,737.0,,0,737.0,0.0,https://flagcdn.com/w40/bq.png
 214,Samoa,False,728.0,,0,728.0,0.0,https://flagcdn.com/w40/ws.png
-215,Mongolia,False,726.0,,0,726.0,0.0,https://flagcdn.com/w40/mn.png
-216,Laos,False,725.0,,0,725.0,0.0,https://flagcdn.com/w40/la.png
+215,Laos,False,725.0,,0,725.0,0.0,https://flagcdn.com/w40/la.png
+216,Mongolia,False,725.0,,0,725.0,0.0,https://flagcdn.com/w40/mn.png
 217,Saint Barthelemy,False,725.0,,0,725.0,0.0,https://flagcdn.com/w40/bl.png
 218,East Timor,False,713.0,,0,713.0,0.0,https://flagcdn.com/w40/tl.png
 219,Guam,False,705.0,,0,705.0,0.0,https://flagcdn.com/w40/gu.png

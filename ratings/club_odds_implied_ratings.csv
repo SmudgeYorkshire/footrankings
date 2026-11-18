@@ -1314,8 +1314,8 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20004,Slonim,,52.87,52.2,3,2026-11-14
 20013,Víkingur II,,52.69,52.8,1,2026-10-17
 20051,Zvijezda 09,,52.68,52.3,4,2026-11-14
-20033,Glenavon FC,Glenavon,52.64,50.5,4,2026-11-13
 20026,Leevon / PPK,,52.48,51.3,4,2026-11-07
+20033,Glenavon FC,Glenavon,52.46,50.5,5,2026-11-17
 20014,PKKU,,52.45,52.8,2,2026-10-18
 20004,Volna,,52.41,52.1,3,2026-11-15
 4618,Carroi,FC Carroi,52.36,52.2,3,2026-11-01
@@ -1395,9 +1395,9 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20012,Elva,,45.62,45.6,5,2026-11-08
 20033,Newry City AFC,Newry City,45.52,44.3,3,2026-10-31
 20012,FCI Levadia II,,45.45,44.6,6,2026-11-08
+20033,Warrenpoint Town,,45.39,45.1,3,2026-11-17
 20012,Tallinna Kalev,,45.36,43.8,5,2026-11-08
 20048,Porthmadog,,45.28,44.0,4,2026-11-07
-20033,Warrenpoint Town,,45.19,45.1,2,2026-10-17
 20048,Pontypridd Town,,45.07,44.7,3,2026-10-30
 20048,Carmarthen Town,,45.03,45.3,2,2026-11-07
 20033,Ballinamallard United,,44.96,44.8,4,2026-11-13
