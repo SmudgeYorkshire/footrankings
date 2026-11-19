@@ -7,7 +7,7 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 6,Colombia,False,1987.0,1991.03,4,1989.7,0.6666666666666666,https://flagcdn.com/w40/co.png
 7,Brazil,False,1983.0,1982.71,3,1982.9,0.5,https://flagcdn.com/w40/br.png
 8,Belgium,True,1994.0,1970.29,4,1978.2,0.6666666666666666,https://flagcdn.com/w40/be.png
-9,Netherlands,True,1952.0,1989.35,4,1976.9,0.6666666666666666,https://flagcdn.com/w40/nl.png
+9,Netherlands,True,1953.0,1989.35,4,1977.2,0.6666666666666666,https://flagcdn.com/w40/nl.png
 10,Switzerland,True,1976.0,1966.76,4,1969.8,0.6666666666666666,https://flagcdn.com/w40/ch.png
 11,Italy,True,1925.0,1947.59,4,1940.1,0.6666666666666666,https://flagcdn.com/w40/it.png
 12,Germany,True,1953.0,1917.63,4,1929.4,0.6666666666666666,https://flagcdn.com/w40/de.png
@@ -20,13 +20,13 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 19,Croatia,True,1858.0,1851.91,5,1852.9,0.8333333333333334,https://flagcdn.com/w40/hr.png
 20,Paraguay,False,1856.0,1838.15,3,1847.1,0.5,https://flagcdn.com/w40/py.png
 21,Austria,True,1838.0,1849.32,4,1845.5,0.6666666666666666,https://flagcdn.com/w40/at.png
-22,Mexico,False,1841.0,1837.93,3,1839.5,0.5,https://flagcdn.com/w40/mx.png
+22,Mexico,False,1841.0,1838.06,4,1839.0,0.6666666666666666,https://flagcdn.com/w40/mx.png
 23,Senegal,False,1812.0,1807.97,3,1810.0,0.5,https://flagcdn.com/w40/sn.png
-24,United States,False,1811.0,1803.09,3,1807.0,0.5,https://flagcdn.com/w40/us.png
+24,United States,False,1810.0,1803.34,4,1805.6,0.6666666666666666,https://flagcdn.com/w40/us.png
 25,Greece,True,1797.0,1787.91,4,1790.9,0.6666666666666666,https://flagcdn.com/w40/gr.png
 26,Russia,False,1796.0,1787.6,4,1790.4,0.6666666666666666,https://flagcdn.com/w40/ru.png
 27,Sweden,True,1783.0,1783.97,4,1783.6,0.6666666666666666,https://flagcdn.com/w40/se.png
-28,Australia,False,1773.0,1793.78,2,1779.9,0.3333333333333333,https://flagcdn.com/w40/au.png
+28,Australia,False,1772.0,1793.78,2,1779.3,0.3333333333333333,https://flagcdn.com/w40/au.png
 29,Canada,False,1762.0,1753.71,4,1756.5,0.6666666666666666,https://flagcdn.com/w40/ca.png
 30,Turkey,True,1750.0,1753.3,4,1752.2,0.6666666666666666,https://flagcdn.com/w40/tr.png
 31,Hungary,True,1746.0,1754.17,4,1751.4,0.6666666666666666,https://flagcdn.com/w40/hu.png
@@ -42,8 +42,8 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 41,Ukraine,True,1721.0,1706.63,4,1711.4,0.6666666666666666,https://flagcdn.com/w40/ua.png
 42,Ireland,True,1728.0,1702.47,4,1711.0,0.6666666666666666,https://flagcdn.com/w40/ie.png
 43,Nigeria,False,1699.0,1713.7,4,1708.8,0.6666666666666666,https://flagcdn.com/w40/ng.png
-44,Kosovo,True,1675.0,1700.21,4,1691.8,0.6666666666666666,https://flagcdn.com/w40/xk.png
-45,Northern Ireland,True,1698.0,1688.22,4,1691.5,0.6666666666666666,https://flagcdn.com/w40/gb-nir.png
+44,Northern Ireland,True,1699.0,1688.22,4,1691.8,0.6666666666666666,https://flagcdn.com/w40/gb-nir.png
+45,Kosovo,True,1675.0,1700.21,4,1691.8,0.6666666666666666,https://flagcdn.com/w40/xk.png
 46,DR Congo,False,1675.0,1690.36,6,1690.4,1.0,https://flagcdn.com/w40/cd.png
 47,Peru,False,1689.0,1688.98,3,1689.0,0.5,https://flagcdn.com/w40/pe.png
 48,Wales,True,1664.0,1672.44,4,1669.6,0.6666666666666666,https://flagcdn.com/w40/gb-wls.png
@@ -67,10 +67,10 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 66,Costa Rica,False,1583.0,1582.76,4,1582.8,0.6666666666666666,https://flagcdn.com/w40/cr.png
 67,United Arab Emirates,False,1577.0,1570.56,4,1572.7,0.6666666666666666,https://flagcdn.com/w40/ae.png
 68,Romania,True,1566.0,1575.55,4,1572.4,0.6666666666666666,https://flagcdn.com/w40/ro.png
-69,Jamaica,False,1570.0,1572.98,3,1571.5,0.5,https://flagcdn.com/w40/jm.png
-70,Angola,False,1568.0,1563.97,4,1565.3,0.6666666666666666,https://flagcdn.com/w40/ao.png
+69,Jamaica,False,1570.0,1572.85,4,1571.9,0.6666666666666666,https://flagcdn.com/w40/jm.png
+70,Angola,False,1567.0,1563.97,4,1565.0,0.6666666666666666,https://flagcdn.com/w40/ao.png
 71,New Zealand,False,1563.0,1562.51,3,1562.8,0.5,https://flagcdn.com/w40/nz.png
-72,Haiti,False,1545.0,1552.17,3,1548.6,0.5,https://flagcdn.com/w40/ht.png
+72,Haiti,False,1545.0,1551.92,4,1549.6,0.6666666666666666,https://flagcdn.com/w40/ht.png
 73,Cape Verde,False,1521.0,1565.77,3,1543.4,0.5,https://flagcdn.com/w40/cv.png
 74,Iraq,False,1539.0,1538.93,1,1539.0,0.16666666666666666,https://flagcdn.com/w40/iq.png
 75,Burkina Faso,False,1551.0,1528.52,4,1536.0,0.6666666666666666,https://flagcdn.com/w40/bf.png
@@ -93,7 +93,7 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 92,Oman,False,1447.0,1447.05,1,1447.0,0.16666666666666666,https://flagcdn.com/w40/om.png
 93,Northern Cyprus,False,1442.0,,0,1442.0,0.0,
 94,Libya,False,1439.0,1440.57,3,1439.8,0.5,https://flagcdn.com/w40/ly.png
-95,Uganda,False,1437.0,1439.22,6,1439.2,1.0,https://flagcdn.com/w40/ug.png
+95,Uganda,False,1438.0,1439.22,6,1439.2,1.0,https://flagcdn.com/w40/ug.png
 96,Estonia,True,1444.0,1428.83,4,1433.9,0.6666666666666666,https://flagcdn.com/w40/ee.png
 97,Kurdistan,False,1423.0,,0,1423.0,0.0,
 98,Faroe Islands,True,1422.0,1412.55,4,1415.7,0.6666666666666666,https://flagcdn.com/w40/fo.png
@@ -120,14 +120,14 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 119,Reunion,False,1345.0,,0,1345.0,0.0,https://flagcdn.com/w40/re.png
 120,Cyprus,True,1321.0,1352.23,4,1341.8,0.6666666666666666,https://flagcdn.com/w40/cy.png
 121,Trinidad and Tobago,False,1326.0,1343.14,4,1337.4,0.6666666666666666,https://flagcdn.com/w40/tt.png
-122,El Salvador,False,1338.0,1333.94,3,1336.0,0.5,https://flagcdn.com/w40/sv.png
-123,Bahrain,False,1337.0,1332.07,2,1335.4,0.3333333333333333,https://flagcdn.com/w40/bh.png
+122,Bahrain,False,1337.0,1332.07,2,1335.4,0.3333333333333333,https://flagcdn.com/w40/bh.png
+123,El Salvador,False,1338.0,1333.66,4,1335.1,0.6666666666666666,https://flagcdn.com/w40/sv.png
 124,Sudan,False,1333.0,1337.03,3,1335.0,0.5,https://flagcdn.com/w40/sd.png
 125,Azerbaijan,True,1340.0,1330.66,4,1333.8,0.6666666666666666,https://flagcdn.com/w40/az.png
 126,Dominican Republic,False,1330.0,1331.99,3,1331.0,0.5,https://flagcdn.com/w40/do.png
 127,Indonesia,False,1328.0,1328.46,3,1328.2,0.5,https://flagcdn.com/w40/id.png
-128,Guyana,False,1338.0,1324.91,6,1324.9,1.0,https://flagcdn.com/w40/gy.png
-129,Zanzibar,False,1321.0,,0,1321.0,0.0,
+128,Guyana,False,1338.0,1323.81,7,1323.8,1.0,https://flagcdn.com/w40/gy.png
+129,Zanzibar,False,1320.0,,0,1320.0,0.0,
 130,Malaysia,False,1327.0,1315.85,4,1319.6,0.6666666666666666,https://flagcdn.com/w40/my.png
 131,Kyrgyzstan,False,1338.0,1315.78,5,1319.5,0.8333333333333334,https://flagcdn.com/w40/kg.png
 132,Mauritania,False,1307.0,1329.52,3,1318.3,0.5,https://flagcdn.com/w40/mr.png
@@ -137,7 +137,7 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 136,Moldova,True,1299.0,1308.0,4,1305.0,0.6666666666666666,https://flagcdn.com/w40/md.png
 137,Burundi,False,1301.0,1302.12,3,1301.6,0.5,https://flagcdn.com/w40/bi.png
 138,Tajikistan,False,1297.0,1311.91,1,1299.5,0.16666666666666666,https://flagcdn.com/w40/tj.png
-139,Namibia,False,1292.0,1300.93,4,1298.0,0.6666666666666666,https://flagcdn.com/w40/na.png
+139,Namibia,False,1291.0,1300.93,4,1297.6,0.6666666666666666,https://flagcdn.com/w40/na.png
 140,Martinique,False,1283.0,1298.65,4,1293.4,0.6666666666666666,https://flagcdn.com/w40/mq.png
 141,Liberia,False,1315.0,1270.23,3,1292.6,0.5,https://flagcdn.com/w40/lr.png
 142,Lebanon,False,1296.0,1288.18,3,1292.1,0.5,https://flagcdn.com/w40/lb.png
@@ -145,7 +145,7 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 144,French Guiana,False,1282.0,,0,1282.0,0.0,https://flagcdn.com/w40/gf.png
 145,Lithuania,True,1282.0,1280.79,3,1281.4,0.5,https://flagcdn.com/w40/lt.png
 146,Tanzania,False,1288.0,1273.22,3,1280.6,0.5,https://flagcdn.com/w40/tz.png
-147,Nicaragua,False,1270.0,1262.26,3,1266.1,0.5,https://flagcdn.com/w40/ni.png
+147,Nicaragua,False,1270.0,1262.33,4,1264.9,0.6666666666666666,https://flagcdn.com/w40/ni.png
 148,Malta,True,1250.0,1258.45,4,1255.6,0.6666666666666666,https://flagcdn.com/w40/mt.png
 149,Cuba,False,1263.0,1250.04,4,1254.4,0.6666666666666666,https://flagcdn.com/w40/cu.png
 150,Guadeloupe,False,1256.0,1245.96,4,1249.3,0.6666666666666666,https://flagcdn.com/w40/gp.png
@@ -153,9 +153,9 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 152,Latvia,True,1241.0,1240.61,4,1240.7,0.6666666666666666,https://flagcdn.com/w40/lv.png
 153,Mayotte,False,1217.0,,0,1217.0,0.0,https://flagcdn.com/w40/yt.png
 154,Yemen,False,1213.0,1223.42,2,1216.5,0.3333333333333333,https://flagcdn.com/w40/ye.png
-155,Congo,False,1203.0,1221.11,3,1212.1,0.5,https://flagcdn.com/w40/cg.png
-156,Turkmenistan,False,1209.0,,0,1209.0,0.0,https://flagcdn.com/w40/tm.png
-157,Saint Vincent and the Grenadines,False,1196.0,1219.01,3,1207.5,0.5,https://flagcdn.com/w40/vc.png
+155,Saint Vincent and the Grenadines,False,1197.0,1220.11,4,1212.4,0.6666666666666666,https://flagcdn.com/w40/vc.png
+156,Congo,False,1203.0,1221.11,3,1212.1,0.5,https://flagcdn.com/w40/cg.png
+157,Turkmenistan,False,1209.0,,0,1209.0,0.0,https://flagcdn.com/w40/tm.png
 158,Eritrea,False,1190.0,1200.57,3,1195.3,0.5,https://flagcdn.com/w40/er.png
 159,Lesotho,False,1211.0,1178.46,3,1194.7,0.5,https://flagcdn.com/w40/ls.png
 160,Central African Republic,False,1186.0,1193.15,3,1189.6,0.5,https://flagcdn.com/w40/cf.png
@@ -167,7 +167,7 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 166,Singapore,False,1146.0,1147.1,3,1146.6,0.5,https://flagcdn.com/w40/sg.png
 167,India,False,1156.0,1145.51,7,1145.5,1.0,https://flagcdn.com/w40/in.png
 168,Fiji,False,1135.0,,0,1135.0,0.0,https://flagcdn.com/w40/fj.png
-169,Philippines,False,1130.0,1131.57,2,1130.5,0.3333333333333333,https://flagcdn.com/w40/ph.png
+169,Philippines,False,1131.0,1131.57,2,1131.2,0.3333333333333333,https://flagcdn.com/w40/ph.png
 170,Saint Lucia,False,1127.0,1108.73,4,1114.8,0.6666666666666666,https://flagcdn.com/w40/lc.png
 171,Hong Kong,False,1114.0,1113.7,1,1114.0,0.16666666666666666,https://flagcdn.com/w40/hk.png
 172,Papua New Guinea,False,1112.0,,0,1112.0,0.0,https://flagcdn.com/w40/pg.png
@@ -178,11 +178,11 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 177,Saint Kitts and Nevis,False,1069.0,1060.85,4,1063.6,0.6666666666666666,https://flagcdn.com/w40/kn.png
 178,Mauritius,False,1061.0,1060.6,1,1060.9,0.16666666666666666,https://flagcdn.com/w40/mu.png
 179,Sao Tome and Principe,False,1037.0,,0,1037.0,0.0,https://flagcdn.com/w40/st.png
-180,Saint Martin,False,1016.0,1021.07,3,1018.5,0.5,https://flagcdn.com/w40/mf.png
+180,Saint Martin,False,1016.0,1021.35,4,1019.6,0.6666666666666666,https://flagcdn.com/w40/mf.png
 181,Grenada,False,1010.0,1022.11,4,1018.1,0.6666666666666666,https://flagcdn.com/w40/gd.png
 182,Gibraltar,True,1024.0,1014.97,4,1018.0,0.6666666666666666,https://flagcdn.com/w40/gi.png
 183,Myanmar,False,1014.0,,0,1014.0,0.0,https://flagcdn.com/w40/mm.png
-184,Montserrat,False,1009.0,1015.79,3,1012.4,0.5,https://flagcdn.com/w40/ms.png
+184,Montserrat,False,1009.0,1015.72,4,1013.5,0.6666666666666666,https://flagcdn.com/w40/ms.png
 185,Belize,False,990.0,1016.86,4,1007.9,0.6666666666666666,https://flagcdn.com/w40/bz.png
 186,Aruba,False,1017.0,1000.55,4,1006.0,0.6666666666666666,https://flagcdn.com/w40/aw.png
 187,Somaliland,False,1005.0,,0,1005.0,0.0,
@@ -203,7 +203,7 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 202,Cambodia,False,882.0,882.3,1,882.0,0.16666666666666666,https://flagcdn.com/w40/kh.png
 203,Liechtenstein,True,880.0,882.08,4,881.4,0.6666666666666666,https://flagcdn.com/w40/li.png
 204,Sri Lanka,False,853.0,853.34,2,853.1,0.3333333333333333,https://flagcdn.com/w40/lk.png
-205,Bonaire,False,842.0,851.0,4,848.0,0.6666666666666666,https://flagcdn.com/w40/bq.png
+205,Bonaire,False,841.0,851.0,4,847.7,0.6666666666666666,https://flagcdn.com/w40/bq.png
 206,San Marino,True,817.0,818.25,4,817.8,0.6666666666666666,https://flagcdn.com/w40/sm.png
 207,Taiwan,False,817.0,817.17,2,817.1,0.3333333333333333,https://flagcdn.com/w40/tw.png
 208,Seychelles,False,812.0,,0,812.0,0.0,https://flagcdn.com/w40/sc.png
@@ -213,8 +213,8 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 212,Tuvalu,False,756.0,,0,756.0,0.0,https://flagcdn.com/w40/tv.png
 213,Sint Eustatius,False,737.0,,0,737.0,0.0,https://flagcdn.com/w40/bq.png
 214,Samoa,False,728.0,,0,728.0,0.0,https://flagcdn.com/w40/ws.png
-215,Laos,False,725.0,,0,725.0,0.0,https://flagcdn.com/w40/la.png
-216,Mongolia,False,725.0,,0,725.0,0.0,https://flagcdn.com/w40/mn.png
+215,Mongolia,False,726.0,,0,726.0,0.0,https://flagcdn.com/w40/mn.png
+216,Laos,False,725.0,,0,725.0,0.0,https://flagcdn.com/w40/la.png
 217,Saint Barthelemy,False,725.0,,0,725.0,0.0,https://flagcdn.com/w40/bl.png
 218,East Timor,False,713.0,,0,713.0,0.0,https://flagcdn.com/w40/tl.png
 219,Guam,False,705.0,,0,705.0,0.0,https://flagcdn.com/w40/gu.png
@@ -227,7 +227,7 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 226,British Virgin Islands,False,661.0,660.58,2,660.9,0.3333333333333333,https://flagcdn.com/w40/vg.png
 227,Cook Islands,False,647.0,,0,647.0,0.0,https://flagcdn.com/w40/ck.png
 228,Bahamas,False,631.0,629.89,2,630.6,0.3333333333333333,https://flagcdn.com/w40/bs.png
-229,Bhutan,False,630.0,629.89,2,630.0,0.3333333333333333,https://flagcdn.com/w40/bt.png
+229,Bhutan,False,629.0,629.89,2,629.3,0.3333333333333333,https://flagcdn.com/w40/bt.png
 230,Tibet,False,628.0,,0,628.0,0.0,
 231,Anguilla,False,612.0,611.94,2,612.0,0.3333333333333333,https://flagcdn.com/w40/ai.png
 232,Macao,False,588.0,,0,588.0,0.0,https://flagcdn.com/w40/mo.png
@@ -242,4 +242,4 @@ rank,team,tracked_nl,elo_rating,odds_rating,odds_n_updates,combined_rating,combi
 241,Northern Mariana Islands,False,432.0,,0,432.0,0.0,https://flagcdn.com/w40/mp.png
 242,Cocos Islands,False,422.0,,0,422.0,0.0,https://flagcdn.com/w40/cc.png
 243,Palau,False,402.0,,0,402.0,0.0,https://flagcdn.com/w40/pw.png
-244,Eastern Samoa,False,369.0,,0,369.0,0.0,https://flagcdn.com/w40/as.png
+244,Eastern Samoa,False,370.0,,0,370.0,0.0,https://flagcdn.com/w40/as.png

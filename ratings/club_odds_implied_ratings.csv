@@ -887,7 +887,6 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20038,Veles,,67.66,67.4,6,2026-11-15
 20008,Ethnikos Achna,,67.66,64.5,4,2026-10-31
 20009,Slavia Praha II,,67.66,67.3,5,2026-11-08
-20033,H&W Welders,,67.65,75.0,4,2026-11-07
 4968,Llapi,FC Llapi,67.65,67.4,5,2026-10-31
 20007,Croatia Zmijavci,,67.62,66.1,5,2026-11-07
 4692,Radomlje,NK Radomlje,67.62,67.2,5,2026-11-08
@@ -993,6 +992,7 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20039,Dunfermline,,65.71,65.4,7,2026-11-06
 20044,IK brage,Brage,65.71,64.8,5,2026-11-07
 4622,Dnepr Mogilev,FC Dnepr Mogilev,65.71,64.8,9,2026-11-08
+20033,H&W Welders,,65.56,75.0,5,2026-11-18
 20009,Prostějov,,65.53,64.9,5,2026-11-08
 4653,Birkirkara,Birkirkara FC,65.47,64.7,6,2026-11-08
 4651,Džiugas Telšiai,FK Dziugas,65.46,65.7,4,2026-11-08
@@ -1348,6 +1348,7 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20014,TPV,,50.01,48.2,2,2026-10-18
 20036,Academica,,49.98,44.3,5,2026-11-15
 20024,Khan Tengri,,49.96,49.7,1,2026-10-09
+20033,Newington Youth,,49.96,49.6,5,2026-11-18
 20004,BATE II,,49.92,49.7,4,2026-11-15
 20029,St. Andrews,,49.58,48.5,4,2026-10-31
 20027,Kauno Žalgiris II,,49.58,47.7,5,2026-11-07
@@ -1360,7 +1361,6 @@ league_id,team,alias,opta_rating,seed_rating,n_updates,last_updated
 20028,Gorno Lisiče,,48.64,47.7,2,2026-11-07
 20027,Hegelmann II,,48.59,46.1,5,2026-11-07
 20033,Institute,,48.46,49.1,6,2026-11-13
-20033,Newington Youth,,48.41,49.6,4,2026-11-07
 20014,KuPS Akatemia,,48.37,48.0,3,2026-10-18
 4964,Lynx,,48.35,48.3,1,2026-10-12
 20012,Viimsi,,48.27,48.8,4,2026-11-01
