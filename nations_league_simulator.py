@@ -287,6 +287,7 @@ def simulate_league_a_knockouts(
     ratings_df: pd.DataFrame,
     n_sim: int = 10_000,
     home_advantage: float = 1.05,
+    fixed_qf_pairings: list[tuple[str, str]] | None = None,
 ) -> pd.DataFrame:
     """Monte Carlo the quarter-finals -> Finals Four for League A.
 
@@ -296,12 +297,21 @@ def simulate_league_a_knockouts(
     the League Phase draw before it's made -- each replicate draws its
     own valid representative pairing rather than assuming a fixed one.
 
+    Once the real draw has happened, pass fixed_qf_pairings (a list of
+    (group winner, group runner-up) tuples, in the real announced order)
+    to skip that per-replicate pairing draw entirely and use the exact
+    real ties instead -- the Finals Four semi-final draw stays randomised
+    every replicate regardless, since that's a genuinely separate open
+    draw UEFA only holds AFTER the quarter-finals are actually played.
+
     Approximation: which team finishes 1st/2nd in each group is sampled
     sequentially from that group's own marginal position probabilities
     (1st, then 2nd from the remaining teams reweighted) rather than from
     the true joint distribution, since simulate_season only returns
     marginals. Good enough to rank realistic favourites vs longshots, but
     the exact reach-Finals-Four percentages shouldn't be read as precise.
+    (Moot once fixed_qf_pairings is given -- a finished group has already
+    collapsed its own marginals to 0/1.)
 
     Returns a DataFrame indexed by team with columns reached_qf (exact,
     = P(top 2 in own group)), reached_finals_four, reached_final,
@@ -368,26 +378,32 @@ def simulate_league_a_knockouts(
         return a
 
     for _ in range(n_sim):
-        winners: dict[str, str] = {}
-        runners_up: dict[str, str] = {}
-        for g in group_names:
-            w, r = _sample_winner_runnerup(group_probs[g])
-            winners[g] = w
-            runners_up[g] = r
+        if fixed_qf_pairings is not None:
+            qf_winners = [
+                home if rng.random() < qf_odds[(home, away)] else away
+                for home, away in fixed_qf_pairings
+            ]
+        else:
+            winners: dict[str, str] = {}
+            runners_up: dict[str, str] = {}
+            for g in group_names:
+                w, r = _sample_winner_runnerup(group_probs[g])
+                winners[g] = w
+                runners_up[g] = r
 
-        # Draw QF pairings: each winner faces a runner-up from a different group.
-        ru_groups = group_names[:]
-        rng.shuffle(ru_groups)
-        # Avoid a winner facing their own group's runner-up.
-        for i, g in enumerate(group_names):
-            if ru_groups[i] == g:
-                j = (i + 1) % len(group_names)
-                ru_groups[i], ru_groups[j] = ru_groups[j], ru_groups[i]
+            # Draw QF pairings: each winner faces a runner-up from a different group.
+            ru_groups = group_names[:]
+            rng.shuffle(ru_groups)
+            # Avoid a winner facing their own group's runner-up.
+            for i, g in enumerate(group_names):
+                if ru_groups[i] == g:
+                    j = (i + 1) % len(group_names)
+                    ru_groups[i], ru_groups[j] = ru_groups[j], ru_groups[i]
 
-        qf_winners = []
-        for g, ru_g in zip(group_names, ru_groups):
-            home, away = winners[g], runners_up[ru_g]
-            qf_winners.append(home if rng.random() < qf_odds[(home, away)] else away)
+            qf_winners = []
+            for g, ru_g in zip(group_names, ru_groups):
+                home, away = winners[g], runners_up[ru_g]
+                qf_winners.append(home if rng.random() < qf_odds[(home, away)] else away)
 
         for t in qf_winners:
             reached_ff[t] += 1
@@ -416,10 +432,41 @@ def simulate_league_a_knockouts(
     return df.set_index("team")
 
 
+def _fixed_pairing_prevail(
+    pairs: list[tuple[str, str]],
+    ratings_df: pd.DataFrame,
+    home_advantage: float = 1.05,
+) -> dict[str, float]:
+    """Each team's chance (0-100) to prevail in its two-legged tie, given
+    the REAL announced draw -- no averaging needed, since the pairing
+    itself is no longer random. `pairs` is [(team1, team2), ...] using the
+    same "team1 is the nominal home/favoured side" convention
+    project_qf_entries/project_playoff_entries already use for their own
+    pre-draw derangement/permutation averages (group winner before
+    runner-up; the pool side with something to defend before the other).
+    Used in place of the derangement/permutation average the moment a
+    real pairing is known -- see simulate_league_a_knockouts' own
+    fixed_qf_pairings for the matching Monte Carlo side of this."""
+    all_teams = [t for pair in pairs for t in pair]
+    ko_ratings = _scoped_attack_defense(all_teams, ratings_df, k=KNOCKOUT_K)
+    ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
+    prevail: dict[str, float] = {}
+    for team1, team2 in pairs:
+        adv = two_leg_advance_odds(
+            team1, team2, ko_ratings,
+            home_advantage_team1=ha_pairs.get((team1, team2), home_advantage),
+            home_advantage_team2=ha_pairs.get((team2, team1), home_advantage),
+        )
+        prevail[team1] = adv["team1_adv"] * 100
+        prevail[team2] = adv["team2_adv"] * 100
+    return prevail
+
+
 def project_qf_entries(
     group_probs: dict[str, pd.DataFrame],
     ratings_df: pd.DataFrame,
     home_advantage: float = 1.05,
+    fixed_pairings: list[tuple[str, str]] | None = None,
 ) -> pd.DataFrame:
     """The single most-likely team to finish 1st and 2nd in each League A
     group (8 teams total -- "if these are exactly who shows up"), each
@@ -438,7 +485,10 @@ def project_qf_entries(
     DIFFERENT group (never their own), chosen after the group stage --
     every such pairing (a derangement of the 4 groups) is equally likely,
     so each team's quarter-final win probability is averaged across all
-    nine valid derangements rather than assuming one fixed bracket.
+    nine valid derangements rather than assuming one fixed bracket --
+    UNLESS fixed_pairings (the real announced [(winner, runner-up), ...]
+    draw) is given, in which case that averaging is skipped entirely in
+    favour of the one real tie (see _fixed_pairing_prevail).
     """
     group_names = list(group_probs.keys())
     winners: dict[str, str] = {}
@@ -450,38 +500,44 @@ def project_qf_entries(
         runners_up[g] = runner_up_candidates["2"].astype(float).idxmax()
 
     all_teams = list(winners.values()) + list(runners_up.values())
-    ko_ratings = _scoped_attack_defense(all_teams, ratings_df, k=KNOCKOUT_K)
-    ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
 
-    n = len(group_names)
-    derangements = [
-        sigma for sigma in itertools.permutations(range(n))
-        if all(sigma[i] != i for i in range(n))
-    ]
+    if fixed_pairings is not None:
+        prevail = _fixed_pairing_prevail(fixed_pairings, ratings_df, home_advantage)
+    else:
+        ko_ratings = _scoped_attack_defense(all_teams, ratings_df, k=KNOCKOUT_K)
+        ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
 
-    prevail_sum = {t: 0.0 for t in all_teams}
-    for sigma in derangements:
-        for i, g in enumerate(group_names):
-            home, away = winners[g], runners_up[group_names[sigma[i]]]
-            adv = two_leg_advance_odds(
-                home, away, ko_ratings,
-                home_advantage_team1=ha_pairs.get((home, away), home_advantage),
-                home_advantage_team2=ha_pairs.get((away, home), home_advantage),
-            )
-            prevail_sum[home] += adv["team1_adv"]
-            prevail_sum[away] += adv["team2_adv"]
+        n = len(group_names)
+        derangements = [
+            sigma for sigma in itertools.permutations(range(n))
+            if all(sigma[i] != i for i in range(n))
+        ]
 
-    # Full precision, not rounded -- the caller's own column format
-    # rounds for display; sorting on an already-rounded value can tie two
-    # teams who both display the same percentage but have different real
-    # chances, leaving their relative order arbitrary.
-    n_deal = len(derangements)
+        prevail_sum = {t: 0.0 for t in all_teams}
+        for sigma in derangements:
+            for i, g in enumerate(group_names):
+                home, away = winners[g], runners_up[group_names[sigma[i]]]
+                adv = two_leg_advance_odds(
+                    home, away, ko_ratings,
+                    home_advantage_team1=ha_pairs.get((home, away), home_advantage),
+                    home_advantage_team2=ha_pairs.get((away, home), home_advantage),
+                )
+                prevail_sum[home] += adv["team1_adv"]
+                prevail_sum[away] += adv["team2_adv"]
+
+        # Full precision, not rounded -- the caller's own column format
+        # rounds for display; sorting on an already-rounded value can tie
+        # two teams who both display the same percentage but have
+        # different real chances, leaving their relative order arbitrary.
+        n_deal = len(derangements)
+        prevail = {t: prevail_sum[t] / n_deal * 100 for t in all_teams}
+
     rows = []
     for g in group_names:
         rows.append({"team": winners[g], "group": g, "role": "Winner",
-                     "prevail_pct": prevail_sum[winners[g]] / n_deal * 100})
+                     "prevail_pct": prevail[winners[g]]})
         rows.append({"team": runners_up[g], "group": g, "role": "Runner-up",
-                     "prevail_pct": prevail_sum[runners_up[g]] / n_deal * 100})
+                     "prevail_pct": prevail[runners_up[g]]})
     return pd.DataFrame(rows).sort_values("prevail_pct", ascending=False).reset_index(drop=True)
 
 
@@ -598,6 +654,7 @@ def apply_cross_league_playoff_correction(
     lower_probs: pd.DataFrame,
     lower_pool_label: str,
     ratings_df: pd.DataFrame,
+    fixed_pairings: list[tuple[str, str]] | None = None,
 ) -> None:
     """Mutates higher_probs/lower_probs IN PLACE, overriding each pool's
     Won/Lost split columns (see _PLAYOFF_POOLS) with the cross-league-
@@ -605,11 +662,40 @@ def apply_cross_league_playoff_correction(
     marginal itself (win+lose summed) is untouched and already correct
     (it only depends on this league's own group stage); only HOW that
     chance splits between winning and losing the actual tie changes.
+
+    Once the real draw has happened, pass fixed_pairings (the real
+    announced [(higher team, lower team), ...] ties) to skip the
+    opponent-probability weighting entirely: by the time a real pairing
+    exists, both leagues' group stages are over, so the two named teams'
+    OWN pool-entry marginal collapses to certainty too, not just the
+    win/lose split -- both are overridden to the one real tie's exact
+    two_leg_advance_odds. Any other team still in either pool (one that
+    didn't end up in this specific announced tie) is left on the
+    existing probability-weighted treatment.
     """
     win_label, lose_label = _PLAYOFF_POOLS[higher_pool_label]
     higher_chance = higher_probs[win_label] + higher_probs[lose_label]
     win_label2, lose_label2 = _PLAYOFF_POOLS[lower_pool_label]
     lower_chance = lower_probs[win_label2] + lower_probs[lose_label2]
+
+    if fixed_pairings is not None:
+        home_advantage = 1.05
+        all_teams = [t for pair in fixed_pairings for t in pair]
+        ko_ratings = _scoped_attack_defense(all_teams, ratings_df, k=KNOCKOUT_K)
+        ha_pairs = _home_advantage_overrides(all_teams, home_advantage)
+        for higher_team, lower_team in fixed_pairings:
+            adv = two_leg_advance_odds(
+                higher_team, lower_team, ko_ratings,
+                home_advantage_team1=ha_pairs.get((higher_team, lower_team), home_advantage),
+                home_advantage_team2=ha_pairs.get((lower_team, higher_team), home_advantage),
+            )
+            if higher_team in higher_probs.index:
+                higher_probs.loc[higher_team, win_label] = adv["team1_adv"]
+                higher_probs.loc[higher_team, lose_label] = adv["team2_adv"]
+            if lower_team in lower_probs.index:
+                lower_probs.loc[lower_team, win_label2] = adv["team2_adv"]
+                lower_probs.loc[lower_team, lose_label2] = adv["team1_adv"]
+        return
 
     win_rates = cross_league_playoff_win_rates(higher_chance, lower_chance, ratings_df)
     for team, rate in win_rates.items():
@@ -628,6 +714,7 @@ def project_playoff_entries(
     lower_label: str,
     ratings_df: pd.DataFrame,
     home_advantage: float = 1.05,
+    fixed_pairings: list[tuple[str, str]] | None = None,
 ) -> pd.DataFrame:
     """Each of 4 higher-side and 4 lower-side teams' chance to prevail in
     its two-legged tie, averaged over every way an open, unseeded draw
@@ -635,6 +722,11 @@ def project_playoff_entries(
     Quarterfinals derangement, since the two sides are always from
     different leagues). The higher side is the one with something to
     defend (home in leg 1).
+
+    Once the real draw has happened, pass fixed_pairings (the real
+    announced [(higher team, lower team), ...] ties) to skip that
+    averaging entirely in favour of the one real tie per team (see
+    _fixed_pairing_prevail).
 
     Callers must already have resolved higher_teams/lower_teams to the
     correct disjoint 4-per-side group representatives (see
@@ -651,12 +743,29 @@ def project_playoff_entries(
     actually belonging to a different team, landing it in both that pool
     and its own group's (correct) 3rd place at once.
     """
-    prevail = _average_pairing_prevail(higher_teams, lower_teams, ratings_df, home_advantage)
-    rows = [
-        {"team": t, "pool": higher_label, "prevail_pct": prevail[t]} for t in higher_teams
-    ] + [
-        {"team": t, "pool": lower_label, "prevail_pct": prevail[t]} for t in lower_teams
-    ]
+    if fixed_pairings is not None:
+        # The real draw is known, and it's authoritative over the pre-draw
+        # higher_teams/lower_teams guess -- a team's REAL tie might not
+        # even be one of the 4 names that guess projected for that side
+        # (the real draw can feature a different representative than the
+        # single most-likely one each pool's marginal pointed to pre-draw).
+        # So the output rows come from the real pairing's own teams, not
+        # the stale guess list.
+        prevail = _fixed_pairing_prevail(fixed_pairings, ratings_df, home_advantage)
+        rows = [
+            {"team": higher, "pool": higher_label, "prevail_pct": prevail[higher]}
+            for higher, _lower in fixed_pairings
+        ] + [
+            {"team": lower, "pool": lower_label, "prevail_pct": prevail[lower]}
+            for _higher, lower in fixed_pairings
+        ]
+    else:
+        prevail = _average_pairing_prevail(higher_teams, lower_teams, ratings_df, home_advantage)
+        rows = [
+            {"team": t, "pool": higher_label, "prevail_pct": prevail[t]} for t in higher_teams
+        ] + [
+            {"team": t, "pool": lower_label, "prevail_pct": prevail[t]} for t in lower_teams
+        ]
     return pd.DataFrame(rows).sort_values("prevail_pct", ascending=False).reset_index(drop=True)
 
 

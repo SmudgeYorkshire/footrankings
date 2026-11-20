@@ -34,6 +34,22 @@ from nations_league_fixtures import group_fixtures
 from _split_season import compute_full_standings
 from simulator import cert_value as _cert_value, cert_cell_format as _cert_cell_format
 
+# Real draw results, filled in by hand the moment UEFA announces them --
+# None means "not drawn yet," which keeps every affected table on its
+# existing pre-draw averaged/open-draw projection exactly as before. Once
+# set, project_qf_entries/simulate_league_a_knockouts/project_playoff_
+# entries/apply_cross_league_playoff_correction all switch from averaging
+# over every mathematically-valid pairing to the one real tie directly.
+#
+# Quarterfinals: [(group winner, group runner-up), ...] in the real
+# announced order (4 pairs). Playoffs: [(higher side, lower side), ...]
+# (4 pairs) -- the higher side is the one with something to defend (League
+# A's 3rd/4th place vs League B's runner-up; League B's 4th place vs
+# League C's runner-up).
+LEAGUE_A_QF_REAL_PAIRINGS: list[tuple[str, str]] | None = None
+AB_PLAYOFF_REAL_PAIRINGS: list[tuple[str, str]] | None = None
+BC_PLAYOFF_REAL_PAIRINGS: list[tuple[str, str]] | None = None
+
 st.title("🌍 2026/27 UEFA Nations League")
 
 
@@ -726,12 +742,12 @@ with st.spinner("Simulating every league's group stage…"):
     apply_cross_league_playoff_correction(
         all_outcome_probs["League A"], "Relegation Play-offs",
         all_outcome_probs["League B"], "Promotion Play-offs",
-        ratings_df,
+        ratings_df, fixed_pairings=AB_PLAYOFF_REAL_PAIRINGS,
     )
     apply_cross_league_playoff_correction(
         all_outcome_probs["League B"], "Relegation Play-offs",
         all_outcome_probs["League C"], "Promotion Play-offs",
-        ratings_df,
+        ratings_df, fixed_pairings=BC_PLAYOFF_REAL_PAIRINGS,
     )
 
 for league_tab, league_name in zip(league_tabs, league_names):
@@ -934,25 +950,36 @@ with knockout_chances_tab:
     st.markdown("#### Knockouts")
 
     st.markdown("##### Quarter-finals format")
-    st.caption(
-        "The draw for the quarter-finals is held after the league phase, pairing each League A "
-        "group winner with a runner-up from a different group. Legs played 25–27 Mar and 28–30 Mar 2027."
-    )
-    qf_format_df = pd.DataFrame(
-        [{"Team 1": "Group runner-up", "Agg.": "", "Team 2": "Group winner",
-          "1st leg": "25–27 Mar", "2nd leg": "28–30 Mar"}
-         for _ in range(4)]
-    )
+    if LEAGUE_A_QF_REAL_PAIRINGS is not None:
+        st.caption("The real quarter-final draw. Legs played 25–27 Mar and 28–30 Mar 2027.")
+        qf_format_df = pd.DataFrame([
+            {"Team 1": runner_up, "Agg.": "", "Team 2": winner,
+             "1st leg": "25–27 Mar", "2nd leg": "28–30 Mar"}
+            for winner, runner_up in LEAGUE_A_QF_REAL_PAIRINGS
+        ])
+    else:
+        st.caption(
+            "The draw for the quarter-finals is held after the league phase, pairing each League A "
+            "group winner with a runner-up from a different group. Legs played 25–27 Mar and 28–30 Mar 2027."
+        )
+        qf_format_df = pd.DataFrame(
+            [{"Team 1": "Group runner-up", "Agg.": "", "Team 2": "Group winner",
+              "1st leg": "25–27 Mar", "2nd leg": "28–30 Mar"}
+             for _ in range(4)]
+        )
     st.dataframe(qf_format_df, hide_index=True, width="content", height=len(qf_format_df) * 35 + 38)
 
     st.divider()
     st.markdown("##### Projected Quarterfinals Entries")
-    st.caption(
-        "The team most likely to finish 1st and 2nd in each League A group -- i.e. if exactly these "
-        "eight nations are the ones who show up, each one's chance to prevail in the Quarterfinals, "
-        "averaged over every valid winner-vs-different-group-runner-up draw."
-    )
-    qf_entries = project_qf_entries(all_group_probs["League A"], ratings_df)
+    if LEAGUE_A_QF_REAL_PAIRINGS is not None:
+        st.caption("Each team's chance to prevail in its real, now-drawn quarter-final tie.")
+    else:
+        st.caption(
+            "The team most likely to finish 1st and 2nd in each League A group -- i.e. if exactly these "
+            "eight nations are the ones who show up, each one's chance to prevail in the Quarterfinals, "
+            "averaged over every valid winner-vs-different-group-runner-up draw."
+        )
+    qf_entries = project_qf_entries(all_group_probs["League A"], ratings_df, fixed_pairings=LEAGUE_A_QF_REAL_PAIRINGS)
     qf_entries_df = pd.DataFrame([
         {
             "Flag": _flag(r["team"]),
@@ -977,12 +1004,21 @@ with knockout_chances_tab:
 
     st.divider()
     st.markdown("##### Predictions")
-    st.caption(
-        "Winners will face Runners-up in the Quarterfinals, determined by a draw, and it will "
-        "be an open draw for the Semifinals without seeding."
-    )
+    if LEAGUE_A_QF_REAL_PAIRINGS is not None:
+        st.caption(
+            "Quarterfinal ties are the real announced draw; it's still an open draw for the "
+            "Semifinals without seeding, held only after the Quarterfinals are played."
+        )
+    else:
+        st.caption(
+            "Winners will face Runners-up in the Quarterfinals, determined by a draw, and it will "
+            "be an open draw for the Semifinals without seeding."
+        )
     with st.spinner("Simulating the quarter-finals and Finals Four…"):
-        ko = simulate_league_a_knockouts(all_group_probs["League A"], ratings_df, n_sim=10_000)
+        ko = simulate_league_a_knockouts(
+            all_group_probs["League A"], ratings_df, n_sim=10_000,
+            fixed_qf_pairings=LEAGUE_A_QF_REAL_PAIRINGS,
+        )
 
     a_certainty = all_league_certainty.get("League A", {})
     ko_cert_cols = ["Quarterfinals", "Semifinals", "Finals", "Winner"]
@@ -1040,25 +1076,38 @@ with knockout_chances_tab:
 
 with promo_releg_tab:
     st.markdown("#### Promotion & Relegation")
-    st.caption(
-        "UEFA's own promotion/relegation play-off bracket for March 2027. Exact pairings aren't drawn "
-        "until after the group stage, so these show which pool each side is drawn from rather than "
-        "real nations — see "
-        "[Wikipedia](https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League#Promotion_and_relegation_play-offs)."
-    )
-
-    def _bracket_table(team2_label: str, team1_label: str) -> None:
-        df = pd.DataFrame(
-            [{"Team 1": team1_label, "Agg.": "", "Team 2": team2_label, "1st leg": "25–27 Mar", "2nd leg": "28–30 Mar"}
-             for _ in range(4)]
+    if LEAGUE_A_QF_REAL_PAIRINGS is not None or AB_PLAYOFF_REAL_PAIRINGS is not None or BC_PLAYOFF_REAL_PAIRINGS is not None:
+        st.caption(
+            "UEFA's own promotion/relegation play-off bracket for March 2027 — "
+            "real announced ties shown below once drawn. See "
+            "[Wikipedia](https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League#Promotion_and_relegation_play-offs)."
         )
+    else:
+        st.caption(
+            "UEFA's own promotion/relegation play-off bracket for March 2027. Exact pairings aren't drawn "
+            "until after the group stage, so these show which pool each side is drawn from rather than "
+            "real nations — see "
+            "[Wikipedia](https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Nations_League#Promotion_and_relegation_play-offs)."
+        )
+
+    def _bracket_table(team2_label: str, team1_label: str, real_pairings: list[tuple[str, str]] | None = None) -> None:
+        if real_pairings is not None:
+            df = pd.DataFrame([
+                {"Team 1": lower, "Agg.": "", "Team 2": higher, "1st leg": "25–27 Mar", "2nd leg": "28–30 Mar"}
+                for higher, lower in real_pairings
+            ])
+        else:
+            df = pd.DataFrame(
+                [{"Team 1": team1_label, "Agg.": "", "Team 2": team2_label, "1st leg": "25–27 Mar", "2nd leg": "28–30 Mar"}
+                 for _ in range(4)]
+            )
         st.dataframe(df, hide_index=True, width="content", height=len(df) * 35 + 38)
 
     st.markdown("##### League A vs League B")
-    _bracket_table("League A third place/fourth place", "League B runner-up")
+    _bracket_table("League A third place/fourth place", "League B runner-up", real_pairings=AB_PLAYOFF_REAL_PAIRINGS)
 
     st.markdown("##### League B vs League C")
-    _bracket_table("League B fourth place", "League C runner-up")
+    _bracket_table("League B fourth place", "League C runner-up", real_pairings=BC_PLAYOFF_REAL_PAIRINGS)
 
     a_teams = [t for g in NL_GROUPS["League A"].values() for t in g]
     b_teams = [t for g in NL_GROUPS["League B"].values() for t in g]
@@ -1073,11 +1122,6 @@ with promo_releg_tab:
 
     st.divider()
     st.markdown("##### Projected Promotion/Relegation Entries")
-    st.caption(
-        "The four teams most likely to land in each side of a pool -- i.e. if exactly these eight "
-        "nations are the ones who show up, each one's chance to prevail in its two-legged tie, "
-        "averaged over every way UEFA's open draw could pair the two pools."
-    )
 
     # Each pool's 4 entrants must come from exactly one representative per
     # group (never a league-wide marginal probability's raw top-4, which
@@ -1094,8 +1138,18 @@ with promo_releg_tab:
     b_fourth_pool = [order[3] for order in b_order.values()]
     c_runner_up_pool = [order[1] for order in c_order.values()]
 
-    def _projected_entries_table(higher_teams, higher_label, lower_teams, lower_label):
-        entries = project_playoff_entries(higher_teams, higher_label, lower_teams, lower_label, ratings_df)
+    def _projected_entries_table(higher_teams, higher_label, lower_teams, lower_label, fixed_pairings=None):
+        if fixed_pairings is not None:
+            st.caption("Each team's chance to prevail in its real, now-drawn play-off tie.")
+        else:
+            st.caption(
+                "The four teams most likely to land in each side of a pool -- i.e. if exactly these eight "
+                "nations are the ones who show up, each one's chance to prevail in its two-legged tie, "
+                "averaged over every way UEFA's open draw could pair the two pools."
+            )
+        entries = project_playoff_entries(
+            higher_teams, higher_label, lower_teams, lower_label, ratings_df, fixed_pairings=fixed_pairings,
+        )
         df = pd.DataFrame([
             {
                 "Flag": _flag(r["team"]), "Team": r["team"], "Pool": r["pool"],
@@ -1118,12 +1172,14 @@ with promo_releg_tab:
     _projected_entries_table(
         a_playoff_pool, "League A third place/fourth place",
         b_runner_up_pool, "League B runner-up",
+        fixed_pairings=AB_PLAYOFF_REAL_PAIRINGS,
     )
 
     st.markdown("###### League B vs League C")
     _projected_entries_table(
         b_fourth_pool, "League B fourth place",
         c_runner_up_pool, "League C runner-up",
+        fixed_pairings=BC_PLAYOFF_REAL_PAIRINGS,
     )
 
     st.divider()
