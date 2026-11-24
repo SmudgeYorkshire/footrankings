@@ -1349,6 +1349,297 @@ def position_bounds(
     return bounds
 
 
+def _connected_components(
+    nodes: set[str], edges: list[tuple[str, str]],
+) -> list[tuple[set[str], list[tuple[str, str]]]]:
+    """Union-find split of `nodes`/`edges` into independent clusters --
+    teams in different clusters share no remaining fixture, directly or
+    transitively, so their crossing-count contributions can be solved
+    separately and summed (see _exact_crossing_extreme's own docstring
+    for why this is the key thing that keeps a 36-team competition's full
+    remaining schedule tractable: searching one team's whole contender
+    set at once would be 3^(all its mutual fixtures), but that set is
+    almost always several small independent clusters in practice, not
+    one connected blob)."""
+    parent = {n: n for n in nodes}
+
+    def _find(x: str) -> str:
+        while parent[x] != x:
+            x = parent[x]
+        return x
+
+    for h, a in edges:
+        rh, ra = _find(h), _find(a)
+        if rh != ra:
+            parent[rh] = ra
+
+    groups: dict[str, set[str]] = {}
+    for n in nodes:
+        groups.setdefault(_find(n), set()).add(n)
+    comp_edges: dict[str, list[tuple[str, str]]] = {k: [] for k in groups}
+    for h, a in edges:
+        comp_edges[_find(h)].append((h, a))
+    return [(groups[k], comp_edges[k]) for k in groups]
+
+
+def _exact_crossing_extreme(
+    cap: float,
+    contender_baseline: dict[str, float],
+    mutual_matches: list[tuple[str, str]],
+    exceeds,
+    minimize: bool,
+    max_component_edges: int,
+) -> int:
+    """Min (minimize=True) or max (minimize=False) possible number of
+    `contender_baseline`'s teams whose final points (baseline + whatever
+    they earn from `mutual_matches`, the only fixtures still genuinely
+    free) end up exceeding `cap` (per `exceeds`, which folds in the
+    tiebreak-at-exact-equality case).
+
+    Splits into independent connected components first (crossing counts
+    are additive across components that share no fixture) and brute-
+    force searches each one separately with branch-and-bound pruning and
+    incremental (not recomputed-from-scratch) crossing tracking -- real
+    contender clusters are small once split this way, even when the
+    competition's full remaining schedule isn't (see
+    exact_position_bounds' own docstring). A component whose own edge
+    count still exceeds max_component_edges falls back to assuming every
+    one of its teams simultaneously crosses (the documented safety
+    valve) -- applied per component, not to the whole contender set, so
+    one stubborn cluster doesn't blunt every other team's own exactness."""
+    total = 0
+    for comp_teams, comp_edges in _connected_components(set(contender_baseline), mutual_matches):
+        if not comp_edges:
+            total += sum(1 for o in comp_teams if exceeds(o, contender_baseline[o]))
+        elif len(comp_edges) > max_component_edges:
+            total += len(comp_teams)
+        else:
+            total += _search_component(
+                cap, {o: contender_baseline[o] for o in comp_teams}, comp_edges, exceeds, minimize,
+            )
+    return total
+
+
+class _SearchBudgetExceeded(Exception):
+    """Raised to unwind _search_component's recursion once its node
+    budget runs out -- see that function's own docstring."""
+
+
+def _search_component(
+    cap: float,
+    points: dict[str, float],
+    matches: list[tuple[str, str]],
+    exceeds,
+    minimize: bool,
+    node_budget: int = 200_000,
+) -> int:
+    """_exact_crossing_extreme's actual search, scoped to one already-
+    connected component.
+
+    Branch-and-bound pruning is enough to keep the vast majority of
+    real clusters fast regardless of their edge count, but how WELL it
+    prunes depends on the specific point totals involved, not just the
+    edge count -- some point distributions are pathologically slow to
+    prune even at a modest size (confirmed: a handful of real 36-team,
+    ~15-edge clusters took 20+ seconds against a typical sub-second one
+    at the same edge count). node_budget is a hard, wall-clock-
+    independent cap on search effort; exceeding it aborts to the same
+    sound "assume every team in this component simultaneously crosses"
+    fallback _exact_crossing_extreme already uses for an oversized
+    component -- safe in both directions (see that function's own
+    docstring) since it only ever makes a bound MORE conservative."""
+    exceeding = {o for o, p in points.items() if exceeds(o, p)}
+    best = [len(points) if minimize else 0]
+    n = len(matches)
+    calls = [0]
+
+    def _search(idx: int) -> None:
+        calls[0] += 1
+        if calls[0] > node_budget:
+            raise _SearchBudgetExceeded()
+        count = len(exceeding)
+        if idx == n:
+            if minimize:
+                best[0] = min(best[0], count)
+            else:
+                best[0] = max(best[0], count)
+            return
+        if minimize and count >= best[0]:
+            return  # can only grow from here -- can't beat the best minimum already found
+        if not minimize and count + (n - idx) * 2 <= best[0]:
+            return  # even 2 teams flipping per remaining match can't beat the best maximum found
+        h, a = matches[idx]
+        for dh, da in ((3, 0), (1, 1), (0, 3)):
+            points[h] += dh
+            points[a] += da
+            h_flip = dh and exceeds(h, points[h]) and h not in exceeding
+            a_flip = da and exceeds(a, points[a]) and a not in exceeding
+            if h_flip:
+                exceeding.add(h)
+            if a_flip:
+                exceeding.add(a)
+            _search(idx + 1)
+            if h_flip:
+                exceeding.discard(h)
+            if a_flip:
+                exceeding.discard(a)
+            points[h] -= dh
+            points[a] -= da
+
+    try:
+        _search(0)
+    except _SearchBudgetExceeded:
+        return len(points)
+    return best[0]
+
+
+def exact_position_bounds(
+    standings: list[dict],
+    remaining_fixtures: list[dict],
+    played_fixtures: list[dict] | None = None,
+    tiebreakers: list[str] | None = None,
+    max_contender_edges: int = 16,
+) -> dict[str, tuple[int, int]]:
+    """{team: (best_reachable, worst_reachable)} -- EXACT (not merely
+    sound) best/worst final position, unlike position_bounds above.
+
+    position_bounds compares every OTHER team's own ceiling (current +
+    3*their remaining games) independently -- sound (never wrongly
+    claims a position is secured), but loose: it lets two rivals who
+    still play EACH OTHER both count as hitting their own ceiling at
+    once, which the real schedule can't produce (that match hands out at
+    most 3 points total, never 3 to both sides). This function corrects
+    exactly that, by actually searching the combinations of results for
+    matches between two teams who could both still threaten `t`, rather
+    than assuming they can all simultaneously max out.
+
+    For team t: best case has t win every remaining game of its own
+    (unambiguously optimal -- maximizes t's own points AND denies points
+    to whichever rival t was playing); worst case has t lose every one
+    (symmetric). Given t's resulting points total (the "cap" to beat),
+    every other team o is classified using its own ceiling/floor
+    EXCLUDING its already-fixed fixture against t (which handed o either
+    0 extra points, in t's best case, or 3, in t's worst case):
+
+      - o's own FLOOR already exceeds the cap -> counts unconditionally,
+        no match result can undo that.
+      - o's own CEILING can't reach the cap -> never a threat, dropped.
+      - otherwise -> a genuine contender: whether it ends up above t
+        depends on results still to be decided.
+
+    Any remaining fixture between a contender and a non-contender is
+    resolved for free in whichever direction helps the objective (0 pts
+    for the contender when minimizing the crossing count for t's best
+    case, 3 when maximizing it for t's worst case) -- the non-contender's
+    own classification already accounts for either result, so this loses
+    no exactness. What's left is the actual new piece: remaining fixtures
+    BETWEEN two contenders, searched exhaustively via
+    _exact_crossing_extreme. Real contender clusters near any one team's
+    own cutoff are small even on a 36-team, 8-remaining-game schedule (the
+    full remaining fixture list is not searched at once, only the slice
+    among teams that could plausibly threaten THIS team) -- max_contender_
+    edges is a documented safety cap; if a cluster is ever pathologically
+    large, this falls back to position_bounds' own looser (but still
+    sound) count for that specific direction rather than hanging.
+
+    Tiebreak-at-exact-equality handling and the played_fixtures/
+    tiebreakers params work exactly like position_bounds' own (same
+    _resolve_tiebreak_between reuse) -- see that function's docstring.
+    Points-only otherwise; GD is deliberately not modeled, same reasoning.
+    """
+    teams = [row["strTeam"] for row in standings]
+    row_by_team = {row["strTeam"]: row for row in standings if row.get("strTeam")}
+    current = {
+        row["strTeam"]: int(row.get("intPoints", 0)) + float(row.get("_half_pts_bonus", 0.0))
+        for row in standings
+    }
+    remaining_count = {t: 0 for t in teams}
+    own_matches: dict[str, dict[str, int]] = {t: {} for t in teams}
+    for f in remaining_fixtures:
+        h, a = f.get("strHomeTeam"), f.get("strAwayTeam")
+        if h in current and a in current:
+            remaining_count[h] += 1
+            remaining_count[a] += 1
+            own_matches[h][a] = own_matches[h].get(a, 0) + 1
+            own_matches[a][h] = own_matches[a].get(h, 0) + 1
+    ceiling = {t: current[t] + 3 * remaining_count[t] for t in teams}
+
+    h2h = build_h2h(played_fixtures) if played_fixtures and tiebreakers else {}
+    remaining_meetings: dict[frozenset, int] = {}
+    if tiebreakers:
+        for f in remaining_fixtures:
+            h, a = f.get("strHomeTeam"), f.get("strAwayTeam")
+            if h and a:
+                key = frozenset({h, a})
+                remaining_meetings[key] = remaining_meetings.get(key, 0) + 1
+
+    def _tiebreak_winner(a: str, b: str) -> str | None:
+        if not tiebreakers or a not in row_by_team or b not in row_by_team:
+            return None
+        meetings = remaining_meetings.get(frozenset({a, b}), 0)
+        result = _resolve_tiebreak_between(
+            row_by_team[a], row_by_team[b], tiebreakers, h2h, meetings,
+            remaining_count.get(a, 0), remaining_count.get(b, 0),
+        )
+        if result == "t":
+            return a
+        if result == "o":
+            return b
+        return None
+
+    def _extreme_crossing_count(t: str, cap: float, minimize: bool) -> int:
+        # minimize (t's best case): t beats every rival it still plays,
+        # so each such rival gets 0 extra from that specific fixture.
+        # maximize (t's worst case): t loses every one, so each such
+        # rival gets the full 3 from it instead. Either way, that
+        # fixture is already fully resolved -- it's excluded below from
+        # every rival's own remaining (still-free) fixture count.
+        others = [o for o in teams if o != t]
+
+        def _exceeds(o: str, value: float) -> bool:
+            return value > cap or (value == cap and _tiebreak_winner(o, t) == o)
+
+        locked_above = 0
+        contenders: list[str] = []
+        baseline: dict[str, float] = {}
+        for o in others:
+            vs_t = own_matches[o].get(t, 0)
+            adj = current[o] + (0 if minimize else 3 * vs_t)
+            remaining_excl_t = remaining_count[o] - vs_t
+            if _exceeds(o, adj):
+                locked_above += 1
+            elif not _exceeds(o, adj + 3 * remaining_excl_t):
+                pass  # can never reach the cap even at its own max -- not a threat
+            else:
+                contenders.append(o)
+                baseline[o] = adj
+
+        contender_set = set(contenders)
+        mutual_matches: list[tuple[str, str]] = []
+        for f in remaining_fixtures:
+            h, a = f.get("strHomeTeam"), f.get("strAwayTeam")
+            if t in (h, a):
+                continue  # already resolved above, not a free variable
+            if h in contender_set and a in contender_set:
+                mutual_matches.append((h, a))
+            elif h in contender_set:
+                baseline[h] += 0 if minimize else 3
+            elif a in contender_set:
+                baseline[a] += 0 if minimize else 3
+
+        return locked_above + _exact_crossing_extreme(
+            cap, baseline, mutual_matches, _exceeds, minimize=minimize,
+            max_component_edges=max_contender_edges,
+        )
+
+    bounds: dict[str, tuple[int, int]] = {}
+    for t in teams:
+        above_min = _extreme_crossing_count(t, ceiling[t], minimize=True)
+        above_max = _extreme_crossing_count(t, current[t], minimize=False)
+        bounds[t] = (1 + above_min, 1 + above_max)
+    return bounds
+
+
 def _build_dataframe(probs: np.ndarray, teams: list[str]) -> pd.DataFrame:
     n = len(teams)
     return pd.DataFrame(probs, index=teams, columns=[str(i + 1) for i in range(n)])

@@ -18,7 +18,7 @@ from zoneinfo import ZoneInfo
 from config import EUROPEAN_COMPETITIONS, LEAGUES, CURRENT_EURO_SEASON
 from api_football_fetcher import ApiFootballClient
 from _split_season import build_h2h, rank_tied_group
-from simulator import position_bounds, build_live_odds_lambda_overrides
+from simulator import position_bounds, exact_position_bounds, build_live_odds_lambda_overrides
 from qualifying_bracket import CONFIRMED_LEAGUE_PHASE
 from club_coefficients import get_coeff
 from league_phase_simulator import (
@@ -148,6 +148,16 @@ def _compute_league_standings(matches: list[dict], badge_lookup: dict) -> list[d
     for i, r in enumerate(ranked):
         r["intRank"] = i + 1
     return ranked
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _cached_exact_bounds(standings: list[dict], remaining: list[dict], played: list[dict]):
+    """Cached wrapper over simulator.exact_position_bounds -- its own
+    search can take a couple of seconds in a tight 36-team race (see its
+    docstring), and the real standings/fixtures this page feeds it only
+    change as often as fetch_all's own 60s cache, so there's no reason to
+    redo that work on every Streamlit rerun in between."""
+    return exact_position_bounds(standings, remaining, played, _LEAGUE_PHASE_TIEBREAKERS)
 
 
 @st.cache_data(ttl=60, show_spinner=False)
@@ -370,7 +380,8 @@ for name, logo in team_badges.items():
 lp_rounds = cfg.get("league_phase_rounds", 8)
 has_lp    = cfg.get("has_league_phase", lp_rounds > 0)
 
-lp_played = [f for f in played_fixtures if has_lp and 1 <= _intround(f) <= lp_rounds]
+lp_played    = [f for f in played_fixtures if has_lp and 1 <= _intround(f) <= lp_rounds]
+lp_remaining = [f for f in remaining_fixtures if has_lp and 1 <= _intround(f) <= lp_rounds]
 
 qual_all     = [f for f in (played_fixtures + remaining_fixtures) if _is_qual_or_playoff(f)]
 qual_played  = [f for f in played_fixtures if _is_qual_or_playoff(f)]
@@ -526,6 +537,9 @@ if tab_league is not None:
             n_direct  = cfg.get("n_direct", 8)
             n_playoff = cfg.get("n_playoff", 16)
             computed = _compute_league_standings(lp_played, badge_lookup)
+            _cs_bounds = _cached_exact_bounds(
+                [{**r, "intPoints": r["Pts"]} for r in computed], lp_remaining, lp_played,
+            )
 
             def _lp_zone_bg(pos: int) -> str:
                 if pos <= n_direct:
@@ -540,6 +554,8 @@ if tab_league is not None:
                 "Team":  r["strTeam"],
                 "P":     r["P"], "W": r["W"], "D": r["D"], "L": r["L"],
                 "GF":    r["GF"], "GA": r["GA"], "GD": r["GD"], "Pts": r["Pts"],
+                "Best":  _cs_bounds.get(r["strTeam"], (1, len(computed)))[0],
+                "Worst": _cs_bounds.get(r["strTeam"], (1, len(computed)))[1],
                 "_bg":   _lp_zone_bg(r["intRank"]),
             } for r in computed]
 
@@ -561,6 +577,8 @@ if tab_league is not None:
                 "GA":    st.column_config.NumberColumn("GA",   width="small"),
                 "GD":    st.column_config.NumberColumn("GD",   width="small"),
                 "Pts":   st.column_config.NumberColumn("Pts",  width="small"),
+                "Best":  st.column_config.NumberColumn("Best", width="small"),
+                "Worst": st.column_config.NumberColumn("Worst", width="small"),
             }
             st.caption("🟢 Direct to Round of 16  🟡 Knockout Play-offs  🔴 Eliminated")
             st.dataframe(styled_lp, column_config=_lp_cfg,
@@ -570,6 +588,12 @@ if tab_league is not None:
                 "Tiebreakers: 1) Head-to-head points; 2) Head-to-head goal difference; "
                 "3) Head-to-head goals scored; 4) Head-to-head away goals scored; "
                 "5) Goal difference; 6) Goals scored"
+            )
+            st.caption(
+                "Best/Worst = the best and worst final League Phase position this club can still "
+                "mathematically reach, given every remaining fixture (its own and everyone else's) -- "
+                "exact, not an approximation: two rivals who still play each other can never both "
+                "simultaneously hit their own maximum from that match."
             )
 
 
@@ -1090,6 +1114,14 @@ if tab_manual is not None:
                 st.divider()
                 st.markdown("### Updated standings")
                 _computed = _compute_league_standings(lp_played + _user_matches, badge_lookup)
+                _manual_remaining = [
+                    {"strHomeTeam": _row["Home"], "strAwayTeam": _row["Away"]}
+                    for _, _row in _edited_df[~_filled_mask].iterrows()
+                ]
+                _manual_bounds = exact_position_bounds(
+                    [{**r, "intPoints": r["Pts"]} for r in _computed],
+                    _manual_remaining, lp_played + _user_matches, _LEAGUE_PHASE_TIEBREAKERS,
+                )
 
                 def _manual_zone_bg(pos: int) -> str:
                     if pos <= cfg.get("n_direct", 8):
@@ -1104,6 +1136,8 @@ if tab_manual is not None:
                     "Team":  r["strTeam"],
                     "P":     r["P"], "W": r["W"], "D": r["D"], "L": r["L"],
                     "GF":    r["GF"], "GA": r["GA"], "GD": r["GD"], "Pts": r["Pts"],
+                    "Best":  _manual_bounds.get(r["strTeam"], (1, len(_computed)))[0],
+                    "Worst": _manual_bounds.get(r["strTeam"], (1, len(_computed)))[1],
                     "_bg":   _manual_zone_bg(r["intRank"]),
                 } for r in _computed]
                 if not _upd_rows:
@@ -1131,11 +1165,18 @@ if tab_manual is not None:
                         "GA":    st.column_config.NumberColumn("GA",   width="small"),
                         "GD":    st.column_config.NumberColumn("GD",   width="small"),
                         "Pts":   st.column_config.NumberColumn("Pts",  width="small"),
+                        "Best":  st.column_config.NumberColumn("Best", width="small"),
+                        "Worst": st.column_config.NumberColumn("Worst", width="small"),
                     }
                     st.caption("🟢 Direct to Round of 16  🟡 Knockout Play-offs  🔴 Eliminated")
                     st.dataframe(_styled_upd, column_config=_upd_col_cfg,
                                  width="content", hide_index=True,
                                  height=len(_upd_rows) * 35 + 42)
+                    st.caption(
+                        "Best/Worst = the best and worst final League Phase position this club can "
+                        "still mathematically reach from here, treating every prediction entered "
+                        "above as locked in and every other still-open fixture as free."
+                    )
 
                 st.divider()
                 st.markdown("### Projected League Stage finish (with your predictions)")
