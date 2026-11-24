@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 from config import LEAGUES, DEFAULT_N_SIMULATIONS, DEFAULT_HOME_ADVANTAGE, get_current_season
 from api_football_fetcher import ApiFootballClient
-from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff, position_bounds, seed_from_key, build_live_odds_lambda_overrides
+from simulator import simulate_season, fixture_odds, simulate_final_four, simulate_uecl_playoff, simulate_uecl_3team_playoff, simulate_uecl_5team_playoff, simulate_uecl_4team_playoff, simulate_uecl_8team_playoff, position_bounds, exact_position_bounds, seed_from_key, build_live_odds_lambda_overrides
 from ratings_manager import load_ratings, check_coverage
 from _split_season import get_split_info, conference_fixtures, recompute_conference_standings, compute_full_standings, ensure_full_roster, compute_expected_pts, playoff_standings, roundrobin_fixtures
 from league_status import LEAGUE_STATUS
@@ -337,6 +337,16 @@ def _cached_simulate_season(
 @st.cache_data(show_spinner=False)
 def _cached_simulate_final_four(cache_key: tuple, _teams_4, _ratings_df, _n_sim: int) -> pd.DataFrame:
     return simulate_final_four(_teams_4, _ratings_df, _n_sim, seed=seed_from_key(cache_key))
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _cached_exact_bounds(standings, remaining, played, tiebreakers):
+    """Cached wrapper over simulator.exact_position_bounds -- its own
+    search can take a couple of seconds in a tight race (see its own
+    docstring), and the real standings/fixtures this page feeds it only
+    change as often as fetch_all's own 60s cache, so there's no reason to
+    redo that work on every Streamlit rerun in between."""
+    return exact_position_bounds(standings, remaining, played, tiebreakers)
 
 
 @st.cache_data(show_spinner=False)
@@ -1522,8 +1532,10 @@ def main_content():
                 return "".join(sq[:-1]) + " │ " + sq[-1]
             return "".join(sq)
 
-        def _table_rows(source_rows, zones=None, show_form=True, relative_zones=False, team_overrides=None, show_next=False):
+        def _table_rows(source_rows, zones=None, show_form=True, relative_zones=False,
+                        team_overrides=None, show_next=False, bounds=None):
             rows = []
+            n_rows = len(source_rows)
             for rel_pos, row in enumerate(
                     sorted(source_rows, key=lambda r: int(r.get("intRank", 99))), start=1):
                 gd      = int(row.get("intGoalDifference", 0))
@@ -1543,8 +1555,12 @@ def main_content():
                     "GA":     int(row.get("intGoalsAgainst", 0)),
                     "GD":     f"+{gd}" if gd > 0 else str(gd),
                     "Pts":    int(row.get("intPoints", 0)),
-                    "Status": status,
                 }
+                if bounds is not None:
+                    _best, _worst = bounds.get(team_name, (1, n_rows))
+                    r["Best"]  = _best
+                    r["Worst"] = _worst
+                r["Status"] = status
                 if show_form:
                     r["Form"] = _fmt_form(row.get("strForm", "") or "")
                 if show_next:
@@ -1578,10 +1594,11 @@ def main_content():
             if not rows:
                 return
             df = pd.DataFrame(rows)
+            _has_bounds = "Best" in df.columns
             # Convert numeric cols to strings so TextColumn respects text-align: center
-            for c in ["Pos", "P", "W", "D", "L", "GF", "GA", "Pts"]:
+            for c in ["Pos", "P", "W", "D", "L", "GF", "GA", "Pts"] + (["Best", "Worst"] if _has_bounds else []):
                 df[c] = df[c].astype(str)
-            num_cols = ["Pos", "P", "W", "D", "L", "GF", "GA", "GD", "Pts"]
+            num_cols = ["Pos", "P", "W", "D", "L", "GF", "GA", "GD", "Pts"] + (["Best", "Worst"] if _has_bounds else [])
             style_obj = (
                 df.style
                 .hide(axis="index")
@@ -1604,6 +1621,9 @@ def main_content():
                 "Pts":    st.column_config.TextColumn("Pts",  width=32),
                 "Status": st.column_config.TextColumn("Status", width=130),
             }
+            if _has_bounds:
+                col_cfg["Best"]  = st.column_config.TextColumn("Best",  width=32)
+                col_cfg["Worst"] = st.column_config.TextColumn("Worst", width=32)
             if "Form" in df.columns:
                 col_cfg["Form"] = st.column_config.TextColumn("Form", width=130)
             if "Next" in df.columns:
@@ -1670,10 +1690,17 @@ def main_content():
             # whenever a league's own "regular" zone dict is pure
             # group-assignment labels, like Czech First League's) was
             # actively misleading.
+            _main_bounds = _cached_exact_bounds(standings, remaining_fixtures, played_fixtures, cfg.get("tiebreakers"))
             st.markdown("### 📊 Overall Table")
-            _render_table(_table_rows(standings, zones=_main_zones, show_next=True))
+            _render_table(_table_rows(standings, zones=_main_zones, show_next=True, bounds=_main_bounds))
             st.caption("Tiebreakers: " + "; ".join(
                 f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(cfg.get("tiebreakers", ["gd", "gf"])[:8])))
+            st.caption(
+                "Best/Worst = the best and worst final position this club can still mathematically "
+                "reach, given every remaining fixture (its own and everyone else's) -- exact, not an "
+                "approximation: two rivals who still play each other can never both simultaneously "
+                "hit their own maximum from that match."
+            )
 
             st.divider()
             st.markdown("### 🏆 Championship Round")
@@ -1687,8 +1714,10 @@ def main_content():
             # and for every split league the champ conference's raw
             # full-table rank already starts at 1 (it's always the
             # top-ranked conference), so the two position spaces agree.
+            _champ_bounds = _cached_exact_bounds(split_info["champ_current"], _champ_rf, _champ_pf, _champ_tbs)
             _render_table(_table_rows(split_info["champ_current"],
-                                       zones={**_champ_zones, **_team_overrides_current}, show_next=True))
+                                       zones={**_champ_zones, **_team_overrides_current}, show_next=True,
+                                       bounds=_champ_bounds))
             st.caption(_tb_caption(_champ_tbs))
 
             # ── Cup Details ──────────────────────────────────────────────────────
@@ -1697,16 +1726,20 @@ def main_content():
             if split_info.get("mid_teams"):
                 _mid_pf  = conference_fixtures(played_fixtures,    split_info["mid_teams"])
                 _mid_rf  = conference_fixtures(remaining_fixtures, split_info["mid_teams"])
+                _mid_bounds = _cached_exact_bounds(split_info["mid_current"], _mid_rf, _mid_pf, _mid_tbs)
                 st.markdown(f"### 🔵 {_mid_label}")
                 st.markdown(_conf_progress_html(_mid_pf, _mid_rf), unsafe_allow_html=True)
                 st.caption(_pts_note)
-                _render_table(_table_rows(split_info["mid_current"], zones=_mid_zones, relative_zones=True, show_next=True))
+                _render_table(_table_rows(split_info["mid_current"], zones=_mid_zones, relative_zones=True,
+                                           show_next=True, bounds=_mid_bounds))
                 st.caption(_tb_caption(_mid_tbs))
             if split_info.get("relg_current") and not cfg.get("champ_only"):
+                _relg_bounds = _cached_exact_bounds(split_info["relg_current"], _relg_rf, _relg_pf, _relg_tbs)
                 st.markdown("### ⚠️ Relegation Round")
                 st.markdown(_conf_progress_html(_relg_pf, _relg_rf), unsafe_allow_html=True)
                 st.caption(_relg_pts_note)
-                _render_table(_table_rows(split_info["relg_current"], zones=_relg_zones, relative_zones=True, show_next=True))
+                _render_table(_table_rows(split_info["relg_current"], zones=_relg_zones, relative_zones=True,
+                                           show_next=True, bounds=_relg_bounds))
                 st.caption(_tb_caption(_relg_tbs))
 
             # ── UECL Play-offs (e.g. Austrian Bundesliga) ────────────────────
@@ -1950,7 +1983,8 @@ def main_content():
             if _presplit_snapshot:
                 st.divider()
                 st.markdown("### 📋 Regular Season Final Table")
-                _render_table(_table_rows(split_info["pre_split"], zones=_spot_zones, show_form=False))
+                _render_table(_table_rows(split_info["pre_split"], zones=_spot_zones, show_form=False,
+                                           bounds=_main_bounds))
         else:
             st.markdown(
                 _season_progress_html(played_rounds, total_rounds, len(played_fixtures), len(remaining_fixtures)),
@@ -1995,9 +2029,16 @@ def main_content():
             # decision uses its own separate flag instead of widening that one.
             _zones_are_placeholder_only = bool(cfg.get("n_champ")) or bool(cfg.get("final_four"))
             _current_zones = _main_zones if _zones_are_placeholder_only else {**_main_zones, **_team_overrides_current}
-            _render_table(_table_rows(standings, zones=_current_zones, show_next=True))
+            _main_bounds = _cached_exact_bounds(standings, remaining_fixtures, played_fixtures, cfg.get("tiebreakers"))
+            _render_table(_table_rows(standings, zones=_current_zones, show_next=True, bounds=_main_bounds))
             _tbs_non_split = cfg.get("tiebreakers", ["gd", "gf"])[:8]
             st.caption("Tiebreakers: " + "; ".join(f"{i+1}) {_TB_LABELS.get(r, r)}" for i, r in enumerate(_tbs_non_split)))
+            st.caption(
+                "Best/Worst = the best and worst final position this club can still mathematically "
+                "reach, given every remaining fixture (its own and everyone else's) -- exact, not an "
+                "approximation: two rivals who still play each other can never both simultaneously "
+                "hit their own maximum from that match."
+            )
             if cfg.get("team_status_note"):
                 st.caption(cfg["team_status_note"])
 
@@ -2802,6 +2843,8 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             "P":     st.column_config.NumberColumn("P",     width="small"),
             "GD":    st.column_config.TextColumn("GD",      width="small"),
             "Pts":   st.column_config.NumberColumn("Pts",   width="small"),
+            "Best":  st.column_config.NumberColumn("Best",  width="small"),
+            "Worst": st.column_config.NumberColumn("Worst", width="small"),
         }
 
         def _style_rounds(df):
@@ -2831,13 +2874,15 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
             df["AG"] = df["AG"].astype(pd.Int64Dtype())
             return df
 
-        def _upd_st_rows(base_st, updated):
+        def _upd_st_rows(base_st, updated, bounds=None):
             orig_rank = {r["strTeam"]: int(r.get("intRank", 0)) for r in base_st}
+            n_rows = len(updated)
             rows = []
             for row in sorted(updated, key=lambda r: int(r.get("intRank", 99))):
                 new_rank = int(row.get("intRank", 0))
                 delta    = orig_rank.get(row["strTeam"], new_rank) - new_rank
                 gd       = int(row.get("intGoalDifference", 0))
+                _best, _worst = (bounds or {}).get(row.get("strTeam", ""), (1, n_rows))
                 rows.append({
                     "Pos":   new_rank,
                     "Δ":     (f"▲{delta}" if delta > 0 else (f"▼{abs(delta)}" if delta < 0 else "—")),
@@ -2846,6 +2891,8 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
                     "P":     int(row.get("intPlayed", 0)),
                     "GD":    f"+{gd}" if gd > 0 else str(gd),
                     "Pts":   int(row.get("intPoints", 0)),
+                    "Best":  _best,
+                    "Worst": _worst,
                 })
             return rows
 
@@ -2913,12 +2960,20 @@ div[data-testid="stHorizontalBlock"] button[data-testid="stBaseButton-secondary"
 
             st.divider()
             st.markdown("### Updated standings")
-            upd_df_c = pd.DataFrame(_upd_st_rows(conf_standings, updated_st_c))
+            _exact_bounds_c = _cached_exact_bounds(
+                updated_st_c, unpredicted_fix_c, played_fixtures, cfg.get(tiebreaker_key, cfg.get("tiebreakers")),
+            )
+            upd_df_c = pd.DataFrame(_upd_st_rows(conf_standings, updated_st_c, bounds=_exact_bounds_c))
             upd_styled_c = upd_df_c.style.set_properties(
                 subset=["Team", "Pts"], **{"font-weight": "bold"}
             ).set_properties(**{"font-size": "12px", "padding": "2px 6px"})
             st.dataframe(upd_styled_c, column_config=_upd_col_cfg,
                          width="content", hide_index=True, height=height_c)
+            st.caption(
+                "Best/Worst = the best and worst final position this club can still mathematically "
+                "reach from here, treating every prediction entered above as locked in and every "
+                "other still-open fixture as free."
+            )
 
             pred_fp_c = (
                 tuple(sorted((f["strHomeTeam"], f["strAwayTeam"], f["pred_hg"], f["pred_ag"])
