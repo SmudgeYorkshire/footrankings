@@ -42,13 +42,35 @@ from simulator import cert_value as _cert_value, cert_cell_format as _cert_cell_
 # over every mathematically-valid pairing to the one real tie directly.
 #
 # Quarterfinals: [(group winner, group runner-up), ...] in the real
-# announced order (4 pairs). Playoffs: [(higher side, lower side), ...]
-# (4 pairs) -- the higher side is the one with something to defend (League
-# A's 3rd/4th place vs League B's runner-up; League B's 4th place vs
-# League C's runner-up).
-LEAGUE_A_QF_REAL_PAIRINGS: list[tuple[str, str]] | None = None
-AB_PLAYOFF_REAL_PAIRINGS: list[tuple[str, str]] | None = None
-BC_PLAYOFF_REAL_PAIRINGS: list[tuple[str, str]] | None = None
+# announced order (4 pairs) -- ORDER MATTERS once LEAGUE_A_SF_BRACKET_DRAWN
+# is also True: consecutive ties must be grouped so ties[0] vs ties[1] feed
+# one semi-final and ties[2] vs ties[3] the other, per the real semi-final
+# bracket draw (a separate UEFA event from the QF draw itself -- see
+# simulate_league_a_knockouts' own docstring). Playoffs: [(higher side,
+# lower side), ...] (4 pairs) -- the higher side is the one with something
+# to defend (League A's 3rd/4th place vs League B's runner-up; League B's
+# 4th place vs League C's runner-up).
+LEAGUE_A_QF_REAL_PAIRINGS: list[tuple[str, str]] | None = [
+    ("Portugal", "Netherlands"),
+    ("France", "Spain"),
+    ("Germany", "Belgium"),
+    ("England", "Norway"),
+]
+# True once the real semi-final BRACKET (not just the QF pairings) has
+# been drawn -- see LEAGUE_A_QF_REAL_PAIRINGS' own ordering requirement.
+LEAGUE_A_SF_BRACKET_DRAWN: bool = True
+AB_PLAYOFF_REAL_PAIRINGS: list[tuple[str, str]] | None = [
+    ("Denmark", "Bosnia and Herzegovina"),
+    ("Serbia", "Hungary"),
+    ("Croatia", "Republic of Ireland"),
+    ("Wales", "Slovenia"),
+]
+BC_PLAYOFF_REAL_PAIRINGS: list[tuple[str, str]] | None = [
+    ("North Macedonia", "Cyprus"),
+    ("Romania", "Estonia"),
+    ("Georgia", "Faroe Islands"),
+    ("Israel", "Belarus"),
+]
 
 st.title("🌍 2026/27 UEFA Nations League")
 
@@ -1004,7 +1026,9 @@ with knockout_chances_tab:
 
     st.divider()
     st.markdown("##### Predictions")
-    if LEAGUE_A_QF_REAL_PAIRINGS is not None:
+    if LEAGUE_A_QF_REAL_PAIRINGS is not None and LEAGUE_A_SF_BRACKET_DRAWN:
+        st.caption("Quarterfinal ties and the Semifinal bracket are both the real announced draw.")
+    elif LEAGUE_A_QF_REAL_PAIRINGS is not None:
         st.caption(
             "Quarterfinal ties are the real announced draw; it's still an open draw for the "
             "Semifinals without seeding, held only after the Quarterfinals are played."
@@ -1018,6 +1042,7 @@ with knockout_chances_tab:
         ko = simulate_league_a_knockouts(
             all_group_probs["League A"], ratings_df, n_sim=10_000,
             fixed_qf_pairings=LEAGUE_A_QF_REAL_PAIRINGS,
+            fixed_sf_bracket=LEAGUE_A_SF_BRACKET_DRAWN,
         )
 
     a_certainty = all_league_certainty.get("League A", {})

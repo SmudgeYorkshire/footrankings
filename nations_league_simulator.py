@@ -288,6 +288,7 @@ def simulate_league_a_knockouts(
     n_sim: int = 10_000,
     home_advantage: float = 1.05,
     fixed_qf_pairings: list[tuple[str, str]] | None = None,
+    fixed_sf_bracket: bool = False,
 ) -> pd.DataFrame:
     """Monte Carlo the quarter-finals -> Finals Four for League A.
 
@@ -300,9 +301,21 @@ def simulate_league_a_knockouts(
     Once the real draw has happened, pass fixed_qf_pairings (a list of
     (group winner, group runner-up) tuples, in the real announced order)
     to skip that per-replicate pairing draw entirely and use the exact
-    real ties instead -- the Finals Four semi-final draw stays randomised
-    every replicate regardless, since that's a genuinely separate open
-    draw UEFA only holds AFTER the quarter-finals are actually played.
+    real ties instead.
+
+    UEFA also draws the Finals Four semi-final BRACKET (which QF tie's
+    winner meets which other QF tie's winner) as its own real event --
+    separate from, and not necessarily announced at the same time as, the
+    QF pairings themselves, but still well before the quarter-finals are
+    actually played (so WHO reaches each semi-final is still open; only
+    the bracket STRUCTURE is fixed). Pass fixed_sf_bracket=True once that
+    draw is known, with fixed_qf_pairings ordered so consecutive ties
+    feed the same semi-final (ties[0] vs ties[1] meet in one semi,
+    ties[2] vs ties[3] in the other) -- this skips the per-replicate
+    random semi-final draw in favour of that fixed grouping. False (the
+    default) keeps every replicate's semi-final draw randomised, correct
+    both pre-QF-draw and in the window after the QF draw but before the
+    separate semi-final bracket draw has happened.
 
     Approximation: which team finishes 1st/2nd in each group is sampled
     sequentially from that group's own marginal position probabilities
@@ -408,8 +421,13 @@ def simulate_league_a_knockouts(
         for t in qf_winners:
             reached_ff[t] += 1
 
-        # Finals Four: random semi-final draw, neutral-venue single matches.
-        rng.shuffle(qf_winners)
+        # Finals Four: neutral-venue single matches. The semi-final
+        # bracket itself is randomised per replicate unless the real
+        # bracket draw is already known (fixed_sf_bracket), in which case
+        # qf_winners is already in the caller's fixed SF-grouped order
+        # (ties[0] vs ties[1], ties[2] vs ties[3]) and must NOT be reshuffled.
+        if not fixed_sf_bracket:
+            rng.shuffle(qf_winners)
         f1 = _play_single_leg(qf_winners[0], qf_winners[1])
         f2 = _play_single_leg(qf_winners[2], qf_winners[3])
         reached_final[f1] += 1
