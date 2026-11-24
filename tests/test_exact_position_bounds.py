@@ -129,6 +129,32 @@ def test_fallback_when_contender_cluster_exceeds_the_edge_cap():
     assert bounds["T"][1] == 1 + len(teams)
 
 
+def test_node_budget_exhaustion_still_uses_greedy_seed_for_best():
+    # Same fully-connected 6-team cluster as the edge-cap fallback test
+    # above, but forced to exhaust its SEARCH budget instead (node_budget=1
+    # -- the branch-and-bound gets zero real search). Confirmed live
+    # 2026-11-24: without a seed, a real ~34-team contender cluster
+    # (Champions League, Slovan Bratislava's own Best case) never improved
+    # on the trivial "everyone crosses" bound even at 100x the default
+    # node_budget, because the search's own fixed match-order DFS never
+    # stumbled on a better full assignment in time -- a cheap greedy seed
+    # found one (6 crossings instead of 34) in under a millisecond. Here,
+    # with node_budget=1, the minimize (Best) direction must still land on
+    # the greedy seed's result, not the crude "all 6 cross" fallback.
+    standings = [{"strTeam": "T", "intPoints": 10}]
+    teams = [f"R{i}" for i in range(6)]
+    for t in teams:
+        standings.append({"strTeam": t, "intPoints": 8})
+    remaining = [
+        {"strHomeTeam": a, "strAwayTeam": b}
+        for a, b in itertools.combinations(teams, 2)
+    ]
+    starved = exact_position_bounds(standings, remaining, node_budget=1)
+    full = exact_position_bounds(standings, remaining)
+    assert starved["T"][0] < 1 + len(teams)  # better than the trivial "everyone crosses"
+    assert starved["T"][0] == full["T"][0]  # the seed alone already matches the fully-searched answer here
+
+
 def test_tiebreaker_reuse_matches_position_bounds_behavior():
     # A and B are tied on points with zero remaining fixtures each (both
     # already "finished"), decided only by their own head-to-head result

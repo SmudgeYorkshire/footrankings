@@ -1441,6 +1441,53 @@ class _SearchBudgetExceeded(Exception):
     budget runs out -- see that function's own docstring."""
 
 
+def _greedy_crossing_seed(
+    cap: float,
+    points: dict[str, float],
+    matches: list[tuple[str, str]],
+    exceeds,
+    minimize: bool,
+) -> int:
+    """One cheap O(edges log edges) pass that assigns every match in the
+    component a result, greedily steering each one toward the objective
+    (fewest newly-crossing teams when minimizing, most when maximizing),
+    and returns the resulting crossing count.
+
+    This exists purely to SEED _search_component's branch-and-bound with
+    a good starting bound instead of the trivial "everyone/no one
+    crosses" one -- confirmed live 2026-11-24 that a real 34-team
+    contender cluster (Champions League, cap near the bottom of the
+    table) never improves on that trivial bound within any reasonable
+    node_budget via the search's own fixed match-order DFS alone (even
+    100x the default budget still returned the trivial answer), while
+    this greedy pass alone finds a feasible assignment with 6 crossings
+    in well under a millisecond -- the search was never actually
+    confirming 'everyone crosses', it just never found a reason to
+    believe otherwise in time. Matches are processed tightest-margin
+    team first (the pair closest to flipping), which is what makes this
+    greedy construction land close to optimal on real schedules in
+    practice, not just technically valid.
+
+    The result is always a genuinely feasible assignment, so it's a
+    sound bound in its own right in the minimize direction (any
+    constructible schedule proves the true minimum can't be higher than
+    what it achieves) -- see _search_component's own docstring for why
+    that does NOT carry over to the maximize direction."""
+    for h, a in sorted(matches, key=lambda m: min(cap - points[m[0]], cap - points[m[1]])):
+        best_opt, best_flips = None, None
+        for dh, da in ((0, 3), (1, 1), (3, 0)):
+            ph, pa = points[h] + dh, points[a] + da
+            flips = (exceeds(h, ph) and not exceeds(h, points[h])) + \
+                    (exceeds(a, pa) and not exceeds(a, points[a]))
+            score = flips if minimize else -flips
+            if best_flips is None or score < best_flips:
+                best_flips, best_opt = score, (dh, da)
+        dh, da = best_opt
+        points[h] += dh
+        points[a] += da
+    return sum(1 for o, v in points.items() if exceeds(o, v))
+
+
 def _search_component(
     cap: float,
     points: dict[str, float],
@@ -1459,13 +1506,35 @@ def _search_component(
     prune even at a modest size (confirmed: a handful of real 36-team,
     ~15-edge clusters took 20+ seconds against a typical sub-second one
     at the same edge count). node_budget is a hard, wall-clock-
-    independent cap on search effort; exceeding it aborts to the same
-    sound "assume every team in this component simultaneously crosses"
-    fallback _exact_crossing_extreme already uses for an oversized
-    component -- safe in both directions (see that function's own
-    docstring) since it only ever makes a bound MORE conservative."""
+    independent cap on search effort.
+
+    _greedy_crossing_seed runs FIRST to give the search a real starting
+    bound instead of the trivial "everyone/no one crosses" one -- without
+    it, the search's own fixed match-order DFS can burn the entire
+    node_budget on a real ~30-40-team contender cluster without ever
+    improving on the trivial bound (confirmed live 2026-11-24: Slovan
+    Bratislava's own 34-team cluster stayed at the trivial 34 even at
+    100x node_budget). With a good seed, most real clusters now actually
+    finish (prove optimality) within budget; those that still don't
+    exceed it fall back as follows:
+
+      - minimize (Best): return the best feasible count found so far
+        (seed or better). This is ALWAYS sound even unproven -- any
+        concrete feasible assignment proves the true minimum can't
+        exceed what it achieves, so an unfinished search still safely
+        lower-bounds how good t's best case looks.
+      - maximize (Worst): an unproven partial result only shows a
+        LOWER bound on the true maximum (a feasible assignment proves
+        at least that many can cross, never that no more could) --
+        trusting it would risk UNDERSTATING how bad t's worst case
+        could really get, which is the one direction this function must
+        never be wrong in. So this still falls back to the old "assume
+        every team in this component simultaneously crosses" bound,
+        exactly as before seeding existed -- safe, just looser than the
+        minimize case when the search can't finish."""
+    seed = _greedy_crossing_seed(cap, dict(points), matches, exceeds, minimize)
     exceeding = {o for o, p in points.items() if exceeds(o, p)}
-    best = [len(points) if minimize else 0]
+    best = [seed]
     n = len(matches)
     calls = [0]
 
@@ -1505,7 +1574,7 @@ def _search_component(
     try:
         _search(0)
     except _SearchBudgetExceeded:
-        return len(points)
+        return best[0] if minimize else len(points)
     return best[0]
 
 
