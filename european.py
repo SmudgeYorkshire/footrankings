@@ -150,13 +150,15 @@ def _compute_league_standings(matches: list[dict], badge_lookup: dict) -> list[d
     return ranked
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner="Computing exact position bounds…")
 def _cached_exact_bounds(standings: list[dict], remaining: list[dict], played: list[dict]):
     """Cached wrapper over simulator.exact_position_bounds -- its own
-    search can take a couple of seconds in a tight 36-team race (see its
-    docstring), and the real standings/fixtures this page feeds it only
-    change as often as fetch_all's own 60s cache, so there's no reason to
-    redo that work on every Streamlit rerun in between."""
+    search can take several seconds in a tight 36-team race (confirmed
+    live 2026-11-24, see its own docstring), and the real standings/
+    fixtures this page feeds it only change as often as fetch_all's own
+    60s cache, so there's no reason to redo that work on every Streamlit
+    rerun in between. show_spinner is a message (not False) since that
+    worst case is long enough to look like a hang otherwise."""
     return exact_position_bounds(standings, remaining, played, _LEAGUE_PHASE_TIEBREAKERS)
 
 
@@ -1118,10 +1120,11 @@ if tab_manual is not None:
                     {"strHomeTeam": _row["Home"], "strAwayTeam": _row["Away"]}
                     for _, _row in _edited_df[~_filled_mask].iterrows()
                 ]
-                _manual_bounds = exact_position_bounds(
-                    [{**r, "intPoints": r["Pts"]} for r in _computed],
-                    _manual_remaining, lp_played + _user_matches, _LEAGUE_PHASE_TIEBREAKERS,
-                )
+                with st.spinner("Computing exact position bounds…"):
+                    _manual_bounds = exact_position_bounds(
+                        [{**r, "intPoints": r["Pts"]} for r in _computed],
+                        _manual_remaining, lp_played + _user_matches, _LEAGUE_PHASE_TIEBREAKERS,
+                    )
 
                 def _manual_zone_bg(pos: int) -> str:
                     if pos <= cfg.get("n_direct", 8):

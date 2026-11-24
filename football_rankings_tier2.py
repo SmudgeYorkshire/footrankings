@@ -258,13 +258,16 @@ def _cached_simulate_final_four(cache_key: tuple, _teams_4, _ratings_df, _n_sim:
     return simulate_final_four(_teams_4, _ratings_df, _n_sim, seed=seed_from_key(cache_key))
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner="Computing exact position bounds…")
 def _cached_exact_bounds(standings, remaining, played, tiebreakers):
     """Cached wrapper over simulator.exact_position_bounds -- its own
-    search can take a couple of seconds in a tight race (see its own
+    search can take several seconds in a tight, fully-interconnected
+    double round-robin race (confirmed live 2026-11-24, see its own
     docstring), and the real standings/fixtures this page feeds it only
     change as often as fetch_all's own 60s cache, so there's no reason to
-    redo that work on every Streamlit rerun in between."""
+    redo that work on every Streamlit rerun in between. show_spinner is a
+    message (not False) since that worst case is long enough to look
+    like a hang otherwise."""
     return exact_position_bounds(standings, remaining, played, tiebreakers)
 
 

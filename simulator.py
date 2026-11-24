@@ -1389,6 +1389,7 @@ def _exact_crossing_extreme(
     exceeds,
     minimize: bool,
     max_component_edges: int,
+    node_budget: int,
 ) -> int:
     """Min (minimize=True) or max (minimize=False) possible number of
     `contender_baseline`'s teams whose final points (baseline + whatever
@@ -1402,7 +1403,21 @@ def _exact_crossing_extreme(
     incremental (not recomputed-from-scratch) crossing tracking -- real
     contender clusters are small once split this way, even when the
     competition's full remaining schedule isn't (see
-    exact_position_bounds' own docstring). A component whose own edge
+    exact_position_bounds' own docstring).
+
+    The real, load-bearing safety valve against a slow component is
+    _search_component's own node_budget (search effort, not edge count --
+    confirmed live 2026-11-24: a 36-team Champions League table had
+    dozens of ordinary, fast-to-solve ~20-40 edge components, and a
+    max_component_edges cap much below that was silently falling back to
+    the crude "assume everyone crosses" bound for over a dozen clubs that
+    were actually completely free to reach 1st, just because their
+    component happened to need more than a handful of edges to describe
+    -- nothing to do with how hard it was to actually solve). This
+    max_component_edges is kept only as a hard backstop against a
+    component so large it would take a very long time to even build
+    before node_budget could kick in; it should stay high enough that it
+    essentially never fires in practice. A component whose own edge
     count still exceeds max_component_edges falls back to assuming every
     one of its teams simultaneously crosses (the documented safety
     valve) -- applied per component, not to the whole contender set, so
@@ -1416,6 +1431,7 @@ def _exact_crossing_extreme(
         else:
             total += _search_component(
                 cap, {o: contender_baseline[o] for o in comp_teams}, comp_edges, exceeds, minimize,
+                node_budget=node_budget,
             )
     return total
 
@@ -1498,7 +1514,8 @@ def exact_position_bounds(
     remaining_fixtures: list[dict],
     played_fixtures: list[dict] | None = None,
     tiebreakers: list[str] | None = None,
-    max_contender_edges: int = 16,
+    max_contender_edges: int = 2_000,
+    node_budget: int = 200_000,
 ) -> dict[str, tuple[int, int]]:
     """{team: (best_reachable, worst_reachable)} -- EXACT (not merely
     sound) best/worst final position, unlike position_bounds above.
@@ -1534,13 +1551,20 @@ def exact_position_bounds(
     own classification already accounts for either result, so this loses
     no exactness. What's left is the actual new piece: remaining fixtures
     BETWEEN two contenders, searched exhaustively via
-    _exact_crossing_extreme. Real contender clusters near any one team's
-    own cutoff are small even on a 36-team, 8-remaining-game schedule (the
-    full remaining fixture list is not searched at once, only the slice
-    among teams that could plausibly threaten THIS team) -- max_contender_
-    edges is a documented safety cap; if a cluster is ever pathologically
-    large, this falls back to position_bounds' own looser (but still
-    sound) count for that specific direction rather than hanging.
+    _exact_crossing_extreme (which further splits into independent
+    connected components -- see its own docstring).
+
+    Ordinary contender components on a real 36-team, 8-remaining-game
+    competition can easily run 20-40 edges (confirmed live 2026-11-24: a
+    too-low max_contender_edges was silently falling back to "assume
+    everyone crosses" for over a dozen genuinely unconstrained Champions
+    League clubs, each wrongly shown unable to reach 1st) -- edge count
+    alone is a poor proxy for how hard a component actually is to solve,
+    so max_contender_edges is kept high and is NOT the real safety net;
+    node_budget (search effort, passed down to _search_component) is.
+    Both exist purely as backstops against a pathological case hanging
+    the page -- if either is ever hit, this falls back to position_
+    bounds' own looser (but still sound) count for that one component.
 
     Tiebreak-at-exact-equality handling and the played_fixtures/
     tiebreakers params work exactly like position_bounds' own (same
@@ -1629,7 +1653,7 @@ def exact_position_bounds(
 
         return locked_above + _exact_crossing_extreme(
             cap, baseline, mutual_matches, _exceeds, minimize=minimize,
-            max_component_edges=max_contender_edges,
+            max_component_edges=max_contender_edges, node_budget=node_budget,
         )
 
     bounds: dict[str, tuple[int, int]] = {}
