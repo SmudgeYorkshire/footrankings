@@ -1,22 +1,22 @@
 league_name,intRank,strTeam,strBadge
 Albanian Superliga,1,Egnatia Rrogozhinë,https://media.api-sports.io/football/teams/3327.png
 Albanian Superliga,2,Teuta Durrës,https://media.api-sports.io/football/teams/3320.png
-Albanian Superliga,3,Dinamo Tirana,https://media.api-sports.io/football/teams/3326.png
-Albanian Superliga,4,Skenderbeu Korce,https://media.api-sports.io/football/teams/605.png
-Albanian Superliga,5,Tirana,https://media.api-sports.io/football/teams/694.png
+Albanian Superliga,3,AF Elbasani,https://media.api-sports.io/football/teams/20406.png
+Albanian Superliga,4,Dinamo Tirana,https://media.api-sports.io/football/teams/3326.png
+Albanian Superliga,5,Skenderbeu Korce,https://media.api-sports.io/football/teams/605.png
 Albanian Superliga,6,Vllaznia Shkodër,https://media.api-sports.io/football/teams/3339.png
 Albanian Superliga,7,Vora,https://media.api-sports.io/football/teams/3340.png
 Albanian Superliga,8,Laci,https://media.api-sports.io/football/teams/2256.png
 Albanian Superliga,9,Partizani,https://media.api-sports.io/football/teams/708.png
-Albanian Superliga,10,AF Elbasani,https://media.api-sports.io/football/teams/20406.png
+Albanian Superliga,10,Tirana,https://media.api-sports.io/football/teams/694.png
 Andorran 1a Divisió,1,FC Santa Coloma,https://media.api-sports.io/football/teams/591.png
 Andorran 1a Divisió,2,Inter Club d'Escaldes,https://media.api-sports.io/football/teams/3342.png
 Andorran 1a Divisió,3,Atlètic Club d'Escaldes,https://media.api-sports.io/football/teams/3345.png
 Andorran 1a Divisió,4,Ranger's,https://media.api-sports.io/football/teams/3353.png
 Andorran 1a Divisió,5,Esperança d'Andorra,https://media.api-sports.io/football/teams/19195.png
 Andorran 1a Divisió,6,Ordino,https://media.api-sports.io/football/teams/3344.png
-Andorran 1a Divisió,7,Casa de Portugal,https://media.api-sports.io/football/teams/27343.png
-Andorran 1a Divisió,8,Penya Encarnada,https://media.api-sports.io/football/teams/3352.png
+Andorran 1a Divisió,7,Penya Encarnada,https://media.api-sports.io/football/teams/3352.png
+Andorran 1a Divisió,8,Casa de Portugal,https://media.api-sports.io/football/teams/27343.png
 Andorran 1a Divisió,9,Sporting Escaldes,https://media.api-sports.io/football/teams/3354.png
 Andorran 1a Divisió,10,Carroi,https://media.api-sports.io/football/teams/3346.png
 Armenian Premier League,1,FC Noah,https://media.api-sports.io/football/teams/3684.png
@@ -27,8 +27,8 @@ Armenian Premier League,5,FC Urartu,https://media.api-sports.io/football/teams/2
 Armenian Premier League,6,Sardarapat,https://media.api-sports.io/football/teams/26198.png
 Armenian Premier League,7,Shirak,https://media.api-sports.io/football/teams/3686.png
 Armenian Premier League,8,Van,https://media.api-sports.io/football/teams/6286.png
-Armenian Premier League,9,BKMA,https://media.api-sports.io/football/teams/6279.png
-Armenian Premier League,10,Ararat,https://media.api-sports.io/football/teams/3682.png
+Armenian Premier League,9,Ararat,https://media.api-sports.io/football/teams/3682.png
+Armenian Premier League,10,BKMA,https://media.api-sports.io/football/teams/6279.png
 Armenian Premier League,11,Syunik,https://media.api-sports.io/football/teams/20087.png
 Armenian Premier League,12,Gandzasar,https://media.api-sports.io/football/teams/688.png
 Austrian Bundesliga,1,Rapid Vienna,https://media.api-sports.io/football/teams/781.png
@@ -44,15 +44,15 @@ Austrian Bundesliga,10,Grazer AK,https://media.api-sports.io/football/teams/4256
 Austrian Bundesliga,11,Wolfsberger AC,https://media.api-sports.io/football/teams/1025.png
 Austrian Bundesliga,12,Austria Vienna,https://media.api-sports.io/football/teams/601.png
 Azerbaijani Premier League,1,Sabah FA,https://media.api-sports.io/football/teams/13976.png
-Azerbaijani Premier League,2,Qarabag,https://media.api-sports.io/football/teams/556.png
-Azerbaijani Premier League,3,Neftchi Baku,https://media.api-sports.io/football/teams/2270.png
+Azerbaijani Premier League,2,Neftchi Baku,https://media.api-sports.io/football/teams/2270.png
+Azerbaijani Premier League,3,Qarabag,https://media.api-sports.io/football/teams/556.png
 Azerbaijani Premier League,4,Turan,https://media.api-sports.io/football/teams/5499.png
 Azerbaijani Premier League,5,Zira,https://media.api-sports.io/football/teams/648.png
 Azerbaijani Premier League,6,Kapaz,https://media.api-sports.io/football/teams/5490.png
 Azerbaijani Premier League,7,Şamaxı FK,https://media.api-sports.io/football/teams/666.png
 Azerbaijani Premier League,8,Sumqayıt,https://media.api-sports.io/football/teams/5503.png
-Azerbaijani Premier League,9,Imisli FK,https://media.api-sports.io/football/teams/5570.png
-Azerbaijani Premier League,10,Qabala,https://media.api-sports.io/football/teams/627.png
+Azerbaijani Premier League,9,Qabala,https://media.api-sports.io/football/teams/627.png
+Azerbaijani Premier League,10,Imisli FK,https://media.api-sports.io/football/teams/5570.png
 Azerbaijani Premier League,11,Araz,https://media.api-sports.io/football/teams/11238.png
 Azerbaijani Premier League,12,Safa Baku,https://media.api-sports.io/football/teams/25318.png
 Belarus Vyscha Liga,1,ML Vitebsk,https://media.api-sports.io/football/teams/7808.png
@@ -79,12 +79,12 @@ Belgian Pro League,5,Anderlecht,https://media.api-sports.io/football/teams/554.p
 Belgian Pro League,6,Genk,https://media.api-sports.io/football/teams/742.png
 Belgian Pro League,7,Standard Liege,https://media.api-sports.io/football/teams/733.png
 Belgian Pro League,8,St. Truiden,https://media.api-sports.io/football/teams/735.png
-Belgian Pro League,9,Lommel United,https://media.api-sports.io/football/teams/259.png
-Belgian Pro League,10,KVC Westerlo,https://media.api-sports.io/football/teams/261.png
+Belgian Pro League,9,KVC Westerlo,https://media.api-sports.io/football/teams/261.png
+Belgian Pro League,10,Lommel United,https://media.api-sports.io/football/teams/259.png
 Belgian Pro League,11,Zulte Waregem,https://media.api-sports.io/football/teams/600.png
-Belgian Pro League,12,OH Leuven,https://media.api-sports.io/football/teams/260.png
+Belgian Pro League,12,KV Mechelen,https://media.api-sports.io/football/teams/266.png
 Belgian Pro League,13,Antwerp,https://media.api-sports.io/football/teams/740.png
-Belgian Pro League,14,KV Mechelen,https://media.api-sports.io/football/teams/266.png
+Belgian Pro League,14,OH Leuven,https://media.api-sports.io/football/teams/260.png
 Belgian Pro League,15,SK Beveren,https://media.api-sports.io/football/teams/738.png
 Belgian Pro League,16,RAAL La Louvière,https://media.api-sports.io/football/teams/5902.png
 Belgian Pro League,17,Kortrijk,https://media.api-sports.io/football/teams/734.png
@@ -92,35 +92,35 @@ Belgian Pro League,18,Cercle Brugge,https://media.api-sports.io/football/teams/7
 Bosnian Premier Liga,1,Borac Banja Luka,https://media.api-sports.io/football/teams/3364.png
 Bosnian Premier Liga,2,Zrinjski,https://media.api-sports.io/football/teams/588.png
 Bosnian Premier Liga,3,FK Sarajevo,https://media.api-sports.io/football/teams/679.png
-Bosnian Premier Liga,4,Siroki Brijeg,https://media.api-sports.io/football/teams/642.png
-Bosnian Premier Liga,5,Velež,https://media.api-sports.io/football/teams/3381.png
-Bosnian Premier Liga,6,Zeljeznicar Sarajevo,https://media.api-sports.io/football/teams/654.png
-Bosnian Premier Liga,7,Čelik,https://media.api-sports.io/football/teams/3363.png
-Bosnian Premier Liga,8,BSK Banja Luka,https://media.api-sports.io/football/teams/21736.png
+Bosnian Premier Liga,4,Zeljeznicar Sarajevo,https://media.api-sports.io/football/teams/654.png
+Bosnian Premier Liga,5,Siroki Brijeg,https://media.api-sports.io/football/teams/642.png
+Bosnian Premier Liga,6,BSK Banja Luka,https://media.api-sports.io/football/teams/21736.png
+Bosnian Premier Liga,7,Radnik Bijeljina,https://media.api-sports.io/football/teams/3359.png
+Bosnian Premier Liga,8,Čelik,https://media.api-sports.io/football/teams/3363.png
 Bosnian Premier Liga,9,Sloga Doboj,https://media.api-sports.io/football/teams/8504.png
-Bosnian Premier Liga,10,Radnik Bijeljina,https://media.api-sports.io/football/teams/3359.png
+Bosnian Premier Liga,10,Velež,https://media.api-sports.io/football/teams/3381.png
 Bulgarian First League,1,Levski Sofia,https://media.api-sports.io/football/teams/646.png
 Bulgarian First League,2,CSKA Sofia,https://media.api-sports.io/football/teams/853.png
 Bulgarian First League,3,Ludogorets,https://media.api-sports.io/football/teams/566.png
 Bulgarian First League,4,CSKA 1948,https://media.api-sports.io/football/teams/1426.png
 Bulgarian First League,5,Botev Plovdiv,https://media.api-sports.io/football/teams/634.png
 Bulgarian First League,6,Arda Kardzhali,https://media.api-sports.io/football/teams/1430.png
-Bulgarian First League,7,Slavia Sofia,https://media.api-sports.io/football/teams/854.png
-Bulgarian First League,8,Spartak Varna,https://media.api-sports.io/football/teams/4660.png
-Bulgarian First League,9,Lokomotiv Plovdiv,https://media.api-sports.io/football/teams/858.png
-Bulgarian First League,10,Cherno More Varna,https://media.api-sports.io/football/teams/851.png
+Bulgarian First League,7,Spartak Varna,https://media.api-sports.io/football/teams/4660.png
+Bulgarian First League,8,Slavia Sofia,https://media.api-sports.io/football/teams/854.png
+Bulgarian First League,9,Cherno More Varna,https://media.api-sports.io/football/teams/851.png
+Bulgarian First League,10,Lokomotiv Plovdiv,https://media.api-sports.io/football/teams/858.png
 Bulgarian First League,11,Botev Vratsa,https://media.api-sports.io/football/teams/859.png
-Bulgarian First League,12,Septemvri Sofia,https://media.api-sports.io/football/teams/856.png
-Bulgarian First League,13,Lokomotiv Sofia,https://media.api-sports.io/football/teams/1416.png
-Bulgarian First League,14,Dunav Ruse,https://media.api-sports.io/football/teams/683.png
+Bulgarian First League,12,Dunav Ruse,https://media.api-sports.io/football/teams/683.png
+Bulgarian First League,13,Septemvri Sofia,https://media.api-sports.io/football/teams/856.png
+Bulgarian First League,14,Lokomotiv Sofia,https://media.api-sports.io/football/teams/1416.png
 Croatian First Football League,1,Dinamo Zagreb,https://media.api-sports.io/football/teams/620.png
 Croatian First Football League,2,HNK Hajduk Split,https://media.api-sports.io/football/teams/608.png
 Croatian First Football League,3,HNK Rijeka,https://media.api-sports.io/football/teams/561.png
 Croatian First Football League,4,NK Varazdin,https://media.api-sports.io/football/teams/1483.png
 Croatian First Football League,5,NK Osijek,https://media.api-sports.io/football/teams/616.png
 Croatian First Football League,6,Istra 1961,https://media.api-sports.io/football/teams/1016.png
-Croatian First Football League,7,Rudes,https://media.api-sports.io/football/teams/1019.png
-Croatian First Football League,8,NK Slaven Belupo,https://media.api-sports.io/football/teams/1018.png
+Croatian First Football League,7,NK Slaven Belupo,https://media.api-sports.io/football/teams/1018.png
+Croatian First Football League,8,Rudes,https://media.api-sports.io/football/teams/1019.png
 Croatian First Football League,9,NK Lokomotiva Zagreb,https://media.api-sports.io/football/teams/1017.png
 Croatian First Football League,10,HNK Gorica,https://media.api-sports.io/football/teams/1068.png
 Cypriot First Division,1,AEK Larnaca,https://media.api-sports.io/football/teams/614.png
@@ -131,12 +131,12 @@ Cypriot First Division,5,Apoel Nicosia,https://media.api-sports.io/football/team
 Cypriot First Division,6,Aris,https://media.api-sports.io/football/teams/3408.png
 Cypriot First Division,7,AEL,https://media.api-sports.io/football/teams/3396.png
 Cypriot First Division,8,Anorthosis,https://media.api-sports.io/football/teams/2269.png
-Cypriot First Division,9,Nea Salamis,https://media.api-sports.io/football/teams/3401.png
+Cypriot First Division,9,Olympiakos,https://media.api-sports.io/football/teams/3415.png
 Cypriot First Division,10,Omonia 29is Maiou,https://media.api-sports.io/football/teams/14126.png
-Cypriot First Division,11,Olympiakos,https://media.api-sports.io/football/teams/3415.png
-Cypriot First Division,12,Karmiotissa,https://media.api-sports.io/football/teams/3413.png
-Cypriot First Division,13,Krasava Ypsonas,https://media.api-sports.io/football/teams/3424.png
-Cypriot First Division,14,Omonia Aradippou,https://media.api-sports.io/football/teams/3416.png
+Cypriot First Division,11,Omonia Aradippou,https://media.api-sports.io/football/teams/3416.png
+Cypriot First Division,12,Krasava Ypsonas,https://media.api-sports.io/football/teams/3424.png
+Cypriot First Division,13,Karmiotissa,https://media.api-sports.io/football/teams/3413.png
+Cypriot First Division,14,Nea Salamis,https://media.api-sports.io/football/teams/3401.png
 Czech First League,1,Slavia Praha,https://media.api-sports.io/football/teams/560.png
 Czech First League,2,Sparta Praha,https://media.api-sports.io/football/teams/628.png
 Czech First League,3,Slovan Liberec,https://media.api-sports.io/football/teams/782.png
@@ -145,14 +145,14 @@ Czech First League,5,Mlada Boleslav,https://media.api-sports.io/football/teams/6
 Czech First League,6,Sigma Olomouc,https://media.api-sports.io/football/teams/2250.png
 Czech First League,7,Teplice,https://media.api-sports.io/football/teams/3720.png
 Czech First League,8,FK Jablonec,https://media.api-sports.io/football/teams/1122.png
-Czech First League,9,Bohemians 1905,https://media.api-sports.io/football/teams/3714.png
-Czech First League,10,Zbrojovka Brno,https://media.api-sports.io/football/teams/3733.png
-Czech First League,11,Hradec Králové,https://media.api-sports.io/football/teams/3723.png
-Czech First League,12,Pardubice,https://media.api-sports.io/football/teams/3724.png
-Czech First League,13,Baník Ostrava,https://media.api-sports.io/football/teams/3713.png
+Czech First League,9,Pardubice,https://media.api-sports.io/football/teams/3724.png
+Czech First League,10,Bohemians 1905,https://media.api-sports.io/football/teams/3714.png
+Czech First League,11,Zbrojovka Brno,https://media.api-sports.io/football/teams/3733.png
+Czech First League,12,Baník Ostrava,https://media.api-sports.io/football/teams/3713.png
+Czech First League,13,Artis,https://media.api-sports.io/football/teams/4257.png
 Czech First League,14,Slovácko,https://media.api-sports.io/football/teams/3719.png
-Czech First League,15,Artis,https://media.api-sports.io/football/teams/4257.png
-Czech First League,16,Zlin,https://media.api-sports.io/football/teams/603.png
+Czech First League,15,Zlin,https://media.api-sports.io/football/teams/603.png
+Czech First League,16,Hradec Králové,https://media.api-sports.io/football/teams/3723.png
 Danish Superliga,1,FC Midtjylland,https://media.api-sports.io/football/teams/397.png
 Danish Superliga,2,FC Copenhagen,https://media.api-sports.io/football/teams/400.png
 Danish Superliga,3,FC Nordsjaelland,https://media.api-sports.io/football/teams/398.png
@@ -162,46 +162,46 @@ Danish Superliga,6,Odense,https://media.api-sports.io/football/teams/405.png
 Danish Superliga,7,Aarhus,https://media.api-sports.io/football/teams/406.png
 Danish Superliga,8,AC Horsens,https://media.api-sports.io/football/teams/404.png
 Danish Superliga,9,Silkeborg,https://media.api-sports.io/football/teams/2073.png
-Danish Superliga,10,Lyngby,https://media.api-sports.io/football/teams/625.png
-Danish Superliga,11,Randers FC,https://media.api-sports.io/football/teams/401.png
+Danish Superliga,10,Randers FC,https://media.api-sports.io/football/teams/401.png
+Danish Superliga,11,Lyngby,https://media.api-sports.io/football/teams/625.png
 Danish Superliga,12,Sonderjyske,https://media.api-sports.io/football/teams/396.png
 Dutch Eredivisie,1,PSV Eindhoven,https://media.api-sports.io/football/teams/197.png
 Dutch Eredivisie,2,Ajax,https://media.api-sports.io/football/teams/194.png
-Dutch Eredivisie,3,Twente,https://media.api-sports.io/football/teams/415.png
+Dutch Eredivisie,3,Feyenoord,https://media.api-sports.io/football/teams/209.png
 Dutch Eredivisie,4,AZ Alkmaar,https://media.api-sports.io/football/teams/201.png
-Dutch Eredivisie,5,Feyenoord,https://media.api-sports.io/football/teams/209.png
-Dutch Eredivisie,6,Heerenveen,https://media.api-sports.io/football/teams/210.png
-Dutch Eredivisie,7,Fortuna Sittard,https://media.api-sports.io/football/teams/205.png
-Dutch Eredivisie,8,NEC Nijmegen,https://media.api-sports.io/football/teams/413.png
-Dutch Eredivisie,9,Cambuur,https://media.api-sports.io/football/teams/420.png
-Dutch Eredivisie,10,Groningen,https://media.api-sports.io/football/teams/202.png
-Dutch Eredivisie,11,GO Ahead Eagles,https://media.api-sports.io/football/teams/410.png
+Dutch Eredivisie,5,Heerenveen,https://media.api-sports.io/football/teams/210.png
+Dutch Eredivisie,6,Fortuna Sittard,https://media.api-sports.io/football/teams/205.png
+Dutch Eredivisie,7,NEC Nijmegen,https://media.api-sports.io/football/teams/413.png
+Dutch Eredivisie,8,Groningen,https://media.api-sports.io/football/teams/202.png
+Dutch Eredivisie,9,GO Ahead Eagles,https://media.api-sports.io/football/teams/410.png
+Dutch Eredivisie,10,Cambuur,https://media.api-sports.io/football/teams/420.png
+Dutch Eredivisie,11,Utrecht,https://media.api-sports.io/football/teams/207.png
 Dutch Eredivisie,12,Excelsior,https://media.api-sports.io/football/teams/196.png
-Dutch Eredivisie,13,Sparta Rotterdam,https://media.api-sports.io/football/teams/426.png
-Dutch Eredivisie,14,PEC Zwolle,https://media.api-sports.io/football/teams/193.png
+Dutch Eredivisie,13,PEC Zwolle,https://media.api-sports.io/football/teams/193.png
+Dutch Eredivisie,14,Sparta Rotterdam,https://media.api-sports.io/football/teams/426.png
 Dutch Eredivisie,15,Telstar,https://media.api-sports.io/football/teams/427.png
 Dutch Eredivisie,16,ADO Den Haag,https://media.api-sports.io/football/teams/198.png
 Dutch Eredivisie,17,Willem II,https://media.api-sports.io/football/teams/195.png
-Dutch Eredivisie,18,Utrecht,https://media.api-sports.io/football/teams/207.png
+Dutch Eredivisie,18,Twente,https://media.api-sports.io/football/teams/415.png
 English Premier League,1,Arsenal,https://media.api-sports.io/football/teams/42.png
 English Premier League,2,Manchester City,https://media.api-sports.io/football/teams/50.png
 English Premier League,3,Liverpool,https://media.api-sports.io/football/teams/40.png
 English Premier League,4,Brighton,https://media.api-sports.io/football/teams/51.png
 English Premier League,5,Bournemouth,https://media.api-sports.io/football/teams/35.png
-English Premier League,6,Chelsea,https://media.api-sports.io/football/teams/49.png
-English Premier League,7,Leeds,https://media.api-sports.io/football/teams/63.png
-English Premier League,8,Brentford,https://media.api-sports.io/football/teams/55.png
-English Premier League,9,Everton,https://media.api-sports.io/football/teams/45.png
-English Premier League,10,Tottenham,https://media.api-sports.io/football/teams/47.png
-English Premier League,11,Aston Villa,https://media.api-sports.io/football/teams/66.png
-English Premier League,12,Newcastle,https://media.api-sports.io/football/teams/34.png
-English Premier League,13,Sunderland,https://media.api-sports.io/football/teams/746.png
+English Premier League,6,Brentford,https://media.api-sports.io/football/teams/55.png
+English Premier League,7,Chelsea,https://media.api-sports.io/football/teams/49.png
+English Premier League,8,Aston Villa,https://media.api-sports.io/football/teams/66.png
+English Premier League,9,Leeds,https://media.api-sports.io/football/teams/63.png
+English Premier League,10,Everton,https://media.api-sports.io/football/teams/45.png
+English Premier League,11,Nottingham Forest,https://media.api-sports.io/football/teams/65.png
+English Premier League,12,Tottenham,https://media.api-sports.io/football/teams/47.png
+English Premier League,13,Newcastle,https://media.api-sports.io/football/teams/34.png
 English Premier League,14,Fulham,https://media.api-sports.io/football/teams/36.png
-English Premier League,15,Ipswich,https://media.api-sports.io/football/teams/57.png
-English Premier League,16,Nottingham Forest,https://media.api-sports.io/football/teams/65.png
+English Premier League,15,Sunderland,https://media.api-sports.io/football/teams/746.png
+English Premier League,16,Hull City,https://media.api-sports.io/football/teams/64.png
 English Premier League,17,Coventry,https://media.api-sports.io/football/teams/1346.png
-English Premier League,18,Crystal Palace,https://media.api-sports.io/football/teams/52.png
-English Premier League,19,Hull City,https://media.api-sports.io/football/teams/64.png
+English Premier League,18,Ipswich,https://media.api-sports.io/football/teams/57.png
+English Premier League,19,Crystal Palace,https://media.api-sports.io/football/teams/52.png
 English Premier League,20,Manchester United,https://media.api-sports.io/football/teams/33.png
 Estonian Meistriliiga,1,FC Levadia Tallinn,https://media.api-sports.io/football/teams/2273.png
 Estonian Meistriliiga,2,Paide,https://media.api-sports.io/football/teams/3528.png
@@ -239,23 +239,23 @@ French Ligue 1,1,Paris Saint Germain,https://media.api-sports.io/football/teams/
 French Ligue 1,2,Paris FC,https://media.api-sports.io/football/teams/114.png
 French Ligue 1,3,Monaco,https://media.api-sports.io/football/teams/91.png
 French Ligue 1,4,Lyon,https://media.api-sports.io/football/teams/80.png
-French Ligue 1,5,Rennes,https://media.api-sports.io/football/teams/94.png
-French Ligue 1,6,Lille,https://media.api-sports.io/football/teams/79.png
-French Ligue 1,7,Lens,https://media.api-sports.io/football/teams/116.png
-French Ligue 1,8,Marseille,https://media.api-sports.io/football/teams/81.png
+French Ligue 1,5,Lille,https://media.api-sports.io/football/teams/79.png
+French Ligue 1,6,Marseille,https://media.api-sports.io/football/teams/81.png
+French Ligue 1,7,Rennes,https://media.api-sports.io/football/teams/94.png
+French Ligue 1,8,Lens,https://media.api-sports.io/football/teams/116.png
 French Ligue 1,9,Stade Brestois 29,https://media.api-sports.io/football/teams/106.png
-French Ligue 1,10,Nice,https://media.api-sports.io/football/teams/84.png
-French Ligue 1,11,Toulouse,https://media.api-sports.io/football/teams/96.png
-French Ligue 1,12,Lorient,https://media.api-sports.io/football/teams/97.png
-French Ligue 1,13,Strasbourg,https://media.api-sports.io/football/teams/95.png
+French Ligue 1,10,Toulouse,https://media.api-sports.io/football/teams/96.png
+French Ligue 1,11,Lorient,https://media.api-sports.io/football/teams/97.png
+French Ligue 1,12,Strasbourg,https://media.api-sports.io/football/teams/95.png
+French Ligue 1,13,Le Mans,https://media.api-sports.io/football/teams/1298.png
 French Ligue 1,14,Auxerre,https://media.api-sports.io/football/teams/108.png
-French Ligue 1,15,Le Mans,https://media.api-sports.io/football/teams/1298.png
-French Ligue 1,16,Estac Troyes,https://media.api-sports.io/football/teams/110.png
-French Ligue 1,17,Angers,https://media.api-sports.io/football/teams/77.png
-French Ligue 1,18,Le Havre,https://media.api-sports.io/football/teams/111.png
-Georgian Erovnuli Liga,1,FC Iberia 1999,https://media.api-sports.io/football/teams/3502.png
+French Ligue 1,15,Estac Troyes,https://media.api-sports.io/football/teams/110.png
+French Ligue 1,16,Angers,https://media.api-sports.io/football/teams/77.png
+French Ligue 1,17,Le Havre,https://media.api-sports.io/football/teams/111.png
+French Ligue 1,18,Nice,https://media.api-sports.io/football/teams/84.png
+Georgian Erovnuli Liga,1,Dinamo Batumi,https://media.api-sports.io/football/teams/705.png
 Georgian Erovnuli Liga,2,Dinamo Tbilisi,https://media.api-sports.io/football/teams/2262.png
-Georgian Erovnuli Liga,3,Dinamo Batumi,https://media.api-sports.io/football/teams/705.png
+Georgian Erovnuli Liga,3,FC Iberia 1999,https://media.api-sports.io/football/teams/3502.png
 Georgian Erovnuli Liga,4,Rustavi,https://media.api-sports.io/football/teams/3501.png
 Georgian Erovnuli Liga,5,Torpedo Kutaisi,https://media.api-sports.io/football/teams/685.png
 Georgian Erovnuli Liga,6,Dila,https://media.api-sports.io/football/teams/3499.png
@@ -269,29 +269,29 @@ German Bundesliga,3,Bayer Leverkusen,https://media.api-sports.io/football/teams/
 German Bundesliga,4,RB Leipzig,https://media.api-sports.io/football/teams/173.png
 German Bundesliga,5,SC Freiburg,https://media.api-sports.io/football/teams/160.png
 German Bundesliga,6,VfB Stuttgart,https://media.api-sports.io/football/teams/172.png
-German Bundesliga,7,1899 Hoffenheim,https://media.api-sports.io/football/teams/167.png
-German Bundesliga,8,Werder Bremen,https://media.api-sports.io/football/teams/162.png
+German Bundesliga,7,Werder Bremen,https://media.api-sports.io/football/teams/162.png
+German Bundesliga,8,1899 Hoffenheim,https://media.api-sports.io/football/teams/167.png
 German Bundesliga,9,Eintracht Frankfurt,https://media.api-sports.io/football/teams/169.png
 German Bundesliga,10,FSV Mainz 05,https://media.api-sports.io/football/teams/164.png
 German Bundesliga,11,SV Elversberg,https://media.api-sports.io/football/teams/1660.png
 German Bundesliga,12,FC Augsburg,https://media.api-sports.io/football/teams/170.png
-German Bundesliga,13,Hamburger SV,https://media.api-sports.io/football/teams/175.png
-German Bundesliga,14,1. FC Köln,https://media.api-sports.io/football/teams/192.png
-German Bundesliga,15,FC Schalke 04,https://media.api-sports.io/football/teams/174.png
-German Bundesliga,16,Union Berlin,https://media.api-sports.io/football/teams/182.png
-German Bundesliga,17,Borussia Mönchengladbach,https://media.api-sports.io/football/teams/163.png
-German Bundesliga,18,SC Paderborn 07,https://media.api-sports.io/football/teams/185.png
+German Bundesliga,13,1. FC Köln,https://media.api-sports.io/football/teams/192.png
+German Bundesliga,14,Hamburger SV,https://media.api-sports.io/football/teams/175.png
+German Bundesliga,15,SC Paderborn 07,https://media.api-sports.io/football/teams/185.png
+German Bundesliga,16,Borussia Mönchengladbach,https://media.api-sports.io/football/teams/163.png
+German Bundesliga,17,FC Schalke 04,https://media.api-sports.io/football/teams/174.png
+German Bundesliga,18,Union Berlin,https://media.api-sports.io/football/teams/182.png
 Gibraltarian National League,1,Lincoln Red Imps FC,https://media.api-sports.io/football/teams/667.png
 Gibraltarian National League,2,St Joseph S Fc,https://media.api-sports.io/football/teams/698.png
 Gibraltarian National League,3,Magpies,https://media.api-sports.io/football/teams/16135.png
-Gibraltarian National League,4,Mons Calpe,https://media.api-sports.io/football/teams/16137.png
-Gibraltarian National League,5,Europa,https://media.api-sports.io/football/teams/10125.png
+Gibraltarian National League,4,Europa,https://media.api-sports.io/football/teams/10125.png
+Gibraltarian National League,5,Mons Calpe,https://media.api-sports.io/football/teams/16137.png
 Gibraltarian National League,6,Lions Gibraltar,https://media.api-sports.io/football/teams/16133.png
 Gibraltarian National League,7,Glacis United,https://media.api-sports.io/football/teams/16132.png
 Gibraltarian National League,8,Europa Point,https://media.api-sports.io/football/teams/16131.png
-Gibraltarian National League,9,Lynx,https://media.api-sports.io/football/teams/16134.png
+Gibraltarian National League,9,Hound Dogs,https://media.api-sports.io/football/teams/16790.png
 Gibraltarian National League,10,College 1975,https://media.api-sports.io/football/teams/16130.png
-Gibraltarian National League,11,Hound Dogs,https://media.api-sports.io/football/teams/16790.png
+Gibraltarian National League,11,Lynx,https://media.api-sports.io/football/teams/16134.png
 Greek Super League 1,1,Panathinaikos,https://media.api-sports.io/football/teams/617.png
 Greek Super League 1,2,Olympiakos Piraeus,https://media.api-sports.io/football/teams/553.png
 Greek Super League 1,3,AEK Athens FC,https://media.api-sports.io/football/teams/575.png
@@ -300,24 +300,24 @@ Greek Super League 1,5,Aris Thessalonikis,https://media.api-sports.io/football/t
 Greek Super League 1,6,OFI,https://media.api-sports.io/football/teams/1124.png
 Greek Super League 1,7,Kifisia,https://media.api-sports.io/football/teams/5050.png
 Greek Super League 1,8,Kalamata,https://media.api-sports.io/football/teams/5046.png
-Greek Super League 1,9,Iraklis 1908,https://media.api-sports.io/football/teams/17991.png
-Greek Super League 1,10,Levadiakos,https://media.api-sports.io/football/teams/957.png
-Greek Super League 1,11,Asteras Tripolis,https://media.api-sports.io/football/teams/955.png
-Greek Super League 1,12,Atromitos,https://media.api-sports.io/football/teams/12260.png
-Greek Super League 1,13,Panetolikos,https://media.api-sports.io/football/teams/949.png
+Greek Super League 1,9,Panetolikos,https://media.api-sports.io/football/teams/949.png
+Greek Super League 1,10,Iraklis 1908,https://media.api-sports.io/football/teams/17991.png
+Greek Super League 1,11,Atromitos,https://media.api-sports.io/football/teams/12260.png
+Greek Super League 1,12,Asteras Tripolis,https://media.api-sports.io/football/teams/955.png
+Greek Super League 1,13,Levadiakos,https://media.api-sports.io/football/teams/957.png
 Greek Super League 1,14,Volos NFC,https://media.api-sports.io/football/teams/2110.png
 Hungarian NB I,1,Ferencvarosi TC,https://media.api-sports.io/football/teams/651.png
 Hungarian NB I,2,Gyori ETO FC,https://media.api-sports.io/football/teams/2402.png
 Hungarian NB I,3,Debreceni VSC,https://media.api-sports.io/football/teams/2392.png
 Hungarian NB I,4,Puskas Academy,https://media.api-sports.io/football/teams/2391.png
-Hungarian NB I,5,Ujpest,https://media.api-sports.io/football/teams/2255.png
-Hungarian NB I,6,Paks,https://media.api-sports.io/football/teams/2390.png
+Hungarian NB I,5,Paks,https://media.api-sports.io/football/teams/2390.png
+Hungarian NB I,6,Ujpest,https://media.api-sports.io/football/teams/2255.png
 Hungarian NB I,7,Vasas,https://media.api-sports.io/football/teams/675.png
 Hungarian NB I,8,Budapest Honved,https://media.api-sports.io/football/teams/576.png
-Hungarian NB I,9,Zalaegerszegi TE,https://media.api-sports.io/football/teams/2414.png
-Hungarian NB I,10,MTK Budapest,https://media.api-sports.io/football/teams/2396.png
-Hungarian NB I,11,Nyiregyhaza,https://media.api-sports.io/football/teams/2403.png
-Hungarian NB I,12,Kisvarda FC,https://media.api-sports.io/football/teams/2394.png
+Hungarian NB I,9,MTK Budapest,https://media.api-sports.io/football/teams/2396.png
+Hungarian NB I,10,Zalaegerszegi TE,https://media.api-sports.io/football/teams/2414.png
+Hungarian NB I,11,Kisvarda FC,https://media.api-sports.io/football/teams/2394.png
+Hungarian NB I,12,Nyiregyhaza,https://media.api-sports.io/football/teams/2403.png
 Icelandic Besta deild karla,1,Vikingur Reykjavik,https://media.api-sports.io/football/teams/278.png
 Icelandic Besta deild karla,2,KR Reykjavik,https://media.api-sports.io/football/teams/271.png
 Icelandic Besta deild karla,3,Fram Reykjavik,https://media.api-sports.io/football/teams/2117.png
@@ -347,33 +347,33 @@ Israeli Premier League,4,Beitar Jerusalem,https://media.api-sports.io/football/t
 Israeli Premier League,5,Maccabi Haifa,https://media.api-sports.io/football/teams/4195.png
 Israeli Premier League,6,Maccabi Netanya,https://media.api-sports.io/football/teams/4505.png
 Israeli Premier League,7,Hapoel Haifa,https://media.api-sports.io/football/teams/2253.png
-Israeli Premier League,8,Bnei Sakhnin,https://media.api-sports.io/football/teams/4481.png
-Israeli Premier League,9,Maccabi Petah Tikva,https://media.api-sports.io/football/teams/4495.png
-Israeli Premier League,10,Ironi Kiryat Shmona,https://media.api-sports.io/football/teams/4510.png
-Israeli Premier League,11,Hapoel Katamon,https://media.api-sports.io/football/teams/4486.png
-Israeli Premier League,12,Hapoel Ramat Gan,https://media.api-sports.io/football/teams/4489.png
-Israeli Premier League,13,Hapoel Petah Tikva,https://media.api-sports.io/football/teams/4488.png
-Israeli Premier League,14,Ironi Tiberias,https://media.api-sports.io/football/teams/6181.png
+Israeli Premier League,8,Maccabi Petah Tikva,https://media.api-sports.io/football/teams/4495.png
+Israeli Premier League,9,Bnei Sakhnin,https://media.api-sports.io/football/teams/4481.png
+Israeli Premier League,10,Hapoel Katamon,https://media.api-sports.io/football/teams/4486.png
+Israeli Premier League,11,Hapoel Ramat Gan,https://media.api-sports.io/football/teams/4489.png
+Israeli Premier League,12,Hapoel Petah Tikva,https://media.api-sports.io/football/teams/4488.png
+Israeli Premier League,13,Ironi Tiberias,https://media.api-sports.io/football/teams/6181.png
+Israeli Premier League,14,Ironi Kiryat Shmona,https://media.api-sports.io/football/teams/4510.png
 Italian Serie A,1,Inter,https://media.api-sports.io/football/teams/505.png
 Italian Serie A,2,AS Roma,https://media.api-sports.io/football/teams/497.png
 Italian Serie A,3,Como,https://media.api-sports.io/football/teams/895.png
 Italian Serie A,4,AC Milan,https://media.api-sports.io/football/teams/489.png
-Italian Serie A,5,Juventus,https://media.api-sports.io/football/teams/496.png
-Italian Serie A,6,Napoli,https://media.api-sports.io/football/teams/492.png
-Italian Serie A,7,Bologna,https://media.api-sports.io/football/teams/500.png
+Italian Serie A,5,Lazio,https://media.api-sports.io/football/teams/487.png
+Italian Serie A,6,Juventus,https://media.api-sports.io/football/teams/496.png
+Italian Serie A,7,Napoli,https://media.api-sports.io/football/teams/492.png
 Italian Serie A,8,Atalanta,https://media.api-sports.io/football/teams/499.png
 Italian Serie A,9,Frosinone,https://media.api-sports.io/football/teams/512.png
-Italian Serie A,10,Fiorentina,https://media.api-sports.io/football/teams/502.png
+Italian Serie A,10,Bologna,https://media.api-sports.io/football/teams/500.png
 Italian Serie A,11,Genoa,https://media.api-sports.io/football/teams/495.png
-Italian Serie A,12,Cagliari,https://media.api-sports.io/football/teams/490.png
-Italian Serie A,13,Torino,https://media.api-sports.io/football/teams/503.png
-Italian Serie A,14,Sassuolo,https://media.api-sports.io/football/teams/488.png
-Italian Serie A,15,Lecce,https://media.api-sports.io/football/teams/867.png
+Italian Serie A,12,Fiorentina,https://media.api-sports.io/football/teams/502.png
+Italian Serie A,13,Cagliari,https://media.api-sports.io/football/teams/490.png
+Italian Serie A,14,Torino,https://media.api-sports.io/football/teams/503.png
+Italian Serie A,15,Sassuolo,https://media.api-sports.io/football/teams/488.png
 Italian Serie A,16,Monza,https://media.api-sports.io/football/teams/1579.png
-Italian Serie A,17,Parma,https://media.api-sports.io/football/teams/523.png
+Italian Serie A,17,Lecce,https://media.api-sports.io/football/teams/867.png
 Italian Serie A,18,Venezia,https://media.api-sports.io/football/teams/517.png
-Italian Serie A,19,Udinese,https://media.api-sports.io/football/teams/494.png
-Italian Serie A,20,Lazio,https://media.api-sports.io/football/teams/487.png
+Italian Serie A,19,Parma,https://media.api-sports.io/football/teams/523.png
+Italian Serie A,20,Udinese,https://media.api-sports.io/football/teams/494.png
 Kazakhstan Premier League,1,Ordabasy,https://media.api-sports.io/football/teams/692.png
 Kazakhstan Premier League,2,Kairat Almaty,https://media.api-sports.io/football/teams/664.png
 Kazakhstan Premier League,3,FC Astana,https://media.api-sports.io/football/teams/562.png
@@ -414,9 +414,9 @@ Liechtenstein - Cup,1,FC Vaduz,https://media.api-sports.io/football/teams/660.pn
 Liechtenstein - Cup,2,Vaduz II,https://media.api-sports.io/football/teams/18002.png
 Liechtenstein - Cup,3,Balzers II,https://media.api-sports.io/football/teams/16152.png
 Liechtenstein - Cup,4,Ruggell II,https://media.api-sports.io/football/teams/16156.png
-Liechtenstein - Cup,5,Balzers,https://media.api-sports.io/football/teams/12711.png
-Liechtenstein - Cup,6,Schaan II,https://media.api-sports.io/football/teams/16158.png
-Liechtenstein - Cup,7,Eschen / Mauren,https://media.api-sports.io/football/teams/12713.png
+Liechtenstein - Cup,5,Schaan II,https://media.api-sports.io/football/teams/16158.png
+Liechtenstein - Cup,6,Eschen / Mauren,https://media.api-sports.io/football/teams/12713.png
+Liechtenstein - Cup,7,Balzers,https://media.api-sports.io/football/teams/12711.png
 Liechtenstein - Cup,8,Triesenberg,https://media.api-sports.io/football/teams/16161.png
 Liechtenstein - Cup,9,Triesen II,https://media.api-sports.io/football/teams/16160.png
 Liechtenstein - Cup,10,Ruggell,https://media.api-sports.io/football/teams/16155.png
@@ -438,8 +438,8 @@ Lithuanian TOPLYGA,7,Panevėžys,https://media.api-sports.io/football/teams/3874
 Lithuanian TOPLYGA,8,Hegelmann Litauen,https://media.api-sports.io/football/teams/3861.png
 Lithuanian TOPLYGA,9,Šiauliai,https://media.api-sports.io/football/teams/3870.png
 Lithuanian TOPLYGA,10,FK Trakai,https://media.api-sports.io/football/teams/638.png
-Luxembourg National Division,1,FC Differdange 03,https://media.api-sports.io/football/teams/684.png
-Luxembourg National Division,2,UNA Strassen,https://media.api-sports.io/football/teams/2036.png
+Luxembourg National Division,1,UNA Strassen,https://media.api-sports.io/football/teams/2036.png
+Luxembourg National Division,2,FC Differdange 03,https://media.api-sports.io/football/teams/684.png
 Luxembourg National Division,3,Atert Bissen,https://media.api-sports.io/football/teams/15847.png
 Luxembourg National Division,4,US Mondorf-les-bains,https://media.api-sports.io/football/teams/2037.png
 Luxembourg National Division,5,Racing FC Union Luxembourg,https://media.api-sports.io/football/teams/2030.png
@@ -448,9 +448,9 @@ Luxembourg National Division,7,UN Kaerjeng 97,https://media.api-sports.io/footba
 Luxembourg National Division,8,F91 Dudelange,https://media.api-sports.io/football/teams/578.png
 Luxembourg National Division,9,Résidence Walferdange,https://media.api-sports.io/football/teams/15900.png
 Luxembourg National Division,10,AS Jeunesse Esch,https://media.api-sports.io/football/teams/2034.png
-Luxembourg National Division,11,Victoria Rosport,https://media.api-sports.io/football/teams/2038.png
+Luxembourg National Division,11,US Hostert,https://media.api-sports.io/football/teams/2040.png
 Luxembourg National Division,12,US Rumelange,https://media.api-sports.io/football/teams/2033.png
-Luxembourg National Division,13,US Hostert,https://media.api-sports.io/football/teams/2040.png
+Luxembourg National Division,13,Victoria Rosport,https://media.api-sports.io/football/teams/2038.png
 Luxembourg National Division,14,Etzella Ettelbruck,https://media.api-sports.io/football/teams/2042.png
 Luxembourg National Division,15,Wiltz,https://media.api-sports.io/football/teams/11906.png
 Luxembourg National Division,16,Swift Hesperange,https://media.api-sports.io/football/teams/11907.png
@@ -467,9 +467,9 @@ Macedonian First League,10,Skopje,https://media.api-sports.io/football/teams/433
 Maltese Premier League,1,Valletta FC,https://media.api-sports.io/football/teams/659.png
 Maltese Premier League,2,Marsaxlokk,https://media.api-sports.io/football/teams/14507.png
 Maltese Premier League,3,Sliema Wanderers,https://media.api-sports.io/football/teams/4628.png
-Maltese Premier League,4,Hamrun Spartans,https://media.api-sports.io/football/teams/4626.png
+Maltese Premier League,4,Floriana,https://media.api-sports.io/football/teams/4625.png
 Maltese Premier League,5,Birkirkara,https://media.api-sports.io/football/teams/2277.png
-Maltese Premier League,6,Floriana,https://media.api-sports.io/football/teams/4625.png
+Maltese Premier League,6,Hamrun Spartans,https://media.api-sports.io/football/teams/4626.png
 Maltese Premier League,7,Zabbar St. Patrick,https://media.api-sports.io/football/teams/4622.png
 Maltese Premier League,8,Hibernians,https://media.api-sports.io/football/teams/3884.png
 Maltese Premier League,9,Mosta,https://media.api-sports.io/football/teams/4627.png
@@ -487,13 +487,13 @@ Moldovan National Division,8,CSF Bălți,https://media.api-sports.io/football/te
 Montenegrin First League,1,Otrant-Olympic,https://media.api-sports.io/football/teams/3751.png
 Montenegrin First League,2,Sutjeska,https://media.api-sports.io/football/teams/673.png
 Montenegrin First League,3,Buducnost Podgorica,https://media.api-sports.io/football/teams/579.png
-Montenegrin First League,4,Mornar,https://media.api-sports.io/football/teams/3740.png
-Montenegrin First League,5,Dečić,https://media.api-sports.io/football/teams/3745.png
-Montenegrin First League,6,Petrovac,https://media.api-sports.io/football/teams/3741.png
-Montenegrin First League,7,Bokelj,https://media.api-sports.io/football/teams/3744.png
-Montenegrin First League,8,Jezero,https://media.api-sports.io/football/teams/3748.png
-Montenegrin First League,9,Mladost DG,https://media.api-sports.io/football/teams/16749.png
-Montenegrin First League,10,Arsenal Tivat,https://media.api-sports.io/football/teams/3742.png
+Montenegrin First League,4,Dečić,https://media.api-sports.io/football/teams/3745.png
+Montenegrin First League,5,Petrovac,https://media.api-sports.io/football/teams/3741.png
+Montenegrin First League,6,Bokelj,https://media.api-sports.io/football/teams/3744.png
+Montenegrin First League,7,Jezero,https://media.api-sports.io/football/teams/3748.png
+Montenegrin First League,8,Mladost DG,https://media.api-sports.io/football/teams/16749.png
+Montenegrin First League,9,Arsenal Tivat,https://media.api-sports.io/football/teams/3742.png
+Montenegrin First League,10,Mornar,https://media.api-sports.io/football/teams/3740.png
 Northern Irish Premiership,1,Coleraine FC,https://media.api-sports.io/football/teams/669.png
 Northern Irish Premiership,2,Linfield,https://media.api-sports.io/football/teams/583.png
 Northern Irish Premiership,3,Larne,https://media.api-sports.io/football/teams/5354.png
@@ -508,8 +508,8 @@ Northern Irish Premiership,11,Bangor,https://media.api-sports.io/football/teams/
 Northern Irish Premiership,12,Portadown,https://media.api-sports.io/football/teams/5348.png
 Norwegian Eliteserien,1,Bodo/Glimt,https://media.api-sports.io/football/teams/327.png
 Norwegian Eliteserien,2,Viking,https://media.api-sports.io/football/teams/759.png
-Norwegian Eliteserien,3,Rosenborg,https://media.api-sports.io/football/teams/331.png
-Norwegian Eliteserien,4,Lillestrom,https://media.api-sports.io/football/teams/321.png
+Norwegian Eliteserien,3,Lillestrom,https://media.api-sports.io/football/teams/321.png
+Norwegian Eliteserien,4,Rosenborg,https://media.api-sports.io/football/teams/331.png
 Norwegian Eliteserien,5,Molde,https://media.api-sports.io/football/teams/329.png
 Norwegian Eliteserien,6,Tromso,https://media.api-sports.io/football/teams/325.png
 Norwegian Eliteserien,7,Brann,https://media.api-sports.io/football/teams/319.png
@@ -526,38 +526,38 @@ Polish Ekstraklasa,1,Lech Poznan,https://media.api-sports.io/football/teams/347.
 Polish Ekstraklasa,2,Gornik Zabrze,https://media.api-sports.io/football/teams/340.png
 Polish Ekstraklasa,3,Legia Warszawa,https://media.api-sports.io/football/teams/339.png
 Polish Ekstraklasa,4,Wisla Krakow,https://media.api-sports.io/football/teams/338.png
-Polish Ekstraklasa,5,Piast Gliwice,https://media.api-sports.io/football/teams/349.png
-Polish Ekstraklasa,6,Pogon Szczecin,https://media.api-sports.io/football/teams/348.png
-Polish Ekstraklasa,7,Zaglebie Lubin,https://media.api-sports.io/football/teams/345.png
-Polish Ekstraklasa,8,Korona Kielce,https://media.api-sports.io/football/teams/346.png
+Polish Ekstraklasa,5,Pogon Szczecin,https://media.api-sports.io/football/teams/348.png
+Polish Ekstraklasa,6,Zaglebie Lubin,https://media.api-sports.io/football/teams/345.png
+Polish Ekstraklasa,7,Jagiellonia,https://media.api-sports.io/football/teams/336.png
+Polish Ekstraklasa,8,GKS Katowice,https://media.api-sports.io/football/teams/3484.png
 Polish Ekstraklasa,9,Motor Lublin,https://media.api-sports.io/football/teams/14562.png
-Polish Ekstraklasa,10,GKS Katowice,https://media.api-sports.io/football/teams/3484.png
+Polish Ekstraklasa,10,Korona Kielce,https://media.api-sports.io/football/teams/346.png
 Polish Ekstraklasa,11,Raków Częstochowa,https://media.api-sports.io/football/teams/3491.png
-Polish Ekstraklasa,12,Wisla Plock,https://media.api-sports.io/football/teams/341.png
+Polish Ekstraklasa,12,Widzew Łódź,https://media.api-sports.io/football/teams/6962.png
 Polish Ekstraklasa,13,Cracovia Krakow,https://media.api-sports.io/football/teams/350.png
-Polish Ekstraklasa,14,Radomiak Radom,https://media.api-sports.io/football/teams/4248.png
-Polish Ekstraklasa,15,Widzew Łódź,https://media.api-sports.io/football/teams/6962.png
+Polish Ekstraklasa,14,Wisla Plock,https://media.api-sports.io/football/teams/341.png
+Polish Ekstraklasa,15,Radomiak Radom,https://media.api-sports.io/football/teams/4248.png
 Polish Ekstraklasa,16,Slask Wroclaw,https://media.api-sports.io/football/teams/337.png
 Polish Ekstraklasa,17,Wieczysta Kraków,https://media.api-sports.io/football/teams/17115.png
-Polish Ekstraklasa,18,Jagiellonia,https://media.api-sports.io/football/teams/336.png
+Polish Ekstraklasa,18,Piast Gliwice,https://media.api-sports.io/football/teams/349.png
 Portuguese Primeira Liga,1,FC Porto,https://media.api-sports.io/football/teams/212.png
 Portuguese Primeira Liga,2,Benfica,https://media.api-sports.io/football/teams/211.png
 Portuguese Primeira Liga,3,Sporting CP,https://media.api-sports.io/football/teams/228.png
 Portuguese Primeira Liga,4,SC Braga,https://media.api-sports.io/football/teams/217.png
 Portuguese Primeira Liga,5,Santa Clara,https://media.api-sports.io/football/teams/227.png
-Portuguese Primeira Liga,6,Academico Viseu,https://media.api-sports.io/football/teams/238.png
-Portuguese Primeira Liga,7,GIL Vicente,https://media.api-sports.io/football/teams/762.png
-Portuguese Primeira Liga,8,Arouca,https://media.api-sports.io/football/teams/240.png
-Portuguese Primeira Liga,9,Vitória SC,https://media.api-sports.io/football/teams/224.png
+Portuguese Primeira Liga,6,Arouca,https://media.api-sports.io/football/teams/240.png
+Portuguese Primeira Liga,7,Academico Viseu,https://media.api-sports.io/football/teams/238.png
+Portuguese Primeira Liga,8,Famalicao,https://media.api-sports.io/football/teams/242.png
+Portuguese Primeira Liga,9,GIL Vicente,https://media.api-sports.io/football/teams/762.png
 Portuguese Primeira Liga,10,Alverca,https://media.api-sports.io/football/teams/4724.png
-Portuguese Primeira Liga,11,Moreirense,https://media.api-sports.io/football/teams/215.png
-Portuguese Primeira Liga,12,Estrela,https://media.api-sports.io/football/teams/15130.png
+Portuguese Primeira Liga,11,Vitória SC,https://media.api-sports.io/football/teams/224.png
+Portuguese Primeira Liga,12,Moreirense,https://media.api-sports.io/football/teams/215.png
 Portuguese Primeira Liga,13,Maritimo,https://media.api-sports.io/football/teams/214.png
-Portuguese Primeira Liga,14,Nacional,https://media.api-sports.io/football/teams/225.png
-Portuguese Primeira Liga,15,Casa Pia,https://media.api-sports.io/football/teams/4716.png
-Portuguese Primeira Liga,16,Rio Ave,https://media.api-sports.io/football/teams/226.png
+Portuguese Primeira Liga,14,Estrela,https://media.api-sports.io/football/teams/15130.png
+Portuguese Primeira Liga,15,Rio Ave,https://media.api-sports.io/football/teams/226.png
+Portuguese Primeira Liga,16,Nacional,https://media.api-sports.io/football/teams/225.png
 Portuguese Primeira Liga,17,Estoril,https://media.api-sports.io/football/teams/230.png
-Portuguese Primeira Liga,18,Famalicao,https://media.api-sports.io/football/teams/242.png
+Portuguese Primeira Liga,18,Casa Pia,https://media.api-sports.io/football/teams/4716.png
 Romanian Liga I,1,Universitatea Craiova,https://media.api-sports.io/football/teams/632.png
 Romanian Liga I,2,Dinamo Bucuresti,https://media.api-sports.io/football/teams/635.png
 Romanian Liga I,3,Rapid,https://media.api-sports.io/football/teams/6231.png
@@ -570,8 +570,8 @@ Romanian Liga I,9,CFR 1907 Cluj,https://media.api-sports.io/football/teams/2246.
 Romanian Liga I,10,Uta Arad,https://media.api-sports.io/football/teams/2589.png
 Romanian Liga I,11,Sepsi OSK Sfantu Gheorghe,https://media.api-sports.io/football/teams/2585.png
 Romanian Liga I,12,FC Botosani,https://media.api-sports.io/football/teams/2581.png
-Romanian Liga I,13,Arges Pitesti,https://media.api-sports.io/football/teams/2592.png
-Romanian Liga I,14,Oţelul,https://media.api-sports.io/football/teams/6886.png
+Romanian Liga I,13,Oţelul,https://media.api-sports.io/football/teams/6886.png
+Romanian Liga I,14,Arges Pitesti,https://media.api-sports.io/football/teams/2592.png
 Romanian Liga I,15,FC Voluntari,https://media.api-sports.io/football/teams/2578.png
 Romanian Liga I,16,Csikszereda,https://media.api-sports.io/football/teams/6230.png
 Russian Football Premier League,1,Zenit,https://media.api-sports.io/football/teams/596.png
@@ -584,12 +584,12 @@ Russian Football Premier League,7,Baltika,https://media.api-sports.io/football/t
 Russian Football Premier League,8,Rubin,https://media.api-sports.io/football/teams/1083.png
 Russian Football Premier League,9,Krylia Sovetov,https://media.api-sports.io/football/teams/1079.png
 Russian Football Premier League,10,Akhmat,https://media.api-sports.io/football/teams/1085.png
-Russian Football Premier League,11,FC Orenburg,https://media.api-sports.io/football/teams/1080.png
+Russian Football Premier League,11,Lokomotiv,https://media.api-sports.io/football/teams/597.png
 Russian Football Premier League,12,Dinamo Makhachkala,https://media.api-sports.io/football/teams/6813.png
-Russian Football Premier League,13,Lokomotiv,https://media.api-sports.io/football/teams/597.png
-Russian Football Premier League,14,Akron,https://media.api-sports.io/football/teams/6786.png
-Russian Football Premier League,15,Rodina Moskva,https://media.api-sports.io/football/teams/6822.png
-Russian Football Premier League,16,Fakel,https://media.api-sports.io/football/teams/1993.png
+Russian Football Premier League,13,Akron,https://media.api-sports.io/football/teams/6786.png
+Russian Football Premier League,14,Rodina Moskva,https://media.api-sports.io/football/teams/6822.png
+Russian Football Premier League,15,Fakel,https://media.api-sports.io/football/teams/1993.png
+Russian Football Premier League,16,FC Orenburg,https://media.api-sports.io/football/teams/1080.png
 San-Marino Campionato,1,Virtus,https://media.api-sports.io/football/teams/5308.png
 San-Marino Campionato,2,Folgore,https://media.api-sports.io/football/teams/672.png
 San-Marino Campionato,3,Tre Penne,https://media.api-sports.io/football/teams/700.png
@@ -601,8 +601,8 @@ San-Marino Campionato,8,Fiorentino,https://media.api-sports.io/football/teams/53
 San-Marino Campionato,9,Juvenes / Dogana,https://media.api-sports.io/football/teams/5302.png
 San-Marino Campionato,10,Libertas,https://media.api-sports.io/football/teams/5303.png
 San-Marino Campionato,11,Cailungo,https://media.api-sports.io/football/teams/5297.png
-San-Marino Campionato,12,San Giovanni,https://media.api-sports.io/football/teams/5307.png
-San-Marino Campionato,13,San Marino Academy,https://media.api-sports.io/football/teams/22179.png
+San-Marino Campionato,12,San Marino Academy,https://media.api-sports.io/football/teams/22179.png
+San-Marino Campionato,13,San Giovanni,https://media.api-sports.io/football/teams/5307.png
 San-Marino Campionato,14,Pennarossa,https://media.api-sports.io/football/teams/5306.png
 San-Marino Campionato,15,Murata,https://media.api-sports.io/football/teams/5305.png
 San-Marino Campionato,16,Faetano,https://media.api-sports.io/football/teams/5300.png
@@ -612,12 +612,12 @@ Scottish Premiership,3,Heart Of Midlothian,https://media.api-sports.io/football/
 Scottish Premiership,4,Falkirk,https://media.api-sports.io/football/teams/1389.png
 Scottish Premiership,5,Dundee Utd,https://media.api-sports.io/football/teams/1386.png
 Scottish Premiership,6,Dundee,https://media.api-sports.io/football/teams/253.png
-Scottish Premiership,7,ST Johnstone,https://media.api-sports.io/football/teams/258.png
-Scottish Premiership,8,Motherwell,https://media.api-sports.io/football/teams/256.png
+Scottish Premiership,7,Hibernian,https://media.api-sports.io/football/teams/249.png
+Scottish Premiership,8,ST Johnstone,https://media.api-sports.io/football/teams/258.png
 Scottish Premiership,9,ST Mirren,https://media.api-sports.io/football/teams/251.png
 Scottish Premiership,10,Aberdeen,https://media.api-sports.io/football/teams/252.png
 Scottish Premiership,11,Kilmarnock,https://media.api-sports.io/football/teams/250.png
-Scottish Premiership,12,Hibernian,https://media.api-sports.io/football/teams/249.png
+Scottish Premiership,12,Motherwell,https://media.api-sports.io/football/teams/256.png
 Serbian Super Liga,1,FK Crvena Zvezda,https://media.api-sports.io/football/teams/598.png
 Serbian Super Liga,2,Vojvodina,https://media.api-sports.io/football/teams/702.png
 Serbian Super Liga,3,Železničar Pančevo,https://media.api-sports.io/football/teams/12360.png
@@ -625,12 +625,12 @@ Serbian Super Liga,4,IMT Novi Beograd,https://media.api-sports.io/football/teams
 Serbian Super Liga,5,Radnicki 1923,https://media.api-sports.io/football/teams/2644.png
 Serbian Super Liga,6,Cukaricki,https://media.api-sports.io/football/teams/2656.png
 Serbian Super Liga,7,Radnik Surdulica,https://media.api-sports.io/football/teams/2657.png
-Serbian Super Liga,8,FK Partizan,https://media.api-sports.io/football/teams/573.png
-Serbian Super Liga,9,Novi Pazar,https://media.api-sports.io/football/teams/2643.png
+Serbian Super Liga,8,Novi Pazar,https://media.api-sports.io/football/teams/2643.png
+Serbian Super Liga,9,FK Partizan,https://media.api-sports.io/football/teams/573.png
 Serbian Super Liga,10,Mladost Lucani,https://media.api-sports.io/football/teams/699.png
-Serbian Super Liga,11,OFK Beograd,https://media.api-sports.io/football/teams/2633.png
-Serbian Super Liga,12,Macva,https://media.api-sports.io/football/teams/2637.png
-Serbian Super Liga,13,Radnicki NIS,https://media.api-sports.io/football/teams/2254.png
+Serbian Super Liga,11,Macva,https://media.api-sports.io/football/teams/2637.png
+Serbian Super Liga,12,Radnicki NIS,https://media.api-sports.io/football/teams/2254.png
+Serbian Super Liga,13,OFK Beograd,https://media.api-sports.io/football/teams/2633.png
 Serbian Super Liga,14,Zemun,https://media.api-sports.io/football/teams/2642.png
 Slovak First Football League,1,Dunajska Streda,https://media.api-sports.io/football/teams/2257.png
 Slovak First Football League,2,Slovan Bratislava,https://media.api-sports.io/football/teams/656.png
@@ -641,46 +641,46 @@ Slovak First Football League,6,FK Košice,https://media.api-sports.io/football/t
 Slovak First Football League,7,Dukla Banská Bystrica,https://media.api-sports.io/football/teams/10533.png
 Slovak First Football League,8,Komárno,https://media.api-sports.io/football/teams/10535.png
 Slovak First Football League,9,Zemplín Michalovce,https://media.api-sports.io/football/teams/3552.png
-Slovak First Football League,10,Ružomberok,https://media.api-sports.io/football/teams/3549.png
+Slovak First Football League,10,Skalica,https://media.api-sports.io/football/teams/10542.png
 Slovak First Football League,11,AS Trencin,https://media.api-sports.io/football/teams/655.png
-Slovak First Football League,12,Skalica,https://media.api-sports.io/football/teams/10542.png
+Slovak First Football League,12,Ružomberok,https://media.api-sports.io/football/teams/3549.png
 Slovenian 1. SNL,1,Koper,https://media.api-sports.io/football/teams/4374.png
 Slovenian 1. SNL,2,Celje,https://media.api-sports.io/football/teams/4360.png
-Slovenian 1. SNL,3,Olimpija Ljubljana,https://media.api-sports.io/football/teams/677.png
-Slovenian 1. SNL,4,Bravo,https://media.api-sports.io/football/teams/4359.png
-Slovenian 1. SNL,5,Nafta,https://media.api-sports.io/football/teams/4376.png
-Slovenian 1. SNL,6,Aluminij,https://media.api-sports.io/football/teams/4358.png
-Slovenian 1. SNL,7,Brinje-Grosuplje,https://media.api-sports.io/football/teams/12744.png
-Slovenian 1. SNL,8,Mura,https://media.api-sports.io/football/teams/4197.png
-Slovenian 1. SNL,9,Radomlje,https://media.api-sports.io/football/teams/4378.png
-Slovenian 1. SNL,10,Maribor,https://media.api-sports.io/football/teams/552.png
+Slovenian 1. SNL,3,Maribor,https://media.api-sports.io/football/teams/552.png
+Slovenian 1. SNL,4,Olimpija Ljubljana,https://media.api-sports.io/football/teams/677.png
+Slovenian 1. SNL,5,Bravo,https://media.api-sports.io/football/teams/4359.png
+Slovenian 1. SNL,6,Nafta,https://media.api-sports.io/football/teams/4376.png
+Slovenian 1. SNL,7,Aluminij,https://media.api-sports.io/football/teams/4358.png
+Slovenian 1. SNL,8,Brinje-Grosuplje,https://media.api-sports.io/football/teams/12744.png
+Slovenian 1. SNL,9,Mura,https://media.api-sports.io/football/teams/4197.png
+Slovenian 1. SNL,10,Radomlje,https://media.api-sports.io/football/teams/4378.png
 Spanish La Liga,1,Barcelona,https://media.api-sports.io/football/teams/529.png
 Spanish La Liga,2,Real Madrid,https://media.api-sports.io/football/teams/541.png
 Spanish La Liga,3,Atletico Madrid,https://media.api-sports.io/football/teams/530.png
 Spanish La Liga,4,Real Betis,https://media.api-sports.io/football/teams/543.png
 Spanish La Liga,5,Real Sociedad,https://media.api-sports.io/football/teams/548.png
 Spanish La Liga,6,Villarreal,https://media.api-sports.io/football/teams/533.png
-Spanish La Liga,7,Sevilla,https://media.api-sports.io/football/teams/536.png
-Spanish La Liga,8,Athletic Club,https://media.api-sports.io/football/teams/531.png
-Spanish La Liga,9,Rayo Vallecano,https://media.api-sports.io/football/teams/728.png
+Spanish La Liga,7,Athletic Club,https://media.api-sports.io/football/teams/531.png
+Spanish La Liga,8,Sevilla,https://media.api-sports.io/football/teams/536.png
+Spanish La Liga,9,Valencia,https://media.api-sports.io/football/teams/532.png
 Spanish La Liga,10,Alaves,https://media.api-sports.io/football/teams/542.png
-Spanish La Liga,11,Celta Vigo,https://media.api-sports.io/football/teams/538.png
+Spanish La Liga,11,Rayo Vallecano,https://media.api-sports.io/football/teams/728.png
 Spanish La Liga,12,Deportivo La Coruna,https://media.api-sports.io/football/teams/544.png
-Spanish La Liga,13,Racing Santander,https://media.api-sports.io/football/teams/4665.png
-Spanish La Liga,14,Osasuna,https://media.api-sports.io/football/teams/727.png
-Spanish La Liga,15,Valencia,https://media.api-sports.io/football/teams/532.png
+Spanish La Liga,13,Osasuna,https://media.api-sports.io/football/teams/727.png
+Spanish La Liga,14,Espanyol,https://media.api-sports.io/football/teams/540.png
+Spanish La Liga,15,Racing Santander,https://media.api-sports.io/football/teams/4665.png
 Spanish La Liga,16,Getafe,https://media.api-sports.io/football/teams/546.png
 Spanish La Liga,17,Elche,https://media.api-sports.io/football/teams/797.png
-Spanish La Liga,18,Espanyol,https://media.api-sports.io/football/teams/540.png
+Spanish La Liga,18,Levante,https://media.api-sports.io/football/teams/539.png
 Spanish La Liga,19,Malaga,https://media.api-sports.io/football/teams/535.png
-Spanish La Liga,20,Levante,https://media.api-sports.io/football/teams/539.png
+Spanish La Liga,20,Celta Vigo,https://media.api-sports.io/football/teams/538.png
 Swedish Allsvenskan,1,Hammarby FF,https://media.api-sports.io/football/teams/363.png
 Swedish Allsvenskan,2,Sirius,https://media.api-sports.io/football/teams/370.png
 Swedish Allsvenskan,3,Djurgardens IF,https://media.api-sports.io/football/teams/364.png
 Swedish Allsvenskan,4,BK Hacken,https://media.api-sports.io/football/teams/367.png
 Swedish Allsvenskan,5,IF Elfsborg,https://media.api-sports.io/football/teams/372.png
-Swedish Allsvenskan,6,Vasteras SK FK,https://media.api-sports.io/football/teams/2241.png
-Swedish Allsvenskan,7,Malmo FF,https://media.api-sports.io/football/teams/375.png
+Swedish Allsvenskan,6,Malmo FF,https://media.api-sports.io/football/teams/375.png
+Swedish Allsvenskan,7,Vasteras SK FK,https://media.api-sports.io/football/teams/2241.png
 Swedish Allsvenskan,8,Gais,https://media.api-sports.io/football/teams/2170.png
 Swedish Allsvenskan,9,AIK Stockholm,https://media.api-sports.io/football/teams/377.png
 Swedish Allsvenskan,10,IFK Goteborg,https://media.api-sports.io/football/teams/366.png
@@ -694,8 +694,8 @@ Swiss Super League,1,FC Lugano,https://media.api-sports.io/football/teams/606.pn
 Swiss Super League,2,BSC Young Boys,https://media.api-sports.io/football/teams/565.png
 Swiss Super League,3,FC Sion,https://media.api-sports.io/football/teams/630.png
 Swiss Super League,4,FC ST. Gallen,https://media.api-sports.io/football/teams/1011.png
-Swiss Super League,5,FC Zurich,https://media.api-sports.io/football/teams/783.png
-Swiss Super League,6,Servette FC,https://media.api-sports.io/football/teams/2184.png
+Swiss Super League,5,Servette FC,https://media.api-sports.io/football/teams/2184.png
+Swiss Super League,6,FC Zurich,https://media.api-sports.io/football/teams/783.png
 Swiss Super League,7,FC Luzern,https://media.api-sports.io/football/teams/644.png
 Swiss Super League,8,FC Basel 1893,https://media.api-sports.io/football/teams/551.png
 Swiss Super League,9,FC Thun,https://media.api-sports.io/football/teams/1012.png
@@ -703,22 +703,22 @@ Swiss Super League,10,FC Vaduz,https://media.api-sports.io/football/teams/660.pn
 Swiss Super League,11,Grasshoppers,https://media.api-sports.io/football/teams/1013.png
 Swiss Super League,12,Lausanne,https://media.api-sports.io/football/teams/1014.png
 Turkish Super Lig,1,Galatasaray,https://media.api-sports.io/football/teams/645.png
-Turkish Super Lig,2,Trabzonspor,https://media.api-sports.io/football/teams/998.png
-Turkish Super Lig,3,Beşiktaş,https://media.api-sports.io/football/teams/549.png
+Turkish Super Lig,2,Beşiktaş,https://media.api-sports.io/football/teams/549.png
+Turkish Super Lig,3,Trabzonspor,https://media.api-sports.io/football/teams/998.png
 Turkish Super Lig,4,Fenerbahçe,https://media.api-sports.io/football/teams/611.png
 Turkish Super Lig,5,Amed,https://media.api-sports.io/football/teams/3579.png
-Turkish Super Lig,6,Göztepe,https://media.api-sports.io/football/teams/994.png
+Turkish Super Lig,6,Başakşehir,https://media.api-sports.io/football/teams/564.png
 Turkish Super Lig,7,Kasımpaşa,https://media.api-sports.io/football/teams/1004.png
-Turkish Super Lig,8,Başakşehir,https://media.api-sports.io/football/teams/564.png
+Turkish Super Lig,8,Göztepe,https://media.api-sports.io/football/teams/994.png
 Turkish Super Lig,9,Çorum FK,https://media.api-sports.io/football/teams/6343.png
-Turkish Super Lig,10,Rizespor,https://media.api-sports.io/football/teams/1007.png
-Turkish Super Lig,11,Kocaelispor,https://media.api-sports.io/football/teams/7411.png
-Turkish Super Lig,12,Erzurumspor FK,https://media.api-sports.io/football/teams/1009.png
-Turkish Super Lig,13,Gençlerbirliği S.K.,https://media.api-sports.io/football/teams/997.png
+Turkish Super Lig,10,Kocaelispor,https://media.api-sports.io/football/teams/7411.png
+Turkish Super Lig,11,Rizespor,https://media.api-sports.io/football/teams/1007.png
+Turkish Super Lig,12,Gençlerbirliği S.K.,https://media.api-sports.io/football/teams/997.png
+Turkish Super Lig,13,Erzurumspor FK,https://media.api-sports.io/football/teams/1009.png
 Turkish Super Lig,14,Alanyaspor,https://media.api-sports.io/football/teams/996.png
-Turkish Super Lig,15,Konyaspor,https://media.api-sports.io/football/teams/607.png
-Turkish Super Lig,16,Samsunspor,https://media.api-sports.io/football/teams/3603.png
-Turkish Super Lig,17,Gaziantep FK,https://media.api-sports.io/football/teams/3573.png
+Turkish Super Lig,15,Samsunspor,https://media.api-sports.io/football/teams/3603.png
+Turkish Super Lig,16,Gaziantep FK,https://media.api-sports.io/football/teams/3573.png
+Turkish Super Lig,17,Konyaspor,https://media.api-sports.io/football/teams/607.png
 Turkish Super Lig,18,Eyüpspor,https://media.api-sports.io/football/teams/3588.png
 Ukrainian Premier League,1,Shakhtar Donetsk,https://media.api-sports.io/football/teams/550.png
 Ukrainian Premier League,2,Polessya,https://media.api-sports.io/football/teams/6496.png
@@ -729,13 +729,13 @@ Ukrainian Premier League,6,LNZ Cherkasy,https://media.api-sports.io/football/tea
 Ukrainian Premier League,7,Zorya Luhansk,https://media.api-sports.io/football/teams/599.png
 Ukrainian Premier League,8,Kolos Kovalivka,https://media.api-sports.io/football/teams/3627.png
 Ukrainian Premier League,9,Bukovyna,https://media.api-sports.io/football/teams/6486.png
-Ukrainian Premier League,10,Kryvbas KR,https://media.api-sports.io/football/teams/6489.png
-Ukrainian Premier League,11,Epitsentr Dunayivtsi,https://media.api-sports.io/football/teams/14434.png
+Ukrainian Premier League,10,Epitsentr Dunayivtsi,https://media.api-sports.io/football/teams/14434.png
+Ukrainian Premier League,11,Kryvbas KR,https://media.api-sports.io/football/teams/6489.png
 Ukrainian Premier League,12,Livyi Bereh,https://media.api-sports.io/football/teams/17162.png
 Ukrainian Premier League,13,Veres Rivne,https://media.api-sports.io/football/teams/6501.png
 Ukrainian Premier League,14,Obolon'-Brovar,https://media.api-sports.io/football/teams/3630.png
-Ukrainian Premier League,15,Kudrivka,https://media.api-sports.io/football/teams/21953.png
-Ukrainian Premier League,16,Chornomorets,https://media.api-sports.io/football/teams/3615.png
+Ukrainian Premier League,15,Chornomorets,https://media.api-sports.io/football/teams/3615.png
+Ukrainian Premier League,16,Kudrivka,https://media.api-sports.io/football/teams/21953.png
 Welsh Cymru Premier,1,The New Saints,https://media.api-sports.io/football/teams/354.png
 Welsh Cymru Premier,2,GAP Connah S Quay FC,https://media.api-sports.io/football/teams/357.png
 Welsh Cymru Premier,3,Penybont,https://media.api-sports.io/football/teams/2191.png
