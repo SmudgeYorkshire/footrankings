@@ -229,6 +229,25 @@ def _final_league_phase_standings(comp_name: str, key: str) -> list[dict] | None
     )
 
 
+def _league_phase_bounds_from_fixtures(
+    comp_name: str, lp_played: list[dict], lp_remaining: list[dict],
+) -> dict[str, tuple[int, int]] | None:
+    """Raw (uncached) exact_position_bounds computation for a GIVEN
+    played/remaining split of a competition's League Stage fixtures --
+    not necessarily today's real one. Shared by _live_league_phase_
+    bounds (today's real split) and _bonus_added_this_week (an earlier
+    snapshot with this week's own results reverted back to "remaining",
+    to see how much a club's bonus moved from this week's results
+    specifically). With lp_remaining empty this converges to the exact
+    final rank (zero uncertainty left), so it also works unmodified for
+    an already-fully-concluded League Phase -- no special-casing needed
+    for that split either."""
+    if not lp_played and not lp_remaining:
+        return None
+    standings = list(_league_phase_table(lp_played, lp_remaining).values())
+    return exact_position_bounds(standings, lp_remaining, lp_played, _EUROPEAN_TIEBREAKERS)
+
+
 @st.cache_data(ttl=60, show_spinner=False)
 def _live_league_phase_bounds(comp_name: str, key: str) -> dict[str, tuple[int, int]] | None:
     """{club: (best, worst)} via the same exact_position_bounds engine as
@@ -252,10 +271,64 @@ def _live_league_phase_bounds(comp_name: str, key: str) -> dict[str, tuple[int, 
     played, remaining = _fetch_comp_fixtures(comp_name, key)
     lp_played = [f for f in played if _is_league_stage(f.get("strRound", ""))]
     lp_remaining = [f for f in remaining if _is_league_stage(f.get("strRound", ""))]
-    if not lp_played and not lp_remaining:
-        return None
-    standings = list(_league_phase_table(lp_played, lp_remaining).values())
-    return exact_position_bounds(standings, lp_remaining, lp_played, _EUROPEAN_TIEBREAKERS)
+    return _league_phase_bounds_from_fixtures(comp_name, lp_played, lp_remaining)
+
+
+def _combined_live_bonus(comp_name: str, bounds: dict[str, tuple[int, int]] | None) -> dict[str, float]:
+    """D.5(a) top-8 + D.5(b) ranking bonus per club, from an already-
+    computed bounds dict (whichever snapshot it came from -- today's
+    real one, or a past/hypothetical one)."""
+    if not bounds:
+        return {}
+    per_stage = _BONUS_PER_STAGE[comp_name]
+    out: dict[str, float] = {}
+    for club, (_best, worst) in bounds.items():
+        out[club] = _league_phase_bonus(worst, comp_name)
+        if worst <= 8:
+            out[club] += per_stage
+    return out
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _bonus_added_this_week(key: str, week_start: str) -> dict[str, float]:
+    """{club: D.5(a)+D.5(b) bonus points GAINED this week} -- the delta
+    between each club's live combined bonus now and what it would have
+    been with this week's own League Stage results reverted back to
+    "remaining" (so purely a measure of what THIS week's results, taken
+    together, locked in). Needed because these two bonus types don't
+    attach to one single deciding fixture the way a Play-off/knockout
+    tie's bonus does (see _tie_bonus_this_week, which covers those,
+    scoped to rounds OUTSIDE the League Stage so there's no overlap
+    with this) -- a club's guaranteed range can tighten from the
+    COMBINED effect of a whole week's League Stage results, not just
+    one of them, so there's no single row to credit it against.
+
+    Purely additive context for the "This Week" tab's own display --
+    does NOT feed the season-long total (that's _compute_secured_
+    league_phase_bonus/_compute_round_reached_bonus's job, already live
+    every day of the season, not just this week's slice of it)."""
+    bonus: dict[str, float] = {}
+    for comp_name in EUROPEAN_COMPETITIONS:
+        played, remaining = _fetch_comp_fixtures(comp_name, key)
+        lp_played = [f for f in played if _is_league_stage(f.get("strRound", ""))]
+        lp_remaining = [f for f in remaining if _is_league_stage(f.get("strRound", ""))]
+        if not lp_played and not lp_remaining:
+            continue
+
+        before_played = [f for f in lp_played if f.get("dateEvent", "") < week_start]
+        reverted = [f for f in lp_played if f.get("dateEvent", "") >= week_start]
+        before_remaining = lp_remaining + reverted
+
+        after = _combined_live_bonus(
+            comp_name, _league_phase_bounds_from_fixtures(comp_name, lp_played, lp_remaining))
+        before = _combined_live_bonus(
+            comp_name, _league_phase_bounds_from_fixtures(comp_name, before_played, before_remaining))
+
+        for club, amount in after.items():
+            delta = amount - before.get(club, 0.0)
+            if delta > 1e-9:
+                bonus[club] = bonus.get(club, 0.0) + delta
+    return bonus
 
 
 def _league_phase_bonus(rank: int, comp_name: str) -> float:

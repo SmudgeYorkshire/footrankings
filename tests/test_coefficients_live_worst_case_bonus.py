@@ -20,17 +20,17 @@ those two fixed points.
 import coefficients_live as cl
 
 
-def _fixture(round_name, home, away, home_score, away_score, event_id):
+def _fixture(round_name, home, away, home_score, away_score, event_id, date="2026-11-25"):
     return {
-        "idEvent": event_id, "strRound": round_name, "dateEvent": "2026-11-25",
+        "idEvent": event_id, "strRound": round_name, "dateEvent": date,
         "strHomeTeam": home, "strAwayTeam": away,
         "intHomeScore": home_score, "intAwayScore": away_score,
     }
 
 
-def _remaining_fixture(round_name, home, away, event_id):
+def _remaining_fixture(round_name, home, away, event_id, date="2026-12-01"):
     return {
-        "idEvent": event_id, "strRound": round_name, "dateEvent": "2026-12-01",
+        "idEvent": event_id, "strRound": round_name, "dateEvent": date,
         "strHomeTeam": home, "strAwayTeam": away,
         "intHomeScore": None, "intAwayScore": None,
     }
@@ -41,6 +41,7 @@ def _clear_caches():
         cl._fetch_comp_fixtures, cl._final_league_phase_standings,
         cl._live_league_phase_bounds, cl._compute_secured_league_phase_bonus,
         cl._compute_round_reached_bonus, cl._compute_league_phase_bonus_points,
+        cl._bonus_added_this_week,
     ):
         fn.clear()
 
@@ -115,6 +116,31 @@ def test_europa_and_conference_league_also_get_live_bonus_not_just_champions_lea
 
     bonus = cl._compute_secured_league_phase_bonus("fake-key")
     assert bonus.get("T", 0.0) > 0.0
+
+
+def test_bonus_added_this_week_reflects_a_result_that_narrows_the_range(monkeypatch):
+    # T beat two minnows BEFORE this week (6 points, done playing them).
+    # O also picked up points before this week (3) but still has a game
+    # left against T -- a genuine threat to T's worst case at that point,
+    # since O's ceiling (3+3=6) hadn't yet fallen below T's own points.
+    # THIS week, T beats O 3-0: T is now fixed at 9, and O's remaining
+    # ceiling (3+3=6, one game left against a filler club) can no longer
+    # reach 9 -- O stops being a threat to T entirely. That's a real,
+    # meaningful tightening of T's guaranteed range that happened
+    # entirely within this week's own results.
+    before_week = [
+        _fixture("League Stage", "T", "P1", 3, 0, "ev1", date="2026-11-10"),
+        _fixture("League Stage", "T", "P2", 3, 0, "ev2", date="2026-11-17"),
+        _fixture("League Stage", "O", "P3", 1, 0, "ev3", date="2026-11-10"),
+    ]
+    this_week = [_fixture("League Stage", "T", "O", 3, 0, "ev4", date="2026-11-24")]
+    still_remaining = [_remaining_fixture("League Stage", "O", "W", "ev5", date="2026-12-01")]
+    played = before_week + this_week
+    _clear_caches()
+    _patch_fixtures(monkeypatch, {"Champions League": (played, still_remaining)})
+
+    added = cl._bonus_added_this_week("fake-key", "2026-11-24")
+    assert added.get("T", 0.0) > 0.0
 
 
 def test_falls_back_to_flat_floor_before_the_league_phase_fixture_list_exists(monkeypatch):

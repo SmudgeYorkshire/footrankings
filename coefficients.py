@@ -47,6 +47,7 @@ from coefficients_live import (
     _compute_live_raw_points, _coefficients_from_raw,
     _compute_todays_raw_points, _compute_ecl_eliminations, _build_ranking_df,
     _SECURED_LP_FLOOR, _BONUS_PER_STAGE, _PLAYOFF_ROUND_NAMES, _classify_knockout_round,
+    _bonus_added_this_week,
     predicted_country_ranking, predicted_club_coefficients,
 )
 
@@ -753,6 +754,18 @@ with tab_week:
                 bonus_country = club_country.get(bonus_club)
                 if bonus_country:
                     weekly_totals[bonus_country] = weekly_totals.get(bonus_country, 0.0) + bonus_raw
+
+        # D.5(a)/D.5(b) bonus points a club's live Worst rank LOCKED IN this
+        # week (e.g. clinching a tighter League Phase bracket, or a direct
+        # Round-of-16 spot) -- doesn't attach to one single fixture the way
+        # the tie-decided bonus above does, since it's the combined effect
+        # of the whole week's League Stage results, so it's folded in here
+        # as one lump per nation rather than shown per match above.
+        _week_live_bonus = _bonus_added_this_week(_API_KEY, _week_start)
+        for bonus_club, bonus_raw in _week_live_bonus.items():
+            bonus_country = club_country.get(bonus_club)
+            if bonus_country:
+                weekly_totals[bonus_country] = weekly_totals.get(bonus_country, 0.0) + bonus_raw
         # Include every nation with a club playing this week, even at 0.0 so far,
         # and list that nation's own still-to-play fixtures (both clubs' nations
         # get the same fixture listed once each, not just the home side's).
@@ -820,6 +833,39 @@ with tab_week:
             },
             use_container_width=False, hide_index=True, height=len(_weekly_df) * 35 + 38,
         )
+
+        # ── D.5 bonus points locked in this week, by club ───────────────────
+        if _week_live_bonus:
+            st.markdown("##### 🏅 D.5 Bonus Points Secured This Week")
+            st.caption(
+                "League Phase ranking (D.5b) and Round-of-16 (D.5a) bonus points a club's "
+                "mathematically-guaranteed Worst position locked in from this week's League "
+                "Stage results, combined -- not tied to any single match above, since it's "
+                "the whole week's results together that narrow a club's range."
+            )
+            _bonus_rows = [
+                {
+                    "Flag": _flag_url(club_country.get(club, "")),
+                    "Club": club,
+                    "Country": club_country.get(club, ""),
+                    "Bonus points this week": round(amount, 3),
+                }
+                for club, amount in _week_live_bonus.items()
+            ]
+            _bonus_df = pd.DataFrame(_bonus_rows).sort_values(
+                "Bonus points this week", ascending=False
+            ).reset_index(drop=True)
+            st.dataframe(
+                _bonus_df,
+                column_config={
+                    "Flag": st.column_config.ImageColumn("", width=32),
+                    "Club": st.column_config.TextColumn("Club", width=180),
+                    "Country": st.column_config.TextColumn("Country", width=120),
+                    "Bonus points this week": st.column_config.NumberColumn(
+                        "Bonus points", format="%.3f", width=120),
+                },
+                use_container_width=False, hide_index=True, height=len(_bonus_df) * 35 + 38,
+            )
 
     st.divider()
 
