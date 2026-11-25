@@ -4,8 +4,8 @@ best/worst final League Phase position used on european.py's Current
 Standings and Manual Predictions tables. Covers the specific case
 position_bounds leaves loose (two rivals who still play EACH OTHER can't
 both simultaneously hit their own independent ceiling), a multi-team
-mutual chain verified against brute force, already-decided teams, and
-the documented size/budget fallbacks.
+mutual chain verified against brute force, already-decided teams, and a
+larger cluster solved exactly via the underlying integer program.
 """
 
 import itertools
@@ -111,36 +111,29 @@ def test_matches_against_t_itself_are_resolved_not_free_variables():
     assert bounds["T"] == (1, 2)
 
 
-def test_fallback_when_contender_cluster_exceeds_the_edge_cap():
-    # A single oversized mutual cluster shouldn't hang or crash -- it
-    # should degrade to the same sound-but-loose treatment position_
-    # bounds already uses everywhere, for just that cluster.
-    standings = [{"strTeam": "T", "intPoints": 10}]
-    teams = [f"R{i}" for i in range(6)]
-    for t in teams:
-        standings.append({"strTeam": t, "intPoints": 8})
-    remaining = [
-        {"strHomeTeam": a, "strAwayTeam": b}
-        for a, b in itertools.combinations(teams, 2)
-    ]  # a fully-connected 6-team cluster -- 15 mutual edges
-    bounds = exact_position_bounds(standings, remaining, max_contender_edges=5)
-    # Falls back to "every contender simultaneously crosses" for this
-    # cluster -- sound (conservative), returns promptly, doesn't crash.
-    assert bounds["T"][1] == 1 + len(teams)
-
-
-def test_node_budget_exhaustion_still_uses_greedy_seed_for_best():
-    # Same fully-connected 6-team cluster as the edge-cap fallback test
-    # above, but forced to exhaust its SEARCH budget instead (node_budget=1
-    # -- the branch-and-bound gets zero real search). Confirmed live
-    # 2026-11-24: without a seed, a real ~34-team contender cluster
-    # (Champions League, Slovan Bratislava's own Best case) never improved
-    # on the trivial "everyone crosses" bound even at 100x the default
-    # node_budget, because the search's own fixed match-order DFS never
-    # stumbled on a better full assignment in time -- a cheap greedy seed
-    # found one (6 crossings instead of 34) in under a millisecond. Here,
-    # with node_budget=1, the minimize (Best) direction must still land on
-    # the greedy seed's result, not the crude "all 6 cross" fallback.
+def test_fully_connected_cluster_is_solved_exactly_not_approximated():
+    # A 6-team fully-connected mutual cluster (15 remaining matches, a
+    # mini round robin) against T=10 fixed. Two earlier implementations
+    # of this function (a plain branch-and-bound DFS, then a greedy-
+    # seeded version of the same thing) could silently fall back to the
+    # crude "every contender simultaneously crosses" bound on clusters
+    # not much bigger than this one -- this is now solved as a small
+    # integer program (see _ilp_crossing_extreme's own docstring) and
+    # should land strictly inside the loose bound's range, not just
+    # repeat it.
+    #
+    # Worst case: happens to equal the loose bound here too (7) -- an
+    # all-draws result genuinely pushes all 6 teams to 8+5*1=13>10 at
+    # once, so position_bounds' independent-ceiling count was already
+    # tight for this particular direction.
+    #
+    # Best case is the one that actually differs: pigeonhole forces at
+    # least 3 of the 6 to exceed 10 regardless of how results are
+    # arranged (15 matches distribute at least 30 points in total even
+    # if every one is a draw, and no 2 teams playing only 5 games each
+    # can absorb more than 15 of that between them while the other 4
+    # still have 6 matches left to decide among themselves) -- so Best
+    # is 4, not the loose bound's naive 1.
     standings = [{"strTeam": "T", "intPoints": 10}]
     teams = [f"R{i}" for i in range(6)]
     for t in teams:
@@ -149,10 +142,10 @@ def test_node_budget_exhaustion_still_uses_greedy_seed_for_best():
         {"strHomeTeam": a, "strAwayTeam": b}
         for a, b in itertools.combinations(teams, 2)
     ]
-    starved = exact_position_bounds(standings, remaining, node_budget=1)
-    full = exact_position_bounds(standings, remaining)
-    assert starved["T"][0] < 1 + len(teams)  # better than the trivial "everyone crosses"
-    assert starved["T"][0] == full["T"][0]  # the seed alone already matches the fully-searched answer here
+    loose = position_bounds(standings, remaining)
+    exact = exact_position_bounds(standings, remaining)
+    assert loose["T"] == (1, 7)
+    assert exact["T"] == (4, 7)
 
 
 def test_tiebreaker_reuse_matches_position_bounds_behavior():

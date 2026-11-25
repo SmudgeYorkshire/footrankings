@@ -7,3 +7,4 @@ python-dotenv>=1.0.0
 pyyaml>=6.0
 streamlit-authenticator>=0.3.0
 bcrypt>=4.0.0
+pulp>=2.7.0,<3
