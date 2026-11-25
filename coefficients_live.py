@@ -21,6 +21,7 @@ from pathlib import Path
 
 from config import LEAGUES, EUROPEAN_COMPETITIONS, CURRENT_EURO_SEASON
 from api_football_fetcher import ApiFootballClient
+from simulator import exact_position_bounds
 from coefficients_baseline import (
     COUNTRY_BASELINE, COUNTRY_NAME_FIXUP, CLUB_COUNTRY_OVERRIDE,
 )
@@ -53,6 +54,14 @@ _FULL_POINTS = (2.0, 1.0)
 
 # D.5(a): bonus points per knockout stage reached, by competition.
 _BONUS_PER_STAGE = {"Champions League": 1.5, "Europa League": 1.0, "Conference League": 0.5}
+
+# UEFA Article 18.01's real League Phase tiebreak order (no head-to-head --
+# confirmed live 2026-11-25 against documents.uefa.com). Must stay in sync
+# with european.py's own _LEAGUE_PHASE_TIEBREAKERS -- duplicated rather than
+# imported since european.py is a Streamlit page script that fetches live
+# data and renders UI at import time (same reason this module exists
+# separately from coefficients.py in the first place, see module docstring).
+_EUROPEAN_TIEBREAKERS = ["gd", "gf", "away_gf", "wins", "away_wins"]
 
 
 @st.cache_data(ttl=86_400, show_spinner=False)
@@ -163,6 +172,42 @@ def _classify_knockout_round(round_str: str) -> str | None:
     return None
 
 
+def _league_phase_table(lp_played: list[dict], lp_remaining: list[dict] = ()) -> dict[str, dict]:
+    """{club: {strTeam, intPoints, intGoalDifference, intGoalsFor}} --
+    exact_position_bounds-ready shape, built from played League Stage
+    fixtures (lp_remaining is only consulted to seed a zero row for a
+    club that's been drawn into the League Phase but hasn't played a
+    fixture yet). Shared by _final_league_phase_standings (the fully-
+    concluded case) and _live_league_phase_bounds (the in-progress one)
+    so the accumulation logic -- and its tiebreak-relevant GD/GF fields
+    -- only lives in one place."""
+    teams: dict[str, dict] = {}
+
+    def _ensure(t: str) -> None:
+        teams.setdefault(t, {"strTeam": t, "intPoints": 0, "intGoalDifference": 0, "intGoalsFor": 0})
+
+    for f in lp_remaining:
+        _ensure(f.get("strHomeTeam", ""))
+        _ensure(f.get("strAwayTeam", ""))
+    for f in lp_played:
+        home, away = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
+        hs, aws = int(f.get("intHomeScore") or 0), int(f.get("intAwayScore") or 0)
+        _ensure(home)
+        _ensure(away)
+        teams[home]["intGoalsFor"] += hs
+        teams[home]["intGoalDifference"] += hs - aws
+        teams[away]["intGoalsFor"] += aws
+        teams[away]["intGoalDifference"] += aws - hs
+        if hs > aws:
+            teams[home]["intPoints"] += 3
+        elif aws > hs:
+            teams[away]["intPoints"] += 3
+        else:
+            teams[home]["intPoints"] += 1
+            teams[away]["intPoints"] += 1
+    return teams
+
+
 @st.cache_data(ttl=60, show_spinner=False)
 def _final_league_phase_standings(comp_name: str, key: str) -> list[dict] | None:
     """Full 36-club League Stage table, sorted points/GD/GF. Returns None
@@ -174,24 +219,43 @@ def _final_league_phase_standings(comp_name: str, key: str) -> list[dict] | None
     if not lp_played or lp_remaining:
         return None
 
-    teams: dict[str, dict] = {}
-    for f in lp_played:
-        home, away = f.get("strHomeTeam", ""), f.get("strAwayTeam", "")
-        hs, aws = int(f.get("intHomeScore") or 0), int(f.get("intAwayScore") or 0)
-        for t in (home, away):
-            teams.setdefault(t, {"club": t, "pts": 0, "gd": 0, "gf": 0})
-        teams[home]["gf"] += hs
-        teams[home]["gd"] += hs - aws
-        teams[away]["gf"] += aws
-        teams[away]["gd"] += aws - hs
-        if hs > aws:
-            teams[home]["pts"] += 3
-        elif aws > hs:
-            teams[away]["pts"] += 3
-        else:
-            teams[home]["pts"] += 1
-            teams[away]["pts"] += 1
-    return sorted(teams.values(), key=lambda r: (-r["pts"], -r["gd"], -r["gf"]))
+    table = _league_phase_table(lp_played)
+    return sorted(
+        (
+            {"club": t["strTeam"], "pts": t["intPoints"], "gd": t["intGoalDifference"], "gf": t["intGoalsFor"]}
+            for t in table.values()
+        ),
+        key=lambda r: (-r["pts"], -r["gd"], -r["gf"]),
+    )
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _live_league_phase_bounds(comp_name: str, key: str) -> dict[str, tuple[int, int]] | None:
+    """{club: (best, worst)} via the same exact_position_bounds engine as
+    european.py's own Current Standings Best/Worst columns -- None if
+    this competition's League Phase either hasn't published a fixture
+    list yet, or has already fully concluded (in which case the real
+    final rank from _final_league_phase_standings should be used
+    directly instead; this function explicitly defers to it).
+
+    This is what lets a club's credited D.5 bonus tighten PROGRESSIVELY
+    as its mathematically-guaranteed range narrows over the season,
+    rather than jumping straight from a flat "just made the League
+    Phase" floor to the real value only once the entire 36-club phase
+    has finished for everyone (the gap the user caught live 2026-11-25,
+    reporting Real Madrid getting no bonus credit update despite a
+    result that narrowed their range -- see _compute_secured_league_
+    phase_bonus and _compute_round_reached_bonus, which both consume
+    this)."""
+    if _final_league_phase_standings(comp_name, key):
+        return None
+    played, remaining = _fetch_comp_fixtures(comp_name, key)
+    lp_played = [f for f in played if _is_league_stage(f.get("strRound", ""))]
+    lp_remaining = [f for f in remaining if _is_league_stage(f.get("strRound", ""))]
+    if not lp_played and not lp_remaining:
+        return None
+    standings = list(_league_phase_table(lp_played, lp_remaining).values())
+    return exact_position_bounds(standings, lp_remaining, lp_played, _EUROPEAN_TIEBREAKERS)
 
 
 def _league_phase_bonus(rank: int, comp_name: str) -> float:
@@ -227,20 +291,44 @@ def _compute_league_phase_bonus_points(key: str) -> dict[str, float]:
 
 @st.cache_data(ttl=60, show_spinner=False)
 def _compute_secured_league_phase_bonus(key: str) -> dict[str, float]:
-    """Every club guaranteed a League Phase spot gets the worst-case (rank
-    36) league-phase-ranking bonus floor immediately, rather than waiting
-    for the whole phase to finish to credit anything — updated live as more
-    clubs secure their spot (the initial confirmed-entrant list plus every
-    Play-off round tie winner as those get decided). Once a competition's
-    League Phase actually concludes, _compute_league_phase_bonus_points
-    takes over with the real per-rank value (always >= this floor), so
-    there's no double-counting."""
+    """Every club already in a League Phase gets its mathematically-
+    GUARANTEED-minimum D.5(b) bonus credited live, via each club's own
+    Worst reachable rank from _live_league_phase_bounds (the same exact_
+    position_bounds engine as european.py's own Best/Worst columns) --
+    this TIGHTENS PROGRESSIVELY as results narrow a club's range over the
+    season, not just once at "made the League Phase" (a flat floor) and
+    again only once the whole phase concludes for every club. Caught live
+    2026-11-25: the old version only ever credited the flat worst-of-36
+    floor (6.000 for the Champions League, 0.000 -- i.e. nothing -- for
+    the other two) the moment a club secured a spot at all, so a club
+    that had mathematically clinched a much better bracket (say, a
+    Champions League club locked into the top half, or ANY Europa/
+    Conference League club at all, since their old floor was always
+    zero) got no credit for it until the entire phase finished.
+
+    Falls back to the old flat floor only for the brief pre-draw window
+    where a club is confirmed into the League Phase but its fixture list
+    doesn't exist yet to compute an exact bound from -- the previous
+    confirmed-entrant/Play-off-winner logic, unchanged. Once a
+    competition's League Phase actually concludes, _compute_league_
+    phase_bonus_points takes over with the real final-rank value (always
+    >= whatever this credited while still in progress, since Worst can
+    only ever tighten toward the true result -- see exact_position_
+    bounds' own docstring), so there's no double-counting."""
     bonus: dict[str, float] = {}
-    for comp_name, floor in _SECURED_LP_FLOOR.items():
-        if floor <= 0.0:
-            continue
+    for comp_name in EUROPEAN_COMPETITIONS:
         if _final_league_phase_standings(comp_name, key):
             continue  # real per-rank bonus already applies instead
+
+        live_bounds = _live_league_phase_bounds(comp_name, key)
+        if live_bounds is not None:
+            for club, (_best, worst) in live_bounds.items():
+                bonus[club] = _league_phase_bonus(worst, comp_name)
+            continue
+
+        floor = _SECURED_LP_FLOOR.get(comp_name, 0.0)
+        if floor <= 0.0:
+            continue  # nothing to credit pre-draw for Europa/Conference League anyway
 
         secured: set[str] = {club for club, _c, _f in CONFIRMED_LEAGUE_PHASE.get(comp_name, [])}
         played, remaining = _fetch_comp_fixtures(comp_name, key)
@@ -259,7 +347,20 @@ def _compute_secured_league_phase_bonus(key: str) -> dict[str, float]:
 @st.cache_data(ttl=60, show_spinner=False)
 def _compute_round_reached_bonus(key: str) -> dict[str, float]:
     """{club: bonus points} from D.5(a) — reaching R16 (via League Phase
-    top 8 or winning the knockout play-off round), QF, SF, or the Final."""
+    top 8 or winning the knockout play-off round), QF, SF, or the Final.
+
+    The KPO/R16/QF/SF tie-winner credits below were already live (a tie's
+    winner is known the moment it's decided). The top-8-direct-to-R16
+    credit used to be the odd one out, only ever applied once the WHOLE
+    League Phase had finished for every club (_final_league_phase_
+    standings) -- caught live 2026-11-25 alongside the same gap in D.5(b)
+    (see _compute_secured_league_phase_bonus's own docstring). Now credits
+    it early too, the moment a club's Worst reachable rank is provably
+    <= 8 (via _live_league_phase_bounds -- it genuinely cannot drop out
+    of a direct Round-of-16 spot anymore, regardless of how the rest of
+    the League Phase plays out), mutually exclusive with the final-
+    standings credit via the same "once the real answer exists, stop
+    using the live one" guard _live_league_phase_bounds already applies."""
     bonus: dict[str, float] = {}
 
     def credit(club, amount):
@@ -279,6 +380,12 @@ def _compute_round_reached_bonus(key: str) -> dict[str, float]:
         if lp_standings:
             for row in lp_standings[:8]:
                 credit(row["club"], per_stage)              # reached R16 directly
+        else:
+            live_bounds = _live_league_phase_bounds(comp_name, key)
+            if live_bounds:
+                for club, (_best, worst) in live_bounds.items():
+                    if worst <= 8:
+                        credit(club, per_stage)              # mathematically locked into the top 8
 
         if "KPO" in rounds_map:
             for legs in _group_ties(rounds_map["KPO"]):
