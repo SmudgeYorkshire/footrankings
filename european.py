@@ -18,13 +18,13 @@ from zoneinfo import ZoneInfo
 from config import EUROPEAN_COMPETITIONS, LEAGUES, CURRENT_EURO_SEASON
 from api_football_fetcher import ApiFootballClient
 from _split_season import build_h2h, rank_tied_group
-from simulator import position_bounds, exact_position_bounds, build_live_odds_lambda_overrides
+from simulator import exact_position_bounds, build_live_odds_lambda_overrides
 from qualifying_bracket import CONFIRMED_LEAGUE_PHASE
 from club_coefficients import get_coeff
 from league_phase_simulator import (
     build_predicted_bracket, single_match_outcome_probs,
     cached_league_phase_simulation, league_phase_sim_cache_key,
-    simulate_competition_winner, league_phase_clinch_status,
+    simulate_competition_winner,
 )
 from prob_table import render_prob_table, _green_col
 from league_phase_fixtures import (
@@ -482,6 +482,59 @@ if has_lp:
         else:
             _real_results, _real_unresolved_names = {}, []
 
+        # Exact Best/Worst reachable League Phase position per club, computed
+        # ONCE here (not per-tab) so League Stage Predictions' own X/✓ marks
+        # and Points Needed's per-club Secured/Eliminated/Alive status can
+        # never disagree with each other OR with Current Standings' own
+        # Best/Worst columns -- all three now share this single exact_
+        # position_bounds call instead of each asserting certainty through
+        # its own, different (and looser) method. Caught live 2026-11-26:
+        # League Stage Predictions was still using the OLD loose position_
+        # bounds (independent-ceiling, doesn't know two rivals can't both
+        # hit their own ceiling if they play each other) for its own X
+        # marks, so it could show a nonzero "0.0%" for a position Current
+        # Standings' exact engine had already proven impossible (Slavia
+        # Praha shown Best=10th in Current Standings, but 8th still not
+        # marked X in League Stage Predictions).
+        if _real_schedule_ready:
+            _lp_points: dict[str, int] = {f["team"]: 0 for f in _field}
+            _lp_gd: dict[str, int] = {f["team"]: 0 for f in _field}
+            _lp_gf: dict[str, int] = {f["team"]: 0 for f in _field}
+            for (_h, _a), (_hg, _ag) in _real_results.items():
+                _lp_gd[_h] = _lp_gd.get(_h, 0) + (_hg - _ag)
+                _lp_gd[_a] = _lp_gd.get(_a, 0) + (_ag - _hg)
+                _lp_gf[_h] = _lp_gf.get(_h, 0) + _hg
+                _lp_gf[_a] = _lp_gf.get(_a, 0) + _ag
+                if _hg > _ag:
+                    _lp_points[_h] = _lp_points.get(_h, 0) + 3
+                elif _hg == _ag:
+                    _lp_points[_h] = _lp_points.get(_h, 0) + 1
+                    _lp_points[_a] = _lp_points.get(_a, 0) + 1
+                else:
+                    _lp_points[_a] = _lp_points.get(_a, 0) + 3
+            _lp_standings = [
+                {
+                    "strTeam": t, "intPoints": p,
+                    "intGoalDifference": _lp_gd.get(t, 0), "intGoalsFor": _lp_gf.get(t, 0),
+                }
+                for t, p in _lp_points.items()
+            ]
+            _lp_remaining = [
+                f for f in _real_schedule
+                if (f["strHomeTeam"], f["strAwayTeam"]) not in _real_results
+            ]
+            _lp_played = [
+                {"strHomeTeam": _h, "strAwayTeam": _a, "intHomeScore": _hg, "intAwayScore": _ag}
+                for (_h, _a), (_hg, _ag) in _real_results.items()
+            ]
+            _lp_bounds = _cached_exact_bounds(_lp_standings, _lp_remaining, _lp_played)
+        else:
+            # Bounds only make sense once the real draw exists -- before
+            # that, every club is at 0 points and nothing is meaningfully
+            # "clinched" or "impossible" yet (asserting either would claim
+            # certainty about a schedule that isn't real).
+            _lp_bounds = None
+
         def _render_unresolved_names_warning() -> None:
             # See real_league_phase_results' own docstring for why this
             # matters: a club in here means its ACTUAL results aren't
@@ -837,39 +890,10 @@ if tab_lp_pred is not None:
             )
 
             # ── Full League Phase position-probability table ─────────────────
-            # Bounds only make sense once the real draw exists -- before that,
-            # every team is at 0 points and nothing is meaningfully "clinched"
-            # or "impossible" yet (asserting either would claim certainty about
-            # a schedule that isn't real). Replays _real_results alone (NOT
-            # _ls_result's own pts_matrix, which mixes real locked-in points
-            # with each simulation's own randomly-simulated remaining
-            # fixtures) to get real current points + remaining-fixture-count
-            # per team -- the same "current points" basis simulator.
-            # position_bounds expects everywhere else it's used.
-            if _real_schedule_ready:
-                _lp_points = {f["team"]: 0 for f in _field}
-                for (_h, _a), (_hg, _ag) in _real_results.items():
-                    if _hg > _ag:
-                        _lp_points[_h] = _lp_points.get(_h, 0) + 3
-                    elif _hg == _ag:
-                        _lp_points[_h] = _lp_points.get(_h, 0) + 1
-                        _lp_points[_a] = _lp_points.get(_a, 0) + 1
-                    else:
-                        _lp_points[_a] = _lp_points.get(_a, 0) + 3
-                _lp_standings = [{"strTeam": t, "intPoints": p} for t, p in _lp_points.items()]
-                _lp_remaining = [
-                    f for f in _real_schedule
-                    if (f["strHomeTeam"], f["strAwayTeam"]) not in _real_results
-                ]
-                _lp_played = [
-                    {"strHomeTeam": _h, "strAwayTeam": _a, "intHomeScore": _hg, "intAwayScore": _ag}
-                    for (_h, _a), (_hg, _ag) in _real_results.items()
-                ]
-                _lp_bounds = position_bounds(
-                    _lp_standings, _lp_remaining, _lp_played, _LEAGUE_PHASE_TIEBREAKERS,
-                )
-            else:
-                _lp_bounds = None
+            # _lp_bounds (exact_position_bounds, same engine Current Standings
+            # uses) was already computed once in the shared section above --
+            # reused here rather than recomputed so this can never disagree
+            # with Current Standings' own Best/Worst columns.
             render_prob_table(
                 _ls_result[_lp_pos_cols], badge_lookup=badge_lookup, bounds=_lp_bounds,
                 title=f"{comp_name} League Phase — full position probabilities",
@@ -1441,18 +1465,24 @@ if tab_points_needed is not None:
             if _real_schedule_ready:
                 st.markdown("##### Per-club status")
                 st.caption(
-                    "Secured/Eliminated are both mathematically proven (see league_phase_simulator."
-                    "league_phase_clinch_status's own docstring for exactly what each check does and "
-                    "doesn't guarantee) -- Alive means genuinely undecided OR just not provable yet by "
-                    "this method, not that it's unlikely."
+                    "Secured/Eliminated are both mathematically proven -- from the same exact "
+                    "Best/Worst reachable position (simulator.exact_position_bounds) Current "
+                    "Standings' own Best/Worst columns use, so this can never disagree with them. "
+                    "Secured once a club's Worst reachable position is at or inside the cutoff; "
+                    "Eliminated once its Best reachable position has already fallen outside it; "
+                    "Alive otherwise."
                 )
-                _pn_unplayed = [
-                    fx for fx in _real_schedule
-                    if (fx["strHomeTeam"], fx["strAwayTeam"]) not in _real_results
-                ]
-                _pn_status = league_phase_clinch_status(
-                    _field, _pn_cur_pts, _pn_games_played, _pn_games, _pn_unplayed, cutoffs=(8, 24),
-                )
+                _pn_status = {
+                    t: {
+                        cutoff: (
+                            "secured" if worst <= cutoff else
+                            "eliminated" if best > cutoff else
+                            "alive"
+                        )
+                        for cutoff in (8, 24)
+                    }
+                    for t, (best, worst) in (_lp_bounds or {}).items()
+                }
                 _pn_status_rows = [
                     {
                         "Team": t,
