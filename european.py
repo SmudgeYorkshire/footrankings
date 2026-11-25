@@ -89,11 +89,20 @@ def _intround(f: dict) -> int:
     return int(f.get("intRound", 0) or 0)
 
 
-# UEFA's own official League Phase tiebreak order (ahead of the Article
-# governing the Champions/Europa/Conference League format): head-to-head
-# points, then head-to-head GD, then head-to-head GF, then head-to-head
-# away GF, then overall GD, then overall GF.
-_LEAGUE_PHASE_TIEBREAKERS = ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"]
+# UEFA's own official League Phase tiebreak order (Article 18.01 of the
+# Champions/Europa/Conference League regulations): superior goal
+# difference, then goals scored, then away goals scored, then wins, then
+# away wins -- confirmed live 2026-11-25 against the actual regulation
+# text (documents.uefa.com, Article 18) that this does NOT include any
+# head-to-head criterion at all (an earlier version of this list wrongly
+# had h2h first, inherited from the old group-stage format's rules,
+# which the new Swiss-model league phase deliberately dropped since most
+# tied teams never play each other). The remaining real criteria after
+# away wins -- collective record of each team's own opponents,
+# disciplinary points, club coefficient -- aren't modelled here (no
+# supporting data/infrastructure for them), same as every other
+# unsupported/unlisted rule _resolve_tiebreak_between already skips.
+_LEAGUE_PHASE_TIEBREAKERS = ["gd", "gf", "away_gf", "wins", "away_wins"]
 
 
 def _compute_league_standings(matches: list[dict], badge_lookup: dict) -> list[dict]:

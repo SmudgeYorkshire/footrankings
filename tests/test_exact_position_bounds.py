@@ -164,3 +164,48 @@ def test_tiebreaker_reuse_matches_position_bounds_behavior():
     loose = position_bounds(standings, remaining, played, tiebreakers)
     exact = exact_position_bounds(standings, remaining, played, tiebreakers)
     assert exact == loose == {"A": (1, 1), "B": (2, 2)}
+
+
+def test_unresolved_tie_at_cap_is_sound_in_each_direction():
+    # T=10, fixed (0 remaining). O=7 with 1 remaining game against a
+    # filler team -- O's ceiling is EXACTLY 10, a tie with T it can never
+    # exceed. No head-to-head between T and O, and O still has a game
+    # left, so the GD tiebreak between them is genuinely unresolved
+    # (could go either way once final scorelines are known, which this
+    # points-only model can't see).
+    #
+    # Real bug caught live 2026-11-25: a single `_exceeds` helper used
+    # the SAME tiebreak default for both directions, treating this
+    # unresolved tie as "T wins it" even when computing T's WORST case --
+    # silently dropping O as "never a threat" and wrongly showing T as
+    # mathematically guaranteed 1st (bounds == (1, 1)). Best and Worst
+    # are each an existence claim in the OPPOSITE direction for T (does
+    # a scenario exist where T does this well / this badly), so an
+    # unresolved tie must default to T's favor for Best but AGAINST T
+    # for Worst -- never the same default for both.
+    standings = [
+        {"strTeam": "T", "intPoints": 10, "intGoalDifference": 0},
+        {"strTeam": "O", "intPoints": 7, "intGoalDifference": 0},
+        {"strTeam": "W", "intPoints": 0, "intGoalDifference": 0},
+    ]
+    remaining = [{"strHomeTeam": "O", "strAwayTeam": "W"}]
+    bounds = exact_position_bounds(standings, remaining, tiebreakers=["gd"])
+    assert bounds["T"] == (1, 2)  # O stays a live threat to T's worst case
+
+
+def test_provably_resolved_tie_still_resolves_in_both_directions():
+    # Same shape, but both T and O are fully done (0 remaining each) --
+    # the GD tiebreak IS provably fixed now, so it should still resolve
+    # cleanly (and consistently) whichever way the real GD points,
+    # rather than always defaulting to "unresolved" after the fix above.
+    standings_t_ahead = [
+        {"strTeam": "T", "intPoints": 10, "intGoalDifference": 5},
+        {"strTeam": "O", "intPoints": 10, "intGoalDifference": -5},
+    ]
+    assert exact_position_bounds(standings_t_ahead, [], tiebreakers=["gd"])["T"] == (1, 1)
+
+    standings_o_ahead = [
+        {"strTeam": "T", "intPoints": 10, "intGoalDifference": -5},
+        {"strTeam": "O", "intPoints": 10, "intGoalDifference": 5},
+    ]
+    assert exact_position_bounds(standings_o_ahead, [], tiebreakers=["gd"])["T"] == (2, 2)

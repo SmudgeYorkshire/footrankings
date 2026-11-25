@@ -1541,7 +1541,28 @@ def exact_position_bounds(
         others = [o for o in teams if o != t]
 
         def _exceeds(o: str, value: float) -> bool:
-            return value > cap or (value == cap and _tiebreak_winner(o, t) == o)
+            # An exact tie at `cap` is only safe to call either way once the
+            # tiebreak between this specific pair is ALREADY provably fixed
+            # (see _tiebreak_winner/_resolve_tiebreak_between -- it returns
+            # None whenever either team still has games left and the
+            # deciding criterion is a season-total like GD that could still
+            # move). When it's genuinely unresolved, the SOUND default is
+            # different for each direction, because Best and Worst are each
+            # an existence claim in the opposite direction for T: Best
+            # claims a scenario exists where T finishes this well, so an
+            # unresolved tie is assumed to go T's way (nothing disproves
+            # it); Worst claims a scenario exists where T finishes this
+            # badly, so the same unresolved tie must be assumed to go
+            # AGAINST T instead -- otherwise Worst could quietly understate
+            # a real risk (confirmed live 2026-11-25: a rival who could only
+            # ever draw level with T, with GD still unsettled on both
+            # sides, was being dropped entirely as "never a threat",
+            # wrongly showing T as mathematically guaranteed 1st).
+            if value > cap:
+                return True
+            if value < cap:
+                return False
+            return _tiebreak_winner(o, t) == o if minimize else _tiebreak_winner(t, o) != t
 
         locked_above = 0
         contenders: list[str] = []

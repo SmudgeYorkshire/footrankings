@@ -53,25 +53,35 @@ def compute_league_standings():
     ns = {
         "build_h2h": build_h2h,
         "rank_tied_group": rank_tied_group,
-        "_LEAGUE_PHASE_TIEBREAKERS": ["h2h_pts", "h2h_gd", "h2h_gf", "h2h_away_gf", "gd", "gf"],
+        # Mirrors european.py's own _LEAGUE_PHASE_TIEBREAKERS -- UEFA's
+        # real Article 18 order has NO head-to-head criterion at all
+        # (confirmed live 2026-11-25 against documents.uefa.com; an
+        # earlier version of both this fixture and the real constant
+        # wrongly had h2h first, inherited from the old group-stage
+        # rules the new Swiss-model league phase deliberately dropped).
+        "_LEAGUE_PHASE_TIEBREAKERS": ["gd", "gf", "away_gf", "wins", "away_wins"],
     }
     return _extract_function("european.py", "_compute_league_standings", ns)
 
 
-def test_compute_league_standings_applies_head_to_head(compute_league_standings):
+def test_compute_league_standings_ignores_head_to_head_uses_gd(compute_league_standings):
+    # A and B are tied on points AND head-to-head (they haven't played
+    # each other at all here), but A has the better overall goal
+    # difference -- the real UEFA League Phase rule (Article 18.01) goes
+    # straight from points to GD with no head-to-head step, so A must
+    # rank above B on GD alone.
     matches = [
-        {"strHomeTeam": "A", "strAwayTeam": "B", "intHomeScore": 1, "intAwayScore": 0},
-        {"strHomeTeam": "A", "strAwayTeam": "C", "intHomeScore": 1, "intAwayScore": 1},
-        {"strHomeTeam": "B", "strAwayTeam": "D", "intHomeScore": 2, "intAwayScore": 0},
-        {"strHomeTeam": "B", "strAwayTeam": "E", "intHomeScore": 0, "intAwayScore": 0},
+        {"strHomeTeam": "A", "strAwayTeam": "C", "intHomeScore": 3, "intAwayScore": 0},
+        {"strHomeTeam": "B", "strAwayTeam": "D", "intHomeScore": 1, "intAwayScore": 0},
     ]
     rows = compute_league_standings(matches, {})
     a = next(r for r in rows if r["strTeam"] == "A")
     b = next(r for r in rows if r["strTeam"] == "B")
-    assert (a["Pts"], a["GD"], a["GF"]) == (b["Pts"], b["GD"], b["GF"]), "test setup must be a genuine tie"
+    assert a["Pts"] == b["Pts"], "test setup must be a genuine tie on points"
+    assert a["GD"] > b["GD"], "test setup must be a genuine GD gap"
 
     order = [r["strTeam"] for r in rows if r["strTeam"] in ("A", "B")]
-    assert order == ["A", "B"], "A beat B head-to-head and must rank above them"
+    assert order == ["A", "B"], "A has the better goal difference and must rank above B"
 
 
 def test_compute_league_standings_ranks_are_contiguous(compute_league_standings):
