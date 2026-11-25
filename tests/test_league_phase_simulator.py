@@ -20,6 +20,7 @@ from league_phase_simulator import (
     assign_pots,
     generate_league_phase_schedule,
     build_predicted_bracket,
+    league_phase_bonus,
 )
 
 
@@ -167,3 +168,36 @@ def test_build_predicted_bracket_excludes_real_results_from_the_override(monkeyp
         real_results={key: (2, 0)}, comp_name="Champions League",
     )
     assert calls == [{key}]
+
+
+def test_league_phase_bonus_matches_uefa_reference_table():
+    # Spot-checked against the user's own reference "UEFA Bonus Points
+    # Table" image (2026-11-25) at the four points where each
+    # competition's formula changes slope or floors out: rank 1 (the
+    # maximum), rank 9 (where the Conference League's own slope
+    # changes), rank 24 (the last ranking-bonus-eligible position before
+    # the flat floor), and rank 25 (first flat-floor rank).
+    cases = [
+        ("Champions League", 1, 12.000), ("Champions League", 9, 10.000),
+        ("Champions League", 24, 6.250), ("Champions League", 25, 6.000),
+        ("Europa League", 1, 6.000), ("Europa League", 9, 4.000),
+        ("Europa League", 24, 0.250), ("Europa League", 25, 0.000),
+        ("Conference League", 1, 4.000), ("Conference League", 9, 2.000),
+        ("Conference League", 24, 0.125), ("Conference League", 25, 0.000),
+    ]
+    for comp, rank, expected in cases:
+        assert round(league_phase_bonus(rank, comp), 3) == expected, (comp, rank)
+
+
+def test_league_phase_bonus_matches_coefficients_live_own_copy():
+    # This formula is duplicated (not imported) in coefficients_live.py's
+    # own _league_phase_bonus -- used by the LIVE bonus-crediting
+    # functions, while this one feeds the Monte Carlo PREDICTIONS (see
+    # country_ranking_simulator.py's module docstring for why they're
+    # deliberately separate code paths). They must still agree on every
+    # value, or the live and predicted bonus numbers would silently
+    # diverge.
+    from coefficients_live import _league_phase_bonus
+    for comp in ("Champions League", "Europa League", "Conference League"):
+        for rank in range(1, 37):
+            assert league_phase_bonus(rank, comp) == _league_phase_bonus(rank, comp), (comp, rank)
