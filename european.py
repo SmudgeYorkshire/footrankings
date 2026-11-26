@@ -1398,77 +1398,52 @@ if tab_points_needed is not None:
             st.divider()
             st.markdown("#### 🔒 Mathematically secured right now")
             st.caption(
-                "Not a simulated estimate -- the points total that guarantees a Top 8/Top 24 finish "
-                "no matter how every other remaining match in the League Phase goes, based on "
-                "today's real standings, each club's own games still to play, and -- once the real "
-                "fixture list is known -- which of the biggest remaining threats still play each "
-                "other directly (two clubs can't both win that match)."
+                "Not a simulated estimate -- the LOWEST points total any real club has needed, right "
+                "now, to already have a Top 8/Top 24 finish mathematically guaranteed (from the same "
+                "exact engine the per-club table below uses), not a general claim that any OTHER club "
+                "reaching that same total would automatically be safe too -- two clubs on identical "
+                "points can have different guarantees, since it also depends on which specific "
+                "opponents each one still has left to play."
             )
             # _lp_played (canonical names, matching _field/_real_schedule),
-            # not lp_played (raw API spelling) -- _pn_own_max below looks
-            # these up by _field's own canonical "team" names, which
-            # silently returned 0 for any club whose raw and canonical
-            # spelling diverge (see the Manual Predictions "Updated
-            # standings" fix just above for the full story, same root
-            # cause, caught live 2026-11-26).
+            # not lp_played (raw API spelling) -- silently returned 0 for
+            # any club whose raw and canonical spelling diverge (see the
+            # Manual Predictions "Updated standings" fix just above for the
+            # full story, same root cause, caught live 2026-11-26).
             _pn_cur_standings = _compute_league_standings(_lp_played, badge_lookup)
             _pn_cur_pts = {r["strTeam"]: r["Pts"] for r in _pn_cur_standings}
-            _pn_games_played = {r["strTeam"]: r["P"] for r in _pn_cur_standings}
-            _pn_own_max = {
-                f["team"]: _pn_cur_pts.get(f["team"], 0) + 3 * (_pn_games - _pn_games_played.get(f["team"], 0))
-                for f in _field
-            }
-            _pn_max_possible = sorted(_pn_own_max.values(), reverse=True)
 
             def _pn_secure_points(cutoff: int) -> int | None:
-                """1 + the tighter of two upper bounds on how high a "secure"
-                cut-off could need to be:
+                """The lowest CURRENT points among clubs _lp_bounds (the
+                same exact_position_bounds engine as Current Standings'
+                own Best/Worst and the per-club table right below this)
+                has already proven secured for `cutoff` -- directly
+                derived from it, not re-approximated, so this headline
+                number can never disagree with the per-club table sitting
+                right underneath it.
 
-                (a) the (cutoff+1)-th highest OWN max-possible-points across
-                the field (each club's own remaining games all won) -- at
-                most `cutoff` clubs total could ever reach beyond this, on
-                their own form alone.
+                An earlier version of this metric used its own separate,
+                cruder heuristic (pooled ceilings, clash-aware only among
+                the cutoff+1 highest-ceiling clubs) instead of the exact
+                engine -- sound (never wrongly claimed a lower total was
+                safe) but not exact, and NOT comparable to a specific
+                club's own exact proof: a team-agnostic pooled-ceiling
+                check can't see that a particular club's own remaining
+                fixtures hand ITS specific opponents free points in ITS
+                own worst-case construction, which is exactly the kind of
+                per-schedule effect that can make one club secure Top 24
+                several points earlier than this blanket heuristic
+                thought possible. Caught live 2026-11-27: Brighton (10
+                points) already proven secured in the per-club table,
+                while this metric still read 11 -- the two could never
+                have agreed, by construction.
 
-                (b) a head-to-head-aware bound for the (cutoff+1) clubs with
-                the highest own max: two of them can't BOTH win if they still
-                play each other, so (a) overstates how many of them could
-                truly hit a high total simultaneously when several of the
-                game's biggest remaining threats share a direct fixture --
-                confirmed live 2026-10-20, a "Top 24 secured at 22" read as
-                implausibly high precisely because it ignored this. Subtract
-                3 points (6 claimed independently, 3 truly available) per
-                remaining fixture strictly between two of these (cutoff+1)
-                clubs from their combined own-max total, then floor-divide by
-                (cutoff+1): if even split evenly among just this group, not
-                all of them could reach above that average, so at most
-                `cutoff` of THEM (the group most likely to threaten the
-                cut-off) can really get there. Needs the real fixture list
-                (_real_schedule_ready) to know who actually plays whom; falls
-                back to (a) alone otherwise.
-
-                None if even a maximum season (every remaining game won) by
-                EVERY club wouldn't separate out a safe cutoff yet (too early
-                in the League Phase for anything to be truly nailed on)."""
-                if len(_pn_max_possible) <= cutoff:
-                    return None
-                bound = _pn_max_possible[cutoff]
-
-                if _real_schedule_ready:
-                    _pn_contenders = sorted(_field, key=lambda f: -_pn_own_max[f["team"]])[:cutoff + 1]
-                    _pn_contender_names = {f["team"] for f in _pn_contenders}
-                    _pn_mutual_games = sum(
-                        1 for fx in _real_schedule
-                        if (fx["strHomeTeam"], fx["strAwayTeam"]) not in _real_results
-                        and fx["strHomeTeam"] in _pn_contender_names
-                        and fx["strAwayTeam"] in _pn_contender_names
-                    )
-                    _pn_group_total = (
-                        sum(_pn_own_max[f["team"]] for f in _pn_contenders) - 3 * _pn_mutual_games
-                    )
-                    bound = min(bound, _pn_group_total // (cutoff + 1))
-
-                secure = bound + 1
-                return secure if secure <= _pn_max_pts else None
+                None if no club has secured this cutoff yet."""
+                secured_points = [
+                    _pn_cur_pts.get(t, 0) for t, (_best, worst) in (_lp_bounds or {}).items()
+                    if worst <= cutoff
+                ]
+                return min(secured_points) if secured_points else None
 
             _pn_secure8 = _pn_secure_points(8)
             _pn_secure24 = _pn_secure_points(24)
