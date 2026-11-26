@@ -1148,7 +1148,22 @@ if tab_manual is not None:
 
                 st.divider()
                 st.markdown("### Updated standings")
-                _computed = _compute_league_standings(lp_played + _user_matches, badge_lookup)
+                # _lp_played (this site's own canonical team names, resolved
+                # from the live feed via real_league_phase_results -- see its
+                # own docstring's "Slavia Praha" vs our "Slavia Prague"
+                # example) rather than lp_played (raw, unresolved API-
+                # Football spelling) -- _user_matches/_manual_remaining both
+                # come from this same tab's editor, which is built from
+                # _unplayed_schedule (derive_fixtures()'s own canonical
+                # names). Mixing lp_played's raw names into a standings list
+                # that exact_position_bounds then had to match against
+                # _manual_remaining's canonical ones silently dropped every
+                # fixture whose two spellings didn't line up -- caught live
+                # 2026-11-26 as Manual Predictions showing a materially
+                # better Worst than Current Standings/League Stage
+                # Predictions even with zero predictions entered (Real
+                # Madrid: 12 here vs the correct ~20 everywhere else).
+                _computed = _compute_league_standings(_lp_played + _user_matches, badge_lookup)
                 _manual_remaining = [
                     {"strHomeTeam": _row["Home"], "strAwayTeam": _row["Away"]}
                     for _, _row in _edited_df[~_filled_mask].iterrows()
@@ -1156,7 +1171,7 @@ if tab_manual is not None:
                 with st.spinner("Computing exact position bounds…"):
                     _manual_bounds = exact_position_bounds(
                         [{**r, "intPoints": r["Pts"]} for r in _computed],
-                        _manual_remaining, lp_played + _user_matches, _LEAGUE_PHASE_TIEBREAKERS,
+                        _manual_remaining, _lp_played + _user_matches, _LEAGUE_PHASE_TIEBREAKERS,
                     )
 
                 def _manual_zone_bg(pos: int) -> str:
@@ -1389,7 +1404,14 @@ if tab_points_needed is not None:
                 "fixture list is known -- which of the biggest remaining threats still play each "
                 "other directly (two clubs can't both win that match)."
             )
-            _pn_cur_standings = _compute_league_standings(lp_played, badge_lookup)
+            # _lp_played (canonical names, matching _field/_real_schedule),
+            # not lp_played (raw API spelling) -- _pn_own_max below looks
+            # these up by _field's own canonical "team" names, which
+            # silently returned 0 for any club whose raw and canonical
+            # spelling diverge (see the Manual Predictions "Updated
+            # standings" fix just above for the full story, same root
+            # cause, caught live 2026-11-26).
+            _pn_cur_standings = _compute_league_standings(_lp_played, badge_lookup)
             _pn_cur_pts = {r["strTeam"]: r["Pts"] for r in _pn_cur_standings}
             _pn_games_played = {r["strTeam"]: r["P"] for r in _pn_cur_standings}
             _pn_own_max = {
